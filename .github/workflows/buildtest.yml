@@ -16,7 +16,7 @@ jobs:
         
         include:
         - platform: "ubuntu-latest"
-          cmake-flags: "-G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang"
+          cmake-flags: "-G Ninja -DCMAKE_INSTALL_PREFIX=dist"
           dependencies: "sudo apt install ninja-build"
     
       # Don't abort runners if a single one fails
