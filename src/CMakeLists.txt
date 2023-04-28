@@ -18,6 +18,8 @@ add_library(rego
 )
 
 target_link_libraries(rego
+  snmallocshim-static
+  re2::re2
   CLI11::CLI11
   trieste::trieste
 )

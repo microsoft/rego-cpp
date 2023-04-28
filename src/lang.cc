@@ -36,18 +36,18 @@ namespace rego
   std::vector<PassCheck> passes()
   {
     return {
-      {"input_data", input_data(), wf_pass_input_data()},
-      {"modules", modules(), wf_pass_modules()},
-      {"lists", lists(), wf_pass_lists()},
-      {"structure", structure(), wf_pass_structure()},
-      {"multiply_divide", multiply_divide(), wf_pass_multiply_divide()},
-      {"add_subtract", add_subtract(), wf_pass_add_subtract()},
-      {"comparison", comparison(), wf_pass_comparison()},
-      {"merge_data", merge_data(), wf_pass_merge_data()},
-      {"merge_modules", merge_modules(), wf_pass_merge_modules()},
-      {"rules", rules(), wf_pass_rules()},
-      {"convert_modules", convert_modules(), wf_pass_convert_modules()},
-      {"query", query(), wf_pass_query()},
+      {"input_data", input_data(), wf_pass_input_data},
+      {"modules", modules(), wf_pass_modules},
+      {"lists", lists(), wf_pass_lists},
+      {"structure", structure(), wf_pass_structure},
+      {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
+      {"add_subtract", add_subtract(), wf_pass_add_subtract},
+      {"comparison", comparison(), wf_pass_comparison},
+      {"merge_data", merge_data(), wf_pass_merge_data},
+      {"merge_modules", merge_modules(), wf_pass_merge_modules},
+      {"rules", rules(), wf_pass_rules},
+      {"convert_modules", convert_modules(), wf_pass_convert_modules},
+      {"query", query(), wf_pass_query},
     };
   }
 
@@ -57,20 +57,20 @@ namespace rego
     static Driver d(
       "rego",
       parser(),
-      wf_parser(),
+      wf_parser,
       {
-        {"input_data", input_data(), wf_pass_input_data()},
-        {"modules", modules(), wf_pass_modules()},
-        {"lists", lists(), wf_pass_lists()},
-        {"structure", structure(), wf_pass_structure()},
-        {"multiply_divide", multiply_divide(), wf_pass_multiply_divide()},
-        {"add_subtract", add_subtract(), wf_pass_add_subtract()},
-        {"comparison", comparison(), wf_pass_comparison()},
-        {"merge_data", merge_data(), wf_pass_merge_data()},
-        {"merge_modules", merge_modules(), wf_pass_merge_modules()},
-        {"rules", rules(), wf_pass_rules()},
-        {"convert_modules", convert_modules(), wf_pass_convert_modules()},
-        {"query", query(), wf_pass_query()},
+        {"input_data", input_data(), wf_pass_input_data},
+        {"modules", modules(), wf_pass_modules},
+        {"lists", lists(), wf_pass_lists},
+        {"structure", structure(), wf_pass_structure},
+        {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
+        {"add_subtract", add_subtract(), wf_pass_add_subtract},
+        {"comparison", comparison(), wf_pass_comparison},
+        {"merge_data", merge_data(), wf_pass_merge_data},
+        {"merge_modules", merge_modules(), wf_pass_merge_modules},
+        {"rules", rules(), wf_pass_rules},
+        {"convert_modules", convert_modules(), wf_pass_convert_modules},
+        {"query", query(), wf_pass_query},
       });
     return d;
   }

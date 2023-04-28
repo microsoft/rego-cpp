@@ -6,20 +6,20 @@ namespace rego
 {
   using namespace wf::ops;
 
-  inline constexpr auto wf_number = Int | Float;
+  inline const auto wf_number = Int | Float;
 
-  inline constexpr auto wf_literal = Int | Float | Bool | String | Null;
+  inline const auto wf_literal = Int | Float | Bool | String | Null;
 
-  inline constexpr auto wf_math_op = Add | Subtract | Multiply | Divide;
+  inline const auto wf_math_op = Add | Subtract | Multiply | Divide;
 
-  inline constexpr auto wf_comp_op = Equals | NotEquals | LessThan |
+  inline const auto wf_comp_op = Equals | NotEquals | LessThan |
     LessThanOrEquals | GreaterThan | GreaterThanOrEquals;
 
-  inline constexpr auto wf_parse_tokens = wf_literal | wf_math_op | wf_comp_op |
+  inline const auto wf_parse_tokens = wf_literal | wf_math_op | wf_comp_op |
     Package | Ident | Brace | Square | RuleSeq | Dot | Paren;
 
   // clang-format off
-  inline constexpr auto wf_parser =
+  inline const auto wf_parser =
       (Top <<= Policy)
     | (Policy <<= Query * Input * DataSeq * ModuleSeq)
     | (Input <<= File | Undefined)
@@ -39,7 +39,7 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline constexpr auto wf_pass_input_data =
+  inline const auto wf_pass_input_data =
     wf_parser
     | (DataSeq <<= Data++)
     | (Input <<= Ident * Brace)[Ident]
@@ -47,11 +47,11 @@ namespace rego
     ;
   // clang-format on
 
-  inline constexpr auto wf_modules_tokens =
+  inline const auto wf_modules_tokens =
     wf_literal | wf_math_op | wf_comp_op | Paren | Ident | Brace | Square | Dot;
 
   // clang-format off
-  inline constexpr auto wf_pass_modules =
+  inline const auto wf_pass_modules =
     wf_pass_input_data
     | (ModuleSeq <<= Module++)
     | (Module <<= Ident * RuleSeq)[Ident]
@@ -60,7 +60,7 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline constexpr auto wf_pass_lists =
+  inline const auto wf_pass_lists =
     wf_pass_modules
     | (Brace <<= KeyValueList | BraceList)
     | (KeyValueList <<= KeyValue++)
@@ -70,11 +70,11 @@ namespace rego
     ;
   // clang-format on
 
-  inline constexpr auto wf_structure_tokens =
+  inline const auto wf_structure_tokens =
     wf_literal | Array | Ref | Object | Expression;
 
   // clang-format off
-  inline constexpr auto wf_pass_structure =
+  inline const auto wf_pass_structure =
     wf_pass_lists
     | (Query <<= wf_structure_tokens)
     | (Input <<= Ident * TopKeyValueList)[Ident]
@@ -95,11 +95,11 @@ namespace rego
     ;
   // clang-format on
 
-  inline constexpr auto wf_math_tokens =
+  inline const auto wf_math_tokens =
     wf_comp_op | wf_number | Ref | Math | Expression;
 
   // clang-format off
-  inline constexpr auto wf_pass_multiply_divide =
+  inline const auto wf_pass_multiply_divide =
     wf_pass_structure
     | (Math <<= (Op >>= Multiply | Divide) * Expression * Expression)
     | (Expression <<= (Add | Subtract | wf_math_tokens)++[1])
@@ -107,17 +107,17 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline constexpr auto wf_pass_add_subtract =
+  inline const auto wf_pass_add_subtract =
     wf_pass_multiply_divide
     | (Math <<= (Op >>= wf_math_op) * Expression * Expression)
     | (Expression <<= (Subtract | wf_math_tokens)++[1])
     ;
   // clang-format on
 
-  inline constexpr auto wf_comp_tokens = wf_number | Ref | Math | Comparison;
+  inline const auto wf_comp_tokens = wf_number | Ref | Math | Comparison;
 
   // clang-format off
-  inline constexpr auto wf_pass_comparison =
+  inline const auto wf_pass_comparison =
     wf_pass_add_subtract
     | (Comparison <<= (Op >>= wf_comp_op) * Expression * Expression)
     | (Expression <<= wf_comp_tokens)
@@ -125,7 +125,7 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline constexpr auto wf_pass_merge_data =
+  inline const auto wf_pass_merge_data =
     wf_pass_comparison
     | (Policy <<= Query * Input * Data * ModuleSeq)
     | (Data <<= Ident * TopKeyValueList)[Ident]
@@ -133,7 +133,7 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline constexpr auto wf_pass_merge_modules =
+  inline const auto wf_pass_merge_modules =
     wf_pass_merge_data
     | (Policy <<= Query * Input * Data)
     | (Module <<= Rule++)
@@ -141,11 +141,11 @@ namespace rego
     ;
   // clang-format on
 
-  inline constexpr auto wf_rules_tokens =
+  inline const auto wf_rules_tokens =
     wf_literal | Array | Object | Undefined;
 
   // clang-format off
-  inline constexpr auto wf_pass_rules =
+  inline const auto wf_pass_rules =
     wf_pass_merge_modules
     | (Query <<= wf_rules_tokens)
     | (Rule <<= Ident * (Value >>= wf_rules_tokens) * RuleSeq)[Ident]
@@ -156,7 +156,7 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline constexpr auto wf_pass_convert_modules =
+  inline const auto wf_pass_convert_modules =
     wf_pass_rules
     | (Query <<= wf_rules_tokens)
     | (TopKeyValue <<= Key * (Value >>= wf_rules_tokens))[Key]
@@ -165,7 +165,7 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline constexpr auto wf_pass_query =
+  inline const auto wf_pass_query =
     wf_pass_convert_modules
     | (Top <<= wf_rules_tokens)
     ;
