@@ -105,7 +105,7 @@ namespace rego
         [](Match& _) { return _(Error); },
 
       T(KeyValue) << T(Error)[Error] >> [](Match& _) { return _(Error); },
-    
+
       In(Expression) * (NotANumber[Value] * Any) >>
         [](Match& _) {
           return err(_(Value), "invalid value for an expression");
@@ -128,13 +128,14 @@ namespace rego
         [](Match& _) { return err(_(Index), "Empty index"); },
 
       In(Index)[Index] * (Any * Any) >>
-        [](Match& _) { return err(_(Index), "Index only supports a single argument");},
+        [](Match& _) {
+          return err(_(Index), "Index only supports a single argument");
+        },
 
       In(Index)[Index] * !IndexArg[Arg] >>
-        [](Match& _) { return err(_(Arg), "Not a valid index argument");},
+        [](Match& _) { return err(_(Arg), "Not a valid index argument"); },
 
-      In(Index) * (Any * T(Error)[Error]) >>
-        [](Match& _) { return _(Error); },
+      In(Index) * (Any * T(Error)[Error]) >> [](Match& _) { return _(Error); },
 
       T(Index) << T(Error)[Error] >> [](Match& _) { return _(Error); },
     };
