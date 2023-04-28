@@ -141,8 +141,7 @@ namespace rego
     ;
   // clang-format on
 
-  inline const auto wf_rules_tokens =
-    wf_literal | Array | Object | Undefined;
+  inline const auto wf_rules_tokens = wf_literal | Array | Object | Undefined;
 
   // clang-format off
   inline const auto wf_pass_rules =

@@ -91,7 +91,7 @@ namespace rego
 
   Parse parser();
   Driver& driver();
-  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed &>;
+  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed&>;
   std::vector<PassCheck> passes();
   std::string to_json(const Node& node);
   Node merge_lists(const Node& lhs, const Node& rhs);
