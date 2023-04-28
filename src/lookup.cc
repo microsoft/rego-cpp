@@ -49,7 +49,7 @@ namespace rego
     const Node lhs = lookup->front();
     const Node rhs = lookup->back();
 
-    // std::cout << "lhs: " << lhs << "rhs: " << rhs << std::endl;
+    // std::cerr << "lhs: " << lhs << "rhs: " << rhs << std::endl;
 
     Node container;
     if (lhs->type() == Lookup)
@@ -61,7 +61,7 @@ namespace rego
       container = singleton_value(lhs->lookup());
     }
 
-    // std::cout << "container: " << container->type() << std::endl;
+    // std::cerr << "container: " << container << std::endl;
 
     if (
       container->type() == Error || container->type() == Undefined ||
@@ -100,7 +100,7 @@ namespace rego
       result = singleton_value(container->lookdown(rhs->location()));
     }
 
-    // std::cout << "result: " << result->type() << std::endl;
+    // std::cerr << "result: " << result->type() << std::endl;
 
     return result;
   }

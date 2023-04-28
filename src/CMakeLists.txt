@@ -18,6 +18,8 @@ add_library(rego
 )
 
 target_link_libraries(rego
+  snmallocshim-static
+  re2::re2
   CLI11::CLI11
   trieste::trieste
 )
@@ -45,9 +47,12 @@ while(${tests_length} GREATER 0)
   list(POP_FRONT tests_list test_name test_args test_regex)
   string(REPLACE "\t" ";" test_args_list ${test_args})
   add_test(NAME ${test_name}
-           COMMAND ./bin/rego_interpreter ${test_args_list}
-           WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX})
+           COMMAND rego_interpreter ${test_args_list}
+           WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_interpreter>)
   set_tests_properties(${test_name} PROPERTIES
            PASS_REGULAR_EXPRESSION "^${test_regex}")
   list(LENGTH tests_list tests_length)
 endwhile()
+
+add_custom_command(TARGET rego_interpreter POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/examples $<TARGET_FILE_DIR:rego_interpreter>/examples)

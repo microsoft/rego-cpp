@@ -46,7 +46,7 @@ int main(int argc, char** argv)
   CLI::App app;
 
   auto parser = rego::parser();
-  auto wfParser = rego::wf_parser();
+  auto wfParser = rego::wf_parser;
   std::vector<rego::PassCheck> passes(rego::passes());
 
   parser.executable(argv[0]);

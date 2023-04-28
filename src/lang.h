@@ -73,6 +73,7 @@ namespace rego
   inline constexpr auto Head = TokenDef("head");
   inline constexpr auto Tail = TokenDef("tail");
   inline constexpr auto Value = TokenDef("value");
+  inline constexpr auto Arg = TokenDef("arg");
 
   inline auto err(NodeRange& r, const std::string& msg)
   {
@@ -91,7 +92,7 @@ namespace rego
 
   Parse parser();
   Driver& driver();
-  using PassCheck = std::tuple<std::string, Pass, wf::WellformedF>;
+  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed&>;
   std::vector<PassCheck> passes();
   std::string to_json(const Node& node);
   Node merge_lists(const Node& lhs, const Node& rhs);

@@ -126,6 +126,18 @@ namespace rego
 
       T(Index)[Index] << End >>
         [](Match& _) { return err(_(Index), "Empty index"); },
+
+      In(Index)[Index] * (Any * Any) >>
+        [](Match& _) {
+          return err(_(Index), "Index only supports a single argument");
+        },
+
+      In(Index)[Index] * !IndexArg[Arg] >>
+        [](Match& _) { return err(_(Arg), "Not a valid index argument"); },
+
+      In(Index) * (Any * T(Error)[Error]) >> [](Match& _) { return _(Error); },
+
+      T(Index) << T(Error)[Error] >> [](Match& _) { return _(Error); },
     };
   }
 }

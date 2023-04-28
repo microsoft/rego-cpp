@@ -28,7 +28,7 @@ namespace rego
         [](Match& _) {
           auto defs = _(Id)->lookup();
           auto rule = defs.front();
-          return rule->at(1);
+          return rule->at(1)->clone();
         },
 
       T(Ref) << T(Lookup)[Lookup]([](auto& n) { return can_replace(n); }) >>
@@ -40,7 +40,7 @@ namespace rego
             value = module_to_object(value);
           }
 
-          return value;
+          return value->clone();
         },
 
       T(RuleValue) << Result[Value] >> [](Match& _) { return _(Value); },
