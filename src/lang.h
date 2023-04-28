@@ -73,6 +73,7 @@ namespace rego
   inline constexpr auto Head = TokenDef("head");
   inline constexpr auto Tail = TokenDef("tail");
   inline constexpr auto Value = TokenDef("value");
+  inline constexpr auto Arg = TokenDef("arg");
 
   inline auto err(NodeRange& r, const std::string& msg)
   {
