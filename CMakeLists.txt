@@ -5,9 +5,6 @@ cmake_minimum_required(VERSION 3.15)
 
 include(FetchContent)
 
-set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_C_COMPILER clang)
-
 set( REGO_CPP_VERSION 0.1.1 )
 message("Configure REGO_CPP_VERSION at ${REGO_CPP_VERSION}")
 
@@ -30,17 +27,23 @@ if(NOT trieste_POPULATED)
 endif()
 
 
-find_program(CLANG_FORMAT NAMES clang-format-10 clang-format-14 REQUIRED )
-file(GLOB_RECURSE ALL_SOURCE_FILES CONFIGURE_DEPENDS
-      src/*.cc
-      src/*.h
-)
+find_program(CLANG_FORMAT NAMES clang-format-10 clang-format-14 )
 
-add_custom_target(regocpp_format
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                  COMMAND ${CLANG_FORMAT}
-                  -i
-                  ${ALL_SOURCE_FILES})
+string(COMPARE EQUAL ${CLANG_FORMAT} "CLANG_FORMAT-NOTFOUND" CLANG_FORMAT_NOT_FOUND)
+if(CLANG_FORMAT_NOT_FOUND)
+  message("regocpp_format target not defined: no clang-format tool found")
+else()
+  file(GLOB_RECURSE ALL_SOURCE_FILES CONFIGURE_DEPENDS
+        src/*.cc
+        src/*.h
+  )
+
+  add_custom_target(regocpp_format
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    COMMAND ${CLANG_FORMAT}
+                    -i
+                    ${ALL_SOURCE_FILES})
+endif()
 
 enable_testing()
 
