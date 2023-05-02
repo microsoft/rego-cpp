@@ -14,14 +14,14 @@ namespace rego
     p("start",
       {
         // end of file terminates
-        "\n$" >>
+        "\r*\n$" >>
           [](auto& m) {
             m.term({Assign});
             m.pop(RuleSeq);
           },
 
         // A newline sometimes terminates.
-        "\n([[:blank:]]*)" >>
+        "\r*\n([[:blank:]]*)" >>
           [](auto& m) {
             if (m.in(List))
             {

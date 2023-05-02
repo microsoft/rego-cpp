@@ -13,28 +13,40 @@ interpereter on top of the experimental term rewriter
 
 ## Getting Started
 
-> **Note**
-> At the moment we only support Linux, though we intend to support all major platforms
-> once we support all the major language features.
-
 First you will need to install the build dependencies in the manner appropriate to
 your system:
 
-1. `clang++`
-2. `clang-format`
-3. `ninja`
-4. `cmake`
+1. `cmake`
+2. `ninja` (optional)
+3. `clang++` (optional)
+4. `clang-format` (optional)
 
-Then, create a build directory and initialize the cmake project:
+> **Note**
+> 2-4 are entirely optional (i.e. the build does not require them) but will produce
+> the most reliable results. Our CI currently tests the following configurations:
+> 1. Windows latest with MSBuild
+> 2. Ubuntu latest with Ninja/Clang
+
+Create a build directory and initialize the cmake project:
 
     mkdir build
     cd build
-    cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Debug
+    cmake .. -DCMAKE_INSTALL_PREFIX=dist
 
-Then, use Ninja to build the project, after which you can run the tests:
+You can then build and run the tests using:
+
+    cmake --build . --config Debug --target INSTALL
+    ctest -C Debug
+
+If you wish to use Ninja, then be sure to pass `-G Ninja` as well when configuring the project.
+Then:
 
     ninja install
-    ctest
+    ctest -C Debug
+
+Similarly, if you want to use clang you can indicate this by passing `-DCMAKE_CXX_COMPILER=clang++`
+during configuration.
+
 
 The interpreter will be located at `build/dist/bin/rego_interpreter`. Here are
 some example commands using the provided example files:
