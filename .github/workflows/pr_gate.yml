@@ -40,3 +40,22 @@ jobs:
       - name: CMake test
         working-directory: ${{github.workspace}}/build
         run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: CMake config
+        run: |
+          cmake -B ${{github.workspace}}/build
+      
+      - name: CMake build
+        working-directory: ${{github.workspace}}/build
+        run: cmake --build . --config Release
+      
+      - name: CMake test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
