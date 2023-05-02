@@ -44,6 +44,10 @@ Then:
     ninja install
     ctest -C Debug
 
+Similarly, if you want to use clang you can indicate this by passing `-DCMAKE_CXX_COMPILER=clang++`
+during configuration.
+
+
 The interpreter will be located at `build/dist/bin/rego_interpreter`. Here are
 some example commands using the provided example files:
 

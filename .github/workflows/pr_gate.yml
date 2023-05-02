@@ -31,7 +31,7 @@ jobs:
           sudo apt-get install ninja-build
 
       - name: CMake config
-        run: cmake -B ${{github.workspace}}/build -GNinja -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B ${{github.workspace}}/build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
 
       - name: CMake build
         working-directory: ${{github.workspace}}/build
