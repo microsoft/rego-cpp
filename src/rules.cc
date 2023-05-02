@@ -2,6 +2,12 @@
 #include "math.h"
 #include "passes.h"
 
+namespace
+{
+  typedef std::map<std::string, trieste::Node> MemosDef;
+  typedef std::shared_ptr<MemosDef> Memos;
+}
+
 namespace rego
 {
   Node module_to_object(const Node module)
@@ -20,6 +26,7 @@ namespace rego
 
   PassDef rules()
   {
+    Memos memos = std::make_shared<MemosDef>();
     return {
       T(Expression) << (Result[Value] * End) >>
         [](Match& _) { return _(Value); },
@@ -31,15 +38,30 @@ namespace rego
           return rule->at(1)->clone();
         },
 
-      T(Ref) << T(Lookup)[Lookup]([](auto& n) { return can_replace(n); }) >>
-        [](Match& _) {
+      T(Ref) << T(Lookup)[Lookup]([memos](auto& n) {
+        Node node = *n.first;
+        std::string key = std::string(node->location().view());
+        if (memos->count(key))
+        {
+          return true;
+        }
+
+        return can_replace(n);
+      }) >>
+        [memos](Match& _) {
           auto lookup = _(Lookup);
-          auto value = search(lookup);
-          if (value->type() == Module)
+          std::string key = std::string(lookup->location().view());
+          if (memos->count(key) == 0)
           {
-            value = module_to_object(value);
+            auto result = search(lookup);
+            if (result->type() == Module)
+            {
+              result = module_to_object(result);
+            }
+            memos->insert(std::make_pair(key, result->clone()));
           }
 
+          auto value = memos->at(key)->clone();
           return value->clone();
         },
 
