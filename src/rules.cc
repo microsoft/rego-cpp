@@ -10,6 +10,10 @@ namespace
 
 namespace rego
 {
+  const inline auto Number = T(JSONInt) / T(JSONFloat);
+  const inline auto Truthy =
+    Number / T(JSONNull) / T(String) / T(Object) / T(Array);
+
   Node module_to_object(const Node module)
   {
     Node object = Node(Object);
@@ -17,8 +21,8 @@ namespace rego
     {
       std::string key(rule->at(0)->location().view());
       Node value = rule->at(1)->clone();
-      Node keyvalue = KeyValue << (Key ^ key) << value;
-      object->push_back(keyvalue);
+      Node object_item = ObjectItem << (String << (JSONString ^ key)) << value;
+      object->push_back(object_item);
     }
 
     return object;
@@ -28,17 +32,7 @@ namespace rego
   {
     Memos memos = std::make_shared<MemosDef>();
     return {
-      T(Expression) << (Result[Value] * End) >>
-        [](Match& _) { return _(Value); },
-
-      T(Ref) << T(Local)[Id]([](auto& n) { return can_replace(n); }) >>
-        [](Match& _) {
-          auto defs = _(Id)->lookup();
-          auto rule = defs.front();
-          return rule->at(1)->clone();
-        },
-
-      T(Ref) << T(Lookup)[Lookup]([memos](auto& n) {
+      T(RefTerm) << T(Ref)[Ref]([memos](auto& n) {
         Node node = *n.first;
         std::string key = std::string(node->location().view());
         if (memos->count(key))
@@ -49,11 +43,11 @@ namespace rego
         return can_replace(n);
       }) >>
         [memos](Match& _) {
-          auto lookup = _(Lookup);
-          std::string key = std::string(lookup->location().view());
+          auto ref = _(Ref);
+          std::string key = std::string(ref->location().view());
           if (memos->count(key) == 0)
           {
-            auto result = search(lookup);
+            auto result = search(ref);
             if (result->type() == Module)
             {
               result = module_to_object(result);
@@ -65,92 +59,158 @@ namespace rego
           return value->clone();
         },
 
-      T(RuleValue) << Result[Value] >> [](Match& _) { return _(Value); },
+      T(RefTerm) << T(Var)[Var]([](auto& n) { return can_replace(n); }) >>
+        [](Match& _) {
+          auto defs = _(Var)->lookup();
+          if (defs.size() == 0)
+          {
+            return Term << Undefined;
+          }
 
-      In(RuleBody) * Truthy >> [](Match&) { return Bool ^ "true"; },
+          auto rule = defs.front();
+          return rule->at(1)->clone();
+        },
 
-      In(RuleBody) * T(Bool, "true") >> [](Match&) -> Node { return {}; },
+      T(Term) << T(Term)[Term] >> [](Match& _) { return _(Term); },
 
-      In(RuleBody) * Falsy >> [](Match&) { return Bool ^ "false"; },
+      T(Literal) << T(Term)[Term] >> [](Match& _) { return _(Term); },
 
-      In(RuleBody) * (Any * T(Bool, "false")) >>
-        [](Match&) { return Bool ^ "false"; },
+      (In(RuleComp) / In(Literal) / In(ObjectItem) / In(Array) / In(RuleBody)) *
+          (T(Expr) << T(Term)[Term]) >>
+        [](Match& _) { return _(Term); },
 
-      T(RuleBody) << End >> [](Match&) { return Node(RuleSeq); },
+      In(Expr) * (T(NumTerm) << Number[Value]) >>
+        [](Match& _) { return Term << (Scalar << _(Value)); },
 
-      T(RuleBody) << (T(Rule)[Head] * T(Rule)++[Tail] * End) >>
-        [](Match& _) { return RuleSeq << _(Head) << _[Tail]; },
+      In(Expr) * (T(NumTerm) << T(Undefined)) >>
+        [](Match&) { return Term << Undefined; },
 
-      T(RuleBody) << T(Bool, "false") >> [](Match&) { return Node(Undefined); },
+      (In(ObjectItem) / In(RuleComp) / In(Literal) / In(RuleBody)) *
+          (T(NumTerm) << Number[Value]) >>
+        [](Match& _) { return Term << (Scalar << _(Value)); },
 
-      T(Rule) << (T(Ident) * Any * T(Undefined)) >>
-        [](Match&) -> Node { return {}; },
+      (In(ObjectItem) / In(RuleComp) / In(Literal) / In(RuleBody)) *
+          (T(NumTerm) << T(Undefined)) >>
+        [](Match&) { return Term << Undefined; },
 
-      T(Math) << (MathOp[Op] * T(Int)[Lhs] * T(Int)[Rhs]) >>
+      (In(Expr) / In(ArithArg)) *
+          (T(UnaryExpr) << (T(NumTerm) << Number[Value])) >>
+        [](Match& _) {
+          auto value = negate(_(Value));
+          return NumTerm << value;
+        },
+
+      (In(Expr) / In(ArithArg)) *
+          (T(UnaryExpr) << (T(NumTerm) << T(Undefined))) >>
+        [](Match&) { return NumTerm << Undefined; },
+
+      T(ArithArg) << T(NumTerm)[NumTerm] >> [](Match& _) { return _(NumTerm); },
+
+      T(ArithArg) << (T(Term) << (T(Scalar) << Number[Value])) >>
+        [](Match& _) { return NumTerm << _(Value); },
+
+      T(ArithArg) << (T(Term) << T(Undefined)) >>
+        [](Match&) { return NumTerm << Undefined; },
+
+      (In(Expr) / In(ArithArg)) *
+          (T(ArithInfix)
+           << ((T(NumTerm) << T(JSONInt)[Lhs]) * ArithToken[Op] *
+               (T(NumTerm) << T(JSONInt)[Rhs]))) >>
         [](Match& _) {
           int lhs = get_int(_(Lhs));
           int rhs = get_int(_(Rhs));
-          return math(_(Op), lhs, rhs);
+          auto value = math(_(Op), lhs, rhs);
+          return NumTerm << value;
         },
 
-      T(Math)
-          << (MathOp[Op] * (T(Int) / T(Float))[Lhs] *
-              (T(Int) / T(Float))[Rhs]) >>
+      (In(Expr) / In(ArithArg)) *
+          (T(ArithInfix)
+           << ((T(NumTerm) << Number[Lhs]) * ArithToken[Op] *
+               (T(NumTerm) << Number[Rhs]))) >>
         [](Match& _) {
           double lhs = get_double(_(Lhs));
           double rhs = get_double(_(Rhs));
-          return math(_(Op), lhs, rhs);
+          auto value = math(_(Op), lhs, rhs);
+          return Term << (Scalar << value);
         },
 
-      T(Math) << (MathOp * Any * T(Undefined)) >>
-        [](Match&) { return Node(Undefined); },
+      (In(Expr) / In(ArithArg)) *
+          (T(ArithInfix)
+           << (Any * ArithToken * (T(NumTerm) << T(Undefined)))) >>
+        [](Match&) { return Term << Undefined; },
 
-      T(Math) << (MathOp * T(Undefined)) >>
-        [](Match&) { return Node(Undefined); },
+      (In(Expr) / In(ArithArg)) *
+          (T(ArithInfix)
+           << ((T(NumTerm) << T(Undefined)) * ArithToken * Any)) >>
+        [](Match&) { return Term << Undefined; },
 
-      T(Comparison) << (CompOp[Op] * T(Int)[Lhs] * T(Int)[Rhs]) >>
+      In(Expr) *
+          (T(BoolInfix)
+           << ((T(NumTerm) << T(JSONInt)[Lhs]) * BoolToken[Op] *
+               (T(NumTerm) << T(JSONInt)[Rhs]))) >>
         [](Match& _) {
           int lhs = get_int(_(Lhs));
           int rhs = get_int(_(Rhs));
-          return compare(_(Op), lhs, rhs);
+          auto value = compare(_(Op), lhs, rhs);
+          return Term << (Scalar << value);
         },
 
-      T(Comparison)
-          << (CompOp[Op] * (T(Int) / T(Float))[Lhs] *
-              (T(Int) / T(Float))[Rhs]) >>
+      In(Expr) *
+          (T(BoolInfix)
+           << ((T(NumTerm) << Number[Lhs]) * BoolToken[Op] *
+               (T(NumTerm) << Number[Rhs]))) >>
         [](Match& _) {
           double lhs = get_double(_(Lhs));
           double rhs = get_double(_(Rhs));
-          return compare(_(Op), lhs, rhs);
+          auto value = compare(_(Op), lhs, rhs);
+          return Term << (Scalar << value);
         },
 
-      T(Comparison) << (CompOp * Any * T(Undefined)) >>
-        [](Match&) { return Node(Undefined); },
+      In(Expr) *
+          (T(BoolInfix) << (Any * BoolToken * (T(NumTerm) << T(Undefined)))) >>
+        [](Match&) { return Term << Undefined; },
 
-      T(Comparison) << (CompOp * T(Undefined)) >>
-        [](Match&) { return Node(Undefined); },
+      In(Expr) *
+          (T(BoolInfix) << ((T(NumTerm) << T(Undefined)) * BoolToken * Any)) >>
+        [](Match&) { return Term << Undefined; },
+
+      In(RuleBodySeq) * (T(RuleBody) << End) >>
+        [](Match&) { return RuleBody << JSONTrue; },
+
+      In(RuleBody) * (T(RuleComp)[RuleComp] << (T(Var) * T(Term)))([](auto& n) {
+        return can_remove(n);
+      }) >>
+        ([](Match&) -> Node { return JSONTrue; }),
+
+      In(RuleBody) * (T(Term) << (T(Scalar) << Any[Value])) >>
+        [](Match& _) { return _(Value); },
+
+      In(RuleBody) * (T(Term) << (T(Array) / T(Object))[Value]) >>
+        [](Match& _) { return _(Value); },
+
+      In(RuleBody) * (T(Term) << T(Undefined)) >>
+        ([](Match&) -> Node { return JSONFalse; }),
+
+      In(RuleBody) * Truthy >> ([](Match&) -> Node { return JSONTrue; }),
+
+      In(RuleBody) * (T(JSONTrue) * T(JSONTrue)) >>
+        ([](Match&) -> Node { return JSONTrue; }),
+
+      In(RuleBody) * ((T(JSONTrue) / T(JSONFalse)) * T(JSONFalse)) >>
+        ([](Match&) -> Node { return JSONFalse; }),
+
+      In(RuleBody) * (T(JSONFalse) * (T(JSONTrue) / T(JSONFalse))) >>
+        ([](Match&) -> Node { return JSONFalse; }),
+
+      In(RuleComp) *
+          (T(RuleBodySeq) << ((T(RuleBody) << (T(JSONTrue) * End)) * End)) >>
+        ([](Match&) -> Node { return JSONTrue; }),
+
+      In(RuleComp) *
+          (T(RuleBodySeq) << ((T(RuleBody) << T(JSONFalse)) * End)) >>
+        ([](Match&) -> Node { return JSONFalse; }),
 
       // errors
-      T(Ref) << T(Local)[Id]([](auto& n) { return !exists(n); }) >>
-        [](Match&) { return Node(Undefined); },
-
-      In(Math) * NotANumber[Value] >>
-        [](Match& _) { return err(_(Value), "not a valid operand"); },
-
-      In(Math) * (Any * T(Error)[Error]) >> [](Match& _) { return _(Error); },
-
-      T(Math) << T(Error)[Error] >> [](Match& _) { return _(Error); },
-
-      In(Comparison) * NotANumber[Value] >>
-        [](Match& _) { return err(_(Value), "not a valid operand"); },
-
-      In(Comparison) * (Any * T(Error)[Error]) >>
-        [](Match& _) { return _(Error); },
-
-      T(Comparison) << T(Error)[Error] >> [](Match& _) { return _(Error); },
-
-      T(Expression) << T(Error)[Error] >> [](Match& _) { return _(Error); },
     };
   }
-
 }

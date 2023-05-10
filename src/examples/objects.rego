@@ -8,4 +8,5 @@ c := null
 d := {"a": a, "x": [b, c]}
 index := 1
 shapes := [rect, cube]
-sites := [{"name": "prod"}, {"name": "smoke1"}, {"name": "dev"}]
+names := ["prod", "smoke1", "dev"]
+sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]

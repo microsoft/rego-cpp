@@ -2,142 +2,155 @@
 
 namespace rego
 {
+  const inline auto ScalarToken =
+    T(JSONInt) / T(JSONFloat) / T(JSONTrue) / T(JSONFalse) / T(JSONNull);
+  const inline auto TermToken = T(Var) / T(Ref) / T(Array) / T(Object);
+  const inline auto ExprToken = T(Term) / ArithToken / BoolToken / T(Expr) /
+    ScalarToken / TermToken / T(JSONString) / T(SquareList) /
+    T(ObjectItemList) / T(Paren);
+
   PassDef structure()
   {
     return {
-      In(Input) * (T(Brace) << T(KeyValueList)[KeyValueList]) >>
-        [](Match& _) { return TopKeyValueList << *_[KeyValueList]; },
-
-      In(Data) * (T(Brace) << T(KeyValueList)[KeyValueList]) >>
-        [](Match& _) { return TopKeyValueList << *_[KeyValueList]; },
-
-      T(Assign)
-          << ((T(Group) << T(Ident)[Id]) * (T(Group)[Group]) *
-              (T(Group) << (T(Brace) << T(BraceList)[BraceList]))) >>
-        [](Match& _) {
-          return Rule << _(Id) << (RuleValue << _(Group))
-                      << (RuleBody << *_[BraceList]);
-        },
-
-      T(Assign)
-          << ((T(Group) << T(Ident)[Id]) *
-              (T(Group) << (T(Brace) << T(BraceList)[BraceList]))) >>
-        [](Match& _) {
-          return Rule << _(Id) << (RuleValue << (Bool ^ "true"))
-                      << (RuleBody << *_[BraceList]);
-        },
-
-      T(Assign) << ((T(Group) << T(Ident)[Id]) * (T(Group)[Group])) >>
-        [](Match& _) {
-          auto empty_body = RuleBody << (Bool ^ "true");
-          return Rule << _(Id) << (RuleValue << _(Group)) << empty_body;
-        },
-
-      In(RuleValue) * T(Group)[Group] >>
-        [](Match& _) { return Expression << *_[Group]; },
-
-      In(RuleBody) * T(Group)[Group] >>
-        [](Match& _) { return Expression << *_[Group]; },
-
       In(Query) * T(Group)[Group] >>
-        [](Match& _) { return Expression << *_[Group]; },
+        [](Match& _) { return Literal << (Expr << *_[Group]); },
 
-      In(Array) * T(Group)[Group] >>
-        [](Match& _) { return Expression << *_[Group]; },
-
-      In(Expression) * (T(Paren) << T(Group)[Group]) >>
-        [](Match& _) { return Expression << *_[Group]; },
-
-      T(KeyValue) << ((T(Group) << (T(String)[Key] * End)) * T(Group)[Group]) >>
+      (In(ObjectItemList) / In(Object)) *
+          (T(ObjectItem)
+           << ((T(Group) << T(JSONString)[JSONString]) * T(Group)[Group])) >>
         [](Match& _) {
-          std::string key(_(Key)->location().view());
-          key = key.substr(1, key.size() - 2);
-          return KeyValue << (Key ^ key) << (Expression << *_[Group]);
+          return ObjectItem << (Scalar << (String << _(JSONString)))
+                            << (Expr << *_[Group]);
         },
 
-      In(TopKeyValueList) *
-          (T(KeyValue) << (T(Key)[Key] * T(Expression)[Value])) >>
-        [](Match& _) { return TopKeyValue << _(Key) << _(Value); },
-
-      In(Expression) * (LookupLhs[Lhs] * T(Dot) * T(Ident)[Rhs]) >>
-        [](Match& _) { return Lookup << _(Lhs) << _(Rhs); },
-
-      In(Expression) *
-          (LookupLhs[Lhs] * (T(Square) << T(SquareList)[SquareList])) >>
-        [](Match& _) { return Lookup << _(Lhs) << (Index << *_[SquareList]); },
-
-      In(Index) * (T(Group)[Group]) >>
-        [](Match& _) { return Expression << *_[Group]; },
-
-      In(Expression) * T(Lookup)[Lookup] >>
-        [](Match& _) { return Ref << _(Lookup); },
-
-      In(Expression) * T(Ident)[Id] >>
+      In(Expr) * (T(Var)[Lhs] * T(Dot) * T(Var)[Rhs]) >>
         [](Match& _) {
-          std::string local(_(Id)->location().view());
-          return Ref << (Local ^ local);
+          return Ref << _(Lhs) << (RefArgSeq << (RefArgDot << _(Rhs)));
         },
 
-      T(Expression) << (NotANumber[Value] * End) >>
-        [](Match& _) { return _(Value); },
+      In(Expr) * (T(Var)[Lhs] * T(SquareList)[SquareList]) >>
+        [](Match& _) {
+          return Ref << _(Lhs)
+                     << (RefArgSeq << (RefArgBrack << *_[SquareList]));
+        },
 
-      T(Square) << T(SquareList)[SquareList] >>
+      In(Expr) *
+          ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) * T(Dot) *
+           T(Var)[Rhs]) >>
+        [](Match& _) {
+          return Ref << _(Lhs)
+                     << (RefArgSeq << *_[RefArgSeq] << (RefArgDot << _(Rhs)));
+        },
+
+      In(Expr) *
+          ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) *
+           T(SquareList)[SquareList]) >>
+        [](Match& _) {
+          return Ref << _(Lhs)
+                     << (RefArgSeq << *_[RefArgSeq]
+                                   << (RefArgBrack << *_[SquareList]));
+        },
+
+      In(Expr) * T(SquareList)[SquareList] >>
         [](Match& _) { return Array << *_[SquareList]; },
 
-      T(Brace) << T(KeyValueList)[KeyValueList] >>
-        [](Match& _) { return Object << *_[KeyValueList]; },
+      In(Expr) * (T(Paren) << T(Group)[Group]) >>
+        [](Match& _) { return Expr << *_[Group]; },
+
+      In(Expr) * T(ObjectItemList)[ObjectItemList] >>
+        [](Match& _) { return Object << *_[ObjectItemList]; },
+
+      In(Array) * (T(Group) << T(Expr)[Expr]) >>
+        [](Match& _) { return _(Expr); },
+
+      In(RefArgBrack) * (T(Group) << T(Var)[Var]) >>
+        [](Match& _) { return _(Var); },
+
+      In(RefArgBrack) * (T(Group) << ScalarToken[Value]) >>
+        [](Match& _) { return Scalar << _(Value); },
+
+      (In(Policy) / In(RuleBody)) *
+          (T(Group) << (T(Var)[Id] * ~T(Assign) * T(BraceList)[BraceList])) >>
+        [](Match& _) {
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadComp
+                              << (AssignOperator << Assign)
+                              << (Expr << (Term << (Scalar << JSONTrue)))))
+                      << (RuleBodySeq << (RuleBody << *_[BraceList]));
+        },
+
+      (In(Policy) / In(RuleBody)) *
+          (T(Group)
+           << (T(Var)[Id] * T(Assign) * ExprToken[Head] * ExprToken++[Tail] *
+               T(BraceList)[BraceList])) >>
+        [](Match& _) {
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadComp << (AssignOperator << Assign)
+                                           << (Expr << _(Head) << _[Tail])))
+                      << (RuleBodySeq << (RuleBody << *_[BraceList]));
+        },
+
+      (In(Policy) / In(RuleBody)) *
+          (T(Group)
+           << (T(Var)[Id] * T(Assign) * ExprToken[Head] * ExprToken++[Tail])) >>
+        [](Match& _) {
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadComp << (AssignOperator << Assign)
+                                           << (Expr << _(Head) << _[Tail])))
+                      << (RuleBodySeq
+                          << (RuleBody
+                              << (Expr << (Term << (Scalar << JSONTrue)))));
+        },
+
+      (In(Array) / In(RuleBody)) * T(Group)[Group] >>
+        [](Match& _) { return Expr << *_[Group]; },
+
+      T(Paren) << (T(Expr)[Expr] * End) >> [](Match& _) { return _(Expr); },
+
+      In(Expr) * T(JSONString)[JSONString] >>
+        [](Match& _) { return Term << (Scalar << (String << _(JSONString))); },
+
+      In(Expr) * ScalarToken[Value] >>
+        [](Match& _) { return Term << (Scalar << _(Value)); },
+
+      In(Expr) * TermToken[Value] >> [](Match& _) { return Term << _(Value); },
 
       // errors
 
-      T(Brace)[Brace] >>
-        [](Match& _) { return err(_(Brace), "invalid brace"); },
+      (In(Data) / In(Input)) * (T(Brace)[Brace] << T(BraceList)) >>
+        [](Match& _) { return err(_(Brace), "Invalid object"); },
 
-      In(RuleSeq) * T(Assign)[Assign] >>
-        [](Match& _) { return err(_(Assign), "invalid assign"); },
+      In(Policy) * T(Expr)[Expr] >>
+        [](Match& _) { return err(_(Expr), "Naked expression in policy"); },
 
-      In(RuleBody) * T(Assign)[Assign] >>
-        [](Match& _) { return err(_(Assign), "invalid assign"); },
+      In(RefArgBrack) * (T(Expr) * T(Expr)[Expr]) >>
+        [](Match& _) {
+          return err(_(Expr), "Multi-dimensional indexing is not supported");
+        },
 
-      In(KeyValue) * (!T(Key)[Lhs] * Any) >>
-        [](Match& _) { return err(_(Lhs), "invalid key"); },
-
-      In(KeyValue) * (T(Key) * T(Error)[Error]) >>
+      (In(Data) / In(Input) / In(DataSeq) / In(Policy) / In(Module) /
+       In(ModuleSeq) / In(Group) / In(RefArgBrack)) *
+          (Any * T(Error)[Error]) >>
         [](Match& _) { return _(Error); },
 
-      T(KeyValue) << T(Error)[Error] >> [](Match& _) { return _(Error); },
-
-      In(Expression) * (NotANumber[Value] * Any) >>
-        [](Match& _) {
-          return err(_(Value), "invalid value for an expression");
-        },
-
-      In(Expression) * (Any * NotANumber[Value]) >>
-        [](Match& _) {
-          return err(_(Value), "invalid value for an expression");
-        },
-
-      In(Expression) * T(Dot)[Dot] >>
-        [](Match& _) { return err(_(Dot), "cannot index this value"); },
-
-      In(Expression) * (Any * T(Error)[Error]) >>
+      (T(Data) / T(Input) / T(DataSeq) / T(Policy) / T(Module) / T(ModuleSeq) /
+       T(Group) / T(RefArgBrack))
+          << T(Error)[Error] >>
         [](Match& _) { return _(Error); },
 
-      T(Expression) << T(Error)[Error] >> [](Match& _) { return _(Error); },
+      In(Expr) * (T(Assign) / T(Dot))[Value] >>
+        [](Match& _) { return err(_(Value), "Invalid expression token"); },
 
-      T(Index)[Index] << End >>
-        [](Match& _) { return err(_(Index), "Empty index"); },
+      In(Expr) * T(BraceList)[BraceList] >>
+        [](Match& _) { return err(_(BraceList), "Invalid object"); },
 
-      In(Index)[Index] * (Any * Any) >>
-        [](Match& _) {
-          return err(_(Index), "Index only supports a single argument");
-        },
+      In(RefArgSeq) * (T(RefArgBrack)[RefArgBrack] << End) >>
+        [](Match& _) { return err(_(RefArgBrack), "Missing index"); },
 
-      In(Index)[Index] * !IndexArg[Arg] >>
-        [](Match& _) { return err(_(Arg), "Not a valid index argument"); },
-
-      In(Index) * (Any * T(Error)[Error]) >> [](Match& _) { return _(Error); },
-
-      T(Index) << T(Error)[Error] >> [](Match& _) { return _(Error); },
+      T(Group)[Group] >> [](Match& _) { return err(_(Group), "Syntax error"); },
     };
   }
 }

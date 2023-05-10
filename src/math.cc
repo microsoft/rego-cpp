@@ -19,6 +19,26 @@ namespace rego
     return node->location().view() == "true";
   }
 
+  Node negate(const Node& node)
+  {
+    if (node->type() == JSONInt)
+    {
+      int value = get_int(node);
+      value *= -1;
+      return JSONInt ^ std::to_string(value);
+    }
+    else if (node->type() == JSONFloat)
+    {
+      double value = get_double(node);
+      value *= -1.0;
+      return JSONFloat ^ std::to_string(value);
+    }
+    else
+    {
+      return err(node, "Invalid argument for negation");
+    }
+  }
+
   Node math(const Node& op, int lhs, int rhs)
   {
     int value;
@@ -48,7 +68,7 @@ namespace rego
       return err(op, "unsupported math operation");
     }
 
-    return Int ^ std::to_string(value);
+    return JSONInt ^ std::to_string(value);
   }
 
   Node math(const Node& op, double lhs, double rhs)
@@ -80,7 +100,7 @@ namespace rego
       return err(op, "unsupported math operation");
     }
 
-    return Float ^ std::to_string(value);
+    return JSONFloat ^ std::to_string(value);
   }
 
   Node compare(const Node& op, int lhs, int rhs)
@@ -117,11 +137,11 @@ namespace rego
 
     if (value)
     {
-      return Bool ^ "true";
+      return JSONTrue ^ "true";
     }
     else
     {
-      return Bool ^ "false";
+      return JSONFalse ^ "false";
     }
   }
 
@@ -159,11 +179,11 @@ namespace rego
 
     if (value)
     {
-      return Bool ^ "true";
+      return JSONTrue ^ "true";
     }
     else
     {
-      return Bool ^ "false";
+      return JSONFalse ^ "false";
     }
   }
 }

@@ -8,13 +8,13 @@ namespace rego
       In(Input) * (T(File) << (T(Group) << T(Brace)[Brace])) >>
         [](Match& _) { return _(Brace); },
 
-      In(Policy) * (T(Input) << T(Brace)[Brace]) >>
-        [](Match& _) { return Input << (Ident ^ "input") << _(Brace); },
+      In(Rego) * (T(Input) << T(Brace)[Brace]) >>
+        [](Match& _) { return Input << (Var ^ "input") << _(Brace); },
 
       In(DataSeq) * (T(File) << (T(Group) << T(Brace)[Brace])) >>
         [](Match& _) { return Data << _(Brace); },
 
-      In(Policy) * (T(Input) << T(Undefined)) >>
+      In(Rego) * (T(Input) << T(Undefined)) >>
         [](Match&) { return Input << Brace; },
 
       // errors
@@ -24,7 +24,7 @@ namespace rego
       In(DataSeq) * T(File)[File] >>
         [](Match& _) { return err(_(File), "Invalid JSON file for data"); },
 
-      In(Policy) * (T(Input)[Input] << T(Error)) >>
+      In(Rego) * (T(Input)[Input] << T(Error)) >>
         [](Match& _) { return err(_(Input), "Invalid input"); },
     };
   }

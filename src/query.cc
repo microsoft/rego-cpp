@@ -5,8 +5,8 @@ namespace rego
   PassDef query()
   {
     return {
-      In(Top) * (T(Policy) << (T(Query) << Result[Rhs])) >>
-        [](Match& _) { return _(Rhs); },
+      In(Top) * (T(Rego) << (T(Query) << T(Term)[Term])) >>
+        [](Match& _) { return _(Term); },
     };
   }
 }

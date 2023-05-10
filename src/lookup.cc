@@ -8,7 +8,7 @@ namespace rego
   {
     if (defs.size() == 0)
     {
-      return Node(Undefined);
+      return Undefined;
     }
     else if (defs.size() > 1)
     {
@@ -16,7 +16,7 @@ namespace rego
     }
 
     auto result = defs[0];
-    if (result->type() == KeyValue || result->type() == TopKeyValue)
+    if (result->type() == ObjectItem || result->type() == DataModule)
     {
       return result->back();
     }
@@ -24,102 +24,129 @@ namespace rego
     {
       return result;
     }
-    else if (result->type() == Rule)
+    else if (result->type() == RuleComp)
     {
-      auto value = result->at(1);
-      auto body = result->at(2);
-      if (body->type() == RuleSeq)
+      auto resolved = result->at(2);
+      if (resolved->type() == RuleBodySeq)
       {
-        return value;
+        return err("rule not resolved");
       }
-      else if (body->type() == Undefined)
+      else if (resolved->type() == JSONTrue)
       {
-        return Node(Undefined);
+        return result->at(1);
       }
       else
       {
-        return err("invalid rule body");
+        return Undefined;
       }
     }
     return err("invalid search result");
   }
 
-  Node search(const Node& lookup)
+  Node search(const Node& ref)
   {
-    const Node lhs = lookup->front();
-    const Node rhs = lookup->back();
+    Node refArgs = ref->back();
 
-    // std::cerr << "lhs: " << lhs << "rhs: " << rhs << std::endl;
+    // std::cout << "ref: " << ref->front() << std::endl;
 
-    Node container;
-    if (lhs->type() == Lookup)
+    Node result = singleton_value(ref->front()->lookup());
+    // std::cout << "result: " << result << std::endl;
+
+    for (auto refArg : *refArgs)
     {
-      container = search(lhs);
-    }
-    else
-    {
-      container = singleton_value(lhs->lookup());
-    }
-
-    // std::cerr << "container: " << container << std::endl;
-
-    if (
-      container->type() == Error || container->type() == Undefined ||
-      container->type() == RuleValue)
-    {
-      return container;
-    }
-
-    Node result;
-    if (rhs->type() == Index)
-    {
-      Node value = rhs->front();
-      if (value->type() == Int)
+      if (result->type() == Error || result->type() == Undefined)
       {
-        size_t index = static_cast<size_t>(get_int(value));
-        if (index < container->size())
+        break;
+      }
+
+      if (result->type() == Term)
+      {
+        result = result->front();
+      }
+
+      // std::cout << "ref-arg: " << refArg << std::endl;
+
+      if (refArg->type() == RefArgDot)
+      {
+        Nodes nodes = result->lookdown(refArg->front()->location());
+        result = singleton_value(nodes);
+      }
+      else if (refArg->type() == RefArgBrack)
+      {
+        Node key = refArg->front();
+        if (key->type() == Term)
         {
-          result = container->at(index);
+          key = key->front();
+        }
+        if (key->type() == Scalar)
+        {
+          Node value = key->front();
+          if (value->type() == JSONInt)
+          {
+            if (result->type() != Array)
+            {
+              return err(result, "Not an array");
+            }
+            size_t index = static_cast<size_t>(get_int(value));
+            if (index < result->size())
+            {
+              result = result->at(index);
+            }
+            else
+            {
+              return err("Index out of range");
+            }
+          }
+          else if (value->type() == String)
+          {
+            result = singleton_value(result->lookdown(value->location()));
+          }
+          else
+          {
+            return err("Invalid index");
+          }
         }
         else
         {
-          result = err("Index out of range");
+          return err("Unsupported ref-brack type");
         }
-      }
-      else if (value->type() == String)
-      {
-        result = singleton_value(container->lookdown(rhs->location()));
       }
       else
       {
-        result = err("Invalid index");
+        return err(refArg, "Unsupported ref arg");
       }
-    }
-    else
-    {
-      result = singleton_value(container->lookdown(rhs->location()));
+
+      // std::cout << "result: " << result << std::endl;
     }
 
-    // std::cerr << "result: " << result->type() << std::endl;
+    if (result->type() == Undefined)
+    {
+      result = Term << Undefined;
+    }
 
     return result;
   }
 
-  bool any_refs(NodeDef& n)
+  bool any_refs(const Node& n)
   {
-    if (n.size() == 0)
+    if (n->type() == Scalar)
     {
       return false;
     }
 
-    if (n.type() == Ref)
+    if (n->type() == Ref || n->type() == Var)
     {
       return true;
     }
 
-    for (auto& child : n)
+    if (n->size() == 0)
     {
-      if (any_refs(*child))
+      return false;
+    }
+
+    for (auto& child : *n)
+    {
+      if (any_refs(child))
       {
         return true;
       }
@@ -133,22 +160,18 @@ namespace rego
     Node node = *n.first;
 
     Node value;
-    if (node->type() == Local)
+    if (node->type() == Var)
     {
       auto defs = node->lookup();
       if (defs.size() == 0)
       {
-        return false;
+        return true;
       }
 
       auto rule = defs.front();
       value = rule->at(1);
-      if (value->type() == Undefined)
-      {
-        std::cout << node << " is undefined" << std::endl;
-      }
     }
-    else if (node->type() == Lookup)
+    else if (node->type() == Ref)
     {
       value = search(node);
     }
@@ -157,14 +180,12 @@ namespace rego
       return false;
     }
 
-    if (
-      value->type() == Expression || value->type() == RuleValue ||
-      value->type() == Error)
+    if (value->type() == Expr || value->type() == Error)
     {
       return false;
     }
 
-    if (any_refs(*value))
+    if (any_refs(value))
     {
       return false;
     }
@@ -177,5 +198,43 @@ namespace rego
     Node node = *n.first;
     auto defs = node->lookup();
     return defs.size() > 0;
+  }
+
+  int count_refs(const Node& node, const Location& name)
+  {
+    if (node->type() == RefTerm)
+    {
+      if (node->front()->location() == name)
+      {
+        return 1;
+      }
+      return 0;
+    }
+
+    if (node->size() == 0)
+    {
+      return 0;
+    }
+
+    int sum = 0;
+    for (auto child : *node)
+    {
+      sum += count_refs(child, name);
+    }
+    return sum;
+  }
+
+  bool can_remove(const NodeRange& n)
+  {
+    Node rule = *n.first;
+    if (rule->parent()->type() != RuleBody)
+    {
+      return false;
+    }
+
+    auto root = rule->parent()->parent()->parent()->shared_from_this();
+    int ref_count = count_refs(root, rule->front()->location());
+
+    return ref_count == 0;
   }
 }

@@ -6,19 +6,16 @@ namespace rego
   PassDef merge_modules()
   {
     return {
-      In(ModuleSeq) * (T(Module) << (T(Ident)[Id] * T(RuleSeq)[RuleSeq])) >>
-        [](Match& _) {
-          std::string key(_(Id)->location().view());
-          return TopKeyValue << (Key ^ key) << (Module << *_[RuleSeq]);
-        },
+      In(ModuleSeq) * (T(Module) << (T(Var)[Id] * T(Policy)[Policy])) >>
+        [](Match& _) { return DataModule << _(Id) << (Module << *_[Policy]); },
 
-      T(ModuleSeq) << (T(TopKeyValue)++[TopKeyValue] * End) >>
-        [](Match& _) { return Data << (TopKeyValueList << _[TopKeyValue]); },
+      T(ModuleSeq) << (T(DataModule)++[DataModule] * End) >>
+        [](Match& _) { return DataModuleSeq << _[DataModule]; },
 
-      In(Policy) * (T(Data) << (T(Ident) * T(TopKeyValueList)[Lhs])) *
-          (T(Data) << T(TopKeyValueList)[Rhs]) >>
+      In(Rego) * (T(Data) << (T(Var)[Id] * T(ObjectItemList)[ObjectItemList])) *
+          T(DataModuleSeq)[DataModuleSeq] >>
         [](Match& _) {
-          return Data << (Ident ^ "data") << merge_lists(_(Lhs), _(Rhs));
+          return Data << _(Id) << _(ObjectItemList) << _(DataModuleSeq);
         },
     };
   }
