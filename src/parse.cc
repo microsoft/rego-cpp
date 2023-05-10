@@ -14,11 +14,7 @@ namespace rego
     p("start",
       {
         // end of file terminates
-        "\r*\n$" >>
-          [](auto& m) {
-            m.term({Assign});
-            m.pop(RuleSeq);
-          },
+        "\r*\n$" >> [](auto& m) { m.term(); },
 
         // A newline sometimes terminates.
         "\r*\n([[:blank:]]*)" >>
@@ -28,40 +24,30 @@ namespace rego
               return;
             }
 
-            m.term({Assign});
-            if (m.in(Package))
-            {
-              m.term();
-              m.pop(Package);
-              m.push(RuleSeq);
-            }
+            m.term();
           },
 
         // Whitespace between tokens.
         "[[:blank:]]+" >> [](auto&) {},
 
         // terminator
-        ";" >> [](auto& m) { m.term({Assign}); },
+        ";" >> [](auto& m) { m.term(); },
 
         // Assign.
-        ":=" >> [](auto& m) { m.seq(Assign); },
+        ":=" >> [](auto& m) { m.add(Assign); },
 
         // Key/Value
-        ":" >> [](auto& m) { m.seq(KeyValue); },
+        ":" >> [](auto& m) { m.seq(ObjectItem); },
 
         // List
-        "," >> [](auto& m) { m.term({KeyValue}); },
+        "," >> [](auto& m) { m.term({ObjectItem}); },
 
         // Brace.
-        R"((\{)[[:blank:]]*)" >>
-          [](auto& m) {
-            m.term();
-            m.push(Brace, 1);
-          },
+        R"((\{)[[:blank:]]*)" >> [](auto& m) { m.push(Brace, 1); },
 
         R"(\})" >>
           [](auto& m) {
-            m.term({KeyValue});
+            m.term({ObjectItem});
             m.pop(Brace);
           },
 
@@ -85,19 +71,22 @@ namespace rego
 
         // Float.
         R"([[:digit:]]+\.[[:digit:]]+(?:e[+-]?[[:digit:]]+)?\b)" >>
-          [](auto& m) { m.add(Float); },
+          [](auto& m) { m.add(JSONFloat); },
 
         // String.
-        R"("[^"]*")" >> [](auto& m) { m.add(String); },
+        R"("[^"]*")" >> [](auto& m) { m.add(JSONString); },
 
         // Int.
-        R"([[:digit:]]+\b)" >> [](auto& m) { m.add(Int); },
+        R"([[:digit:]]+\b)" >> [](auto& m) { m.add(JSONInt); },
 
-        // Bool.
-        "(?:true|false)\\b" >> [](auto& m) { m.add(Bool); },
+        // True.
+        "true\\b" >> [](auto& m) { m.add(JSONTrue); },
+
+        // False.
+        "false\\b" >> [](auto& m) { m.add(JSONFalse); },
 
         // Null.
-        "null\\b" >> [](auto& m) { m.add(Null); },
+        "null\\b" >> [](auto& m) { m.add(JSONNull); },
 
         // Dot.
         R"(\.)" >> [](auto& m) { m.add(Dot); },
@@ -105,21 +94,14 @@ namespace rego
         // Line comment.
         "#[^\n]*" >> [](auto&) {},
 
-        // Print.
-        R"(print\b)" >> [](auto& m) { m.add(Print); },
-
         // Package.
-        R"(package\b)" >>
-          [](auto& m) {
-            m.term();
-            m.push(Package);
-          },
+        R"(package\b)" >> [](auto& m) { m.add(Package); },
 
         // Query.
         R"(query\b)" >> [](auto& m) { m.add(Query); },
 
         // Identifier.
-        R"([_[:alpha:]][_[:alnum:]]*\b)" >> [](auto& m) { m.add(Ident); },
+        R"([_[:alpha:]][_[:alnum:]]*\b)" >> [](auto& m) { m.add(Var); },
 
         // Add ('+' is a reserved RegEx character)
         R"(\+)" >> [](auto& m) { m.add(Add); },
@@ -154,14 +136,15 @@ namespace rego
       });
 
     p.gen({
-      Int >> [](auto& rnd) { return std::to_string(rnd() % 100); },
-      Float >>
+      JSONInt >> [](auto& rnd) { return std::to_string(rnd() % 100); },
+      JSONFloat >>
         [](auto& rnd) {
           std::uniform_real_distribution<> dist(-10.0, 10.0);
           return std::to_string(dist(rnd));
         },
-      Bool >> [](auto& rnd) { return rnd() % 2 ? "true" : "false"; },
-      Null >> [](auto&) { return "null"; },
+      JSONTrue >> [](auto&) { return "true"; },
+      JSONFalse >> [](auto&) { return "false"; },
+      JSONNull >> [](auto&) { return "null"; },
     });
 
     return p;

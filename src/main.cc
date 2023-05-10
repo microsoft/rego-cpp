@@ -75,7 +75,7 @@ int main(int argc, char** argv)
   }
 
   auto ast = NodeDef::create(Top);
-  auto policy = NodeDef::create(rego::Policy);
+  auto policy = NodeDef::create(rego::Rego);
   auto query_src = SourceDef::synthetic(query_expr);
   auto query = parser.sub_parse("query", rego::Query, query_src);
   policy->push_back(query);
@@ -112,10 +112,10 @@ int main(int argc, char** argv)
   auto ok = wfParser.build_st(ast, std::cout);
   ok = wfParser.check(ast, std::cout) && ok;
 
+  write_ast(output, 0, "parse", ast);
   if (!ok)
   {
     ast->errors(std::cout);
-    write_ast(output, 0, "parse", ast);
     return -1;
   }
 
@@ -125,8 +125,9 @@ int main(int argc, char** argv)
     auto [new_ast, count, changes] = pass->run(ast);
     ast = new_ast;
 
-    ok = wf.build_st(ast, std::cout);
-    ok = wf.check(ast, std::cout) && ok;
+    bool build_ok = wf.build_st(ast, std::cout);
+    bool wf_ok = wf.check(ast, std::cout);
+    ok = build_ok && wf_ok;
 
     write_ast(output, i + 1, pass_name, ast);
 
@@ -138,6 +139,10 @@ int main(int argc, char** argv)
     }
   }
 
-  std::cout << rego::to_json(ast->front()) << std::endl;
+  for (auto result : *ast)
+  {
+    std::cout << rego::to_json(result) << std::endl;
+  }
+
   return write_ast(output, passes.size(), std::get<0>(passes.back()), ast);
 }

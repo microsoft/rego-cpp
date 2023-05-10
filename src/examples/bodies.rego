@@ -2,7 +2,7 @@ package bodies
 
 a := 5
 b := 3
-c := true { a; b; a > b }
+c := a + b { a; b; a > b }
 
 d := sum {
     sum := a + b
@@ -19,8 +19,9 @@ f := {
     b > a
 }
 
-g := {
+g {
     h
     i
+    d == a + b
     a < b
 }

@@ -12,6 +12,8 @@ namespace rego
 
   bool get_bool(const Node& node);
 
+  Node negate(const Node& node);
+
   Node math(const Node& op, int lhs, int rhs);
 
   Node math(const Node& op, double lhs, double rhs);

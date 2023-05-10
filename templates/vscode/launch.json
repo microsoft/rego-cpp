@@ -1,0 +1,84 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "scalars",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d", "./examples/scalars.rego",
+        "-q", "data.scalars.greeting",
+      ],
+      "cwd": "${workspaceFolder}/build/dist/",
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "objects",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d", "./examples/objects.rego",
+        "-q", "data.objects.sites[1].name",
+      ],
+      "cwd": "${workspaceFolder}/build/dist/",
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "input_data",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/data0.json",
+        "./examples/data1.json",
+        "./examples/objects.rego",
+        "-i",
+        "./examples/input.json",
+        "-q",
+        "[data.one, input.b, data.objects.sites[1]]",
+      ],
+      "cwd": "${workspaceFolder}/build/dist/",
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "expressions",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/expressions.rego",
+        "-q",
+        "data.expressions.k > 27",
+      ],
+      "cwd": "${workspaceFolder}/build/dist/",
+    },    
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "bodies",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/bodies.rego",
+        "-q",
+        "data.bodies.e",
+      ],
+      "cwd": "${workspaceFolder}/build/dist/",
+    }, 
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "trieste",
+      "program": "${workspaceFolder}/build/dist/bin/rego_trieste",
+      "args": [
+        "test",
+        "-f",
+      ],
+      "cwd": "${workspaceFolder}/build/dist/",
+    },    
+  ]
+}

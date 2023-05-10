@@ -8,31 +8,6 @@
 
 namespace rego
 {
-  Node merge_lists(const Node& lhs, const Node& rhs)
-  {
-    Node list = NodeDef::create(TopKeyValueList);
-    std::set<std::string> keys;
-    for (auto kv : *lhs)
-    {
-      std::string key(kv->front()->location().view());
-      keys.insert(key);
-      list->push_back(kv);
-    }
-
-    for (auto kv : *rhs)
-    {
-      std::string key(kv->front()->location().view());
-      if (keys.count(key))
-      {
-        return err(rhs, "Merge error");
-      }
-
-      list->push_back(kv);
-    }
-
-    return list;
-  }
-
   std::vector<PassCheck> passes()
   {
     return {
@@ -40,13 +15,13 @@ namespace rego
       {"modules", modules(), wf_pass_modules},
       {"lists", lists(), wf_pass_lists},
       {"structure", structure(), wf_pass_structure},
+      {"symbols", symbols(), wf_pass_symbols},
       {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
       {"add_subtract", add_subtract(), wf_pass_add_subtract},
       {"comparison", comparison(), wf_pass_comparison},
       {"merge_data", merge_data(), wf_pass_merge_data},
       {"merge_modules", merge_modules(), wf_pass_merge_modules},
       {"rules", rules(), wf_pass_rules},
-      {"convert_modules", convert_modules(), wf_pass_convert_modules},
       {"query", query(), wf_pass_query},
     };
   }
@@ -63,13 +38,13 @@ namespace rego
         {"modules", modules(), wf_pass_modules},
         {"lists", lists(), wf_pass_lists},
         {"structure", structure(), wf_pass_structure},
+        {"symbols", symbols(), wf_pass_symbols},
         {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
         {"add_subtract", add_subtract(), wf_pass_add_subtract},
         {"comparison", comparison(), wf_pass_comparison},
         {"merge_data", merge_data(), wf_pass_merge_data},
         {"merge_modules", merge_modules(), wf_pass_merge_modules},
         {"rules", rules(), wf_pass_rules},
-        {"convert_modules", convert_modules(), wf_pass_convert_modules},
         {"query", query(), wf_pass_query},
       });
     return d;
@@ -78,40 +53,37 @@ namespace rego
   std::string to_json(const Node& node)
   {
     std::stringstream buf;
-    if (node->type() == Int)
-    {
-      buf << get_int(node);
-    }
-    else if (node->type() == Float)
-    {
-      buf << get_double(node);
-    }
-    else if (node->type() == String)
+    if (node->type() == JSONInt)
     {
       buf << node->location().view();
     }
-    else if (node->type() == Key)
+    else if (node->type() == JSONFloat)
     {
-      buf << '"' << node->location().view() << '"';
+      buf << node->location().view();
     }
-    else if (node->type() == Bool)
+    else if (node->type() == JSONString)
     {
-      if (get_bool(node))
-      {
-        buf << "true";
-      }
-      else
-      {
-        buf << "false";
-      }
+      buf << node->location().view();
     }
-    else if (node->type() == Null)
+    else if (node->type() == JSONTrue)
+    {
+      buf << "true";
+    }
+    else if (node->type() == JSONFalse)
+    {
+      buf << "false";
+    }
+    else if (node->type() == JSONNull)
     {
       buf << "null";
     }
     else if (node->type() == Undefined)
     {
       buf << "undefined";
+    }
+    else if (node->type() == Key)
+    {
+      buf << '"' << node->location().view() << '"';
     }
     else if (node->type() == Array)
     {
@@ -124,7 +96,7 @@ namespace rego
       }
       buf << "]";
     }
-    else if (node->type() == KeyValue)
+    else if (node->type() == ObjectItem)
     {
       auto key = node->front();
       auto value = node->back();
@@ -140,6 +112,11 @@ namespace rego
         sep = ", ";
       }
       buf << "}";
+    }
+    else if (
+      node->type() == String || node->type() == Scalar || node->type() == Term)
+    {
+      return to_json(node->front());
     }
     else
     {

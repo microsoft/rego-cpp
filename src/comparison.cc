@@ -5,37 +5,25 @@ namespace rego
   PassDef comparison()
   {
     return {
-      In(Expression) * (ExpressionArg[Lhs] * CompOp[Op] * ExpressionArg[Rhs]) >>
+      In(Expr) * (ArithInfixArg[Lhs] * BoolToken[Op] * ArithInfixArg[Rhs]) >>
         [](Match& _) {
-          return Comparison << _(Op) << (Expression << _(Lhs))
-                            << (Expression << _[Rhs]);
+          return BoolInfix << (ArithArg << _(Lhs)) << _(Op)
+                           << (ArithArg << _(Rhs));
         },
 
-      In(Expression) *
-          (ExpressionArg[Lhs] * CompOp[Op] * T(Subtract) *
-           ExpressionArg[Rhs]) >>
-        [](Match& _) {
-          auto negate = Math << Multiply << (Expression << (Int ^ "-1"))
-                             << (Expression << _(Rhs));
-          return Comparison << _(Op) << (Expression << _(Lhs))
-                            << (Expression << negate);
-        },
-
-      T(Expression) << T(Expression)[Expression] >>
-        [](Match& _) { return _(Expression); },
+      In(ArithArg) * (T(Expr) << ArithInfixArg[Value]) >>
+        [](Match& _) { return _(Value); },
 
       // errors
 
-      In(Expression) * (Any * T(Error)[Error]) >>
-        [](Match& _) { return _(Error); },
+      In(Expr) * BoolToken[Op] >>
+        [](Match& _) { return err(_(Op), "Invalid comparison"); },
 
-      T(Expression) << T(Error)[Error] >> [](Match& _) { return _(Error); },
+      In(ArithArg) * T(Expr)[Expr] >>
+        [](Match& _) { return err(_(Expr), "Invalid argument"); },
 
-      In(Expression) * (CompOp / T(Subtract))[Op] >>
-        [](Match& _) { return err(_(Op), "invalid comparison."); },
-
-      In(Expression) * (Any * Any[Rhs]) >>
-        [](Match& _) { return err(_(Rhs), "too many values in expression"); },
+      In(Expr) * T(Expr)[Expr] >>
+        [](Match& _) { return err(_(Expr), "Syntax error"); },
     };
   }
 }

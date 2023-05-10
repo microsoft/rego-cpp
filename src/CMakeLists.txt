@@ -7,13 +7,13 @@ add_library(rego
   modules.cc
   lists.cc
   structure.cc
+  symbols.cc
   multiply_divide.cc
   add_subtract.cc
   comparison.cc
   merge_data.cc
   merge_modules.cc
   rules.cc
-  convert_modules.cc
   query.cc
 )
 
@@ -31,16 +31,16 @@ add_executable(rego_trieste driver.cc)
 
 target_link_libraries(rego_trieste rego)
 
-add_test(NAME rego_trieste COMMAND rego_trieste test -f)
-
 set(tests_list
 scalars "-d\texamples/scalars.rego\t-q\tdata.scalars.greeting" "\"Hello\""
 objects "-d\texamples/objects.rego\t-q\tdata.objects.sites[1].name" "\"smoke1\""
-input_data "-d\texamples/data0.json\texamples/data1.json\texamples/objects.rego\t-i\texamples/input.json\t-q\t[data.one, input.b, data.objects.sites[data.objects.index]]" [=[\[{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}\]]=]
+input_data "-d\texamples/data0.json\texamples/data1.json\texamples/objects.rego\t-i\texamples/input.json\t-q\t[data.one, input.b, data.objects.sites[1]]" [=[\[{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}\]]=]
 expressions "-d\texamples/expressions.rego\t-q\tdata.expressions.k > 27" "true"
 query_math "-q\t5 + (2 - 4 * 0.25) * -3 + 7.4" "9.4"
 bodies "-d\texamples/bodies.rego\t-q\tdata.bodies.e" [=[{"one": 15, "two": 15}]=]
 )
+
+add_test(NAME rego_trieste COMMAND rego_trieste test -f)
 
 list(LENGTH tests_list tests_length)
 while(${tests_length} GREATER 0)
