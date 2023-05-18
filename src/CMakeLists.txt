@@ -1,6 +1,5 @@
 add_library(rego
   lang.cc
-  lookup.cc
   math.cc
   parse.cc
   input_data.cc
@@ -13,6 +12,7 @@ add_library(rego
   comparison.cc
   merge_data.cc
   merge_modules.cc
+  rules_engine.cc
   rules.cc
   query.cc
 )
@@ -38,6 +38,7 @@ input_data "-d\texamples/data0.json\texamples/data1.json\texamples/objects.rego\
 expressions "-d\texamples/expressions.rego\t-q\tdata.expressions.k > 27" "true"
 query_math "-q\t5 + (2 - 4 * 0.25) * -3 + 7.4" "9.4"
 bodies "-d\texamples/bodies.rego\t-q\tdata.bodies.e" [=[{"one": 15, "two": 15}]=]
+bodies_undef "-d\texamples/bodies.rego\t-q\tdata.bodies.f" "undefined"
 )
 
 add_test(NAME rego_trieste COMMAND rego_trieste test -f)

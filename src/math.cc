@@ -2,10 +2,10 @@
 
 namespace rego
 {
-  int get_int(const Node& node)
+  std::int64_t get_int(const Node& node)
   {
     std::string text(node->location().view());
-    return std::stoi(text);
+    return std::stoll(text);
   }
 
   double get_double(const Node& node)
@@ -39,9 +39,9 @@ namespace rego
     }
   }
 
-  Node math(const Node& op, int lhs, int rhs)
+  Node math(const Node& op, std::int64_t lhs, std::int64_t rhs)
   {
-    int value;
+    std::int64_t value;
     if (op->type() == Add)
     {
       value = lhs + rhs;
@@ -103,7 +103,7 @@ namespace rego
     return JSONFloat ^ std::to_string(value);
   }
 
-  Node compare(const Node& op, int lhs, int rhs)
+  Node compare(const Node& op, std::int64_t lhs, std::int64_t rhs)
   {
     bool value;
     if (op->type() == Equals)

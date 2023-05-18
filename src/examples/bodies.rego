@@ -16,7 +16,8 @@ e := {"one": x, "two": y + z} {
 }
 
 f := {
-    b > a
+    b < a
+    h < a
 }
 
 g {
