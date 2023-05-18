@@ -2,11 +2,13 @@
 
 #include "lang.h"
 
+#include <cstdint>
+
 namespace rego
 {
   using namespace trieste;
 
-  int get_int(const Node& node);
+  std::int64_t get_int(const Node& node);
 
   double get_double(const Node& node);
 
@@ -14,11 +16,11 @@ namespace rego
 
   Node negate(const Node& node);
 
-  Node math(const Node& op, int lhs, int rhs);
+  Node math(const Node& op, std::int64_t lhs, std::int64_t rhs);
 
   Node math(const Node& op, double lhs, double rhs);
 
-  Node compare(const Node& op, int lhs, int rhs);
+  Node compare(const Node& op, std::int64_t lhs, std::int64_t rhs);
 
   Node compare(const Node& op, double lhs, double rhs);
 

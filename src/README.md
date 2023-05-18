@@ -8,7 +8,10 @@ This Readme is used to track a rough plan of features to add.
 - [x] Multiple modules with static scalar rules
 - [x] Object/Array rules
 - [x] Input, Data nodes, and Expressions
-- [ ] Modify naming to match target grammar
+- [x] Modify naming to match target grammar
+- [x] Resolve rule dependencies using a DAG over the AST
+- [ ] Sets
+- [ ] Objects with variable and reference keys
 - [ ] Rules with > 1 definition
 - [ ] Rule functions
 - [ ] Unification
