@@ -23,7 +23,7 @@ namespace rego
   {
     if (node->type() == JSONInt)
     {
-      int value = get_int(node);
+      std::int64_t value = get_int(node);
       value *= -1;
       return JSONInt ^ std::to_string(value);
     }

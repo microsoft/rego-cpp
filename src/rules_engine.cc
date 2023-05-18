@@ -237,7 +237,7 @@ namespace rego
           return err(refhead, "Not an array");
         }
 
-        long index = get_int(value);
+        std::int64_t index = get_int(value);
         if (index < 0 || static_cast<size_t>(index) >= refhead->size())
         {
           return Term << Undefined;
