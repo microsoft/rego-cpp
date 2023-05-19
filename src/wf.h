@@ -15,7 +15,7 @@ namespace rego
     LessThanOrEquals | GreaterThan | GreaterThanOrEquals;
 
   inline const auto wf_parse_tokens = wf_json | wf_arith_op | wf_bool_op |
-    Package | Var | Brace | Square | Dot | Paren | Assign;
+    Package | Var | Brace | Square | Dot | Paren | Assign | EmptySet | Colon;
 
   // clang-format off
   inline const auto wf_parser =
@@ -26,10 +26,10 @@ namespace rego
     | (ModuleSeq <<= File++)
     | (DataSeq <<= File++)
     | (File <<= Group++)
-    | (Brace <<= (Group | ObjectItem)++)
+    | (Brace <<= (List | Group)++)
     | (Paren <<= Group)
-    | (Square <<= Group++)
-    | (ObjectItem <<= Group * Group)
+    | (Square <<= (Group | List))
+    | (List <<= Group++)
     | (Group <<= wf_parse_tokens++[1])
     ;
   // clang-format on
@@ -44,7 +44,7 @@ namespace rego
   // clang-format on
 
   inline const auto wf_modules_tokens = wf_json | wf_arith_op | wf_bool_op |
-    Paren | Var | Brace | Square | Dot | Assign;
+    Paren | Var | Brace | Square | Dot | Assign | EmptySet;
 
   // clang-format off
   inline const auto wf_pass_modules =
@@ -53,20 +53,25 @@ namespace rego
     | (Module <<= Package * Policy)
     | (Package <<= Var)
     | (Policy <<= Group++)
+    | (List <<= (Group | ObjectItem)++)
+    | (ObjectItem <<= Group * Group)
     | (Group <<= wf_modules_tokens++[1])
     ;
   // clang-format on
 
   inline const auto wf_lists_tokens = wf_json | wf_arith_op | wf_bool_op |
-    Paren | Var | BraceList | ObjectItemList | SquareList | Dot | Assign;
+    Paren | Var | Set | RuleBody | ObjectItemList | Array | Dot | Assign |
+    Object;
 
   // clang-format off
   inline const auto wf_pass_lists =
     wf_pass_modules
+    | (Object <<= ObjectItem++)
     | (ObjectItemList <<= ObjectItem++)
     | (ObjectItem <<= Group * Group)
-    | (SquareList <<= Group++)
-    | (BraceList <<= Group++)
+    | (Array <<= Group++)
+    | (Set <<= Group++)
+    | (RuleBody <<= Group++)
     | (Input <<= Var * ObjectItemList)[Var]
     | (Data <<= ObjectItemList)
     | (Group <<= wf_lists_tokens++[1])
@@ -95,14 +100,15 @@ namespace rego
     | (Literal <<= Expr)
     | (Expr <<= (Term | wf_arith_op | wf_bool_op | Expr)++[1])
     | (AssignOperator <<= Assign)
-    | (Term <<= Ref | Var | Scalar | Array | Object)
+    | (Term <<= Ref | Var | Scalar | Array | Object | Set)
     | (Ref <<= Var * RefArgSeq)
     | (RefArgSeq <<= (RefArgDot | RefArgBrack)++)
     | (RefArgDot <<= Var)
-    | (RefArgBrack <<= Scalar | Var)
+    | (RefArgBrack <<= Scalar | Var | String | Object | Array | Set)
     | (Scalar <<= String | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
     | (String <<= JSONString)
     | (Array <<= Expr++)
+    | (Set <<= Expr++)
     | (Object <<= ObjectItem++)
     | (ObjectItem <<= Scalar * Expr)
     ;
@@ -116,10 +122,10 @@ namespace rego
     | (Policy <<= RuleComp++)
     | (RuleBody <<= (RuleComp | Expr)++)
     | (ObjectItem <<= Key * Expr)[Key]
-    | (Term <<= Scalar | Array | Object)
+    | (Term <<= Scalar | Array | Object | Set)
     | (RefTerm <<= Ref | Var)
     | (NumTerm <<= JSONInt | JSONFloat)
-    | (RefArgBrack <<= Scalar | RefTerm)
+    | (RefArgBrack <<= Scalar | RefTerm | String | Object | Array | Set)
     | (Expr <<= (RefTerm | NumTerm | Term | wf_arith_op | wf_bool_op | Expr)++[1])
     ;
   // clang-format-off
@@ -180,8 +186,9 @@ namespace rego
     | (Query <<= Term++[1])
     | (Module <<= RuleComp++)
     | (RuleComp <<= Var * Term * (Value >>= JSONTrue | JSONFalse))[Var]
-    | (Term <<= Scalar | Array | Object | Undefined)
+    | (Term <<= Scalar | Array | Object | Set | Undefined)
     | (Array <<= Term++)
+    | (Set <<= Term++)
     | (ObjectItem <<= Key * Term)[Key]
     ;
   // clang-format on

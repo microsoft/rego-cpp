@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.15)
 
 include(FetchContent)
 
-set( REGO_CPP_VERSION 0.1.1 )
+set( REGO_CPP_VERSION 0.1.2 )
 message("Configure REGO_CPP_VERSION at ${REGO_CPP_VERSION}")
 
 project(regocpp VERSION ${REGO_CPP_VERSION} LANGUAGES CXX)

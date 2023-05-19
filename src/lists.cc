@@ -5,23 +5,45 @@ namespace rego
   PassDef lists()
   {
     return {
-      T(Brace) << (T(ObjectItem)[ObjectItem] * T(ObjectItem)++[Tail]) >>
-        [](Match& _) { return ObjectItemList << _(ObjectItem) << _[Tail]; },
+      (In(Input) / In(Data)) * (T(Brace) << T(List)[List]) >>
+        [](Match& _) { return ObjectItemList << *_[List]; },
 
-      T(Square) << (T(Group)[Group] * T(Group)++[Tail]) >>
-        [](Match& _) { return SquareList << _(Group) << _[Tail]; },
+      (In(Input) / In(Data)) * (T(Brace) << End) >>
+        ([](Match&) -> Node { return ObjectItemList; }),
 
-      T(Brace) << (T(Group)[Head] * T(Group)++[Tail]) >>
-        [](Match& _) { return BraceList << _(Head) << _[Tail]; },
+      In(Group) *
+          (T(Brace)
+           << (T(List)
+               << (T(ObjectItem)[Head] * T(ObjectItem)++[Tail] * End))) >>
+        [](Match& _) { return Object << _(Head) << _[Tail]; },
 
-      T(Brace) << End >> ([](Match&) -> Node { return ObjectItemList; }),
+      In(Group) * (T(Square) << (T(List)[List] * End)) >>
+        [](Match& _) { return Array << *_[List]; },
 
-      T(Square) << End >> ([](Match&) -> Node { return SquareList; }),
+      In(Group) * (T(Square) << T(Group)[Group]) >>
+        [](Match& _) { return Array << _(Group); },
+
+      In(Group) * (T(Brace) << (T(Group)[Head] * T(Group)++[Tail] * End)) >>
+        [](Match& _) { return RuleBody << _(Head) << _[Tail]; },
+
+      In(Group) * (T(Brace) << (T(List)[List] * End)) >>
+        [](Match& _) { return Set << *_[List]; },
+
+      In(Group) * T(EmptySet) >> ([](Match&) -> Node { return Set; }),
 
       // errors
 
-      (In(Input) / In(Data)) * T(BraceList)[BraceList] >>
-        [](Match& _) { return err(_(BraceList), "invalid object"); },
+      (In(Input) / In(Data)) * T(Brace)[Brace] >>
+        [](Match& _) { return err(_(Brace), "Invalid input/data body"); },
+
+      In(Group) * T(Brace)[Brace] >>
+        [](Match& _) { return err(_(Brace), "Invalid object"); },
+
+      (In(ObjectItemList) / In(Object)) * T(Group)[Group] >>
+        [](Match& _) { return err(_(Group), "Invalid object key/value"); },
+
+      (In(Array) / In(Set)) * T(ObjectItem)[ObjectItem] >>
+        [](Match& _) { return err(_(ObjectItem), "Invalid item"); },
     };
   }
 }

@@ -4,10 +4,10 @@ namespace rego
 {
   const inline auto ScalarToken =
     T(JSONInt) / T(JSONFloat) / T(JSONTrue) / T(JSONFalse) / T(JSONNull);
-  const inline auto TermToken = T(Var) / T(Ref) / T(Array) / T(Object);
+  const inline auto TermToken = T(Var) / T(Ref) / T(Array) / T(Object) / T(Set);
   const inline auto ExprToken = T(Term) / ArithToken / BoolToken / T(Expr) /
-    ScalarToken / TermToken / T(JSONString) / T(SquareList) /
-    T(ObjectItemList) / T(Paren);
+    ScalarToken / TermToken / T(JSONString) / T(Array) / T(Set) / T(Object) /
+    T(Paren);
 
   PassDef structure()
   {
@@ -28,10 +28,9 @@ namespace rego
           return Ref << _(Lhs) << (RefArgSeq << (RefArgDot << _(Rhs)));
         },
 
-      In(Expr) * (T(Var)[Lhs] * T(SquareList)[SquareList]) >>
+      In(Expr) * (T(Var)[Lhs] * T(Array)[Array]) >>
         [](Match& _) {
-          return Ref << _(Lhs)
-                     << (RefArgSeq << (RefArgBrack << *_[SquareList]));
+          return Ref << _(Lhs) << (RefArgSeq << (RefArgBrack << *_[Array]));
         },
 
       In(Expr) *
@@ -44,15 +43,12 @@ namespace rego
 
       In(Expr) *
           ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) *
-           T(SquareList)[SquareList]) >>
+           T(Array)[Array]) >>
         [](Match& _) {
           return Ref << _(Lhs)
                      << (RefArgSeq << *_[RefArgSeq]
-                                   << (RefArgBrack << *_[SquareList]));
+                                   << (RefArgBrack << *_[Array]));
         },
-
-      In(Expr) * T(SquareList)[SquareList] >>
-        [](Match& _) { return Array << *_[SquareList]; },
 
       In(Expr) * (T(Paren) << T(Group)[Group]) >>
         [](Match& _) { return Expr << *_[Group]; },
@@ -69,27 +65,36 @@ namespace rego
       In(RefArgBrack) * (T(Group) << ScalarToken[Value]) >>
         [](Match& _) { return Scalar << _(Value); },
 
+      In(RefArgBrack) * (T(Group) << T(JSONString)[Value]) >>
+        [](Match& _) { return String << _(Value); },
+
+      In(RefArgBrack) * (T(Group) << T(Object)[Object]) >>
+        [](Match& _) { return _(Object); },
+
+      In(RefArgBrack) * (T(Group) << T(Array)[Array]) >>
+        [](Match& _) { return _(Array); },
+
       (In(Policy) / In(RuleBody)) *
-          (T(Group) << (T(Var)[Id] * ~T(Assign) * T(BraceList)[BraceList])) >>
+          (T(Group) << (T(Var)[Id] * T(RuleBody)[RuleBody])) >>
         [](Match& _) {
           return Rule << (RuleHead
                           << _(Id)
                           << (RuleHeadComp
                               << (AssignOperator << Assign)
                               << (Expr << (Term << (Scalar << JSONTrue)))))
-                      << (RuleBodySeq << (RuleBody << *_[BraceList]));
+                      << (RuleBodySeq << _(RuleBody));
         },
 
       (In(Policy) / In(RuleBody)) *
           (T(Group)
            << (T(Var)[Id] * T(Assign) * ExprToken[Head] * ExprToken++[Tail] *
-               T(BraceList)[BraceList])) >>
+               T(RuleBody)[RuleBody])) >>
         [](Match& _) {
           return Rule << (RuleHead
                           << _(Id)
                           << (RuleHeadComp << (AssignOperator << Assign)
                                            << (Expr << _(Head) << _[Tail])))
-                      << (RuleBodySeq << (RuleBody << *_[BraceList]));
+                      << (RuleBodySeq << _(RuleBody));
         },
 
       (In(Policy) / In(RuleBody)) *
@@ -105,7 +110,7 @@ namespace rego
                               << (Expr << (Term << (Scalar << JSONTrue)))));
         },
 
-      (In(Array) / In(RuleBody)) * T(Group)[Group] >>
+      (In(Array) / In(Set) / In(RuleBody)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
       T(Paren) << (T(Expr)[Expr] * End) >> [](Match& _) { return _(Expr); },
@@ -119,9 +124,6 @@ namespace rego
       In(Expr) * TermToken[Value] >> [](Match& _) { return Term << _(Value); },
 
       // errors
-
-      (In(Data) / In(Input)) * (T(Brace)[Brace] << T(BraceList)) >>
-        [](Match& _) { return err(_(Brace), "Invalid object"); },
 
       In(Policy) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Naked expression in policy"); },
@@ -144,11 +146,11 @@ namespace rego
       In(Expr) * (T(Assign) / T(Dot))[Value] >>
         [](Match& _) { return err(_(Value), "Invalid expression token"); },
 
-      In(Expr) * T(BraceList)[BraceList] >>
-        [](Match& _) { return err(_(BraceList), "Invalid object"); },
-
       In(RefArgSeq) * (T(RefArgBrack)[RefArgBrack] << End) >>
         [](Match& _) { return err(_(RefArgBrack), "Missing index"); },
+
+      In(Expr) * T(RuleBody)[RuleBody] >>
+        [](Match& _) { return err(_(RuleBody), "Invalid expression"); },
 
       T(Group)[Group] >> [](Match& _) { return err(_(Group), "Syntax error"); },
     };

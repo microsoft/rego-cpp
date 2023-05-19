@@ -85,7 +85,7 @@ namespace rego
     {
       buf << '"' << node->location().view() << '"';
     }
-    else if (node->type() == Array)
+    else if (node->type() == Array || node->type() == Set)
     {
       buf << "[";
       std::string sep = "";

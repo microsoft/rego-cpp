@@ -6,19 +6,24 @@ This Readme is used to track a rough plan of features to add.
 
 - [x] Single module with static scalar rules
 - [x] Multiple modules with static scalar rules
-- [x] Object/Array rules
+- [x] Objects/Arrays
 - [x] Input, Data nodes, and Expressions
 - [x] Modify naming to match target grammar
 - [x] Resolve rule dependencies using a DAG over the AST
-- [ ] Sets
+- [x] Sets
+- [ ] Not operator
+- [ ] Raw strings
 - [ ] Objects with variable and reference keys
-- [ ] Rules with > 1 definition
+- [ ] Rules with > 1 head/body
 - [ ] Rule functions
 - [ ] Unification
 - [ ] `some` keyword
 - [ ] Array/Set comprehensions
 - [ ] Object comprehensions
 - [ ] `contains` keyword
+- [ ] Python binding
+- [ ] Rust binding
+- [ ] .NET binding
 
 ## Current Supported Grammar
 
@@ -37,7 +42,7 @@ expr            = term | expr-infix | expr-parens | unary-expr
 expr-infix      = expr infix-operator expr
 expr-parens     = "(" expr ")"
 unary-expr      = "-" expr
-term            = ref | var | scalar | array | object
+term            = ref | var | scalar | array | object | set
 infix-operator  = assign-operator | bool-operator | arith-operator
 bool-operator   = "==" | "!=" | "<" | ">" | ">=" | "<="
 arith-operator  = "+" | "-" | "*" | "/"
@@ -52,6 +57,9 @@ string          = STRING
 array           = "[" expr { "," expr } "]"
 object          = "{" object-item { "," object-item } "}"
 object-item     = scalar ":" expr
+set             = empty-set | non-empty-set
+non-empty-set   = "{" expr { "," expr } "}"
+empty-set       = "set(" ")"
 ```
 
 ## v0.52.0 Grammar
