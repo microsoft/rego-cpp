@@ -1,8 +1,10 @@
 #include "rules_engine.h"
 
+#include "lang.h"
 #include "math.h"
 
 #include <queue>
+#include <set>
 
 namespace rego
 {
@@ -106,6 +108,11 @@ namespace rego
     if (node->type() == Array)
     {
       return Term << resolve_array(node);
+    }
+
+    if (node->type() == Set)
+    {
+      return Term << resolve_set(node);
     }
 
     return err(term, "Unsupported term type");
@@ -225,6 +232,26 @@ namespace rego
       {
         node = node->front();
       }
+    }
+
+    if (refhead->type() == Set)
+    {
+      if (node->type() == Object)
+      {
+        node = resolve_object(node);
+      }
+
+      if (node->type() == Array)
+      {
+        node = resolve_array(node);
+      }
+
+      if (node->type() == Set)
+      {
+        node = resolve_set(node);
+      }
+
+      return resolve_set_membership(refhead, node);
     }
 
     if (node->type() == Scalar)
@@ -509,5 +536,52 @@ namespace rego
     }
 
     return false;
+  }
+
+  Node RulesEngineDef::resolve_set(const Node& set)
+  {
+    std::set<std::string> reprs;
+    std::vector<Node> members;
+    for (Node member : *set)
+    {
+      if (member->type() == Expr)
+      {
+        member = resolve_expr(member);
+      }
+
+      std::string repr = to_json(member);
+      if (reprs.find(repr) == reprs.end())
+      {
+        reprs.insert(repr);
+        members.push_back(member);
+      }
+    }
+
+    set->erase(set->begin(), set->end());
+    set->insert(set->end(), members.begin(), members.end());
+    return set;
+  }
+
+  Node RulesEngineDef::resolve_set_membership(
+    const Node& set, const Node& query)
+  {
+    std::set<std::string> reprs;
+    std::string query_repr = to_json(query);
+    for (Node member : *set)
+    {
+      if (member->type() == Expr)
+      {
+        member = resolve_expr(member);
+      }
+
+      std::string repr = to_json(member);
+
+      if (repr == query_repr)
+      {
+        return Term << (Scalar << JSONTrue);
+      }
+    }
+
+    return Term << (Scalar << JSONFalse);
   }
 }

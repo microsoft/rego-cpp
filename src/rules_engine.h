@@ -24,6 +24,7 @@ namespace rego
     Node resolve_refterm(const Node& refterm);
     Node resolve_object(const Node& object);
     Node resolve_array(const Node& array);
+    Node resolve_set(const Node& set);
     Node resolve_query(const Node& query);
     Node resolve_literal(const Node& literal);
     Node resolve_ref(const Node& ref);
@@ -32,6 +33,7 @@ namespace rego
     Node resolve_refhead(const Node& refhead);
     Node resolve_refdot(const Node& refhead, const Node& refdot);
     Node resolve_refbrack(const Node& refhead, const Node& refbrack);
+    Node resolve_set_membership(const Node& set, const Node& query);
     bool is_truthy(const Node& node);
   };
 

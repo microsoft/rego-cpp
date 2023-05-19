@@ -37,17 +37,17 @@ namespace rego
         ":=" >> [](auto& m) { m.add(Assign); },
 
         // Key/Value
-        ":" >> [](auto& m) { m.seq(ObjectItem); },
+        ":" >> [](auto& m) { m.add(Colon); },
 
         // List
-        "," >> [](auto& m) { m.term({ObjectItem}); },
+        "," >> [](auto& m) { m.seq(List); },
 
         // Brace.
         R"((\{)[[:blank:]]*)" >> [](auto& m) { m.push(Brace, 1); },
 
         R"(\})" >>
           [](auto& m) {
-            m.term({ObjectItem});
+            m.term({List});
             m.pop(Brace);
           },
 
@@ -56,7 +56,7 @@ namespace rego
 
         R"(\])" >>
           [](auto& m) {
-            m.term();
+            m.term({List});
             m.pop(Square);
           },
 
@@ -87,6 +87,9 @@ namespace rego
 
         // Null.
         "null\\b" >> [](auto& m) { m.add(JSONNull); },
+
+        // Empty set.
+        R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
 
         // Dot.
         R"(\.)" >> [](auto& m) { m.add(Dot); },

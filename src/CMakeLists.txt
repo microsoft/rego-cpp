@@ -39,6 +39,8 @@ expressions "-d\texamples/expressions.rego\t-q\tdata.expressions.k > 27" "true"
 query_math "-q\t5 + (2 - 4 * 0.25) * -3 + 7.4" "9.4"
 bodies "-d\texamples/bodies.rego\t-q\tdata.bodies.e" [=[{"one": 15, "two": 15}]=]
 bodies_undef "-d\texamples/bodies.rego\t-q\tdata.bodies.f" "undefined"
+sets "-d\texamples/sets.rego\t-q\tdata.sets.string_set" [=[\["four", "two", "one"\]]=]
+sets_membership "-d\texamples/sets.rego\t-q\tdata.sets.m" "true"
 )
 
 add_test(NAME rego_trieste COMMAND rego_trieste test -f)

@@ -10,10 +10,12 @@
       "name": "scalars",
       "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
       "args": [
-        "-d", "./examples/scalars.rego",
-        "-q", "data.scalars.greeting",
+        "-d",
+        "./examples/scalars.rego",
+        "-q",
+        "data.scalars.greeting"
       ],
-      "cwd": "${workspaceFolder}/build/dist/",
+      "cwd": "${workspaceFolder}/build/dist/"
     },
     {
       "type": "lldb",
@@ -21,10 +23,12 @@
       "name": "objects",
       "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
       "args": [
-        "-d", "./examples/objects.rego",
-        "-q", "data.objects.sites[1].name",
+        "-d",
+        "./examples/objects.rego",
+        "-q",
+        "data.objects.sites[1].name"
       ],
-      "cwd": "${workspaceFolder}/build/dist/",
+      "cwd": "${workspaceFolder}/build/dist/"
     },
     {
       "type": "lldb",
@@ -39,9 +43,9 @@
         "-i",
         "./examples/input.json",
         "-q",
-        "[data.one, input.b, data.objects.sites[1]]",
+        "[data.one, input.b, data.objects.sites[1]]"
       ],
-      "cwd": "${workspaceFolder}/build/dist/",
+      "cwd": "${workspaceFolder}/build/dist/"
     },
     {
       "type": "lldb",
@@ -52,10 +56,10 @@
         "-d",
         "./examples/expressions.rego",
         "-q",
-        "data.expressions.k > 27",
+        "data.expressions.k > 27"
       ],
-      "cwd": "${workspaceFolder}/build/dist/",
-    },    
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
     {
       "type": "lldb",
       "request": "launch",
@@ -65,10 +69,23 @@
         "-d",
         "./examples/bodies.rego",
         "-q",
-        "data.bodies.e",
+        "data.bodies.e"
       ],
-      "cwd": "${workspaceFolder}/build/dist/",
-    }, 
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "sets",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/sets.rego",
+        "-q",
+        "data.sets.m"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
     {
       "type": "lldb",
       "request": "launch",
@@ -76,9 +93,9 @@
       "program": "${workspaceFolder}/build/dist/bin/rego_trieste",
       "args": [
         "test",
-        "-f",
+        "-f"
       ],
-      "cwd": "${workspaceFolder}/build/dist/",
-    },    
+      "cwd": "${workspaceFolder}/build/dist/"
+    }
   ]
 }

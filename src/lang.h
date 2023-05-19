@@ -33,6 +33,8 @@ namespace rego
   inline constexpr auto String = TokenDef("string");
   inline constexpr auto Array = TokenDef("array");
   inline constexpr auto Object = TokenDef("object", flag::symtab);
+  inline constexpr auto Set = TokenDef("set");
+  inline constexpr auto EmptySet = TokenDef("empty-set");
   inline constexpr auto ObjectItem = TokenDef("object-item", flag::lookdown);
   inline constexpr auto JSONString = TokenDef("STRING", flag::print);
   inline constexpr auto JSONInt = TokenDef("INT", flag::print);
@@ -93,13 +95,12 @@ namespace rego
 
   // lists
   inline constexpr auto List = TokenDef("list");
-  inline constexpr auto BraceList = TokenDef("brace-list");
-  inline constexpr auto SquareList = TokenDef("square-list");
   inline constexpr auto ObjectItemList = TokenDef("object-item-list");
 
   // parser
   inline constexpr auto Brace = TokenDef("brace");
   inline constexpr auto Dot = TokenDef("dot");
+  inline constexpr auto Colon = TokenDef("colon");
   inline constexpr auto Square = TokenDef("square");
   inline constexpr auto Paren = TokenDef("paren");
 
