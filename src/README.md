@@ -11,9 +11,9 @@ This Readme is used to track a rough plan of features to add.
 - [x] Modify naming to match target grammar
 - [x] Resolve rule dependencies using a DAG over the AST
 - [x] Sets
-- [ ] Not operator
-- [ ] Raw strings
-- [ ] Objects with variable and reference keys
+- [x] Not operator
+- [x] Raw strings
+- [x] Objects with variable and reference keys
 - [ ] Rules with > 1 head/body
 - [ ] Rule functions
 - [ ] Unification
@@ -37,7 +37,7 @@ rule-head-comp  = [ assign-operator expr ]
 rule-body       = "{" rule-body-item {(";" | ( [CR] LR)) rule-body-item } "}"
 rule-body-item  = expr | rule
 query           = literal { ( ";" | ( [CR] LF ) ) literal }
-literal         = expr
+literal         = ( expr | "not" expr )
 expr            = term | expr-infix | expr-parens | unary-expr
 expr-infix      = expr infix-operator expr
 expr-parens     = "(" expr ")"
@@ -53,10 +53,11 @@ ref-arg-brack   = "[" ( scalar | var ) "]"
 ref-arg-dot     = "." var
 var             = ( ALPHA | "_" ) { ALPHA | DIGIT | "_" }
 scalar          = string | NUMBER | TRUE | FALSE | NULL
-string          = STRING
+string          = STRING | raw-string
+raw-string      = "`" { CHAR-"`" } "`"
 array           = "[" expr { "," expr } "]"
 object          = "{" object-item { "," object-item } "}"
-object-item     = scalar ":" expr
+object-item     = (scalar | ref | var) ":" expr
 set             = empty-set | non-empty-set
 non-empty-set   = "{" expr { "," expr } "}"
 empty-set       = "set(" ")"

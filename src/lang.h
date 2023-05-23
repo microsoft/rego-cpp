@@ -19,6 +19,7 @@ namespace rego
   inline constexpr auto Expr = TokenDef("expr");
   inline constexpr auto ExprInfix = TokenDef("expr-infix");
   inline constexpr auto UnaryExpr = TokenDef("unary-expr");
+  inline constexpr auto NotExpr = TokenDef("not-expr");
   inline constexpr auto Term = TokenDef("term");
   inline constexpr auto InfixOperator = TokenDef("infix-operator");
   inline constexpr auto BoolOperator = TokenDef("bool-operator");
@@ -36,6 +37,8 @@ namespace rego
   inline constexpr auto Set = TokenDef("set");
   inline constexpr auto EmptySet = TokenDef("empty-set");
   inline constexpr auto ObjectItem = TokenDef("object-item", flag::lookdown);
+  inline constexpr auto RefObjectItem = TokenDef("ref-object-item");
+  inline constexpr auto RawString = TokenDef("raw-string", flag::print);
   inline constexpr auto JSONString = TokenDef("STRING", flag::print);
   inline constexpr auto JSONInt = TokenDef("INT", flag::print);
   inline constexpr auto JSONFloat = TokenDef("FLOAT", flag::print);
@@ -58,19 +61,21 @@ namespace rego
   inline constexpr auto RuleBodySeq = TokenDef("rule-body-seq");
   inline constexpr auto RefHead = TokenDef("ref-head");
   inline constexpr auto RefArgSeq = TokenDef("ref-arg-seq");
-  inline constexpr auto ObjectItemHead = TokenDef("object-item-head");
   inline constexpr auto DataSeq = TokenDef("data-seq");
   inline constexpr auto ModuleSeq = TokenDef("module-seq");
   inline constexpr auto DataItem = TokenDef("data-item");
   inline constexpr auto DataItemSeq = TokenDef("data-item");
   inline constexpr auto DataModule = TokenDef("data-module", flag::lookdown);
   inline constexpr auto DataModuleSeq = TokenDef("data-module-seq");
+  inline constexpr auto ObjectItemHead = TokenDef("object-item-head");
+  inline constexpr auto ObjectItemSeq = TokenDef("object-item-seq");
 
   // data and input
   inline constexpr auto Input = TokenDef("input", flag::symtab | flag::lookup);
   inline constexpr auto Data = TokenDef("data", flag::symtab | flag::lookup);
 
   // fused
+  // TODO shadowing
   inline constexpr auto RuleComp =
     TokenDef("rule-comp", flag::symtab | flag::lookup | flag::lookdown);
   inline constexpr auto ArithInfix = TokenDef("arith-infix");
@@ -95,7 +100,6 @@ namespace rego
 
   // lists
   inline constexpr auto List = TokenDef("list");
-  inline constexpr auto ObjectItemList = TokenDef("object-item-list");
 
   // parser
   inline constexpr auto Brace = TokenDef("brace");
@@ -103,6 +107,7 @@ namespace rego
   inline constexpr auto Colon = TokenDef("colon");
   inline constexpr auto Square = TokenDef("square");
   inline constexpr auto Paren = TokenDef("paren");
+  inline constexpr auto Not = TokenDef("not");
 
   inline auto err(NodeRange& r, const std::string& msg)
   {

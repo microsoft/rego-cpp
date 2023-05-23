@@ -35,6 +35,11 @@ namespace rego
       return resolve_expr(node);
     }
 
+    if (node->type() == NotExpr)
+    {
+      return resolve_notexpr(node);
+    }
+
     return err(literal, "Unsupported literal type");
   }
 
@@ -92,6 +97,22 @@ namespace rego
     return err(expr, "Unsupported expression type");
   }
 
+  Node RulesEngineDef::resolve_notexpr(const Node& notexpr)
+  {
+    Node value = resolve_expr(notexpr->front());
+    if (value->type() == Error)
+    {
+      return value;
+    }
+
+    if (is_truthy(value))
+    {
+      return Term << (Scalar << JSONFalse);
+    }
+
+    return Term << (Scalar << JSONTrue);
+  }
+
   Node RulesEngineDef::resolve_term(const Node& term)
   {
     Node node = term->front();
@@ -145,7 +166,7 @@ namespace rego
     Nodes defs = var->lookup();
     if (defs.size() == 0)
     {
-      return Term << Undefined;
+      return err(var, "Variable is unsafe");
     }
 
     if (defs.size() > 1)
@@ -179,7 +200,7 @@ namespace rego
     {
       result = resolve_rulecomp(refhead);
     }
-    else if (refhead->type() == ObjectItem)
+    else if (refhead->type() == ObjectItem || refhead->type() == RefObjectItem)
     {
       result = refhead->back();
     }
@@ -208,7 +229,16 @@ namespace rego
   Node RulesEngineDef::resolve_refdot(const Node& refhead, const Node& refdot)
   {
     Node var = refdot->front();
-    Nodes defs = refhead->lookdown(var->location());
+    Nodes defs;
+    if (refhead->type() == Object)
+    {
+      defs = object_lookdown(refhead, var);
+    }
+    else
+    {
+      defs = refhead->lookdown(var->location());
+    }
+
     if (defs.size() == 0)
     {
       return Term << Undefined;
@@ -278,7 +308,7 @@ namespace rego
           return err(refbrack, "Invalid index");
         }
 
-        Nodes brack_defs = refhead->lookdown(value->location());
+        Nodes brack_defs = object_lookdown(refhead, value);
         if (brack_defs.size() == 0)
         {
           return Term << Undefined;
@@ -308,7 +338,7 @@ namespace rego
     Nodes defs = var->lookup();
     if (defs.size() == 0)
     {
-      return Term << Undefined;
+      return err(var, "Reference is unsafe");
     }
 
     if (defs.size() > 1)
@@ -354,9 +384,9 @@ namespace rego
       bool body_ok = true;
       for (Node item : *rulebody)
       {
-        if (item->type() == Expr)
+        if (item->type() == Literal)
         {
-          Node value = resolve_expr(item);
+          Node value = resolve_literal(item);
           if (value->type() == Error)
           {
             return value;
@@ -406,6 +436,13 @@ namespace rego
   {
     for (Node object_item : *object)
     {
+      if (object_item->type() == RefObjectItem)
+      {
+        Node key = object_item->front();
+        Node key_value = resolve_ref(key);
+        object_item->replace(key, key_value);
+      }
+
       Node expr = object_item->back();
       Node value = resolve_expr(expr);
       object_item->replace(expr, value);
@@ -434,6 +471,16 @@ namespace rego
       return Undefined;
     }
 
+    if (lhs->type() == Error)
+    {
+      return lhs;
+    }
+
+    if (rhs->type() == Error)
+    {
+      return rhs;
+    }
+
     if (lhs->type() == JSONInt && rhs->type() == JSONInt)
     {
       return math(op, get_int(lhs), get_int(rhs));
@@ -455,6 +502,16 @@ namespace rego
       return Undefined;
     }
 
+    if (lhs->type() == Error)
+    {
+      return lhs;
+    }
+
+    if (rhs->type() == Error)
+    {
+      return rhs;
+    }
+
     if (lhs->type() == JSONInt && rhs->type() == JSONInt)
     {
       return compare(op, get_int(lhs), get_int(rhs));
@@ -471,6 +528,11 @@ namespace rego
     if (value->type() == Undefined)
     {
       return Undefined;
+    }
+
+    if (value->type() == Error)
+    {
+      return value;
     }
 
     return negate(value);
@@ -583,5 +645,36 @@ namespace rego
     }
 
     return Term << (Scalar << JSONFalse);
+  }
+
+  Nodes RulesEngineDef::object_lookdown(const Node& object, const Node& query)
+  {
+    Nodes defs = object->lookdown(query->location());
+
+    std::string query_str = to_json(query);
+    for (auto& object_item : *object)
+    {
+      if (object_item->type() != RefObjectItem)
+      {
+        continue;
+      }
+
+      Node key = object_item->front();
+      if (key->type() == Ref)
+      {
+        Node value = resolve_ref(key);
+        object_item->replace(key, value);
+        key = value;
+      }
+
+      std::string key_str = to_json(key);
+
+      if (key_str == query_str)
+      {
+        defs.push_back(object_item);
+      }
+    }
+
+    return defs;
   }
 }

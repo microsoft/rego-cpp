@@ -6,6 +6,7 @@ add_library(rego
   modules.cc
   lists.cc
   structure.cc
+  strings.cc
   symbols.cc
   multiply_divide.cc
   add_subtract.cc
@@ -41,6 +42,7 @@ bodies "-d\texamples/bodies.rego\t-q\tdata.bodies.e" [=[{"one": 15, "two": 15}]=
 bodies_undef "-d\texamples/bodies.rego\t-q\tdata.bodies.f" "undefined"
 sets "-d\texamples/sets.rego\t-q\tdata.sets.string_set" [=[\["four", "two", "one"\]]=]
 sets_membership "-d\texamples/sets.rego\t-q\tdata.sets.m" "true"
+var_keys "-d\texamples/objects.rego\t-q\tdata.objects.e[\"dev\"]" "false"
 )
 
 add_test(NAME rego_trieste COMMAND rego_trieste test -f)
