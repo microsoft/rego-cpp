@@ -4,7 +4,7 @@ namespace rego
 {
   Node merge_objects(const Node& lhs, const Node& rhs)
   {
-    Node list = NodeDef::create(ObjectItemList);
+    Node list = NodeDef::create(ObjectItemSeq);
     std::set<std::string> keys;
     for (auto object_item : *lhs)
     {
@@ -41,7 +41,7 @@ namespace rego
         [](Match& _) { return Data << (Var ^ "data") << *_[Data]; },
 
       In(Rego) * (T(DataSeq) << End) >>
-        [](Match&) { return Data << (Var ^ "data") << ObjectItemList; },
+        [](Match&) { return Data << (Var ^ "data") << ObjectItemSeq; },
 
       // errors
 

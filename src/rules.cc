@@ -1,4 +1,3 @@
-#include "math.h"
 #include "passes.h"
 #include "rules_engine.h"
 
@@ -13,10 +12,10 @@ namespace rego
       {
         In(DataModuleSeq) * T(DataModule) >>
           ([](Match&) -> Node { return {}; }),
-        In(Input) * T(ObjectItemList) >>
-          ([](Match&) -> Node { return ObjectItemList; }),
-        In(Data) * T(ObjectItemList) >>
-          ([](Match&) -> Node { return ObjectItemList; }),
+        In(Input) * T(ObjectItemSeq) >>
+          ([](Match&) -> Node { return ObjectItemSeq; }),
+        In(Data) * T(ObjectItemSeq) >>
+          ([](Match&) -> Node { return ObjectItemSeq; }),
       }};
 
     rules.pre(Rego, [rules_engine](Node node) {

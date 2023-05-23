@@ -89,6 +89,19 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "var_keys",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/objects.rego",
+        "-q",
+        "data.objects.e[\"dev\"]"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "trieste",
       "program": "${workspaceFolder}/build/dist/bin/rego_trieste",
       "args": [

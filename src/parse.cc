@@ -74,7 +74,11 @@ namespace rego
           [](auto& m) { m.add(JSONFloat); },
 
         // String.
-        R"("[^"]*")" >> [](auto& m) { m.add(JSONString); },
+        R"("(?:\\(?:["\\\/bfnrt]|u[a-fA-F0-9]{4})|[^"\\\0-\x1F\x7F]+)*")" >>
+          [](auto& m) { m.add(JSONString); },
+
+        // Raw string.
+        R"(`[^`]*`)" >> [](auto& m) { m.add(RawString); },
 
         // Int.
         R"([[:digit:]]+\b)" >> [](auto& m) { m.add(JSONInt); },
@@ -90,6 +94,9 @@ namespace rego
 
         // Empty set.
         R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
+
+        // Not
+        R"(not)" >> [](auto& m) { m.add(Not); },
 
         // Dot.
         R"(\.)" >> [](auto& m) { m.add(Dot); },

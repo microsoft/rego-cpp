@@ -4,10 +4,11 @@
 
 namespace rego
 {
+  const inline auto ScalarToken =
+    T(JSONInt) / T(JSONFloat) / T(JSONTrue) / T(JSONFalse) / T(JSONNull);
   const inline auto ArithToken = T(Add) / T(Subtract) / T(Multiply) / T(Divide);
   const inline auto BoolToken = T(Equals) / T(NotEquals) / T(GreaterThan) /
     T(LessThan) / T(GreaterThanOrEquals) / T(LessThanOrEquals);
-
   const inline auto ArithInfixArg =
     T(Expr) / T(NumTerm) / T(Ref) / T(UnaryExpr) / T(ArithInfix) / T(RefTerm);
 
@@ -24,6 +25,7 @@ namespace rego
   PassDef modules();
   PassDef lists();
   PassDef structure();
+  PassDef strings();
   PassDef symbols();
   PassDef multiply_divide();
   PassDef add_subtract();

@@ -2,6 +2,9 @@
 
 namespace rego
 {
+  const inline auto KeyToken =
+    T(Var) / T(Square) / T(Dot) / ScalarToken / T(RawString) / T(JSONString);
+
   PassDef modules()
   {
     return {
@@ -12,19 +15,15 @@ namespace rego
           return Module << (Package << _(Id)) << (Policy << _[Tail]);
         },
 
-      In(List) *
-          (T(Group) << (Any[Key] * T(Colon) * Any[Head] * Any++[Tail])) >>
+      In(List) * (T(Group) << (KeyToken++[Key] * T(Colon) * Any++[Value])) >>
         [](Match& _) {
-          return ObjectItem << (Group << _(Key))
-                            << (Group << _(Head) << _[Tail]);
+          return ObjectItem << (Group << _[Key]) << (Group << _[Value]);
         },
 
-      In(Brace) *
-          (T(Group) << (Any[Key] * T(Colon) * Any[Head] * Any++[Tail])) >>
+      In(Brace) * (T(Group) << (KeyToken++[Key] * T(Colon) * Any++[Value])) >>
         [](Match& _) {
           return List
-            << (ObjectItem << (Group << _(Key))
-                           << (Group << _(Head) << _[Tail]));
+            << (ObjectItem << (Group << _[Key]) << (Group << _[Value]));
         },
 
       // errors
@@ -37,6 +36,10 @@ namespace rego
         },
 
       In(Group) * T(Colon)[Colon] >>
-        [](Match& _) { return err(_(Colon), "Invalid character"); }};
+        [](Match& _) { return err(_(Colon), "Invalid character"); },
+
+      In(ObjectItem) * (T(Group)[Group] << End) >>
+        [](Match& _) { return err(_(Group), "Invalid key/value pair"); },
+    };
   }
 }

@@ -6,10 +6,10 @@ namespace rego
   {
     return {
       (In(Input) / In(Data)) * (T(Brace) << T(List)[List]) >>
-        [](Match& _) { return ObjectItemList << *_[List]; },
+        [](Match& _) { return ObjectItemSeq << *_[List]; },
 
       (In(Input) / In(Data)) * (T(Brace) << End) >>
-        ([](Match&) -> Node { return ObjectItemList; }),
+        ([](Match&) -> Node { return ObjectItemSeq; }),
 
       In(Group) *
           (T(Brace)
@@ -39,7 +39,7 @@ namespace rego
       In(Group) * T(Brace)[Brace] >>
         [](Match& _) { return err(_(Brace), "Invalid object"); },
 
-      (In(ObjectItemList) / In(Object)) * T(Group)[Group] >>
+      (In(ObjectItemSeq) / In(Object)) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid object key/value"); },
 
       (In(Array) / In(Set)) * T(ObjectItem)[ObjectItem] >>

@@ -2,6 +2,8 @@
 
 namespace rego
 {
+  const inline auto NotArg = ArithInfixArg / T(BoolInfix);
+
   PassDef comparison()
   {
     return {
@@ -11,6 +13,9 @@ namespace rego
                            << (ArithArg << _(Rhs));
         },
 
+      In(Literal) * (T(Expr) << (T(Not) * NotArg[Value])) >>
+        [](Match& _) { return NotExpr << (Expr << _(Value)); },
+
       In(ArithArg) * (T(Expr) << ArithInfixArg[Value]) >>
         [](Match& _) { return _(Value); },
 
@@ -18,6 +23,9 @@ namespace rego
 
       In(Expr) * BoolToken[Op] >>
         [](Match& _) { return err(_(Op), "Invalid comparison"); },
+
+      In(Expr) * T(Not)[Not] >>
+        [](Match& _) { return err(_(Not), "Invalid not"); },
 
       In(ArithArg) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid argument"); },

@@ -1,8 +1,9 @@
 #include "passes.h"
 
+#include <sstream>
+
 namespace rego
 {
-
   PassDef symbols()
   {
     return {
@@ -18,13 +19,28 @@ namespace rego
               T(RuleBodySeq)[RuleBodySeq]) >>
         [](Match& _) { return RuleComp << _(Id) << _(Expr) << _(RuleBodySeq); },
 
-      In(ObjectItem) *
-          (T(Scalar) << (T(String) << T(JSONString)[JSONString])) >>
+      In(ObjectItem) * ((T(ObjectItemHead) << T(Scalar)[Scalar])) >>
         [](Match& _) {
-          std::string key = std::string(_(JSONString)->location().view());
-          key = key.substr(1, key.size() - 2);
+          std::string key = to_json(_(Scalar));
+          if (key.starts_with('"'))
+          {
+            key = key.substr(1, key.size() - 2);
+          }
+
           return Key ^ key;
         },
+
+      In(Object) *
+          (T(ObjectItem)
+           << ((T(ObjectItemHead) << T(Var)[Var]) * T(Expr)[Expr])) >>
+        [](Match& _) {
+          return RefObjectItem << (Ref << _(Var) << RefArgSeq) << _(Expr);
+        },
+
+      In(Object) *
+          (T(ObjectItem)
+           << ((T(ObjectItemHead) << T(Ref)[Ref]) * T(Expr)[Expr])) >>
+        [](Match& _) { return RefObjectItem << _(Ref) << _(Expr); },
 
       In(Expr) * (T(Term) << (T(Ref) / T(Var))[Value]) >>
         [](Match& _) { return RefTerm << _(Value); },
@@ -38,8 +54,8 @@ namespace rego
 
       // errors
 
-      In(ObjectItem) * T(Scalar)[Scalar] >>
-        [](Match& _) { return err(_(Scalar), "Invalid object key"); },
+      In(ObjectItem) * T(ObjectItemHead)[ObjectItemHead] >>
+        [](Match& _) { return err(_(ObjectItemHead), "Invalid object key"); },
     };
   }
 

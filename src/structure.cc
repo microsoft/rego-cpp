@@ -2,12 +2,11 @@
 
 namespace rego
 {
-  const inline auto ScalarToken =
-    T(JSONInt) / T(JSONFloat) / T(JSONTrue) / T(JSONFalse) / T(JSONNull);
   const inline auto TermToken = T(Var) / T(Ref) / T(Array) / T(Object) / T(Set);
   const inline auto ExprToken = T(Term) / ArithToken / BoolToken / T(Expr) /
     ScalarToken / TermToken / T(JSONString) / T(Array) / T(Set) / T(Object) /
-    T(Paren);
+    T(Paren) / T(Not);
+  const inline auto StringToken = T(JSONString) / T(RawString);
 
   PassDef structure()
   {
@@ -15,25 +14,30 @@ namespace rego
       In(Query) * T(Group)[Group] >>
         [](Match& _) { return Literal << (Expr << *_[Group]); },
 
-      (In(ObjectItemList) / In(Object)) *
-          (T(ObjectItem)
-           << ((T(Group) << T(JSONString)[JSONString]) * T(Group)[Group])) >>
+      (In(ObjectItemSeq) / In(Object)) *
+          (T(ObjectItem) << T(Group)[ObjectItemHead] * T(Group)[Expr]) >>
         [](Match& _) {
-          return ObjectItem << (Scalar << (String << _(JSONString)))
-                            << (Expr << *_[Group]);
+          return ObjectItem << (ObjectItemHead << *_[ObjectItemHead])
+                            << (Expr << *_[Expr]);
         },
 
-      In(Expr) * (T(Var)[Lhs] * T(Dot) * T(Var)[Rhs]) >>
+      In(ObjectItemHead) * StringToken[String] >>
+        [](Match& _) { return Scalar << (String << _(String)); },
+
+      In(ObjectItemHead) * ScalarToken[Scalar] >>
+        [](Match& _) { return Scalar << _(Scalar); },
+
+      (In(ObjectItemHead) / In(Expr)) * (T(Var)[Lhs] * T(Dot) * T(Var)[Rhs]) >>
         [](Match& _) {
           return Ref << _(Lhs) << (RefArgSeq << (RefArgDot << _(Rhs)));
         },
 
-      In(Expr) * (T(Var)[Lhs] * T(Array)[Array]) >>
+      (In(ObjectItemHead) / In(Expr)) * (T(Var)[Lhs] * T(Array)[Array]) >>
         [](Match& _) {
           return Ref << _(Lhs) << (RefArgSeq << (RefArgBrack << *_[Array]));
         },
 
-      In(Expr) *
+      (In(ObjectItemHead) / In(Expr)) *
           ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) * T(Dot) *
            T(Var)[Rhs]) >>
         [](Match& _) {
@@ -41,7 +45,7 @@ namespace rego
                      << (RefArgSeq << *_[RefArgSeq] << (RefArgDot << _(Rhs)));
         },
 
-      In(Expr) *
+      (In(ObjectItemHead) / In(Expr)) *
           ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) *
            T(Array)[Array]) >>
         [](Match& _) {
@@ -53,8 +57,8 @@ namespace rego
       In(Expr) * (T(Paren) << T(Group)[Group]) >>
         [](Match& _) { return Expr << *_[Group]; },
 
-      In(Expr) * T(ObjectItemList)[ObjectItemList] >>
-        [](Match& _) { return Object << *_[ObjectItemList]; },
+      In(Expr) * T(ObjectItemSeq)[ObjectItemSeq] >>
+        [](Match& _) { return Object << *_[ObjectItemSeq]; },
 
       In(Array) * (T(Group) << T(Expr)[Expr]) >>
         [](Match& _) { return _(Expr); },
@@ -65,8 +69,8 @@ namespace rego
       In(RefArgBrack) * (T(Group) << ScalarToken[Value]) >>
         [](Match& _) { return Scalar << _(Value); },
 
-      In(RefArgBrack) * (T(Group) << T(JSONString)[Value]) >>
-        [](Match& _) { return String << _(Value); },
+      In(RefArgBrack) * (T(Group) << StringToken[Value]) >>
+        [](Match& _) { return Scalar << (String << _(Value)); },
 
       In(RefArgBrack) * (T(Group) << T(Object)[Object]) >>
         [](Match& _) { return _(Object); },
@@ -101,22 +105,25 @@ namespace rego
           (T(Group)
            << (T(Var)[Id] * T(Assign) * ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
-          return Rule << (RuleHead
-                          << _(Id)
-                          << (RuleHeadComp << (AssignOperator << Assign)
-                                           << (Expr << _(Head) << _[Tail])))
-                      << (RuleBodySeq
-                          << (RuleBody
-                              << (Expr << (Term << (Scalar << JSONTrue)))));
+          return Rule
+            << (RuleHead << _(Id)
+                         << (RuleHeadComp << (AssignOperator << Assign)
+                                          << (Expr << _(Head) << _[Tail])))
+            << (RuleBodySeq
+                << (RuleBody
+                    << (Literal << (Expr << (Term << (Scalar << JSONTrue))))));
         },
 
-      (In(Array) / In(Set) / In(RuleBody)) * T(Group)[Group] >>
+      (In(Array) / In(Set)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
+
+      In(RuleBody) * T(Group)[Group] >>
+        [](Match& _) { return Literal << (Expr << *_[Group]); },
 
       T(Paren) << (T(Expr)[Expr] * End) >> [](Match& _) { return _(Expr); },
 
-      In(Expr) * T(JSONString)[JSONString] >>
-        [](Match& _) { return Term << (Scalar << (String << _(JSONString))); },
+      In(Expr) * StringToken[String] >>
+        [](Match& _) { return Term << (Scalar << (String << _(String))); },
 
       In(Expr) * ScalarToken[Value] >>
         [](Match& _) { return Term << (Scalar << _(Value)); },
@@ -151,6 +158,9 @@ namespace rego
 
       In(Expr) * T(RuleBody)[RuleBody] >>
         [](Match& _) { return err(_(RuleBody), "Invalid expression"); },
+
+      In(ObjectItemHead) * (!(T(Scalar) / T(Var) / T(Ref)))[Key] >>
+        [](Match& _) { return err(_(Key), "Invalid object item key"); },
 
       T(Group)[Group] >> [](Match& _) { return err(_(Group), "Syntax error"); },
     };

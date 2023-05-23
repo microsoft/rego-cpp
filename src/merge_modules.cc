@@ -12,10 +12,10 @@ namespace rego
       T(ModuleSeq) << (T(DataModule)++[DataModule] * End) >>
         [](Match& _) { return DataModuleSeq << _[DataModule]; },
 
-      In(Rego) * (T(Data) << (T(Var)[Id] * T(ObjectItemList)[ObjectItemList])) *
+      In(Rego) * (T(Data) << (T(Var)[Id] * T(ObjectItemSeq)[ObjectItemSeq])) *
           T(DataModuleSeq)[DataModuleSeq] >>
         [](Match& _) {
-          return Data << _(Id) << _(ObjectItemList) << _(DataModuleSeq);
+          return Data << _(Id) << _(ObjectItemSeq) << _(DataModuleSeq);
         },
     };
   }

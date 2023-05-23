@@ -15,6 +15,7 @@ namespace rego
 
   private:
     Node resolve_expr(const Node& expr);
+    Node resolve_notexpr(const Node& expr);
     Node resolve_arithinfix(const Node& exprinfix);
     Node resolve_boolinfix(const Node& exprinfix);
     Node resolve_unaryexpr(const Node& unaryexpr);
@@ -35,6 +36,7 @@ namespace rego
     Node resolve_refbrack(const Node& refhead, const Node& refbrack);
     Node resolve_set_membership(const Node& set, const Node& query);
     bool is_truthy(const Node& node);
+    Nodes object_lookdown(const Node& object, const Node& query);
   };
 
   using RulesEngine = std::shared_ptr<RulesEngineDef>;
