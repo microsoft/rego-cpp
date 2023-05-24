@@ -102,6 +102,21 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "multi",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/bodies.rego",
+        "-i",
+        "./examples/input.json",
+        "-q",
+        "data.bodies.f"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "trieste",
       "program": "${workspaceFolder}/build/dist/bin/rego_trieste",
       "args": [

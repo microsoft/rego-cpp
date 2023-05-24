@@ -11,13 +11,28 @@ namespace rego
           (T(Module) << ((T(Package) << T(Var)[Id]) * T(Policy)[Policy])) >>
         [](Match& _) { return Module << _(Id) << _(Policy); },
 
-      T(Rule)
-          << ((
-                T(RuleHead)
+      In(Policy) *
+          (T(Rule)
+           << ((T(RuleHead)
                 << (T(Var)[Id] *
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
-              T(RuleBodySeq)[RuleBodySeq]) >>
-        [](Match& _) { return RuleComp << _(Id) << _(Expr) << _(RuleBodySeq); },
+               T(RuleBodySeq)[RuleBodySeq])) >>
+        [](Match& _) {
+          Node seq = NodeDef::create(Seq);
+          for (auto& rulebody : *_(RuleBodySeq))
+          {
+            seq->push_back(
+              RuleComp << _(Id)->clone() << _(Expr)->clone() << rulebody);
+          }
+
+          return seq;
+        },
+
+      In(RuleBody) *
+          ((T(RuleHead)
+            << (T(Var)[Id] *
+                (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr]))))) >>
+        [](Match& _) { return LocalRule << _(Id) << _(Expr); },
 
       In(ObjectItem) * ((T(ObjectItemHead) << T(Scalar)[Scalar])) >>
         [](Match& _) {
@@ -56,6 +71,13 @@ namespace rego
 
       In(ObjectItem) * T(ObjectItemHead)[ObjectItemHead] >>
         [](Match& _) { return err(_(ObjectItemHead), "Invalid object key"); },
+
+      In(Term) * T(Ref)[Ref] >>
+        [](Match& _) { return err(_(Ref), "Invalid ref term"); },
+
+      In(Term) * T(Var)[Var] >>
+        [](Match& _) { return err(_(Var), "Invalid var term"); },
+
     };
   }
 

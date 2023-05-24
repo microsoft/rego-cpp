@@ -35,14 +35,17 @@ target_link_libraries(rego_trieste rego)
 set(tests_list
 scalars "-d\texamples/scalars.rego\t-q\tdata.scalars.greeting" "\"Hello\""
 objects "-d\texamples/objects.rego\t-q\tdata.objects.sites[1].name" "\"smoke1\""
-input_data "-d\texamples/data0.json\texamples/data1.json\texamples/objects.rego\t-i\texamples/input.json\t-q\t[data.one, input.b, data.objects.sites[1]]" [=[\[{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}\]]=]
+input_data "-d\texamples/data0.json\texamples/data1.json\texamples/objects.rego\t-i\texamples/input0.json\t-q\t[data.one, input.b, data.objects.sites[1]]" [=[\[{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}\]]=]
 expressions "-d\texamples/expressions.rego\t-q\tdata.expressions.k > 27" "true"
 query_math "-q\t5 + (2 - 4 * 0.25) * -3 + 7.4" "9.4"
-bodies "-d\texamples/bodies.rego\t-q\tdata.bodies.e" [=[{"one": 15, "two": 15}]=]
-bodies_undef "-d\texamples/bodies.rego\t-q\tdata.bodies.f" "undefined"
+bodies "-d\texamples/bodies.rego\t-i\texamples/input0.json\t-q\tdata.bodies.e" [=[{"one": 15, "two": 15}]=]
+bodies_undef "-d\texamples/bodies.rego\t-i\texamples/input0.json\t-q\tdata.bodies.g" "undefined"
 sets "-d\texamples/sets.rego\t-q\tdata.sets.string_set" [=[\["four", "two", "one"\]]=]
 sets_membership "-d\texamples/sets.rego\t-q\tdata.sets.m" "true"
 var_keys "-d\texamples/objects.rego\t-q\tdata.objects.e[\"dev\"]" "false"
+multi0 "-d\texamples/multi.rego\t-i\texamples/input0.json\t-q\tdata.multi.a" "1"
+multi1 "-d\texamples/multi.rego\t-i\texamples/input1.json\t-q\tdata.multi.a" "41"
+multi2 "-d\texamples/multi.rego\t-i\texamples/input2.json\t-q\tdata.multi.a" "70"
 )
 
 add_test(NAME rego_trieste COMMAND rego_trieste test -f)

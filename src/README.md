@@ -14,7 +14,9 @@ This Readme is used to track a rough plan of features to add.
 - [x] Not operator
 - [x] Raw strings
 - [x] Objects with variable and reference keys
-- [ ] Rules with > 1 head/body
+- [x] Rules with > 1 head/body
+- [x] Default keyword
+- [x] Modulo operator
 - [ ] Rule functions
 - [ ] Unification
 - [ ] `some` keyword
@@ -31,7 +33,7 @@ This Readme is used to track a rough plan of features to add.
 module          = package policy
 package         = "package" var
 policy          = { rule }
-rule            = rule-head { rule-body }
+rule            = [ "default" ] rule-head { rule-body }
 rule-head       = var rule-head-comp
 rule-head-comp  = [ assign-operator expr ]
 rule-body       = "{" rule-body-item {(";" | ( [CR] LR)) rule-body-item } "}"
@@ -133,3 +135,10 @@ DIGIT  ASCII characters 0-9
 CR     Carriage Return
 LF     Line Feed
 ```
+
+## Implementation questions
+
+1. Missing/incorrect grammar items
+    - expr vs term
+    - modulo operator
+2. What should the correct behavior be for floating point modulo? (currently undefined)

@@ -92,6 +92,9 @@ namespace rego
         // Null.
         "null\\b" >> [](auto& m) { m.add(JSONNull); },
 
+        // Default.
+        "default\\b" >> [](auto& m) { m.add(Default); },
+
         // Empty set.
         R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
 
@@ -124,6 +127,9 @@ namespace rego
 
         // Divide
         "/" >> [](auto& m) { m.add(Divide); },
+
+        // Modulo
+        "%" >> [](auto& m) { m.add(Modulo); },
 
         // Equals
         "==" >> [](auto& m) { m.add(Equals); },

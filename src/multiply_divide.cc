@@ -2,13 +2,12 @@
 
 namespace rego
 {
+  const inline auto Ops = T(Multiply) / T(Divide) / T(Modulo);
 
   PassDef multiply_divide()
   {
     return {
-      In(Expr) *
-          (ArithInfixArg[Lhs] * (T(Multiply) / T(Divide))[Op] *
-           ArithInfixArg[Rhs]) >>
+      In(Expr) * (ArithInfixArg[Lhs] * Ops[Op] * ArithInfixArg[Rhs]) >>
         [](Match& _) {
           return ArithInfix << (ArithArg << _(Lhs)) << _(Op)
                             << (ArithArg << _(Rhs));
@@ -17,8 +16,7 @@ namespace rego
       T(Expr) << (T(Expr)[Expr] * End) >> [](Match& _) { return _(Expr); },
 
       In(Expr) *
-          (ArithInfixArg[Lhs] * (T(Multiply) / T(Divide))[Op] * T(Subtract) *
-           ArithInfixArg[Rhs]) >>
+          (ArithInfixArg[Lhs] * Ops[Op] * T(Subtract) * ArithInfixArg[Rhs]) >>
         [](Match& _) {
           return ArithInfix
             << (ArithArg << _(Lhs)) << _(Op)
@@ -27,7 +25,7 @@ namespace rego
 
       // errors
 
-      In(Expr) * (T(Multiply) / T(Divide))[Op] >>
+      In(Expr) * Ops[Op] >>
         [](Match& _) { return err(_(Op), "Invalid multiply/divide"); },
     };
   }

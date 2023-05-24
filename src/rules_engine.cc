@@ -163,21 +163,26 @@ namespace rego
 
   Node RulesEngineDef::resolve_var(const Node& var)
   {
-    Nodes defs = var->lookup();
-    if (defs.size() == 0)
+    Node result = lookup(var);
+
+    if (result->type() == Error)
     {
-      return err(var, "Variable is unsafe");
+      return result;
     }
 
-    if (defs.size() > 1)
-    {
-      return err(var, "Multiple values not allowed");
-    }
-
-    Node result = defs.front();
     if (result->type() == RuleComp)
     {
       return resolve_rulecomp(result);
+    }
+
+    if (result->type() == LocalRule)
+    {
+      return resolve_localrule(result);
+    }
+
+    if (result->type() == DefaultRule)
+    {
+      return result->at(1);
     }
 
     return err(result, "Unsupported var");
@@ -199,6 +204,14 @@ namespace rego
     else if (refhead->type() == RuleComp)
     {
       result = resolve_rulecomp(refhead);
+    }
+    else if (refhead->type() == LocalRule)
+    {
+      result = resolve_localrule(refhead);
+    }
+    else if (refhead->type() == DefaultRule)
+    {
+      result = refhead->at(1);
     }
     else if (refhead->type() == ObjectItem || refhead->type() == RefObjectItem)
     {
@@ -228,26 +241,7 @@ namespace rego
 
   Node RulesEngineDef::resolve_refdot(const Node& refhead, const Node& refdot)
   {
-    Node var = refdot->front();
-    Nodes defs;
-    if (refhead->type() == Object)
-    {
-      defs = object_lookdown(refhead, var);
-    }
-    else
-    {
-      defs = refhead->lookdown(var->location());
-    }
-
-    if (defs.size() == 0)
-    {
-      return Term << Undefined;
-    }
-    if (defs.size() > 1)
-    {
-      return err(var, "Multiple values not allowed");
-    }
-    return defs.front();
+    return lookdown(refhead, refdot->front());
   }
 
   Node RulesEngineDef::resolve_refbrack(
@@ -258,6 +252,11 @@ namespace rego
     if (node->type() == RefTerm)
     {
       node = resolve_refterm(node);
+      if (node->type() == Error)
+      {
+        return node;
+      }
+
       if (node->type() == Term)
       {
         node = node->front();
@@ -335,18 +334,7 @@ namespace rego
     Node var = ref->front();
     Node refargs = ref->back();
 
-    Nodes defs = var->lookup();
-    if (defs.size() == 0)
-    {
-      return err(var, "Reference is unsafe");
-    }
-
-    if (defs.size() > 1)
-    {
-      return err(var, "Multiple values not allowed");
-    }
-
-    Node refhead = defs.front();
+    Node refhead = lookup(var);
     for (Node refarg : *refargs)
     {
       refhead = resolve_refhead(refhead);
@@ -371,6 +359,11 @@ namespace rego
 
     refhead = resolve_refhead(refhead);
 
+    if (refhead->type() == Error)
+    {
+      return refhead;
+    }
+
     return Term << refhead;
   }
 
@@ -380,53 +373,9 @@ namespace rego
     Node rulehead = rulecomp->at(1);
     if (rulehead->type() == Expr)
     {
-      Node rulebody = rulecomp->at(2)->front();
-      bool body_ok = true;
-      for (Node item : *rulebody)
-      {
-        if (item->type() == Literal)
-        {
-          Node value = resolve_literal(item);
-          if (value->type() == Error)
-          {
-            return value;
-          }
-
-          if (!is_truthy(value))
-          {
-            body_ok = false;
-            break;
-          }
-        }
-        else if (item->type() == RuleComp)
-        {
-          continue;
-        }
-        else
-        {
-          return err(item, "Invalid rulebody item");
-        }
-      }
-
-      if (body_ok)
-      {
-        if (rulehead->type() == Expr)
-        {
-          Node result = resolve_expr(rulehead);
-          rulecomp->replace(rulehead, result);
-          rulehead = result;
-        }
-        else
-        {
-          return err(rulehead, "Unsupported rulehead type");
-        }
-      }
-      else
-      {
-        Node result = Term << Undefined;
-        rulecomp->replace(rulehead, result);
-        rulehead = result;
-      }
+      Node result = resolve_expr(rulehead);
+      rulecomp->replace(rulehead, result);
+      rulehead = result;
     }
 
     return rulehead;
@@ -549,6 +498,11 @@ namespace rego
     if (node->type() == RefTerm)
     {
       node = resolve_refterm(node);
+      if (node->type() == Error)
+      {
+        return node;
+      }
+
       if (node->type() == Term)
       {
         node = node->front();
@@ -676,5 +630,155 @@ namespace rego
     }
 
     return defs;
+  }
+
+  Node RulesEngineDef::lookdown(const Node& parent, const Node& query)
+  {
+    Nodes defs;
+    if (parent->type() == Object)
+    {
+      defs = object_lookdown(parent, query);
+    }
+    else
+    {
+      defs = parent->lookdown(query->location());
+    }
+
+    if (defs.size() == 0)
+    {
+      return err(query, "Undefined reference");
+    }
+
+    if (defs.front()->type() == DefaultRule || defs.front()->type() == RuleComp)
+    {
+      return find_valid_rule(defs);
+    }
+
+    if (defs.size() > 1)
+    {
+      return err(query, "Multiple references not allowed");
+    }
+
+    return defs.front();
+  }
+
+  Node RulesEngineDef::lookup(const Node& query)
+  {
+    Nodes defs = query->lookup();
+
+    if (defs.size() == 0)
+    {
+      return err(query, "Unsafe");
+    }
+
+    if (defs.front()->type() == DefaultRule || defs.front()->type() == RuleComp)
+    {
+      return find_valid_rule(defs);
+    }
+
+    if (defs.size() > 1)
+    {
+      return err(query, "Multiple references not allowed");
+    }
+
+    return defs.front();
+  }
+
+  Node RulesEngineDef::find_valid_rule(const Nodes& rules)
+  {
+    Node result = Undefined;
+    std::string result_str = to_json(result);
+    Node default_value = Undefined;
+    for (const auto& rule : rules)
+    {
+      if (rule->type() == RuleComp)
+      {
+        Node body_result = evaluate_body(rule->at(2));
+        if (body_result->type() == Error)
+        {
+          return body_result;
+        }
+
+        if (body_result->type() == JSONFalse)
+        {
+          continue;
+        }
+
+        Node value = resolve_rulecomp(rule)->front();
+        std::string value_str = to_json(value);
+        if (result->type() == Undefined)
+        {
+          result = rule;
+          result_str = value_str;
+        }
+        else if (value_str != result_str)
+        {
+          return err(rule, "complete rules must not produce multiple outputs");
+        }
+      }
+      else if (rule->type() == DefaultRule)
+      {
+        default_value = rule;
+      }
+      else
+      {
+        return err(rule, "Unsupported rulecomp");
+      }
+    }
+
+    if (result->type() == Undefined)
+    {
+      result = default_value;
+    }
+
+    if (result->type() == Undefined)
+    {
+      return Term << Undefined;
+    }
+
+    return result;
+  }
+
+  Node RulesEngineDef::evaluate_body(const Node& rulebody)
+  {
+    for (Node item : *rulebody)
+    {
+      if (item->type() == Literal)
+      {
+        Node value = resolve_literal(item);
+        if (value->type() == Error)
+        {
+          return value;
+        }
+
+        if (!is_truthy(value))
+        {
+          return JSONFalse;
+        }
+      }
+      else if (item->type() == LocalRule)
+      {
+        continue;
+      }
+      else
+      {
+        return err(item, "Invalid rulebody item");
+      }
+    }
+
+    return JSONTrue;
+  }
+
+  Node RulesEngineDef::resolve_localrule(const Node& localrule)
+  {
+    Node value = localrule->back();
+    if (value->type() == Expr)
+    {
+      Node result = resolve_expr(value);
+      localrule->replace(value, result);
+      value = result;
+    }
+
+    return value;
   }
 }
