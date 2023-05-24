@@ -9,14 +9,14 @@ namespace rego
   inline const auto wf_json =
     JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull;
 
-  inline const auto wf_arith_op = Add | Subtract | Multiply | Divide;
+  inline const auto wf_arith_op = Add | Subtract | Multiply | Divide | Modulo;
 
   inline const auto wf_bool_op = Equals | NotEquals | LessThan |
     LessThanOrEquals | GreaterThan | GreaterThanOrEquals | Not;
 
   inline const auto wf_parse_tokens = wf_json | wf_arith_op | wf_bool_op |
     Package | Var | Brace | Square | Dot | Paren | Assign | EmptySet | Colon |
-    RawString;
+    RawString | Default;
 
   // clang-format off
   inline const auto wf_parser =
@@ -45,7 +45,8 @@ namespace rego
   // clang-format on
 
   inline const auto wf_modules_tokens = wf_json | wf_arith_op | wf_bool_op |
-    Paren | Var | Brace | Square | Dot | Assign | EmptySet | RawString;
+    Paren | Var | Brace | Square | Dot | Assign | EmptySet | RawString |
+    Default;
 
   // clang-format off
   inline const auto wf_pass_modules =
@@ -62,7 +63,7 @@ namespace rego
 
   inline const auto wf_lists_tokens = wf_json | wf_arith_op | wf_bool_op |
     Paren | Var | Set | RuleBody | ObjectItemSeq | Array | Dot | Assign |
-    Object | RawString;
+    Object | RawString | Default;
 
   // clang-format off
   inline const auto wf_pass_lists =
@@ -92,12 +93,13 @@ namespace rego
     // Below this point is the grammar of the version of Rego we support
     | (Module <<= Package * Policy)
     | (Package <<= Var)
-    | (Policy <<= Rule++)
+    | (Policy <<= (Rule | DefaultRule)++)
+    | (DefaultRule <<= Var * Term)
     | (Rule <<= RuleHead * RuleBodySeq)
     | (RuleHead <<= Var * RuleHeadComp)
-    | (RuleBodySeq <<= RuleBody)
+    | (RuleBodySeq <<= RuleBody++[1])
     | (RuleHeadComp <<= AssignOperator * Expr)
-    | (RuleBody <<= (Literal | Rule)++)
+    | (RuleBody <<= (Literal | RuleHead)++)
     | (Literal <<= Expr)
     | (Expr <<= (Term | wf_arith_op | wf_bool_op | Expr)++[1])
     | (AssignOperator <<= Assign)
@@ -127,9 +129,11 @@ namespace rego
   inline const auto wf_pass_symbols =
     wf_pass_structure
     | (Module <<= Var * Policy)[Var]
-    | (RuleComp <<= Var * Expr * RuleBodySeq)[Var]
-    | (Policy <<= RuleComp++)
-    | (RuleBody <<= (RuleComp | Literal)++)
+    | (RuleComp <<= Var * Expr * RuleBody)[Var]
+    | (LocalRule <<= Var * Expr)[Var]
+    | (DefaultRule <<= Var * Term)[Var]
+    | (Policy <<= (DefaultRule | RuleComp)++)
+    | (RuleBody <<= (LocalRule | Literal)++)
     | (Object <<= (ObjectItem | RefObjectItem)++)
     | (ObjectItem <<= Key * Expr)[Key]
     | (RefObjectItem <<= Ref * Expr)
@@ -146,7 +150,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_multiply_divide =
     wf_pass_symbols
-    | (ArithInfix <<= ArithArg * (Op >>= Multiply | Divide) * ArithArg)
+    | (ArithInfix <<= ArithArg * (Op >>= Multiply | Divide | Modulo) * ArithArg)
     | (ArithArg <<= (Add | Subtract | Expr | wf_math_tokens)++[1])
     | (UnaryExpr <<= ArithArg)
     | (Expr <<= (NumTerm | RefTerm | Term | Add | Subtract | wf_bool_op | Expr | ArithInfix)++[1])
@@ -186,7 +190,7 @@ namespace rego
   inline const auto wf_pass_merge_modules =
     wf_pass_merge_data
     | (Rego <<= Query * Input * Data)
-    | (Module <<= RuleComp++)
+    | (Module <<= (RuleComp | DefaultRule)++)
     | (Data <<= Var * ObjectItemSeq * DataModuleSeq)[Var]
     | (DataModuleSeq <<= DataModule++)
     | (DataModule <<= Var * Module)[Var]

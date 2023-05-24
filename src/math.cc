@@ -63,6 +63,10 @@ namespace rego
 
       value = lhs / rhs;
     }
+    else if (op->type() == Modulo)
+    {
+      value = lhs % rhs;
+    }
     else
     {
       return err(op, "unsupported math operation");
@@ -94,6 +98,11 @@ namespace rego
       }
 
       value = lhs / rhs;
+    }
+    else if (op->type() == Modulo)
+    {
+      // current behavior of OPA interpreter is to return undefined
+      return Undefined;
     }
     else
     {

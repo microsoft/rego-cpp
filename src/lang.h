@@ -55,6 +55,7 @@ namespace rego
   inline constexpr auto Subtract = TokenDef("-");
   inline constexpr auto Multiply = TokenDef("*");
   inline constexpr auto Divide = TokenDef("/");
+  inline constexpr auto Modulo = TokenDef("%");
   inline constexpr auto Assign = TokenDef(":=");
 
   // intermediate tokens
@@ -75,9 +76,11 @@ namespace rego
   inline constexpr auto Data = TokenDef("data", flag::symtab | flag::lookup);
 
   // fused
-  // TODO shadowing
   inline constexpr auto RuleComp =
     TokenDef("rule-comp", flag::symtab | flag::lookup | flag::lookdown);
+  inline constexpr auto DefaultRule =
+    TokenDef("default-rule", flag::lookup | flag::lookdown);
+  inline constexpr auto LocalRule = TokenDef("local-rule", flag::lookup);
   inline constexpr auto ArithInfix = TokenDef("arith-infix");
   inline constexpr auto BoolInfix = TokenDef("bool-infix");
 
@@ -108,6 +111,7 @@ namespace rego
   inline constexpr auto Square = TokenDef("square");
   inline constexpr auto Paren = TokenDef("paren");
   inline constexpr auto Not = TokenDef("not");
+  inline constexpr auto Default = TokenDef("default");
 
   inline auto err(NodeRange& r, const std::string& msg)
   {

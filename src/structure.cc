@@ -5,7 +5,7 @@ namespace rego
   const inline auto TermToken = T(Var) / T(Ref) / T(Array) / T(Object) / T(Set);
   const inline auto ExprToken = T(Term) / ArithToken / BoolToken / T(Expr) /
     ScalarToken / TermToken / T(JSONString) / T(Array) / T(Set) / T(Object) /
-    T(Paren) / T(Not);
+    T(Paren) / T(Not) / T(Dot);
   const inline auto StringToken = T(JSONString) / T(RawString);
 
   PassDef structure()
@@ -78,30 +78,31 @@ namespace rego
       In(RefArgBrack) * (T(Group) << T(Array)[Array]) >>
         [](Match& _) { return _(Array); },
 
-      (In(Policy) / In(RuleBody)) *
-          (T(Group) << (T(Var)[Id] * T(RuleBody)[RuleBody])) >>
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * T(RuleBody)[Head] * T(RuleBody)++[Tail])) >>
         [](Match& _) {
           return Rule << (RuleHead
                           << _(Id)
                           << (RuleHeadComp
                               << (AssignOperator << Assign)
                               << (Expr << (Term << (Scalar << JSONTrue)))))
-                      << (RuleBodySeq << _(RuleBody));
+                      << (RuleBodySeq << _(Head) << _[Tail]);
         },
 
-      (In(Policy) / In(RuleBody)) *
+      In(Policy) *
           (T(Group)
            << (T(Var)[Id] * T(Assign) * ExprToken[Head] * ExprToken++[Tail] *
-               T(RuleBody)[RuleBody])) >>
+               T(RuleBody)[Lhs] * T(RuleBody)++[Rhs])) >>
         [](Match& _) {
           return Rule << (RuleHead
                           << _(Id)
                           << (RuleHeadComp << (AssignOperator << Assign)
                                            << (Expr << _(Head) << _[Tail])))
-                      << (RuleBodySeq << _(RuleBody));
+                      << (RuleBodySeq << _(Lhs) << _[Rhs]);
         },
 
-      (In(Policy) / In(RuleBody)) *
+      In(Policy) *
           (T(Group)
            << (T(Var)[Id] * T(Assign) * ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
@@ -113,6 +114,36 @@ namespace rego
                 << (RuleBody
                     << (Literal << (Expr << (Term << (Scalar << JSONTrue))))));
         },
+
+      In(RuleBody) *
+          (T(Group)
+           << (T(Var)[Id] * T(Assign) * ExprToken[Head] * ExprToken++[Tail])) >>
+        [](Match& _) {
+          return RuleHead << _(Id)
+                          << (RuleHeadComp << (AssignOperator << Assign)
+                                           << (Expr << _(Head) << _[Tail]));
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Default) * T(Var)[Id] * T(Assign) * ScalarToken[Scalar])) >>
+        [](Match& _) {
+          return DefaultRule << _(Id) << (Term << (Scalar << _(Scalar)));
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Default) * T(Var)[Id] * T(Assign) * StringToken[String])) >>
+        [](Match& _) {
+          return DefaultRule << _(Id)
+                             << (Term << (Scalar << (String << _(String))));
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Default) * T(Var)[Id] * T(Assign) *
+               (T(Object) / T(Array) / T(Set))[Term])) >>
+        [](Match& _) { return DefaultRule << _(Id) << (Term << _(Term)); },
 
       (In(Array) / In(Set)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
@@ -140,16 +171,6 @@ namespace rego
           return err(_(Expr), "Multi-dimensional indexing is not supported");
         },
 
-      (In(Data) / In(Input) / In(DataSeq) / In(Policy) / In(Module) /
-       In(ModuleSeq) / In(Group) / In(RefArgBrack)) *
-          (Any * T(Error)[Error]) >>
-        [](Match& _) { return _(Error); },
-
-      (T(Data) / T(Input) / T(DataSeq) / T(Policy) / T(Module) / T(ModuleSeq) /
-       T(Group) / T(RefArgBrack))
-          << T(Error)[Error] >>
-        [](Match& _) { return _(Error); },
-
       In(Expr) * (T(Assign) / T(Dot))[Value] >>
         [](Match& _) { return err(_(Value), "Invalid expression token"); },
 
@@ -161,6 +182,9 @@ namespace rego
 
       In(ObjectItemHead) * (!(T(Scalar) / T(Var) / T(Ref)))[Key] >>
         [](Match& _) { return err(_(Key), "Invalid object item key"); },
+
+      In(Expr) * T(Default)[Default] >>
+        [](Match& _) { return err(_(Default), "Invalid use of default"); },
 
       T(Group)[Group] >> [](Match& _) { return err(_(Group), "Syntax error"); },
     };
