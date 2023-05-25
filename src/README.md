@@ -17,7 +17,7 @@ This Readme is used to track a rough plan of features to add.
 - [x] Rules with > 1 head/body
 - [x] Default keyword
 - [x] Modulo operator
-- [ ] Rule functions
+- [x] Rule functions
 - [ ] Unification
 - [ ] `some` keyword
 - [ ] Array/Set comprehensions
@@ -34,10 +34,12 @@ module          = package policy
 package         = "package" var
 policy          = { rule }
 rule            = [ "default" ] rule-head { rule-body }
-rule-head       = var rule-head-comp
+rule-head       = var ( rule-head-comp | rule-head-func )
 rule-head-comp  = [ assign-operator expr ]
+rule-head-func  = "(" rule-args ")" [ assign-operator term ] [ "if" ]
 rule-body       = "{" rule-body-item {(";" | ( [CR] LR)) rule-body-item } "}"
 rule-body-item  = expr | rule
+rule-args       = term { "," term }
 query           = literal { ( ";" | ( [CR] LF ) ) literal }
 literal         = ( expr | "not" expr )
 expr            = term | expr-infix | expr-parens | unary-expr
@@ -47,12 +49,13 @@ unary-expr      = "-" expr
 term            = ref | var | scalar | array | object | set
 infix-operator  = assign-operator | bool-operator | arith-operator
 bool-operator   = "==" | "!=" | "<" | ">" | ">=" | "<="
-arith-operator  = "+" | "-" | "*" | "/"
+arith-operator  = "+" | "-" | "*" | "/" | "%"
 assign-operator = ":="
 ref             = var { ref-arg }
-ref-arg         = ref-arg-dot | ref-arg-brack
+ref-arg         = ref-arg-dot | ref-arg-brack | ref-arg-call
 ref-arg-brack   = "[" ( scalar | var ) "]"
 ref-arg-dot     = "." var
+ref-arg-call    = "(" expr { "," expr } ")"
 var             = ( ALPHA | "_" ) { ALPHA | DIGIT | "_" }
 scalar          = string | NUMBER | TRUE | FALSE | NULL
 string          = STRING | raw-string
