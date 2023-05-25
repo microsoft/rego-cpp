@@ -13,6 +13,8 @@ namespace rego
   inline constexpr auto Rule = TokenDef("rule");
   inline constexpr auto RuleHead = TokenDef("rule-head");
   inline constexpr auto RuleHeadComp = TokenDef("rule-head-comp");
+  inline constexpr auto RuleHeadFunc = TokenDef("rule-head-func");
+  inline constexpr auto RuleArgs = TokenDef("rule-args");
   inline constexpr auto RuleBody = TokenDef("rule-body");
   inline constexpr auto Query = TokenDef("query");
   inline constexpr auto Literal = TokenDef("literal");
@@ -29,6 +31,7 @@ namespace rego
   inline constexpr auto RefArg = TokenDef("ref-arg");
   inline constexpr auto RefArgBrack = TokenDef("ref-arg-brack");
   inline constexpr auto RefArgDot = TokenDef("ref-arg-dot");
+  inline constexpr auto RefArgCall = TokenDef("ref-arg-call");
   inline constexpr auto Var = TokenDef("var", flag::print);
   inline constexpr auto Scalar = TokenDef("scalar");
   inline constexpr auto String = TokenDef("string");
@@ -78,11 +81,15 @@ namespace rego
   // fused
   inline constexpr auto RuleComp =
     TokenDef("rule-comp", flag::symtab | flag::lookup | flag::lookdown);
+  inline constexpr auto RuleFunc =
+    TokenDef("rule-func", flag::symtab | flag::lookup | flag::lookdown);
   inline constexpr auto DefaultRule =
     TokenDef("default-rule", flag::lookup | flag::lookdown);
   inline constexpr auto LocalRule = TokenDef("local-rule", flag::lookup);
   inline constexpr auto ArithInfix = TokenDef("arith-infix");
   inline constexpr auto BoolInfix = TokenDef("bool-infix");
+  inline constexpr auto ArgVar = TokenDef("arg-var", flag::lookup);
+  inline constexpr auto ArgVal = TokenDef("arg-val");
 
   // utility
   inline constexpr auto Undefined = TokenDef("undefined");
@@ -100,6 +107,7 @@ namespace rego
   inline constexpr auto RefTerm = TokenDef("ref-term");
   inline constexpr auto NumTerm = TokenDef("num-term");
   inline constexpr auto ArithArg = TokenDef("arith-arg");
+  inline constexpr auto RuleHeadType = TokenDef("rule-head-type");
 
   // lists
   inline constexpr auto List = TokenDef("list");

@@ -1,3 +1,4 @@
+#include "math.h"
 #include "passes.h"
 
 namespace rego
@@ -54,6 +55,49 @@ namespace rego
                                    << (RefArgBrack << *_[Array]));
         },
 
+      (In(ObjectItemHead) / In(Expr)) *
+          ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) *
+           T(Paren)[Paren]) >>
+        [](Match& _) {
+          Node refargcall = NodeDef::create(RefArgCall);
+          Node paren = _(Paren);
+          if (paren->front()->type() == List)
+          {
+            for (const auto& arg : *paren->front())
+            {
+              refargcall->push_back(arg);
+            }
+          }
+          else
+          {
+            refargcall->push_back(paren->front());
+          }
+
+          return Ref << _(Lhs) << (RefArgSeq << *_[RefArgSeq] << refargcall);
+        },
+
+      (In(ObjectItemHead) / In(Expr)) * (T(Var)[Var] * T(Paren)[Paren]) >>
+        [](Match& _) {
+          Node refargcall = NodeDef::create(RefArgCall);
+          Node paren = _(Paren);
+          if (paren->front()->type() == List)
+          {
+            for (const auto& arg : *paren->front())
+            {
+              refargcall->push_back(arg);
+            }
+          }
+          else
+          {
+            refargcall->push_back(paren->front());
+          }
+
+          return Ref << _(Var) << (RefArgSeq << refargcall);
+        },
+
+      In(RefArgCall) * T(Group)[Group] >>
+        [](Match& _) { return Expr << *_[Group]; },
+
       In(Expr) * (T(Paren) << T(Group)[Group]) >>
         [](Match& _) { return Expr << *_[Group]; },
 
@@ -88,6 +132,59 @@ namespace rego
                               << (AssignOperator << Assign)
                               << (Expr << (Term << (Scalar << JSONTrue)))))
                       << (RuleBodySeq << _(Head) << _[Tail]);
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * T(Paren)[Paren] * T(RuleBody)[Head] *
+               T(RuleBody)++[Tail])) >>
+        [](Match& _) {
+          Node args = NodeDef::create(RuleArgs);
+          Node paren = _(Paren);
+          if (paren->front()->type() == List)
+          {
+            for (const auto& arg : *paren->front())
+            {
+              args->push_back(arg);
+            }
+          }
+          else
+          {
+            args->push_back(paren->front());
+          }
+
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadFunc
+                              << args << (AssignOperator << Assign)
+                              << (Expr << (Term << (Scalar << JSONTrue)))))
+                      << (RuleBodySeq << _(Head) << _[Tail]);
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * T(Paren)[Paren] * T(Assign) * ExprToken[Head] *
+               ExprToken++[Tail] * T(RuleBody)[Lhs] * T(RuleBody)++[Rhs])) >>
+        [](Match& _) {
+          Node args = NodeDef::create(RuleArgs);
+          Node paren = _(Paren);
+          if (paren->front()->type() == List)
+          {
+            for (const auto& arg : *paren->front())
+            {
+              args->push_back(arg);
+            }
+          }
+          else
+          {
+            args->push_back(paren->front());
+          }
+
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadFunc << args << (AssignOperator << Assign)
+                                           << (Expr << _(Head) << _[Tail])))
+                      << (RuleBodySeq << _(Lhs) << _[Rhs]);
         },
 
       In(Policy) *
@@ -161,6 +258,19 @@ namespace rego
 
       In(Expr) * TermToken[Value] >> [](Match& _) { return Term << _(Value); },
 
+      In(RuleArgs) * (T(Group) << StringToken[String]) >>
+        [](Match& _) { return Term << (Scalar << (String << _(String))); },
+
+      In(RuleArgs) * (T(Group) << ScalarToken[Scalar]) >>
+        [](Match& _) { return Term << (Scalar << _(Scalar)); },
+
+      In(RuleArgs) * (T(Group) << TermToken[Value]) >>
+        [](Match& _) { return Term << _(Value); },
+
+      In(RuleArgs) *
+          (T(Group) << (T(Subtract) * (T(JSONInt) / T(JSONFloat))[Value])) >>
+        [](Match& _) { return Term << (Scalar << negate(_(Value))); },
+
       // errors
 
       In(Policy) * T(Expr)[Expr] >>
@@ -185,6 +295,12 @@ namespace rego
 
       In(Expr) * T(Default)[Default] >>
         [](Match& _) { return err(_(Default), "Invalid use of default"); },
+
+      (In(Group) / In(Expr)) * T(Paren)[Paren] >>
+        [](Match& _) { return err(_(Paren), "Invalid function call"); },
+
+      In(RefArgSeq) * (T(RefArgCall)[RefArgCall] << End) >>
+        [](Match& _) { return err(_(RefArgCall), "Call has no arguments"); },
 
       T(Group)[Group] >> [](Match& _) { return err(_(Group), "Syntax error"); },
     };

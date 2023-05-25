@@ -28,7 +28,7 @@ namespace rego
     | (DataSeq <<= File++)
     | (File <<= Group++)
     | (Brace <<= (List | Group)++)
-    | (Paren <<= Group)
+    | (Paren <<= (Group | List))
     | (Square <<= (Group | List))
     | (List <<= Group++)
     | (Group <<= wf_parse_tokens++[1])
@@ -77,6 +77,7 @@ namespace rego
     | (Input <<= Var * ObjectItemSeq)[Var]
     | (Data <<= ObjectItemSeq)
     | (Group <<= wf_lists_tokens++[1])
+    | (List <<= Group++)
     ;
   // clang-format on
 
@@ -96,18 +97,21 @@ namespace rego
     | (Policy <<= (Rule | DefaultRule)++)
     | (DefaultRule <<= Var * Term)
     | (Rule <<= RuleHead * RuleBodySeq)
-    | (RuleHead <<= Var * RuleHeadComp)
+    | (RuleHead <<= Var * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc))
     | (RuleBodySeq <<= RuleBody++[1])
     | (RuleHeadComp <<= AssignOperator * Expr)
+    | (RuleHeadFunc <<= RuleArgs * AssignOperator * Expr)
+    | (RuleArgs <<= Term++[1])
     | (RuleBody <<= (Literal | RuleHead)++)
     | (Literal <<= Expr)
     | (Expr <<= (Term | wf_arith_op | wf_bool_op | Expr)++[1])
     | (AssignOperator <<= Assign)
     | (Term <<= Ref | Var | Scalar | Array | Object | Set)
     | (Ref <<= Var * RefArgSeq)
-    | (RefArgSeq <<= (RefArgDot | RefArgBrack)++)
+    | (RefArgSeq <<= (RefArgDot | RefArgBrack | RefArgCall)++)
     | (RefArgDot <<= Var)
     | (RefArgBrack <<= Scalar | Var | Object | Array | Set)
+    | (RefArgCall <<= Expr++[1])
     | (Scalar <<= String | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
     | (String <<= JSONString | RawString)
     | (Array <<= Expr++)
@@ -130,9 +134,13 @@ namespace rego
     wf_pass_structure
     | (Module <<= Var * Policy)[Var]
     | (RuleComp <<= Var * Expr * RuleBody)[Var]
+    | (RuleFunc <<= Var * RuleArgs * Expr * RuleBody)[Var]
+    | (RuleArgs <<= (ArgVar | ArgVal)++[1])
+    | (ArgVar <<= Var * Undefined)[Var]
+    | (ArgVal <<= Scalar | Array | Object | Set)
     | (LocalRule <<= Var * Expr)[Var]
     | (DefaultRule <<= Var * Term)[Var]
-    | (Policy <<= (DefaultRule | RuleComp)++)
+    | (Policy <<= (DefaultRule | RuleComp | RuleFunc)++)
     | (RuleBody <<= (LocalRule | Literal)++)
     | (Object <<= (ObjectItem | RefObjectItem)++)
     | (ObjectItem <<= Key * Expr)[Key]
@@ -190,7 +198,7 @@ namespace rego
   inline const auto wf_pass_merge_modules =
     wf_pass_merge_data
     | (Rego <<= Query * Input * Data)
-    | (Module <<= (RuleComp | DefaultRule)++)
+    | (Module <<= (RuleComp | DefaultRule | RuleFunc)++)
     | (Data <<= Var * ObjectItemSeq * DataModuleSeq)[Var]
     | (DataModuleSeq <<= DataModule++)
     | (DataModule <<= Var * Module)[Var]
@@ -201,8 +209,6 @@ namespace rego
   inline const auto wf_pass_rules =
     wf_pass_merge_modules
     | (Query <<= Term++[1])
-    | (Module <<= RuleComp++)
-    | (RuleComp <<= Var * Term * (Value >>= JSONTrue | JSONFalse))[Var]
     | (Term <<= Scalar | Array | Object | Set | Undefined)
     | (Array <<= Term++)
     | (Set <<= Term++)

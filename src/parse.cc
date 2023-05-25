@@ -65,7 +65,7 @@ namespace rego
 
         R"(\))" >>
           [](auto& m) {
-            m.term();
+            m.term({List});
             m.pop(Paren);
           },
 

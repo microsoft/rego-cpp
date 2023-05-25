@@ -42,8 +42,9 @@ namespace rego
       (In(ObjectItemSeq) / In(Object)) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid object key/value"); },
 
-      (In(Array) / In(Set)) * T(ObjectItem)[ObjectItem] >>
+      (In(Array) / In(Set) / In(List)) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) { return err(_(ObjectItem), "Invalid item"); },
+
     };
   }
 }

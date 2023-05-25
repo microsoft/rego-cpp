@@ -41,7 +41,7 @@
         "./examples/data1.json",
         "./examples/objects.rego",
         "-i",
-        "./examples/input.json",
+        "./examples/input0.json",
         "-q",
         "[data.one, input.b, data.objects.sites[1]]"
       ],
@@ -68,6 +68,8 @@
       "args": [
         "-d",
         "./examples/bodies.rego",
+        "-i",
+        "./examples/input0.json",
         "-q",
         "data.bodies.e"
       ],
@@ -106,11 +108,26 @@
       "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
       "args": [
         "-d",
-        "./examples/bodies.rego",
+        "./examples/multi.rego",
         "-i",
-        "./examples/input.json",
+        "./examples/input0.json",
         "-q",
-        "data.bodies.f"
+        "data.multi.a"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "functions",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/functions.rego",
+        "-i",
+        "./examples/input1.json",
+        "-q",
+        "[data.functions.f(1, 2, 3), data.functions.f(1, -1, 3)]"
       ],
       "cwd": "${workspaceFolder}/build/dist/"
     },
