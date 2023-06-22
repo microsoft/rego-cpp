@@ -16,6 +16,7 @@ namespace rego
           (T(Literal) << ((T(Expr) << T(AssignInfix)[AssignInfix]))) >>
         [](Match& _) { return _(AssignInfix); },
 
+      // <expr>|<notexpr>
       In(UnifyBody) * (T(Literal) << (T(Expr) / T(NotExpr))[Expr]) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
@@ -51,7 +52,9 @@ namespace rego
                  [](auto& n) { return !contains_local(*n.first); }) *
                T(AssignArg)[Rhs](
                  [](auto& n) { return contains_local(*n.first); }))) >>
-        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
+        [](Match& _) {
+          return AssignInfix << _(Rhs) << _(Lhs);
+        },
 
       // a = <term>
       In(UnifyBody) *
@@ -137,7 +140,9 @@ namespace rego
           (T(AssignInfix)
            << ((T(AssignArg)[Lhs] << T(RefTerm)) *
                (T(AssignArg)[Rhs] << (T(Term) << T(Array))))) >>
-        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
+        [](Match& _) {
+          return AssignInfix << _(Rhs) << _(Lhs);
+        },
 
       // <array> = <var>
       In(UnifyBody) *
@@ -184,8 +189,12 @@ namespace rego
       In(UnifyBody) *
           (T(AssignInfix)
            << ((T(AssignArg)[Lhs] << T(RefTerm)) *
-               (T(AssignArg)[Rhs] << (T(Term) << T(Object))))) >>
-        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
+               (T(AssignArg)[Rhs] << (T(Term) << T(Object)([](auto& n) {
+                                        return contains_local(*n.first);
+                                      }))))) >>
+        [](Match& _) {
+          return AssignInfix << _(Rhs) << _(Lhs);
+        },
 
       // <object> = <var>
       In(UnifyBody) *

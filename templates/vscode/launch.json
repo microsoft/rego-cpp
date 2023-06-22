@@ -108,7 +108,7 @@
         "-d",
         "./examples/objects.rego",
         "-q",
-        "data.objects.e[\"dev\"]"
+        "data.objects.f"
       ],
       "cwd": "${workspaceFolder}/build/dist/"
     },
