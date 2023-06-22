@@ -1,5 +1,5 @@
-#include "math.h"
 #include "passes.h"
+#include "resolver.h"
 
 namespace rego
 {
@@ -265,7 +265,7 @@ namespace rego
 
       In(RuleArgs) *
           (T(Group) << (T(Subtract) * (T(JSONInt) / T(JSONFloat))[Val])) >>
-        [](Match& _) { return Term << (Scalar << negate(_(Val))); },
+        [](Match& _) { return Term << (Scalar << Resolver::negate(_(Val))); },
 
       In(SomeDecl) * (T(Group) << T(Var)[Var]) >>
         [](Match& _) { return _(Var); },

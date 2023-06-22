@@ -3,7 +3,6 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.h.in" "${CMAKE_CURRENT_BINAR
 set( SOURCES
 interpreter.cc
 lang.cc
-math.cc
 parse.cc
 args.cc
 unifier.cc

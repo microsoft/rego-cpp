@@ -111,7 +111,7 @@ namespace rego
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
         [](Match& _) {
-          return Function << (JSONString ^ "negate")
+          return Function << (JSONString ^ "unary")
                           << (ArgSeq << _(ArithArg)->front());
         },
 

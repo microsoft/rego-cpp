@@ -12,7 +12,6 @@ namespace rego
       (In(RuleComp) / In(RuleFunc)) *
           (T(Expr) << (AssignInfixArg[Arg] * End)) >>
         [](Match& _) {
-          Node seq = NodeDef::create(Seq);
           Location value = _.fresh({"value"});
           return UnifyBody << (Local << (Var ^ value) << Undefined)
                            << (Literal
@@ -21,7 +20,6 @@ namespace rego
                                        << (AssignArg
                                            << (RefTerm << (Var ^ value)))
                                        << (AssignArg << _(Arg)))));
-          return seq;
         },
 
       In(Expr) * (AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>

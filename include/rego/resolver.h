@@ -16,6 +16,7 @@ namespace rego
     static std::string arg_str(const Node& arg);
     static std::string expr_str(const Node& unifyexpr);
     static Node negate(const Node& value);
+    static Node unary(const Node& value);
     static Node arithinfix(const Node& op, const Node& lhs, const Node& rhs);
     static Node boolinfix(const Node& op, const Node& lhs, const Node& rhs);
     static std::optional<Nodes> apply_access(

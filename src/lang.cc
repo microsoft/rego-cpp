@@ -1,7 +1,6 @@
 #include "lang.h"
 
 #include "log.h"
-#include "math.h"
 #include "passes.h"
 #include "wf.h"
 

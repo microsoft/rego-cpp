@@ -83,6 +83,8 @@ namespace rego
 
   void Variable::mark_valid_values()
   {
+    // `false` and `undefined` are value values for everything
+    // except a unification statement.
     m_values.mark_valid_values(!m_unify);
   }
 

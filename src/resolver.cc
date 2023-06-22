@@ -1,12 +1,245 @@
 #include "resolver.h"
 
 #include "lang.h"
-#include "math.h"
 #include "unifier.h"
 #include "wf.h"
 
+namespace
+{
+  using namespace rego;
+
+  std::int64_t get_int(const Node& node)
+  {
+    return std::stoll(to_json(node));
+  }
+
+  double get_double(const Node& node)
+  {
+    return std::stod(to_json(node));
+  }
+
+  Node do_arith(const Node& op, std::int64_t lhs, std::int64_t rhs)
+  {
+    std::int64_t value;
+    if (op->type() == Add)
+    {
+      value = lhs + rhs;
+    }
+    else if (op->type() == Subtract)
+    {
+      value = lhs - rhs;
+    }
+    else if (op->type() == Multiply)
+    {
+      value = lhs * rhs;
+    }
+    else if (op->type() == Divide)
+    {
+      if (rhs == 0)
+      {
+        return err(op, "divide by zero");
+      }
+
+      value = lhs / rhs;
+    }
+    else if (op->type() == Modulo)
+    {
+      value = lhs % rhs;
+    }
+    else
+    {
+      return err(op, "unsupported math operation");
+    }
+
+    return JSONInt ^ std::to_string(value);
+  }
+
+  Node do_arith(const Node& op, double lhs, double rhs)
+  {
+    double value;
+    if (op->type() == Add)
+    {
+      value = lhs + rhs;
+    }
+    else if (op->type() == Subtract)
+    {
+      value = lhs - rhs;
+    }
+    else if (op->type() == Multiply)
+    {
+      value = lhs * rhs;
+    }
+    else if (op->type() == Divide)
+    {
+      if (rhs == 0.0)
+      {
+        return err(op, "divide by zero");
+      }
+
+      value = lhs / rhs;
+    }
+    else if (op->type() == Modulo)
+    {
+      // current behavior of OPA interpreter is to return undefined
+      return Undefined;
+    }
+    else
+    {
+      return err(op, "unsupported math operation");
+    }
+
+    return JSONFloat ^ std::to_string(value);
+  }
+
+  Node do_bool(const Node& op, std::int64_t lhs, std::int64_t rhs)
+  {
+    bool value;
+    if (op->type() == Equals)
+    {
+      value = lhs == rhs;
+    }
+    else if (op->type() == NotEquals)
+    {
+      value = lhs != rhs;
+    }
+    else if (op->type() == LessThan)
+    {
+      value = lhs < rhs;
+    }
+    else if (op->type() == LessThanOrEquals)
+    {
+      value = lhs <= rhs;
+    }
+    else if (op->type() == GreaterThan)
+    {
+      value = lhs > rhs;
+    }
+    else if (op->type() == GreaterThanOrEquals)
+    {
+      value = lhs >= rhs;
+    }
+    else
+    {
+      return err(op, "unsupported comparison");
+    }
+
+    if (value)
+    {
+      return JSONTrue ^ "true";
+    }
+    else
+    {
+      return JSONFalse ^ "false";
+    }
+  }
+
+  Node do_bool(const Node& op, double lhs, double rhs)
+  {
+    bool value;
+    if (op->type() == Equals)
+    {
+      value = lhs == rhs;
+    }
+    else if (op->type() == NotEquals)
+    {
+      value = lhs != rhs;
+    }
+    else if (op->type() == LessThan)
+    {
+      value = lhs < rhs;
+    }
+    else if (op->type() == LessThanOrEquals)
+    {
+      value = lhs <= rhs;
+    }
+    else if (op->type() == GreaterThan)
+    {
+      value = lhs > rhs;
+    }
+    else if (op->type() == GreaterThanOrEquals)
+    {
+      value = lhs >= rhs;
+    }
+    else
+    {
+      return err(op, "unsupported comparison");
+    }
+
+    if (value)
+    {
+      return JSONTrue ^ "true";
+    }
+    else
+    {
+      return JSONFalse ^ "false";
+    }
+  }
+
+  Node do_bool(const Node& op, const std::string& lhs, const std::string& rhs)
+  {
+    bool value;
+    if (op->type() == Equals)
+    {
+      value = lhs == rhs;
+    }
+    else if (op->type() == NotEquals)
+    {
+      value = lhs != rhs;
+    }
+    else if (op->type() == LessThan)
+    {
+      value = lhs < rhs;
+    }
+    else if (op->type() == LessThanOrEquals)
+    {
+      value = lhs <= rhs;
+    }
+    else if (op->type() == GreaterThan)
+    {
+      value = lhs > rhs;
+    }
+    else if (op->type() == GreaterThanOrEquals)
+    {
+      value = lhs >= rhs;
+    }
+    else
+    {
+      return err(op, "unsupported comparison");
+    }
+
+    if (value)
+    {
+      return JSONTrue ^ "true";
+    }
+    else
+    {
+      return JSONFalse ^ "false";
+    }
+  }
+}
+
 namespace rego
 {
+  Node Resolver::negate(const Node& node)
+  {
+    if (node->type() == JSONInt)
+    {
+      std::int64_t value = get_int(node);
+      value *= -1;
+      return JSONInt ^ std::to_string(value);
+    }
+    else if (node->type() == JSONFloat)
+    {
+      double value = get_double(node);
+      value *= -1.0;
+      return JSONFloat ^ std::to_string(value);
+    }
+    else
+    {
+      return err(node, "Invalid argument for negation");
+    }
+  }
+
   Node Resolver::arithinfix(const Node& op, const Node& lhs, const Node& rhs)
   {
     if (lhs->type() == Undefined || rhs->type() == Undefined)
@@ -33,11 +266,11 @@ namespace rego
       Node rhs_number = maybe_rhs_number.value();
       if (lhs_number->type() == JSONInt && rhs_number->type() == JSONInt)
       {
-        return math(op, get_int(lhs_number), get_int(rhs_number));
+        return do_arith(op, get_int(lhs_number), get_int(rhs_number));
       }
       else
       {
-        return math(op, get_double(lhs_number), get_double(rhs_number));
+        return do_arith(op, get_double(lhs_number), get_double(rhs_number));
       }
     }
     else
@@ -73,16 +306,16 @@ namespace rego
       Node rhs_number = maybe_rhs_number.value();
       if (lhs_number->type() == JSONInt && rhs_number->type() == JSONInt)
       {
-        return compare(op, get_int(lhs_number), get_int(rhs_number));
+        return do_bool(op, get_int(lhs_number), get_int(rhs_number));
       }
       else
       {
-        return compare(op, get_double(lhs_number), get_double(rhs_number));
+        return do_bool(op, get_double(lhs_number), get_double(rhs_number));
       }
     }
     else
     {
-      return compare(op, to_json(lhs), to_json(rhs));
+      return do_bool(op, to_json(lhs), to_json(rhs));
     }
   }
 
@@ -230,12 +463,12 @@ namespace rego
     return array;
   }
 
-  Node Resolver::negate(const Node& value)
+  Node Resolver::unary(const Node& value)
   {
     auto maybe_number = maybe_unwrap_number(value);
     if (maybe_number)
     {
-      return rego::negate(maybe_number.value());
+      return negate(maybe_number.value());
     }
     else
     {

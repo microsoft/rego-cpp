@@ -1,7 +1,5 @@
 #include "value.h"
 
-#include "../math.h"
-
 #include <sstream>
 
 namespace rego

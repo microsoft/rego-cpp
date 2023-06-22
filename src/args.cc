@@ -54,7 +54,21 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Args& args)
   {
-    return os << args.str();
+    std::string separator = "";
+    for (auto& values : args.m_values)
+    {
+      os << separator << "{";
+      std::string sub_separator = "";
+      for (auto& value : values)
+      {
+        os << sub_separator << to_json(value->node());
+        sub_separator = ", ";
+      }
+      os << "}";
+      separator = " * ";
+    }
+
+    return os;
   }
 
   void Args::mark_invalid(const std::set<Value>& active) const

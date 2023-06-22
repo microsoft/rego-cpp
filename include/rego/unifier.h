@@ -28,7 +28,7 @@ namespace rego
     Nodes expressions() const;
     Nodes bindings() const;
     std::string str() const;
-  friend std::ostream& operator<<(std::ostream& os, const Unifier& unifier);
+    friend std::ostream& operator<<(std::ostream& os, const Unifier& unifier);
 
   private:
     void init_from_body(const Node& rulebody);

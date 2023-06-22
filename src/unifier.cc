@@ -453,10 +453,10 @@ namespace rego
         Resolver::boolinfix(args[0]->node(), args[1]->node(), args[2]->node());
       values.push_back(ValueDef::create(var, result, sources));
     }
-    else if (func_name == "negate")
+    else if (func_name == "unary")
     {
       values.push_back(
-        ValueDef::create(var, Resolver::negate(args[0]->node()), sources));
+        ValueDef::create(var, Resolver::unary(args[0]->node()), sources));
     }
     else if (func_name == "not")
     {
