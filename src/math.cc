@@ -1,22 +1,22 @@
 #include "math.h"
 
+#include "lang.h"
+
 namespace rego
 {
   std::int64_t get_int(const Node& node)
   {
-    std::string text(node->location().view());
-    return std::stoll(text);
+    return std::stoll(to_json(node));
   }
 
   double get_double(const Node& node)
   {
-    std::string text(node->location().view());
-    return std::stod(text);
+    return std::stod(to_json(node));
   }
 
   bool get_bool(const Node& node)
   {
-    return node->location().view() == "true";
+    return to_json(node) == "true";
   }
 
   Node negate(const Node& node)
@@ -155,6 +155,48 @@ namespace rego
   }
 
   Node compare(const Node& op, double lhs, double rhs)
+  {
+    bool value;
+    if (op->type() == Equals)
+    {
+      value = lhs == rhs;
+    }
+    else if (op->type() == NotEquals)
+    {
+      value = lhs != rhs;
+    }
+    else if (op->type() == LessThan)
+    {
+      value = lhs < rhs;
+    }
+    else if (op->type() == LessThanOrEquals)
+    {
+      value = lhs <= rhs;
+    }
+    else if (op->type() == GreaterThan)
+    {
+      value = lhs > rhs;
+    }
+    else if (op->type() == GreaterThanOrEquals)
+    {
+      value = lhs >= rhs;
+    }
+    else
+    {
+      return err(op, "unsupported comparison");
+    }
+
+    if (value)
+    {
+      return JSONTrue ^ "true";
+    }
+    else
+    {
+      return JSONFalse ^ "false";
+    }
+  }
+
+  Node compare(const Node& op, const std::string& lhs, const std::string& rhs)
   {
     bool value;
     if (op->type() == Equals)

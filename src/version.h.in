@@ -1,0 +1,8 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+#pragma once
+
+#define REGOCPP_VERSION_MAJOR @REGOCPP_VERSION_MAJOR@
+#define REGOCPP_VERSION_MINOR @REGOCPP_VERSION_MINOR@
+#define REGOCPP_VERSION_REVISION @REGOCPP_VERSION_REVISION@

@@ -14,15 +14,17 @@ namespace rego
   inline const auto wf_bool_op = Equals | NotEquals | LessThan |
     LessThanOrEquals | GreaterThan | GreaterThanOrEquals | Not;
 
+  inline const auto wf_assign_op = Assign | Unify;
+
   inline const auto wf_parse_tokens = wf_json | wf_arith_op | wf_bool_op |
-    Package | Var | Brace | Square | Dot | Paren | Assign | EmptySet | Colon |
-    RawString | Default;
+    Package | Var | Brace | Square | Dot | Paren | Assign | Unify | EmptySet |
+    Colon | RawString | Default | Some;
 
   // clang-format off
   inline const auto wf_parser =
       (Top <<= Rego)
     | (Rego <<= Query * Input * DataSeq * ModuleSeq)
-    | (Query <<= Group)
+    | (Query <<= Group++)
     | (Input <<= File | Undefined)
     | (ModuleSeq <<= File++)
     | (DataSeq <<= File++)
@@ -32,6 +34,7 @@ namespace rego
     | (Square <<= (Group | List))
     | (List <<= Group++)
     | (Group <<= wf_parse_tokens++[1])
+    | (Some <<= (List | Group)++)
     ;
   // clang-format on
 
@@ -45,8 +48,8 @@ namespace rego
   // clang-format on
 
   inline const auto wf_modules_tokens = wf_json | wf_arith_op | wf_bool_op |
-    Paren | Var | Brace | Square | Dot | Assign | EmptySet | RawString |
-    Default;
+    Paren | Var | Brace | Square | Dot | Assign | Unify | EmptySet | RawString |
+    Default | Some;
 
   // clang-format off
   inline const auto wf_pass_modules =
@@ -62,8 +65,8 @@ namespace rego
   // clang-format on
 
   inline const auto wf_lists_tokens = wf_json | wf_arith_op | wf_bool_op |
-    Paren | Var | Set | RuleBody | ObjectItemSeq | Array | Dot | Assign |
-    Object | RawString | Default;
+    Paren | Var | Set | UnifyBody | ObjectItemSeq | Array | Dot | Assign |
+    Unify | Object | RawString | Default | SomeDecl;
 
   // clang-format off
   inline const auto wf_pass_lists =
@@ -73,11 +76,12 @@ namespace rego
     | (ObjectItem <<= Group * Group)
     | (Array <<= Group++)
     | (Set <<= Group++)
-    | (RuleBody <<= Group++)
+    | (UnifyBody <<= (SomeDecl | Group)++)
     | (Input <<= Var * ObjectItemSeq)[Var]
     | (Data <<= ObjectItemSeq)
     | (Group <<= wf_lists_tokens++[1])
     | (List <<= Group++)
+    | (SomeDecl <<= Group++)
     ;
   // clang-format on
 
@@ -98,14 +102,15 @@ namespace rego
     | (DefaultRule <<= Var * Term)
     | (Rule <<= RuleHead * RuleBodySeq)
     | (RuleHead <<= Var * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc))
-    | (RuleBodySeq <<= RuleBody++[1])
+    | (RuleBodySeq <<= (Empty | UnifyBody)++[1])
     | (RuleHeadComp <<= AssignOperator * Expr)
     | (RuleHeadFunc <<= RuleArgs * AssignOperator * Expr)
     | (RuleArgs <<= Term++[1])
-    | (RuleBody <<= (Literal | RuleHead)++)
-    | (Literal <<= Expr)
-    | (Expr <<= (Term | wf_arith_op | wf_bool_op | Expr)++[1])
-    | (AssignOperator <<= Assign)
+    | (UnifyBody <<= Literal++[1])
+    | (Literal <<= Expr | SomeDecl)
+    | (SomeDecl <<= Var++)
+    | (Expr <<= (Term | wf_arith_op | wf_bool_op | wf_assign_op | Expr)++[1])
+    | (AssignOperator <<= wf_assign_op)
     | (Term <<= Ref | Var | Scalar | Array | Object | Set)
     | (Ref <<= Var * RefArgSeq)
     | (RefArgSeq <<= (RefArgDot | RefArgBrack | RefArgCall)++)
@@ -125,43 +130,53 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_strings =
     wf_pass_structure
-    | (String <<= JSONString)
+    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
     ;
   // clang-format on
 
+  inline const auto wf_rulebody = Val >>= UnifyBody | Empty;
+
   // clang-format off
   inline const auto wf_pass_symbols =
-    wf_pass_structure
+    wf_pass_strings
     | (Module <<= Var * Policy)[Var]
-    | (RuleComp <<= Var * Expr * RuleBody)[Var]
-    | (RuleFunc <<= Var * RuleArgs * Expr * RuleBody)[Var]
+    | (RuleComp <<= Var * wf_rulebody * Expr)[Var]
+    | (RuleFunc <<= Var * RuleArgs * wf_rulebody * Expr)[Var]
     | (RuleArgs <<= (ArgVar | ArgVal)++[1])
+    | (UnifyBody <<= (Local | Literal)++[1])
+    | (Query <<= UnifyBody)
+    | (Local <<= Var * Undefined)[Var]
+    | (Literal <<= Expr | NotExpr)    
     | (ArgVar <<= Var * Undefined)[Var]
     | (ArgVal <<= Scalar | Array | Object | Set)
-    | (LocalRule <<= Var * Expr)[Var]
     | (DefaultRule <<= Var * Term)[Var]
     | (Policy <<= (DefaultRule | RuleComp | RuleFunc)++)
-    | (RuleBody <<= (LocalRule | Literal)++)
     | (Object <<= (ObjectItem | RefObjectItem)++)
     | (ObjectItem <<= Key * Expr)[Key]
-    | (RefObjectItem <<= Ref * Expr)
+    | (RefObjectItem <<= RefTerm * Expr)
     | (Term <<= Scalar | Array | Object | Set)
     | (RefTerm <<= Ref | Var)
     | (NumTerm <<= JSONInt | JSONFloat)
-    | (RefArgBrack <<= Scalar | RefTerm | String | Object | Array | Set)
-    | (Expr <<= (RefTerm | NumTerm | Term | wf_arith_op | wf_bool_op | Expr)++[1])
+    | (RefArgBrack <<= RefTerm | Scalar | Object | Array | Set)
+    | (Expr <<= (RefTerm | NumTerm | Term | wf_arith_op | wf_bool_op | Unify | Expr)++[1])
     ;
+  // clang-format-on
+
   // clang-format-off
+  inline const auto wf_pass_locals = 
+    wf_pass_symbols
+    ;
+  // clang-format-on
 
   inline const auto wf_math_tokens = RefTerm | NumTerm | UnaryExpr | ArithInfix;
 
   // clang-format off
   inline const auto wf_pass_multiply_divide =
-    wf_pass_symbols
+    wf_pass_locals
     | (ArithInfix <<= ArithArg * (Op >>= Multiply | Divide | Modulo) * ArithArg)
     | (ArithArg <<= (Add | Subtract | Expr | wf_math_tokens)++[1])
     | (UnaryExpr <<= ArithArg)
-    | (Expr <<= (NumTerm | RefTerm | Term | Add | Subtract | wf_bool_op | Expr | ArithInfix)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | Add | Subtract | wf_bool_op | Unify | Expr | ArithInfix)++[1])
     ;
   // clang-format on
 
@@ -170,27 +185,68 @@ namespace rego
     wf_pass_multiply_divide
     | (ArithInfix <<= ArithArg * (Op >>= wf_arith_op) * ArithArg)
     | (ArithArg <<= Expr | wf_math_tokens)
-    | (Expr <<= (NumTerm | RefTerm | Term | wf_bool_op | Expr | UnaryExpr | ArithInfix)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | wf_bool_op | Unify | Expr | UnaryExpr | ArithInfix)++[1])
     ;
   // clang-format on
 
   // clang-format off
   inline const auto wf_pass_comparison =
     wf_pass_add_subtract
-    | (BoolInfix <<= ArithArg * (Op >>= wf_bool_op) * ArithArg)
+    | (BoolInfix <<= BoolArg * (Op >>= wf_bool_op) * BoolArg)
+    | (BoolArg <<= Term | wf_math_tokens)
     | (ArithArg <<= wf_math_tokens)
     | (Literal <<= Expr | NotExpr)
     | (NotExpr <<= Expr)
-    | (Expr <<= (NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | UnaryExpr | Unify | Expr | ArithInfix | BoolInfix)++[1])
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_assign =
+    wf_pass_comparison
+    | (RuleComp <<= Var * wf_rulebody * UnifyBody)[Var]
+    | (RuleFunc <<= Var * RuleArgs * wf_rulebody * UnifyBody)[Var]
+    | (AssignInfix <<= AssignArg * AssignArg)
+    | (AssignArg <<= wf_math_tokens | Term | BoolInfix)
+    | (Expr <<= (NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix | AssignInfix)++[1])
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_refs =
+    wf_pass_assign
+    | (RefTerm <<= Ref | Var | SimpleRef)
+    | (SimpleRef <<= Var * (Op >>= RefArgDot | RefArgBrack | RefArgCall))
+    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix | AssignInfix)
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_rulebody =
+    wf_pass_refs
+    | (UnifyExpr <<= Var * (Val >>= NotExpr | Expr))
+    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix)
+    | (UnifyBody <<= (Local | UnifyExpr)++[1])
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_functions =
+    wf_pass_rulebody
+    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
+    | (Function <<= JSONString * ArgSeq)
+    | (ArgSeq <<= (Scalar | Var | wf_arith_op | wf_bool_op)++)
+    | (Array <<= Term++)
+    | (Set <<= Term++)
+    | (ObjectItem <<= Key * Term)[Key]
     ;
   // clang-format on
 
   // clang-format off
   inline const auto wf_pass_merge_data =
-    wf_pass_comparison
+    wf_pass_functions
     | (Rego <<= Query * Input * Data * ModuleSeq)
     | (Data <<= Var * ObjectItemSeq)[Var]
-    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix)
     ;
   // clang-format on
 
@@ -205,21 +261,21 @@ namespace rego
     ;
   // clang-format on
 
+  inline const auto wf_resolve = wf_pass_merge_modules;
+
   // clang-format off
   inline const auto wf_pass_rules =
     wf_pass_merge_modules
-    | (Query <<= Term++[1])
+    | (Query <<= (Term | Binding)++[1])
+    | (Binding <<= Var * Term)[Var]
     | (Term <<= Scalar | Array | Object | Set | Undefined)
-    | (Array <<= Term++)
-    | (Set <<= Term++)
-    | (ObjectItem <<= Key * Term)[Key]
     ;
   // clang-format on
 
   // clang-format off
   inline const auto wf_pass_query =
     wf_pass_rules
-    | (Top <<= Term++[1])
+    | (Top <<= (Binding | Term)++[1])
     ;
   // clang-format on
 }

@@ -5,27 +5,38 @@ cmake_minimum_required(VERSION 3.15)
 
 include(FetchContent)
 
-set( REGO_CPP_VERSION 0.1.3 )
-message("Configure REGO_CPP_VERSION at ${REGO_CPP_VERSION}")
+file( STRINGS "VERSION" REGOCPP_VERSION_FILE )
 
-project(regocpp VERSION ${REGO_CPP_VERSION} LANGUAGES CXX)
+string( REPLACE "." ";" REGOCPP_VERSION_LIST ${REGOCPP_VERSION_FILE} )
+
+list( GET REGOCPP_VERSION_LIST 0 REGOCPP_VERSION_MAJOR )
+
+list( GET REGOCPP_VERSION_LIST 1 REGOCPP_VERSION_MINOR )
+
+list( GET REGOCPP_VERSION_LIST 2 REGOCPP_VERSION_REVISION )
+
+set( REGOCPP_VERSION ${REGOCPP_VERSION_MAJOR}.${REGOCPP_VERSION_MINOR}.${REGOCPP_VERSION_REVISION} )
+
+message("Configure REGOCPP_VERSION at ${REGOCPP_VERSION}")
+
+project( regocpp VERSION ${REGOCPP_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# -------------------- Find packages --------------------------
+
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        11f9f56979707d11d96a4e8a473c7dd2bd79e7da
+  GIT_TAG        f66149cb53a79816120bd8f8af9e085be1f84e29
+  GIT_SHALLOW    TRUE
 )
 
-FetchContent_GetProperties(trieste)
-if(NOT trieste_POPULATED)
-  set(TRIESTE_BUILD_SAMPLES OFF)
-  FetchContent_Populate(trieste)
-  add_subdirectory(${trieste_SOURCE_DIR} ${trieste_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 
+set(TRIESTE_BUILD_SAMPLES OFF)
+FetchContent_MakeAvailable(trieste)
 
 find_program(CLANG_FORMAT NAMES clang-format-10 clang-format-14 )
 
@@ -35,7 +46,10 @@ if(CLANG_FORMAT_NOT_FOUND)
 else()
   file(GLOB_RECURSE ALL_SOURCE_FILES CONFIGURE_DEPENDS
         src/*.cc
+        src/passes/*.cc
         src/*.h
+        include/rego/*.h
+        tools/*.cc
   )
 
   add_custom_target(regocpp_format
@@ -45,9 +59,75 @@ else()
                     ${ALL_SOURCE_FILES})
 endif()
 
-enable_testing()
+set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
+# -------------------- Options --------------------------
+
+option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" OFF)
+option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
+option(REGOCPP_LOGGING "Specifies whether to enable logging" OFF)
+
+# -------------------- Walk the subdirectories --------------------
+
+if(REGOCPP_BUILD_TESTS)
+  enable_testing()
+endif()
 
 add_subdirectory(src)
 
-install(TARGETS rego_interpreter rego_trieste RUNTIME)
-install(DIRECTORY src/examples DESTINATION .)
+if(REGOCPP_BUILD_TOOLS)
+  add_subdirectory(tools)
+endif()
+
+# -------------------- Install ------------------------------------
+
+set(INSTALL_CONFIGDIR cmake)
+set(INSTALL_LIBDIR lib)
+set(INSTALL_INCLUDEDIR include)
+
+install(TARGETS rego
+  EXPORT ${PROJECT_NAME}_Targets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# Create a ConfigVersion.cmake file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  ${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+  ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  INSTALL_DESTINATION
+  ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake
+)
+
+install(EXPORT ${PROJECT_NAME}_Targets
+  FILE ${PROJECT_NAME}Targets.cmake
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
+
+install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  ${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
+
+if (REGOCPP_BUILD_TOOLS)
+  install(TARGETS rego_interpreter rego_trieste RUNTIME)
+  install(DIRECTORY tools/examples DESTINATION .)
+endif()
+
+export(EXPORT ${PROJECT_NAME}_Targets
+  FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+  NAMESPACE ${PROJECT_NAME}::)
+
+export(PACKAGE ${PROJECT_NAME})
+
+install(DIRECTORY include/ DESTINATION ${INSTALL_INCLUDEDIR})
+install(FILES 
+  ${CMAKE_CURRENT_BINARY_DIR}/src/version.h
+  DESTINATION ${INSTALL_INCLUDEDIR}/rego
+)

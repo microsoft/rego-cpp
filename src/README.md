@@ -18,8 +18,10 @@ This Readme is used to track a rough plan of features to add.
 - [x] Default keyword
 - [x] Modulo operator
 - [x] Rule functions
-- [ ] Unification
-- [ ] `some` keyword
+- [x] Unification
+- [x] `some` keyword
+- [ ] `in` keyword
+- [ ] `if` keyword
 - [ ] Array/Set comprehensions
 - [ ] Object comprehensions
 - [ ] `contains` keyword
@@ -41,7 +43,8 @@ rule-body       = "{" rule-body-item {(";" | ( [CR] LR)) rule-body-item } "}"
 rule-body-item  = expr | rule
 rule-args       = term { "," term }
 query           = literal { ( ";" | ( [CR] LF ) ) literal }
-literal         = ( expr | "not" expr )
+literal         = ( some-decl | expr | "not" expr )
+some-decl       = "some" term { "," term } 
 expr            = term | expr-infix | expr-parens | unary-expr
 expr-infix      = expr infix-operator expr
 expr-parens     = "(" expr ")"
@@ -50,7 +53,7 @@ term            = ref | var | scalar | array | object | set
 infix-operator  = assign-operator | bool-operator | arith-operator
 bool-operator   = "==" | "!=" | "<" | ">" | ">=" | "<="
 arith-operator  = "+" | "-" | "*" | "/" | "%"
-assign-operator = ":="
+assign-operator = ":=" | "="
 ref             = var { ref-arg }
 ref-arg         = ref-arg-dot | ref-arg-brack | ref-arg-call
 ref-arg-brack   = "[" ( scalar | var ) "]"
@@ -145,3 +148,32 @@ LF     Line Feed
     - expr vs term
     - modulo operator
 2. What should the correct behavior be for floating point modulo? (currently undefined)
+3. Why are global rule references not allowed in rule function definitions?
+4. Object unifications: why aren't vars allowed as keys? Why are additional keys not allowed which are not unified?
+
+## Unification
+
+Once all the `AssignInfix` nodes are constructed correctly (after the `assign` pass) we
+can begin to flatten assign statements to end up with a simple sequence of unification
+statements. 
+
+|                   expression                  |                                             flattened form                                                              |        method        |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------  |
+| `a = <term>`                                  | `a = <term>`                                                                                                            | noop                 |
+| `<term> = a`                                  | `a = <term>`                                                                                                            | swap                 |
+| `[a, b] = [3, 4]`                             | <code>a = 3<br>b = 4</code>                                                                                             | split                |
+| `[a, 3] = [5, b]`                             | <code>a = 5<br>3 = b</code>                                                                                             | split                |
+| `{"one": a, "two": b} = {"one": 3, "two": 4}` | <code>a = 3<br>b = 4</code>                                                                                             | decompose            |
+| `{a: 4, b: 3} = {"one": 3, "two": 4}`         | <code>foo = {"one": 3, "two": 4}<br>t_0 = foo[i_0]<br>t_0 = 4<br>a = i_0<br>t_1 = foo[i_1]<br>t_1 = 3<br>b = i_1</code> | (unsupported)        |
+| `[a, b] = array[i]`                           | <code>foo = array[i]<br>a = foo[0]<br>b = foo[1]</code>                                                                 | indirect             |
+| `{"one": a, "two": b} = array[i]`             | <code>foo = array[i]<br>a = foo["one"]<br>b = foo["two"]</code>                                                         | indirect + decompose |
+| `{a: 4, b: 3} = array[i]`                     | <code>foo = array[i]<br>t_0 = foo[i_0]<br>t_0 = 4<br>a = i_0<br>t_1 = foo[i_1]<br>t_1 = 3<br>b = i_1</code>             | (unsupported)        |
+| `foo[[a, 5]]`                                 | <code>x = foo[i]<br>[a, 5] = x</code>                                                                                   | add index            |
+
+Naturally, the indirect method requires the addition of new local variables to the `RuleBody`,
+but the eventual result is that all statements are of the form `<var> = <expr>`.
+
+Further thoughts. The above isn't enough, though it is a good start. We really want all expressions
+to be of the form `<var> = <fn>(<var|term>+)` or `<var> = <term`. In a subsequent pass we
+functionalize all expressions in a `RuleBody`, adding temporary variables as needed. That way
+the unifier is just operating over simple expressions.
