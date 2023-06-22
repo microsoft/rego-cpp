@@ -24,7 +24,12 @@ namespace rego
               return;
             }
 
-            m.term();
+            m.term({List});
+            if (m.in(Some))
+            {
+              m.pop(Some);
+              m.term();
+            }
           },
 
         // Whitespace between tokens.
@@ -95,6 +100,9 @@ namespace rego
         // Default.
         "default\\b" >> [](auto& m) { m.add(Default); },
 
+        // Some.
+        "some\\b" >> [](auto& m) { m.push(Some); },
+
         // Empty set.
         R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
 
@@ -148,6 +156,9 @@ namespace rego
 
         // GreaterThan
         ">" >> [](auto& m) { m.add(GreaterThan); },
+
+        // Unify
+        "=" >> [](auto& m) { m.add(Unify); },
 
       });
 
