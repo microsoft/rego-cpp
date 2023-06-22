@@ -84,6 +84,11 @@ namespace rego
 
     Node lhs = unifyexpr->front();
     Node rhs = unifyexpr->back();
+    if (!is_local(lhs))
+    {
+      throw std::runtime_error("Unification target is not a local variable");
+    }
+
     Variable& var = m_variables.at(lhs->location());
     std::vector<Location> deps;
     std::size_t num_vars = scan_vars(rhs, deps);

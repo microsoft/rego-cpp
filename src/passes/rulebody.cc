@@ -52,9 +52,7 @@ namespace rego
                  [](auto& n) { return !contains_local(*n.first); }) *
                T(AssignArg)[Rhs](
                  [](auto& n) { return contains_local(*n.first); }))) >>
-        [](Match& _) {
-          return AssignInfix << _(Rhs) << _(Lhs);
-        },
+        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
 
       // a = <term>
       In(UnifyBody) *
@@ -140,9 +138,7 @@ namespace rego
           (T(AssignInfix)
            << ((T(AssignArg)[Lhs] << T(RefTerm)) *
                (T(AssignArg)[Rhs] << (T(Term) << T(Array))))) >>
-        [](Match& _) {
-          return AssignInfix << _(Rhs) << _(Lhs);
-        },
+        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
 
       // <array> = <var>
       In(UnifyBody) *
@@ -192,9 +188,7 @@ namespace rego
                (T(AssignArg)[Rhs] << (T(Term) << T(Object)([](auto& n) {
                                         return contains_local(*n.first);
                                       }))))) >>
-        [](Match& _) {
-          return AssignInfix << _(Rhs) << _(Lhs);
-        },
+        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
 
       // <object> = <var>
       In(UnifyBody) *
