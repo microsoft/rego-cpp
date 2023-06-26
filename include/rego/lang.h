@@ -160,5 +160,6 @@ namespace rego
   std::vector<PassCheck> passes();
   std::string to_json(const Node& node);
   bool contains_local(const Node& node);
+  bool contains_ref(const Node& node);
   bool is_in(const Node& node, const Token& token);
 }

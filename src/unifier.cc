@@ -18,8 +18,8 @@ namespace
       (Local <<= Var * (Val >>= Term | Undefined))
     | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
     | (DefaultRule <<= Var * Term)
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody))
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
+    | (RuleComp <<= Var * (Body >>= JSONTrue | JSONFalse | UnifyBody | Empty) * (Val >>= Term | UnifyBody))
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= Term | UnifyBody))
     | (Function <<= JSONString * ArgSeq)
     | (ObjectItem <<= Key * Term)
     | (Term <<= Scalar | Array | Object | Set)
@@ -171,7 +171,8 @@ namespace rego
       Node lhs = unifyexpr->at(wfi / UnifyExpr / Var);
       LOG(Resolver::expr_str(unifyexpr));
       Variable& var = m_variables.at(lhs->location());
-      Values values = evaluate(lhs->location(), unifyexpr->at(wfi / UnifyExpr / Val));
+      Values values =
+        evaluate(lhs->location(), unifyexpr->at(wfi / UnifyExpr / Val));
       if (values.size() == 0)
       {
         continue;
@@ -658,11 +659,30 @@ namespace rego
     return buf.str();
   }
 
+  std::string Unifier::dependency_str() const
+  {
+    std::stringstream buf;
+    for (auto& [name, var] : m_variables)
+    {
+      buf << name.view() << "(" << var.dependency_score() << ") -> {";
+      std::string sep = "";
+      for (const auto& dep : var.dependencies())
+      {
+        buf << sep << dep.view();
+        sep = ", ";
+      }
+      buf << "}" << std::endl;
+    }
+
+    return buf.str();
+  }
+
   std::size_t Unifier::compute_dependency_score(const Node& unifyexpr)
   {
     std::size_t score = 0;
     std::vector<Location> deps;
-    std::size_t num_vars = scan_vars(unifyexpr->at(wfi / UnifyExpr / Val), deps);
+    std::size_t num_vars =
+      scan_vars(unifyexpr->at(wfi / UnifyExpr / Val), deps);
     score += num_vars - deps.size();
     for (auto& dep : deps)
     {
@@ -755,18 +775,21 @@ namespace rego
 
     if (body_result->type() == JSONTrue)
     {
-      LOG("Evaluating rule comp value");
-      try
+      if (value->type() == UnifyBody)
       {
-        Unifier unifier(rulename, value, m_call_stack);
-        unifier.unify();
-        Node result = unifier.bindings().front()->at(wfi / Binding / Term);
-        rulecomp->replace(value, result);
-        value = result;
-      }
-      catch (const std::exception& e)
-      {
-        return err(rulecomp, e.what());
+        LOG("Evaluating rule comp value");
+        try
+        {
+          Unifier unifier(rulename, value, m_call_stack);
+          unifier.unify();
+          Node result = unifier.bindings().front()->at(wfi / Binding / Term);
+          rulecomp->replace(value, result);
+          value = result;
+        }
+        catch (const std::exception& e)
+        {
+          return err(rulecomp, e.what());
+        }
       }
     }
 
@@ -825,20 +848,24 @@ namespace rego
       return std::nullopt;
     }
 
-    LOG("Evaluating rule func value");
-
     Node value = rule->at(wfi / RuleFunc / Val);
 
-    try
+    if (value->type() == UnifyBody)
     {
-      Unifier unifier(rulename, value, m_call_stack);
-      unifier.unify();
-      return unifier.bindings().front()->at(wfi / Binding / Term);
+      LOG("Evaluating rule func value");
+      try
+      {
+        Unifier unifier(rulename, value, m_call_stack);
+        unifier.unify();
+        value = unifier.bindings().front()->at(wfi / Binding / Term);
+      }
+      catch (const std::exception& e)
+      {
+        return err(rulefunc, e.what());
+      }
     }
-    catch (const std::exception& e)
-    {
-      return err(rulefunc, e.what());
-    }
+
+    return value;
   }
 
   Nodes Unifier::expressions() const

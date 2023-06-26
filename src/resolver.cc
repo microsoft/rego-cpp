@@ -2,7 +2,6 @@
 
 #include "lang.h"
 #include "unifier.h"
-#include "wf.h"
 
 namespace
 {
@@ -21,6 +20,7 @@ namespace
     | (ObjectItem <<= Key * Term)
     | (ArgVar <<= Var * (Val >>= Term | Undefined))
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
+    | (Function <<= JSONString * ArgSeq)
     ;
   // clang-format on
 
@@ -373,7 +373,7 @@ namespace rego
 
       if (index->type() == Scalar)
       {
-        index = index->at(wf_pass_functions / Scalar / Scalar);
+        index = index->at(wfi / Scalar / Scalar);
       }
 
       if (index->type() == JSONInt)
@@ -394,7 +394,7 @@ namespace rego
 
     if (container->type() == Object)
     {
-      Node query = arg->at(wf_pass_functions / Scalar / Scalar);
+      Node query = arg->at(wfi / Scalar / Scalar);
       return object_lookdown(container, query);
     }
 
@@ -402,7 +402,7 @@ namespace rego
       container->type() == Input || container->type() == Data ||
       container->type() == Module)
     {
-      Node key = arg->at(wf_pass_functions / Scalar / Scalar);
+      Node key = arg->at(wfi / Scalar / Scalar);
       std::string key_str = to_json(key);
       if (key_str.starts_with('"') && key_str.ends_with('"'))
       {
@@ -633,7 +633,18 @@ namespace rego
 
   Nodes Resolver::object_lookdown(const Node& object, const Node& query)
   {
+    Nodes terms;
     Nodes defs = object->lookdown(query->location());
+
+    if (defs.size() > 0)
+    {
+      std::transform(
+        defs.begin(),
+        defs.end(),
+        std::back_inserter(terms),
+        [](const Node& def) { return def->at(wfi / ObjectItem / Term); });
+      return terms;
+    }
 
     std::string query_str = to_json(query);
     for (auto& object_item : *object)
@@ -648,11 +659,11 @@ namespace rego
 
       if (key_str == query_str)
       {
-        defs.push_back(object_item->at(wfi / ObjectItem / Term));
+        terms.push_back(object_item->at(wfi / ObjectItem / Term));
       }
     }
 
-    return defs;
+    return terms;
   }
 
   Node Resolver::resolve_query(const Node& query)

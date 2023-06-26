@@ -10,6 +10,12 @@ namespace rego
   {
     return {
       (In(RuleComp) / In(RuleFunc)) *
+          (T(Expr)
+           << (T(Term)[Term]([](auto& n) { return !contains_ref(*n.first); }) *
+               End)) >>
+        [](Match& _) { return _(Term); },
+
+      (In(RuleComp) / In(RuleFunc)) *
           (T(Expr) << (AssignInfixArg[Arg] * End)) >>
         [](Match& _) {
           Location value = _.fresh({"value"});

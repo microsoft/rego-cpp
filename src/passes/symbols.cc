@@ -176,7 +176,9 @@ namespace rego
         [](Match& _) { return err(_(UnifyBody), "Invalid unification body"); },
 
       In(RuleFunc) * T(Empty)[Empty] >>
-        [](Match& _) { return err(_(Empty), "RuleFunc cannot have an empty body"); },
+        [](Match& _) {
+          return err(_(Empty), "RuleFunc cannot have an empty body");
+        },
     };
   }
 

@@ -95,7 +95,9 @@ namespace rego
         },
 
       (In(UnifyExpr) / In(ArgSeq) * T(NumTerm)[NumTerm]) >>
-        [](Match& _) { return (Scalar << _(NumTerm)->at(wfi / NumTerm / NumTerm)); },
+        [](Match& _) {
+          return (Scalar << _(NumTerm)->at(wfi / NumTerm / NumTerm));
+        },
 
       In(ArgSeq) * T(Function)[Function] >>
         [](Match& _) {
@@ -127,14 +129,16 @@ namespace rego
       (In(UnifyExpr) / In(ArgSeq)) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
         [](Match& _) {
           return Function << (JSONString ^ "unary")
-                          << (ArgSeq << _(ArithArg)->at(wfi / ArithArg / ArithArg));
+                          << (ArgSeq
+                              << _(ArithArg)->at(wfi / ArithArg / ArithArg));
         },
 
       (In(UnifyExpr) / In(ArgSeq)) *
           (T(ArithInfix) << (T(ArithArg)[Lhs] * Any[Op] * T(ArithArg)[Rhs])) >>
         [](Match& _) {
           return Function << (JSONString ^ "arithinfix")
-                          << (ArgSeq << _(Op) << _(Lhs)->at(wfi / ArithArg / ArithArg)
+                          << (ArgSeq << _(Op)
+                                     << _(Lhs)->at(wfi / ArithArg / ArithArg)
                                      << _(Rhs)->at(wfi / ArithArg / ArithArg));
         },
 
@@ -142,7 +146,8 @@ namespace rego
           (T(BoolInfix) << (T(BoolArg)[Lhs] * Any[Op] * T(BoolArg)[Rhs])) >>
         [](Match& _) {
           return Function << (JSONString ^ "boolinfix")
-                          << (ArgSeq << _(Op) << _(Lhs)->at(wfi / BoolArg / BoolArg)
+                          << (ArgSeq << _(Op)
+                                     << _(Lhs)->at(wfi / BoolArg / BoolArg)
                                      << _(Rhs)->at(wfi / BoolArg / BoolArg));
         },
 
@@ -153,7 +158,8 @@ namespace rego
           (T(RefTerm)
            << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
         [](Match& _) {
-          Location field_name = _(RefArgDot)->at(wfi / RefArgDot / Var)->location();
+          Location field_name =
+            _(RefArgDot)->at(wfi / RefArgDot / Var)->location();
           Node arg = Scalar << (JSONString ^ field_name);
           return Function << (JSONString ^ "apply_access")
                           << (ArgSeq << _(Var) << arg);

@@ -52,7 +52,8 @@ namespace rego
           Location temp = _.fresh({"unify"});
           seq->push_back(Local << (Var ^ temp) << Undefined);
           Node expr = Expr
-            << (BoolInfix << (BoolArg << _(Rhs)->at(wfi / AssignArg / Val)) << Equals
+            << (BoolInfix << (BoolArg << _(Rhs)->at(wfi / AssignArg / Val))
+                          << Equals
                           << (BoolArg << _(Lhs)->at(wfi / AssignArg / Val)));
           seq->push_back(UnifyExpr << (Var ^ temp) << expr);
           return seq;
@@ -75,7 +76,8 @@ namespace rego
                                  }))) *
                T(AssignArg)[Rhs])) >>
         [](Match& _) {
-          return UnifyExpr << _(Lhs) << (Expr << _(Rhs)->at(wfi / AssignArg / Val));
+          return UnifyExpr << _(Lhs)
+                           << (Expr << _(Rhs)->at(wfi / AssignArg / Val));
         },
 
       // <ref> = <term>
@@ -91,7 +93,8 @@ namespace rego
           seq->push_back(Local << (Var ^ temp) << Undefined);
           seq->push_back(UnifyExpr << (Var ^ temp) << (Expr << _(Lhs)));
           seq->push_back(
-            UnifyExpr << (Var ^ temp) << (Expr << _(Rhs)->at(wfi / AssignArg / Val)));
+            UnifyExpr << (Var ^ temp)
+                      << (Expr << _(Rhs)->at(wfi / AssignArg / Val)));
           return seq;
         },
 
@@ -212,13 +215,19 @@ namespace rego
           Node seq = NodeDef::create(Seq);
           for (const auto& item : *_(Lhs))
           {
-            if(item->type() == ObjectItem){
-              Node index = Scalar << (JSONString ^ item->at(wfi / ObjectItem / Key)->location());
+            if (item->type() == ObjectItem)
+            {
+              Node index = Scalar
+                << (JSONString ^ item->at(wfi / ObjectItem / Key)->location());
               Node ref = SimpleRef << _(Rhs)->clone() << (RefArgBrack << index);
               seq->push_back(
-                AssignInfix << (AssignArg << item->at(wfi / ObjectItem / Expr)->at(wfi / Expr / Val))
-                            << (AssignArg << (RefTerm << ref)));
-            }else{
+                AssignInfix
+                << (AssignArg
+                    << item->at(wfi / ObjectItem / Expr)->at(wfi / Expr / Val))
+                << (AssignArg << (RefTerm << ref)));
+            }
+            else
+            {
               seq->push_back(err(item, "Expected non-ref object item"));
             }
           }
@@ -238,11 +247,13 @@ namespace rego
           seq->push_back(UnifyExpr << (Var ^ temp) << (Expr << _(RefTerm)));
           for (const auto& item : *_(Lhs))
           {
-            std::string key = std::string(item->at(wfi / ObjectItem / Key)->location().view());
+            std::string key =
+              std::string(item->at(wfi / ObjectItem / Key)->location().view());
             Node index = Scalar << (JSONString ^ key);
             Node ref = SimpleRef << (Var ^ temp) << (RefArgBrack << index);
             seq->push_back(
-              AssignInfix << (AssignArg << item->at(wfi / ObjectItem / Expr)->at(wfi / Expr / Val))
+              AssignInfix << (AssignArg << item->at(wfi / ObjectItem / Expr)
+                                             ->at(wfi / Expr / Val))
                           << (AssignArg << (RefTerm << ref)));
           }
 

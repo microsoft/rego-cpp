@@ -3,7 +3,8 @@
 #include "log.h"
 #include "resolver.h"
 
-namespace {
+namespace
+{
   using namespace rego;
   using namespace wf::ops;
 
@@ -71,8 +72,9 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
-    return os << variable.m_local->at(wfi / Local / Var)->location().view() << "("
-              << variable.m_dependency_score << ") = {" << variable.m_values;
+    return os << variable.m_local->at(wfi / Local / Var)->location().view()
+              << "(" << variable.m_dependency_score << ") = {"
+              << variable.m_values;
   }
 
   std::ostream& operator<<(
@@ -110,7 +112,7 @@ namespace rego
       return m_dependency_score;
     }
 
-    m_visited = false;
+    m_visited = true;
     m_dependency_score = std::transform_reduce(
       m_dependencies.cbegin(),
       m_dependencies.cend(),

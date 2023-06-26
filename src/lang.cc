@@ -201,6 +201,24 @@ namespace rego
     return buf.str();
   }
 
+  bool contains_ref(const Node& node)
+  {
+    if (node->type() == RefTerm)
+    {
+      return true;
+    }
+
+    for (auto& child : *node)
+    {
+      if (contains_ref(child))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   bool contains_local(const Node& node)
   {
     if (node->type() == Var)

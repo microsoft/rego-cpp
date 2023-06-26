@@ -1,7 +1,8 @@
 #include "passes.h"
 #include "resolver.h"
 
-namespace {
+namespace
+{
   using namespace rego;
   using namespace wf::ops;
 
