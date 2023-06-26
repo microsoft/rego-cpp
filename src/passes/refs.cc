@@ -1,6 +1,19 @@
 #include "lang.h"
 #include "passes.h"
 
+namespace
+{
+  using namespace rego;
+  using namespace wf::ops;
+
+  // clang-format off
+  inline const auto wfi =
+      (Top <<= Rego)
+    | (RefArgBrack <<= Scalar | Var | Object | Array | Set)
+    ;
+  // clang-format on
+}
+
 namespace rego
 {
   PassDef refs()
@@ -104,7 +117,7 @@ namespace rego
                                            << (RefArgBrack
                                                << (RefTerm
                                                    << (Var ^ index))))))))));
-            Node arg = head->front();
+            Node arg = head->at(wfi / RefArgBrack / RefArgBrack);
             if (
               arg->type() == Array || arg->type() == Object ||
               arg->type() == Set || arg->type() == Scalar)

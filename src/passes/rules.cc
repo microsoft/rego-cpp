@@ -1,6 +1,19 @@
 #include "passes.h"
 #include "resolver.h"
 
+namespace {
+  using namespace rego;
+  using namespace wf::ops;
+
+  // clang-format off
+  inline const auto wfi =
+      (Top <<= Rego)
+    | (Rego <<= Query * Input * Data)
+    ;
+  // clang-format on
+
+}
+
 namespace rego
 {
   PassDef rules()
@@ -27,7 +40,7 @@ namespace rego
       }};
 
     rules.pre(Rego, [](Node node) {
-      Node query = node->front();
+      Node query = node->at(wfi / Rego / Query);
       try
       {
         Resolver::resolve_query(query);

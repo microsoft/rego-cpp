@@ -4,13 +4,35 @@
 #include "lang.h"
 #include "log.h"
 #include "resolver.h"
-#include "wf.h"
 
 #include <sstream>
 #include <type_traits>
 
+namespace
+{
+  using namespace rego;
+  using namespace wf::ops;
+
+  // clang-format off
+  inline const auto wfi =
+      (Local <<= Var * (Val >>= Term | Undefined))
+    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
+    | (DefaultRule <<= Var * Term)
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody))
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
+    | (Function <<= JSONString * ArgSeq)
+    | (ObjectItem <<= Key * Term)
+    | (Term <<= Scalar | Array | Object | Set)
+    | (ArgVar <<= Var * Term)
+    | (Binding <<= Var * Term)
+    ;
+  // clang-format on
+}
+
 namespace rego
 {
+  using namespace wf::ops;
+
   std::ostream& operator<<(std::ostream& os, const Unifier& unifier)
   {
     for (const auto& [first, second] : unifier.m_variables)
@@ -74,7 +96,7 @@ namespace rego
 
   void Unifier::add_variable(const Node& local)
   {
-    auto name = local->front()->location();
+    auto name = local->at(wfi / Local / Var)->location();
     m_variables.insert({name, Variable(local)});
   }
 
@@ -82,8 +104,8 @@ namespace rego
   {
     m_unifyexprs.push_back(unifyexpr);
 
-    Node lhs = unifyexpr->front();
-    Node rhs = unifyexpr->back();
+    Node lhs = unifyexpr->at(wfi / UnifyExpr / Var);
+    Node rhs = unifyexpr->at(wfi / UnifyExpr / Val);
     if (!is_local(lhs))
     {
       throw std::runtime_error("Unification target is not a local variable");
@@ -146,10 +168,10 @@ namespace rego
     bool check_finalized = false;
     for (const auto& unifyexpr : m_unifyexprs)
     {
-      Node lhs = unifyexpr->front();
+      Node lhs = unifyexpr->at(wfi / UnifyExpr / Var);
       LOG(Resolver::expr_str(unifyexpr));
       Variable& var = m_variables.at(lhs->location());
-      Values values = evaluate(lhs->location(), unifyexpr->back());
+      Values values = evaluate(lhs->location(), unifyexpr->at(wfi / UnifyExpr / Val));
       if (values.size() == 0)
       {
         continue;
@@ -366,8 +388,9 @@ namespace rego
     }
     else if (value->type() == Function)
     {
-      std::string func_name = std::string(value->front()->location().view());
-      Node args_node = value->back();
+      std::string func_name =
+        std::string(value->at(wfi / Function / JSONString)->location().view());
+      Node args_node = value->at(wfi / Function / ArgSeq);
       if (func_name == "access_args")
       {
         Values arg_values = access_args(var, args_node->front());
@@ -393,10 +416,11 @@ namespace rego
     {
       if (def->type() == Local)
       {
-        if (m_variables.count(def->front()->location()) > 0)
+        Node name = def->at(wfi / Local / Var);
+        if (m_variables.count(name->location()) > 0)
         {
           // part of the unification
-          Variable& var = m_variables.at(def->front()->location());
+          Variable& var = m_variables.at(name->location());
           Values valid_values = var.valid_values();
           values.insert(values.end(), valid_values.begin(), valid_values.end());
         }
@@ -404,12 +428,12 @@ namespace rego
         {
           // a resolved local from another problem in the same rule
           // i.e. referring to a body local from the value.
-          values.push_back(ValueDef::create(def->back()));
+          values.push_back(ValueDef::create(def->at(wfi / Local / Val)));
         }
       }
       else if (def->type() == ArgVar)
       {
-        values.push_back(ValueDef::create(def->back()));
+        values.push_back(ValueDef::create(def->at(wfi / ArgVar / Term)));
       }
       else if (
         def->type() == Data || def->type() == Module ||
@@ -481,7 +505,7 @@ namespace rego
 
       if (container->type() == Term)
       {
-        container = container->front();
+        container = container->at(wfi / Term / Term);
       }
 
       if (container->type() == Undefined)
@@ -588,7 +612,7 @@ namespace rego
 
       if (container->type() == Term)
       {
-        container = container->front();
+        container = container->at(wfi / Term / Term);
       }
 
       if (container->type() == Array)
@@ -604,8 +628,8 @@ namespace rego
       {
         for (const Node& object_item : *container)
         {
-          std::string key =
-            std::string(object_item->front()->location().view());
+          std::string key = std::string(
+            object_item->at(wfi / ObjectItem / Key)->location().view());
           args.push_back(ValueDef::create(var, Scalar << (JSONString ^ key)));
         }
       }
@@ -638,7 +662,7 @@ namespace rego
   {
     std::size_t score = 0;
     std::vector<Location> deps;
-    std::size_t num_vars = scan_vars(unifyexpr->back(), deps);
+    std::size_t num_vars = scan_vars(unifyexpr->at(wfi / UnifyExpr / Val), deps);
     score += num_vars - deps.size();
     for (auto& dep : deps)
     {
@@ -684,15 +708,15 @@ namespace rego
   {
     if (rulecomp->type() == DefaultRule)
     {
-      return DefaultTerm << rulecomp->at(wf_resolve / DefaultRule / Term)
-                              ->at(wf_resolve / Term / Term);
+      return DefaultTerm
+        << rulecomp->at(wfi / DefaultRule / Term)->at(wfi / Term / Term);
     }
 
     assert(rulecomp->type() == RuleComp);
 
-    Location rulename = rulecomp->at(0)->location();
-    Node rulebody = rulecomp->at(1);
-    Node value = rulecomp->back();
+    Location rulename = rulecomp->at(wfi / RuleComp / Var)->location();
+    Node rulebody = rulecomp->at(wfi / RuleComp / Body);
+    Node value = rulecomp->at(wfi / RuleComp / Val);
     if (rulebody->type() == JSONFalse)
     {
       return std::nullopt;
@@ -736,7 +760,7 @@ namespace rego
       {
         Unifier unifier(rulename, value, m_call_stack);
         unifier.unify();
-        Node result = unifier.bindings()[0]->back();
+        Node result = unifier.bindings().front()->at(wfi / Binding / Term);
         rulecomp->replace(value, result);
         value = result;
       }
@@ -774,8 +798,8 @@ namespace rego
       return std::nullopt;
     }
 
-    Location rulename = rule->at(0)->location();
-    Node rulebody = rule->at(2);
+    Location rulename = rule->at(wfi / RuleFunc / Var)->location();
+    Node rulebody = rule->at(wfi / RuleFunc / Body);
     Node body_result;
 
     try
@@ -803,13 +827,13 @@ namespace rego
 
     LOG("Evaluating rule func value");
 
-    Node value = rule->back();
+    Node value = rule->at(wfi / RuleFunc / Val);
 
     try
     {
       Unifier unifier(rulename, value, m_call_stack);
       unifier.unify();
-      return unifier.bindings()[0]->back();
+      return unifier.bindings().front()->at(wfi / Binding / Term);
     }
     catch (const std::exception& e)
     {

@@ -1,13 +1,26 @@
 #include "passes.h"
 #include "resolver.h"
 
-namespace rego
-{
+namespace {
+  using namespace rego;
+  using namespace wf::ops;
+
   const inline auto TermToken = T(Var) / T(Ref) / T(Array) / T(Object) / T(Set);
   const inline auto ExprToken = T(Term) / ArithToken / BoolToken / T(Expr) /
     ScalarToken / TermToken / T(JSONString) / T(Array) / T(Set) / T(Object) /
     T(Paren) / T(Not) / T(Dot);
   const inline auto StringToken = T(JSONString) / T(RawString);
+
+  // clang-format off
+  inline const auto wfi =
+      (Top <<= Rego)
+    | (Paren <<= (Group | List))
+    ;
+  // clang-format on
+}
+
+namespace rego
+{
 
   PassDef structure()
   {
@@ -61,16 +74,16 @@ namespace rego
         [](Match& _) {
           Node refargcall = NodeDef::create(RefArgCall);
           Node paren = _(Paren);
-          if (paren->front()->type() == List)
+          if (paren->at(wfi / Paren / Paren)->type() == List)
           {
-            for (const auto& arg : *paren->front())
+            for (const auto& arg : *paren->at(wfi / Paren / Paren))
             {
               refargcall->push_back(arg);
             }
           }
           else
           {
-            refargcall->push_back(paren->front());
+            refargcall->push_back(paren->at(wfi / Paren / Paren));
           }
 
           return Ref << _(Lhs) << (RefArgSeq << *_[RefArgSeq] << refargcall);
@@ -80,16 +93,16 @@ namespace rego
         [](Match& _) {
           Node refargcall = NodeDef::create(RefArgCall);
           Node paren = _(Paren);
-          if (paren->front()->type() == List)
+          if (paren->at(wfi / Paren / Paren)->type() == List)
           {
-            for (const auto& arg : *paren->front())
+            for (const auto& arg : *paren->at(wfi / Paren / Paren))
             {
               refargcall->push_back(arg);
             }
           }
           else
           {
-            refargcall->push_back(paren->front());
+            refargcall->push_back(paren->at(wfi / Paren / Paren));
           }
 
           return Ref << _(Var) << (RefArgSeq << refargcall);
@@ -141,16 +154,16 @@ namespace rego
         [](Match& _) {
           Node args = NodeDef::create(RuleArgs);
           Node paren = _(Paren);
-          if (paren->front()->type() == List)
+          if (paren->at(wfi / Paren / Paren)->type() == List)
           {
-            for (const auto& arg : *paren->front())
+            for (const auto& arg : *paren->at(wfi / Paren / Paren))
             {
               args->push_back(arg);
             }
           }
           else
           {
-            args->push_back(paren->front());
+            args->push_back(paren->at(wfi / Paren / Paren));
           }
 
           return Rule << (RuleHead
@@ -169,16 +182,16 @@ namespace rego
         [](Match& _) {
           Node args = NodeDef::create(RuleArgs);
           Node paren = _(Paren);
-          if (paren->front()->type() == List)
+          if (paren->at(wfi / Paren / Paren)->type() == List)
           {
-            for (const auto& arg : *paren->front())
+            for (const auto& arg : *paren->at(wfi / Paren / Paren))
             {
               args->push_back(arg);
             }
           }
           else
           {
-            args->push_back(paren->front());
+            args->push_back(paren->at(wfi / Paren / Paren));
           }
 
           return Rule << (RuleHead

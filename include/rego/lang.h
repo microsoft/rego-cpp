@@ -124,6 +124,7 @@ namespace rego
   inline constexpr auto SimpleRef = TokenDef("simple-ref");
   inline constexpr auto Binding = TokenDef("binding");
   inline constexpr auto DefaultTerm = TokenDef("default-term");
+  inline constexpr auto Body = TokenDef("body");
 
   // lists
   inline constexpr auto List = TokenDef("list");

@@ -4,8 +4,23 @@
 namespace
 {
   using namespace rego;
+  using namespace wf::ops;
+
   const auto inline VarOrTerm = T(Var) / T(Term);
   const auto inline RefArg = T(RefArgDot) / T(RefArgBrack) / T(RefArgCall);
+
+  // clang-format off
+  inline const auto wfi =
+      (ObjectItem <<= Key * Expr)
+    | (RefObjectItem <<= RefTerm * Expr)
+    | (NumTerm <<= JSONInt | JSONFloat)
+    | (ArithArg <<= RefTerm | NumTerm | UnaryExpr | ArithInfix)
+    | (BoolArg <<= Term | RefTerm | NumTerm | UnaryExpr | ArithInfix)
+    | (RefArgDot <<= Var)
+    | (RefArgBrack <<= Scalar | Var | Object | Array | Set)
+    | (RefTerm <<= SimpleRef)
+    ;
+  // clang-format on
 }
 namespace rego
 {
@@ -38,16 +53,16 @@ namespace rego
       (In(UnifyExpr) / In(ArgSeq)) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
-          seq->push_back(_(ObjectItem)->front());
-          seq->push_back(_(ObjectItem)->back());
+          seq->push_back(_(ObjectItem)->at(wfi / ObjectItem / Key));
+          seq->push_back(_(ObjectItem)->at(wfi / ObjectItem / Expr));
           return seq;
         },
 
       (In(UnifyExpr) / In(ArgSeq)) * T(RefObjectItem)[RefObjectItem] >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
-          seq->push_back(_(RefObjectItem)->front());
-          seq->push_back(_(RefObjectItem)->back());
+          seq->push_back(_(RefObjectItem)->at(wfi / RefObjectItem / RefTerm));
+          seq->push_back(_(RefObjectItem)->at(wfi / RefObjectItem / Expr));
           return seq;
         },
 
@@ -80,7 +95,7 @@ namespace rego
         },
 
       (In(UnifyExpr) / In(ArgSeq) * T(NumTerm)[NumTerm]) >>
-        [](Match& _) { return (Scalar << _(NumTerm)->front()); },
+        [](Match& _) { return (Scalar << _(NumTerm)->at(wfi / NumTerm / NumTerm)); },
 
       In(ArgSeq) * T(Function)[Function] >>
         [](Match& _) {
@@ -112,23 +127,23 @@ namespace rego
       (In(UnifyExpr) / In(ArgSeq)) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
         [](Match& _) {
           return Function << (JSONString ^ "unary")
-                          << (ArgSeq << _(ArithArg)->front());
+                          << (ArgSeq << _(ArithArg)->at(wfi / ArithArg / ArithArg));
         },
 
       (In(UnifyExpr) / In(ArgSeq)) *
           (T(ArithInfix) << (T(ArithArg)[Lhs] * Any[Op] * T(ArithArg)[Rhs])) >>
         [](Match& _) {
           return Function << (JSONString ^ "arithinfix")
-                          << (ArgSeq << _(Op) << _(Lhs)->front()
-                                     << _(Rhs)->front());
+                          << (ArgSeq << _(Op) << _(Lhs)->at(wfi / ArithArg / ArithArg)
+                                     << _(Rhs)->at(wfi / ArithArg / ArithArg));
         },
 
       (In(UnifyExpr) / In(ArgSeq)) *
           (T(BoolInfix) << (T(BoolArg)[Lhs] * Any[Op] * T(BoolArg)[Rhs])) >>
         [](Match& _) {
           return Function << (JSONString ^ "boolinfix")
-                          << (ArgSeq << _(Op) << _(Lhs)->front()
-                                     << _(Rhs)->front());
+                          << (ArgSeq << _(Op) << _(Lhs)->at(wfi / BoolArg / BoolArg)
+                                     << _(Rhs)->at(wfi / BoolArg / BoolArg));
         },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(RefTerm) << T(Var)[Var]) >>
@@ -138,7 +153,7 @@ namespace rego
           (T(RefTerm)
            << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
         [](Match& _) {
-          Location field_name = _(RefArgDot)->front()->location();
+          Location field_name = _(RefArgDot)->at(wfi / RefArgDot / Var)->location();
           Node arg = Scalar << (JSONString ^ field_name);
           return Function << (JSONString ^ "apply_access")
                           << (ArgSeq << _(Var) << arg);
@@ -151,10 +166,10 @@ namespace rego
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
 
-          Node arg = _(RefArgBrack)->front();
+          Node arg = _(RefArgBrack)->at(wfi / RefArgBrack / RefArgBrack);
           if (arg->type() == RefTerm)
           {
-            Node var = arg->front();
+            Node var = arg->at(wfi / RefTerm / SimpleRef);
             if (var->type() == Var && contains_local(var))
             {
               Node function = Function << (JSONString ^ "access_args")

@@ -7,6 +7,22 @@
 namespace
 {
   using namespace rego;
+  using namespace wf::ops;
+
+  // clang-format off
+  inline const auto wfi =
+      (DataModule <<= Var * Module)
+    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
+    | (Query <<= UnifyBody)
+    | (Local <<= Var * Term)
+    | (Term <<= Scalar | Array | Object | Set)
+    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
+    | (ArgVal <<= Scalar | Array | Object | Set)
+    | (ObjectItem <<= Key * Term)
+    | (ArgVar <<= Var * (Val >>= Term | Undefined))
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
+    ;
+  // clang-format on
 
   std::int64_t get_int(const Node& node)
   {
@@ -324,7 +340,7 @@ namespace rego
     Node value;
     if (node->type() == Term)
     {
-      value = node->front();
+      value = node->at(wfi / Term / Term);
     }
     else
     {
@@ -333,7 +349,7 @@ namespace rego
 
     if (value->type() == Scalar)
     {
-      value = value->front();
+      value = value->at(wfi / Scalar / Scalar);
     }
 
     if (value->type() == JSONInt || value->type() == JSONFloat)
@@ -352,7 +368,7 @@ namespace rego
       Node index = arg;
       if (index->type() == Term)
       {
-        index = index->front();
+        index = index->at(wfi / Term / Term);
       }
 
       if (index->type() == Scalar)
@@ -405,11 +421,11 @@ namespace rego
       {
         if (def->type() == DataModule)
         {
-          nodes.push_back(def->at(wf_resolve / DataModule / Module));
+          nodes.push_back(def->at(wfi / DataModule / Module));
         }
         else if (def->type() == ObjectItem)
         {
-          nodes.push_back(def->back());
+          nodes.push_back(def->at(wfi / ObjectItem / Term));
         }
         else
         {
@@ -502,8 +518,8 @@ namespace rego
 
   std::string Resolver::expr_str(const Node& unifyexpr)
   {
-    Node lhs = unifyexpr->front();
-    Node rhs = unifyexpr->back();
+    Node lhs = unifyexpr->at(wfi / UnifyExpr / Var);
+    Node rhs = unifyexpr->at(wfi / UnifyExpr / Val);
     std::string lhs_str = std::string(lhs->location().view());
     std::string rhs_str =
       rhs->type() == Function ? func_str(rhs) : arg_str(rhs);
@@ -513,8 +529,8 @@ namespace rego
   std::string Resolver::func_str(const Node& function)
   {
     std::stringstream buf;
-    Node name = function->front();
-    Node args = function->back();
+    Node name = function->at(wfi / Function / JSONString);
+    Node args = function->at(wfi / Function / ArgSeq);
     buf << std::string(name->location().view()) << "(";
     std::string sep = "";
     for (const auto& child : *args)
@@ -538,7 +554,7 @@ namespace rego
 
   Node Resolver::inject_args(const Node& rulefunc, const Nodes& args)
   {
-    Node ruleargs = rulefunc->at(1);
+    Node ruleargs = rulefunc->at(wfi / RuleFunc / RuleArgs);
     std::size_t num_args = ruleargs->size();
     if (num_args != args.size())
     {
@@ -554,7 +570,7 @@ namespace rego
       Node arg = args[i];
       if (rulearg->type() == ArgVal)
       {
-        std::string rulearg_str = to_json(rulearg->front());
+        std::string rulearg_str = to_json(rulearg->at(wfi / ArgVal / ArgVal));
         std::string arg_str = to_json(arg);
         if (rulearg_str != arg_str)
         {
@@ -563,7 +579,7 @@ namespace rego
       }
       else if (rulearg->type() == ArgVar)
       {
-        rulearg->at(1) = arg;
+        rulearg->at(wfi / ArgVar / Val) = arg;
       }
     }
 
@@ -578,10 +594,10 @@ namespace rego
       return true;
     }
 
-    Node value = node->front();
+    Node value = node->at(wfi / Term / Term);
     if (value->type() == Scalar)
     {
-      value = value->front();
+      value = value->at(wfi / Scalar / Scalar);
       return value->type() != JSONFalse;
     }
 
@@ -601,10 +617,10 @@ namespace rego
       return false;
     }
 
-    Node value = node->front();
+    Node value = node->at(wfi / Term / Term);
     if (value->type() == Scalar)
     {
-      value = value->front();
+      value = value->at(wfi / Scalar / Scalar);
       return value->type() == JSONFalse;
     }
     else if (value->type() == Undefined)
@@ -622,7 +638,7 @@ namespace rego
     std::string query_str = to_json(query);
     for (auto& object_item : *object)
     {
-      Node key = object_item->front();
+      Node key = object_item->at(wfi / ObjectItem / Key);
       if (key->type() == Ref)
       {
         throw std::runtime_error("Not implemented.");
@@ -632,7 +648,7 @@ namespace rego
 
       if (key_str == query_str)
       {
-        defs.push_back(object_item->back());
+        defs.push_back(object_item->at(wfi / ObjectItem / Term));
       }
     }
 
@@ -641,7 +657,7 @@ namespace rego
 
   Node Resolver::resolve_query(const Node& query)
   {
-    Node rulebody = query->at(wf_resolve / Query / UnifyBody);
+    Node rulebody = query->at(wfi / Query / UnifyBody);
 
     {
       CallStack callstack = std::make_shared<std::vector<Location>>();
@@ -664,8 +680,8 @@ namespace rego
         continue;
       }
 
-      Node var = child->at(wf_resolve / Local / Var)->clone();
-      Node term = child->back()->clone();
+      Node var = child->at(wfi / Local / Var)->clone();
+      Node term = child->at(wfi / Local / Term)->clone();
 
       if (term->type() == TermSet)
       {
