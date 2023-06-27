@@ -33,9 +33,10 @@ int main(int argc, char** argv)
 
   if (!input_path.empty())
   {
-        if(!std::filesystem::exists(input_path))
+    if (!std::filesystem::exists(input_path))
     {
-      std::cerr << std::filesystem::weakly_canonical(input_path) << " does not exist" << std::endl;
+      std::cerr << std::filesystem::weakly_canonical(input_path)
+                << " does not exist" << std::endl;
       return 1;
     }
 
@@ -44,9 +45,10 @@ int main(int argc, char** argv)
 
   for (auto& path : data_paths)
   {
-    if(!std::filesystem::exists(path))
+    if (!std::filesystem::exists(path))
     {
-      std::cerr << std::filesystem::weakly_canonical(path) << " does not exist" << std::endl;
+      std::cerr << std::filesystem::weakly_canonical(path) << " does not exist"
+                << std::endl;
       return 1;
     }
 
