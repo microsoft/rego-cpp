@@ -6,6 +6,20 @@
 
 #include <charconv>
 
+namespace
+{
+  using namespace rego;
+
+  // clang-format off
+  inline const auto wfi =
+      (Binding <<= Var * Term)
+    | (ObjectItem <<= Key * Term)
+    | (Term <<= Scalar | Array | Object | Set | Undefined)
+    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
+    ;
+  // clang-format on
+}
+
 namespace rego
 {
   std::stringstream log_stream;
@@ -140,8 +154,8 @@ namespace rego
       std::map<std::string, std::string> items;
       for (const auto& child : *node)
       {
-        auto key = child->front();
-        auto value = child->back();
+        auto key = child->at(wfi / ObjectItem / Key);
+        auto value = child->at(wfi / ObjectItem / Term);
         items[to_json(key)] = to_json(value);
       }
 
@@ -155,14 +169,14 @@ namespace rego
 
       buf << "}";
     }
-    else if (
-      node->type() == String || node->type() == Scalar || node->type() == Term)
+    else if (node->type() == Scalar || node->type() == Term)
     {
-      return to_json(node->front());
+      return to_json(node->at(wfi / Scalar / Scalar, wfi / Term / Term));
     }
     else if (node->type() == Binding)
     {
-      buf << node->front()->location().view() << " = " << to_json(node->back());
+      buf << node->at(wfi / Binding / Var)->location().view() << " = "
+          << to_json(node->at(wfi / Binding / Term));
     }
     else if (node->type() == TermSet)
     {
@@ -185,6 +199,24 @@ namespace rego
     }
 
     return buf.str();
+  }
+
+  bool contains_ref(const Node& node)
+  {
+    if (node->type() == RefTerm)
+    {
+      return true;
+    }
+
+    for (auto& child : *node)
+    {
+      if (contains_ref(child))
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   bool contains_local(const Node& node)

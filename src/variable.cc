@@ -3,6 +3,21 @@
 #include "log.h"
 #include "resolver.h"
 
+namespace
+{
+  using namespace rego;
+  using namespace wf::ops;
+
+  // clang-format off
+  inline const auto wfi =
+      (Local <<= Var * (Val >>= Undefined))
+    | (Term <<= Scalar | Array | Object | Set | Undefined)
+    | (DefaultTerm <<= Scalar | Array | Object | Set | Undefined)
+    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
+    ;
+  // clang-format on
+}
+
 namespace rego
 {
   Variable::Variable(const Node& local) :
@@ -11,7 +26,7 @@ namespace rego
     m_initialized(false),
     m_dependency_score(1)
   {
-    Location name = local->front()->location();
+    Location name = local->at(wfi / Local / Var)->location();
     std::string name_str = std::string(name.view());
     m_unify = name_str.starts_with("unify$");
     m_user_var = name_str.find('$') == std::string::npos ||
@@ -57,8 +72,9 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
-    return os << variable.m_local->front()->location().view() << "("
-              << variable.m_dependency_score << ") = {" << variable.m_values;
+    return os << variable.m_local->at(wfi / Local / Var)->location().view()
+              << "(" << variable.m_dependency_score << ") = {"
+              << variable.m_values;
   }
 
   std::ostream& operator<<(
@@ -96,7 +112,7 @@ namespace rego
       return m_dependency_score;
     }
 
-    m_visited = false;
+    m_visited = true;
     m_dependency_score = std::transform_reduce(
       m_dependencies.cbegin(),
       m_dependencies.cend(),
@@ -122,7 +138,7 @@ namespace rego
     {
       if (nodes[0]->type() == DefaultTerm)
       {
-        return Term << nodes[0]->front();
+        return Term << nodes[0]->at(wfi / DefaultTerm / DefaultTerm);
       }
 
       return nodes[0];
@@ -146,7 +162,7 @@ namespace rego
 
     if (term_set->size() == 1)
     {
-      return term_set->at(0);
+      return term_set->front();
     }
 
     return term_set;
@@ -238,13 +254,13 @@ namespace rego
     Node term = to_term();
     if (term->type() == Error)
     {
-      m_local->back() = term;
+      m_local->at(wfi / Local / Val) = term;
       return term;
     }
 
     if (Resolver::is_truthy(term) || m_user_var)
     {
-      m_local->back() = term;
+      m_local->at(wfi / Local / Val) = term;
     }
     else
     {
@@ -256,7 +272,7 @@ namespace rego
 
   Location Variable::name() const
   {
-    return m_local->front()->location();
+    return m_local->at(wfi / Local / Var)->location();
   }
 
   bool Variable::has_cycle(const std::map<Location, Variable>& variables) const

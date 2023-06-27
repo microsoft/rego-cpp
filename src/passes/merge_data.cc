@@ -1,5 +1,18 @@
 #include "passes.h"
 
+namespace
+{
+  using namespace rego;
+  using namespace wf::ops;
+
+  // clang-format off
+  inline const auto wfi =
+      (ObjectItem <<= Key * Expr)
+    | (Data <<= ObjectItemSeq)
+    ;
+  // clang-format on
+}
+
 namespace rego
 {
   Node merge_objects(const Node& lhs, const Node& rhs)
@@ -8,14 +21,16 @@ namespace rego
     std::set<std::string> keys;
     for (auto object_item : *lhs)
     {
-      std::string key(object_item->front()->location().view());
+      std::string key(
+        object_item->at(wfi / ObjectItem / Key)->location().view());
       keys.insert(key);
       list->push_back(object_item);
     }
 
     for (auto object_item : *rhs)
     {
-      std::string key(object_item->front()->location().view());
+      std::string key(
+        object_item->at(wfi / ObjectItem / Key)->location().view());
       if (keys.count(key))
       {
         return err(rhs, "Merge error");
@@ -34,7 +49,9 @@ namespace rego
         [](Match& _) {
           auto lhs = _(Lhs);
           auto rhs = _(Rhs);
-          return Data << merge_objects(_(Lhs)->front(), _(Rhs)->front());
+          return Data << merge_objects(
+                   _(Lhs)->at(wfi / Data / ObjectItemSeq),
+                   _(Rhs)->at(wfi / Data / ObjectItemSeq));
         },
 
       In(Rego) * (T(DataSeq) << (T(Data)[Data] * End)) >>

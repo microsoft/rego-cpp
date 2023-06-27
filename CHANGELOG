@@ -1,4 +1,20 @@
 # Changelog
 
+## [2023-06-27 - Version 0.2.1](https://github.com/microsoft/scenepic/releases/tag/v0.2.1)
+Addressing various minor improvements, bugs, and documentation issues.
+
+**Bug fixes**
+- Fixed a segfault when an input, data, or module file did not exist
+- Fixed a segfault when a lookdown returns zero definitions
+- Fixed various typos and errors in the documentation
+- Fixed a potential infinite rewrite loop in the RuleBody pass
+
+**Improvements**
+- Rule values will no longer always be `UnifyBody` nodes but will be `Term` nodes
+  in cases when the rule returns a constant value.
+- The code now uses the well-formed child indexing wherever possible for increased
+  robustness.
+
+
 ## [2023-06-21 - Version 0.2.0](https://github.com/microsoft/scenepic/releases/tag/v0.2.0)
 Initial Release.

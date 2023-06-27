@@ -13,40 +13,48 @@ interpereter on top of the experimental term rewriter
 
 ## Getting Started
 
-First you will need to install the build dependencies in the manner appropriate to
-your system:
+Start by installing [CMake](https://cmake.org/) in the way appropriate for your
+environment.
 
-1. `cmake`
-2. `ninja` (optional)
-3. `clang++` (optional)
-4. `clang-format` (optional)
+### Linux
 
 > **Note**
-> 2-4 are entirely optional (i.e. the build does not require them) but will produce
-> the most reliable results. Our CI currently tests the following configurations:
-> 1. Windows latest with MSBuild
-> 2. Ubuntu latest with Ninja/Clang
+> At the moment, you must use `clang++` to build the project on Linux.
 
 Create a build directory and initialize the cmake project:
 
     mkdir build
     cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1
+    cmake .. --DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
 
 You can then build and run the tests using:
 
-    cmake --build . --config Debug --target INSTALL
-    ctest -C Debug
+    make install
+    ctest
 
 If you wish to use Ninja, then be sure to pass `-G Ninja` as well when configuring the project.
 Then:
 
     ninja install
-    ctest -C Debug
+    ctest
 
 Similarly, if you want to use clang you can indicate this by passing `-DCMAKE_CXX_COMPILER=clang++`
 during configuration.
 
+### Windows
+
+Create a build directory and initialize the cmake project:
+
+    mkdir build
+    cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
+
+You can then build and run the tests using:
+
+    cmake --build . --config Release --target INSTALL
+    ctest -C Release
+
+### Using the Interpreter
 
 The interpreter will be located at `build/dist/bin/rego_interpreter`. Here are
 some example commands using the provided example files:
@@ -57,13 +65,13 @@ some example commands using the provided example files:
     ./bin/rego_interpreter -d examples/objects.rego -q data.objects.sites[1].name
     "smoke1"
 
-    ./bin/rego_interpreter -d examples/data0.json -d examples/data1.json -d examples/objects.rego -d examples/input.json  -q "[data.one, input.b, data.objects.sites[data.objects.index]]"
-    [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, undefined, {"name": "smoke1"}]
+    ./bin/rego_interpreter -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[data.objects.index]]"
+    [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
 
     ./bin/rego_interpreter -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
     9.4
 
-    ./bin/rego_interpreter -d examples/bodies.rego -q data.bodies.e
+    ./bin/rego_interpreter -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
     {"one": 15, "two": 15}
     
 ## Contributing

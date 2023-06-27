@@ -28,6 +28,7 @@ namespace rego
     Nodes expressions() const;
     Nodes bindings() const;
     std::string str() const;
+    std::string dependency_str() const;
     friend std::ostream& operator<<(std::ostream& os, const Unifier& unifier);
 
   private:

@@ -22,6 +22,11 @@ namespace rego
 
   void Interpreter::add_module_file(const std::filesystem::path& path)
   {
+    if (!std::filesystem::exists(path))
+    {
+      throw std::runtime_error("Module file does not exist");
+    }
+
     auto file_ast = m_parser.sub_parse(path);
     m_module_seq->push_back(file_ast);
   }
@@ -36,6 +41,11 @@ namespace rego
 
   void Interpreter::add_data_json_file(const std::filesystem::path& path)
   {
+    if (!std::filesystem::exists(path))
+    {
+      throw std::runtime_error("Data file does not exist");
+    }
+
     auto file_ast = m_parser.sub_parse(path);
     m_data_seq->push_back(file_ast);
   }
@@ -52,6 +62,11 @@ namespace rego
     if (m_input->size() > 0)
     {
       throw std::runtime_error("Input already set");
+    }
+
+    if (!std::filesystem::exists(path))
+    {
+      throw std::runtime_error("Input file does not exist");
     }
 
     auto file_ast = m_parser.sub_parse(path);

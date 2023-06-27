@@ -134,14 +134,12 @@ namespace rego
     ;
   // clang-format on
 
-  inline const auto wf_rulebody = Val >>= UnifyBody | Empty;
-
   // clang-format off
   inline const auto wf_pass_symbols =
     wf_pass_strings
     | (Module <<= Var * Policy)[Var]
-    | (RuleComp <<= Var * wf_rulebody * Expr)[Var]
-    | (RuleFunc <<= Var * RuleArgs * wf_rulebody * Expr)[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * Expr)[Var]
+    | (RuleFunc <<= Var * RuleArgs * UnifyBody * Expr)[Var]
     | (RuleArgs <<= (ArgVar | ArgVal)++[1])
     | (UnifyBody <<= (Local | Literal)++[1])
     | (Query <<= UnifyBody)
@@ -204,8 +202,8 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_assign =
     wf_pass_comparison
-    | (RuleComp <<= Var * wf_rulebody * UnifyBody)[Var]
-    | (RuleFunc <<= Var * RuleArgs * wf_rulebody * UnifyBody)[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody | Term))[Var]
     | (AssignInfix <<= AssignArg * AssignArg)
     | (AssignArg <<= wf_math_tokens | Term | BoolInfix)
     | (Expr <<= (NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix | AssignInfix)++[1])
@@ -260,8 +258,6 @@ namespace rego
     | (DataModule <<= Var * Module)[Var]
     ;
   // clang-format on
-
-  inline const auto wf_resolve = wf_pass_merge_modules;
 
   // clang-format off
   inline const auto wf_pass_rules =

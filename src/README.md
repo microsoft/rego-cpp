@@ -1,33 +1,7 @@
 # TODO
 
-This Readme is used to track a rough plan of features to add.
-
-## Plan
-
-- [x] Single module with static scalar rules
-- [x] Multiple modules with static scalar rules
-- [x] Objects/Arrays
-- [x] Input, Data nodes, and Expressions
-- [x] Modify naming to match target grammar
-- [x] Resolve rule dependencies using a DAG over the AST
-- [x] Sets
-- [x] Not operator
-- [x] Raw strings
-- [x] Objects with variable and reference keys
-- [x] Rules with > 1 head/body
-- [x] Default keyword
-- [x] Modulo operator
-- [x] Rule functions
-- [x] Unification
-- [x] `some` keyword
-- [ ] `in` keyword
-- [ ] `if` keyword
-- [ ] Array/Set comprehensions
-- [ ] Object comprehensions
-- [ ] `contains` keyword
-- [ ] Python binding
-- [ ] Rust binding
-- [ ] .NET binding
+This README tracks the current state of the grammar we support, and also planning
+and brainstorming information. The work plan has been moved to Github issues/milestones.
 
 ## Current Supported Grammar
 
