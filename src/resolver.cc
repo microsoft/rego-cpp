@@ -104,7 +104,9 @@ namespace
       return err(op, "unsupported math operation");
     }
 
-    return JSONFloat ^ std::to_string(value);
+    std::ostringstream oss;
+    oss << std::setprecision(8) << std::noshowpoint << value;
+    return JSONFloat ^ oss.str();
   }
 
   Node do_bool(const Node& op, std::int64_t lhs, std::int64_t rhs)
@@ -408,7 +410,13 @@ namespace rego
       {
         key_str = key_str.substr(1, key_str.size() - 2);
       }
+
       Nodes defs = container->lookdown(key_str);
+      if (defs.size() == 0)
+      {
+        return Nodes({err(container, "No definition found for " + key_str)});
+      }
+
       if (
         defs[0]->type() == RuleComp || defs[0]->type() == DefaultRule ||
         defs[0]->type() == RuleFunc)

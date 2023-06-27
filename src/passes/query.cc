@@ -14,6 +14,26 @@ namespace rego
           }
           return seq;
         },
+      
+      (T(Array) / T(Set)) * T(Error)[Error] >>
+        [](Match& _) {
+          return _(Error); 
+        },
+
+      T(Object) * (T(ObjectItem) << (T(Key) * T(Error)[Error])) >>
+        [](Match& _) {
+          return _(Error); 
+        },
+      
+      T(Scalar) * T(Error)[Error] >>
+        [](Match& _) {
+          return _(Error); 
+        },
+
+      T(Term) * T(Error)[Error] >>
+        [](Match& _) {
+          return _(Error); 
+        },
     };
   }
 }

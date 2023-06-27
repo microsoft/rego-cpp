@@ -6,7 +6,7 @@ int main(int argc, char** argv)
 
   auto interpreter = rego::Interpreter();
 
-  // interpreter.executable(argv[0]);
+  interpreter.executable(argv[0]);
 
   app.set_help_all_flag("--help-all", "Expand all help");
 
@@ -33,11 +33,23 @@ int main(int argc, char** argv)
 
   if (!input_path.empty())
   {
+        if(!std::filesystem::exists(input_path))
+    {
+      std::cerr << std::filesystem::weakly_canonical(input_path) << " does not exist" << std::endl;
+      return 1;
+    }
+
     interpreter.add_input_json_file(input_path);
   }
 
   for (auto& path : data_paths)
   {
+    if(!std::filesystem::exists(path))
+    {
+      std::cerr << std::filesystem::weakly_canonical(path) << " does not exist" << std::endl;
+      return 1;
+    }
+
     if (path.extension() == ".json")
     {
       interpreter.add_data_json_file(path);

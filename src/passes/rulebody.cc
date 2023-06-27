@@ -1,4 +1,5 @@
 #include "lang.h"
+#include "log.h"
 #include "passes.h"
 
 namespace
@@ -48,6 +49,7 @@ namespace rego
                T(AssignArg)[Rhs](
                  [](auto& n) { return !contains_local(*n.first); }))) >>
         [](Match& _) {
+          LOG("<term> = <term>");
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"unify"});
           seq->push_back(Local << (Var ^ temp) << Undefined);
@@ -66,7 +68,10 @@ namespace rego
                  [](auto& n) { return !contains_local(*n.first); }) *
                T(AssignArg)[Rhs](
                  [](auto& n) { return contains_local(*n.first); }))) >>
-        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
+        [](Match& _) {
+          LOG("<term> = <any>");
+          return AssignInfix << _(Rhs) << _(Lhs);
+        },
 
       // a = <term>
       In(UnifyBody) *
@@ -76,6 +81,7 @@ namespace rego
                                  }))) *
                T(AssignArg)[Rhs])) >>
         [](Match& _) {
+          LOG("a = <term>");
           return UnifyExpr << _(Lhs)
                            << (Expr << _(Rhs)->at(wfi / AssignArg / Val));
         },
@@ -88,6 +94,7 @@ namespace rego
                                  }))) *
                T(AssignArg)[Rhs])) >>
         [](Match& _) {
+          LOG("<ref> = <term>");
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"ref"});
           seq->push_back(Local << (Var ^ temp) << Undefined);
@@ -104,6 +111,7 @@ namespace rego
            << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
                (T(AssignArg) << (T(Term) << T(Array)[Rhs])))) >>
         [](Match& _) {
+          LOG("<array> = <array>");
           Node lhs = _(Lhs);
           Node rhs = _(Rhs);
           if (lhs->size() != rhs->size())
@@ -127,6 +135,7 @@ namespace rego
            << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
                (T(AssignArg) << (T(Term) << T(Object)[Rhs])))) >>
         [](Match& _) {
+          LOG("<object> = <object>");
           Node lhs = _(Lhs);
           Node rhs = _(Rhs);
           if (lhs->size() != rhs->size())
@@ -153,8 +162,13 @@ namespace rego
       In(UnifyBody) *
           (T(AssignInfix)
            << ((T(AssignArg)[Lhs] << T(RefTerm)) *
-               (T(AssignArg)[Rhs] << (T(Term) << T(Array))))) >>
-        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
+               (T(AssignArg)[Rhs] << (T(Term) << T(Array)([](auto& n) {
+                                        return contains_local(*n.first);
+                                      }))))) >>
+        [](Match& _) {
+          LOG("<refterm> = <array>");
+          return AssignInfix << _(Rhs) << _(Lhs);
+        },
 
       // <array> = <var>
       In(UnifyBody) *
@@ -162,6 +176,7 @@ namespace rego
            << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
                (T(AssignArg) << (T(RefTerm) << T(Var)[Rhs])))) >>
         [](Match& _) {
+          LOG("<array> = <var>");
           Node seq = NodeDef::create(Seq);
           for (std::size_t i = 0; i < _(Lhs)->size(); i++)
           {
@@ -181,6 +196,7 @@ namespace rego
            << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
                (T(AssignArg) << T(RefTerm)[RefTerm]))) >>
         [](Match& _) {
+          LOG("<array> = <ref>");
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"ref"});
           seq->push_back(Local << (Var ^ temp) << Undefined);
@@ -204,7 +220,10 @@ namespace rego
                (T(AssignArg)[Rhs] << (T(Term) << T(Object)([](auto& n) {
                                         return contains_local(*n.first);
                                       }))))) >>
-        [](Match& _) { return AssignInfix << _(Rhs) << _(Lhs); },
+        [](Match& _) {
+          LOG("<refterm> = <object>");
+          return AssignInfix << _(Rhs) << _(Lhs);
+        },
 
       // <object> = <var>
       In(UnifyBody) *
@@ -212,6 +231,7 @@ namespace rego
            << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
                (T(AssignArg) << (T(RefTerm) << T(Var)[Rhs])))) >>
         [](Match& _) {
+          LOG("<object> = <var>");
           Node seq = NodeDef::create(Seq);
           for (const auto& item : *_(Lhs))
           {
@@ -241,6 +261,7 @@ namespace rego
            << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
                (T(AssignArg) << T(RefTerm)[RefTerm]))) >>
         [](Match& _) {
+          LOG("<object> = <ref>");
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"ref"});
           seq->push_back(Local << (Var ^ temp) << Undefined);
