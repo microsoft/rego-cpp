@@ -25,8 +25,10 @@ multi1 "-d\texamples/multi.rego\t-i\texamples/input1.json\t-q\tdata.multi.a" "41
 multi2 "-d\texamples/multi.rego\t-i\texamples/input2.json\t-q\tdata.multi.a" "70"
 functions_sum "-d\texamples/functions.rego\t-i\texamples/input1.json\t-q\t[data.functions.f(1, 2, 3), data.functions.f(1, -1, 3)]" [=[\[6, 4\]]=]
 functions_prod "-d\texamples/functions.rego\t-i\texamples/input2.json\t-q\t[data.functions.f(1, 2, 3), data.functions.f(1, -1, 3)]" [=[\[6, -3\]]=]
+functions_ref "-d\texamples/functions.rego\t-q\t[data.functions.h(1, 2).a, data.functions.h(3, 4).b]" [=[\[1, 4\]]=]
 unify "-d\texamples/unify.rego\t-q\tdata.unify.output" [=[\[{"bar": 2, "foo": 1}, 3, true, true, "bar", 4, 3, \"foo\"\]]=]
 compare "-d\texamples/compare.rego\t-q\tdata.compare.output" [=[\[true, false, false, true\]]=]
+keywords "-d\texamples/keywords.rego\t-i\texamples/input0.json\t-q\tdata.keywords.output" [=[\[4, "found", \["0", "a"\], {"a": 3, "b": 5, "c": true, "sum": 8}\]]=]
 )
 
 add_test(NAME rego_trieste COMMAND rego_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_trieste>)

@@ -8,7 +8,9 @@ namespace
 
   void find_free_vars(const Node& node, std::map<std::string, Node>& locals)
   {
-    if (node->type() == Var && node->parent()->type() != RefArgDot)
+    if (
+      node->type() == Var && node->parent()->type() != RefArgDot &&
+      node->parent()->type() != VarSeq)
     {
       std::string name = std::string(node->location().view());
       if (name == "data")

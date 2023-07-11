@@ -23,3 +23,10 @@ g("sum") {
 g("prod") {
     false
 }
+
+h(a, b) := result {
+    result := {
+        "a": a,
+        "b": b
+    }
+}

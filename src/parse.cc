@@ -103,6 +103,12 @@ namespace rego
         // Some.
         "some\\b" >> [](auto& m) { m.push(Some); },
 
+        // Else.
+        "else\\b" >> [](auto& m) { m.add(Else); },
+
+        // Import
+        "import\\b" >> [](auto& m) { m.add(Import); },
+
         // Empty set.
         R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
 

@@ -7,7 +7,7 @@ namespace
   using namespace wf::ops;
 
   const auto inline VarOrTerm = T(Var) / T(Term);
-  const auto inline RefArg = T(RefArgDot) / T(RefArgBrack) / T(RefArgCall);
+  const auto inline RefArg = T(RefArgDot) / T(RefArgBrack);
 
   // clang-format off
   inline const auto wfi =
@@ -99,7 +99,8 @@ namespace rego
           return (Scalar << _(NumTerm)->at(wfi / NumTerm / NumTerm));
         },
 
-      In(ArgSeq) * T(Function)[Function] >>
+      In(ArgSeq) * T(Function)[Function](
+             [](auto& n) { return is_in(*n.first, UnifyBody); }) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"func"});
@@ -171,38 +172,60 @@ namespace rego
                << (T(Var)[Var] * (T(RefArgBrack)[RefArgBrack])))) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
-
           Node arg = _(RefArgBrack)->at(wfi / RefArgBrack / RefArgBrack);
           if (arg->type() == RefTerm)
           {
             Node var = arg->at(wfi / RefTerm / SimpleRef);
             if (var->type() == Var && contains_local(var))
             {
-              Node function = Function << (JSONString ^ "access_args")
-                                       << (ArgSeq << _(Var)->clone());
-              seq->push_back(
-                Lift << UnifyBody << (UnifyExpr << arg->clone() << function));
-
-              arg = var;
+              // <var>[<index>] is a special case
+              // we use enumerate to access all the elements of
+              // the collection and then assign the index and
+              // values to the enumerated [index, value] tuple
+              Location item = _.fresh({"item"});
+              return Seq
+                << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
+                << (Lift << UnifyBody
+                         << (UnifyExpr
+                             << (Var ^ item)
+                             << (Enumerate << (Expr << (RefTerm << _(Var))))))
+                << (Lift << UnifyBody
+                         << (UnifyExpr
+                             << var
+                             << (RefTerm
+                                 << (SimpleRef
+                                     << (Var ^ item)
+                                     << (RefArgBrack
+                                         << (Scalar << (JSONInt ^ "0")))))))
+                << (Expr
+                    << (RefTerm
+                        << (SimpleRef
+                            << (Var ^ item)
+                            << (RefArgBrack << (Scalar << (JSONInt ^ "1"))))));
+            }
+            else
+            {
+              return Function << (JSONString ^ "apply_access")
+                              << (ArgSeq << _(Var) << arg);
             }
           }
           else
           {
-            arg = Term << arg;
+            return Function << (JSONString ^ "apply_access")
+                            << (ArgSeq << _(Var) << (Term << arg));
           }
-          seq->push_back(
-            Function << (JSONString ^ "apply_access")
-                     << (ArgSeq << _(Var) << arg));
-          return seq;
         },
 
       (In(UnifyExpr) / In(ArgSeq)) *
-          (T(RefTerm)
-           << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgCall)[RefArgCall])))) >>
+          (T(ExprCall) << (T(Var)[Var] * T(ArgSeq)[ArgSeq])) >>
         [](Match& _) {
-          Node args = _(Head);
           return Function << (JSONString ^ "call")
-                          << (ArgSeq << _(Var) << *_[RefArgCall]);
+                          << (ArgSeq << _(Var) << *_[ArgSeq]);
+        },
+
+      In(UnifyExpr) * (T(Enumerate) << T(Expr)[Expr]) >>
+        [](Match& _) {
+          return Function << (JSONString ^ "enumerate") << (ArgSeq << _(Expr));
         },
 
       (In(Array) / In(Set) / In(ObjectItem)) * (T(Expr) << T(Term)[Term]) >>
@@ -216,6 +239,9 @@ namespace rego
 
       In(ObjectItem) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid expression in object"); },
+      
+      In(Expr) * Any[Expr] >>
+        [](Match& _) { return err(_(Expr), "Invalid expression"); },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(RefTerm) << T(Ref)[Ref]) >>
         [](Match& _) { return err(_(Ref), "Invalid reference"); },
@@ -228,6 +254,12 @@ namespace rego
 
       In(ArgSeq) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Invalid reference"); },
+      
+      In(ArgSeq) * T(Enumerate)[Enumerate] >>
+        [](Match& _) { return err(_(Enumerate), "Invalid enumerate"); },
+      
+      In(Object) * T(RefObjectItem)[RefObjectItem] >>
+        [](Match& _) { return err(_(RefObjectItem), "Invalid object item"); },
     };
   }
 }

@@ -28,9 +28,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FetchContent_Declare(
   trieste
-  GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        d2a13ae360f4ae053b0de931737b6e45628837b2
-  GIT_SHALLOW    TRUE
+  GIT_REPOSITORY https://github.com/matajoh/trieste
+  GIT_TAG        6c5cc6e5675742d031e1cb6f82668f3dd51532cc
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 

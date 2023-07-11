@@ -29,6 +29,9 @@ namespace rego
       {"input_data", input_data(), wf_pass_input_data},
       {"modules", modules(), wf_pass_modules},
       {"lists", lists(), wf_pass_lists},
+      {"imports", imports(), wf_pass_imports},
+      {"keywords", keywords(), wf_pass_keywords},
+      {"if_else", if_else(), wf_pass_if_else},
       {"structure", structure(), wf_pass_structure},
       {"strings", strings(), wf_pass_strings},
       {"symbols", symbols(), wf_pass_symbols},
@@ -58,6 +61,9 @@ namespace rego
         {"input_data", input_data(), wf_pass_input_data},
         {"modules", modules(), wf_pass_modules},
         {"lists", lists(), wf_pass_lists},
+        {"imports", imports(), wf_pass_imports},
+        {"keywords", keywords(), wf_pass_keywords},
+        {"if_else", if_else(), wf_pass_if_else},
         {"structure", structure(), wf_pass_structure},
         {"strings", strings(), wf_pass_strings},
         {"symbols", symbols(), wf_pass_symbols},
@@ -278,7 +284,7 @@ namespace rego
     os << "[";
     for (const auto& loc : locs)
     {
-      os << sep << loc.view();
+      os << sep << loc.source->origin() << ":" << loc.view();
       sep = ", ";
     }
     os << "]";

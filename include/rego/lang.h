@@ -1,6 +1,6 @@
 #pragma once
 
-#include <trieste/driver.h>
+#include "trieste/driver.h"
 
 namespace rego
 {
@@ -14,11 +14,14 @@ namespace rego
   inline constexpr auto RuleHead = TokenDef("rule-head");
   inline constexpr auto RuleHeadComp = TokenDef("rule-head-comp");
   inline constexpr auto RuleHeadFunc = TokenDef("rule-head-func");
+  inline constexpr auto RuleHeadSet = TokenDef("rule-head-set");
+  inline constexpr auto RuleHeadObj = TokenDef("rule-head-obj");
   inline constexpr auto RuleArgs = TokenDef("rule-args");
   inline constexpr auto Query = TokenDef("query", flag::symtab);
   inline constexpr auto Literal = TokenDef("literal");
   inline constexpr auto Expr = TokenDef("expr");
   inline constexpr auto ExprInfix = TokenDef("expr-infix");
+  inline constexpr auto ExprCall = TokenDef("expr-call");
   inline constexpr auto UnaryExpr = TokenDef("unary-expr");
   inline constexpr auto NotExpr = TokenDef("not-expr");
   inline constexpr auto Term = TokenDef("term");
@@ -29,7 +32,6 @@ namespace rego
   inline constexpr auto Ref = TokenDef("ref");
   inline constexpr auto RefArgBrack = TokenDef("ref-arg-brack");
   inline constexpr auto RefArgDot = TokenDef("ref-arg-dot");
-  inline constexpr auto RefArgCall = TokenDef("ref-arg-call");
   inline constexpr auto Var = TokenDef("var", flag::print);
   inline constexpr auto Scalar = TokenDef("scalar");
   inline constexpr auto String = TokenDef("string");
@@ -60,10 +62,14 @@ namespace rego
   inline constexpr auto Assign = TokenDef(":=");
   inline constexpr auto Unify = TokenDef("=");
   inline constexpr auto SomeDecl = TokenDef("some-decl");
+  inline constexpr auto IfTruthy = TokenDef("if");
+  inline constexpr auto InSome = TokenDef("in-some");
+  inline constexpr auto IsIn = TokenDef("is-in");
+  inline constexpr auto Contains = TokenDef("contains");
+  inline constexpr auto Else = TokenDef("else");
 
   // intermediate tokens
   inline constexpr auto UnifyBody = TokenDef("unify-body");
-  inline constexpr auto RuleBodySeq = TokenDef("rule-body-seq");
   inline constexpr auto RefHead = TokenDef("ref-head");
   inline constexpr auto RefArgSeq = TokenDef("ref-arg-seq");
   inline constexpr auto DataSeq = TokenDef("data-seq");
@@ -74,6 +80,9 @@ namespace rego
   inline constexpr auto DataModuleSeq = TokenDef("data-module-seq");
   inline constexpr auto ObjectItemHead = TokenDef("object-item-head");
   inline constexpr auto ObjectItemSeq = TokenDef("object-item-seq");
+  inline constexpr auto ImportSeq = TokenDef("import-seq");
+  inline constexpr auto VarSeq = TokenDef("var-seq");
+  inline constexpr auto ElseSeq = TokenDef("else-seq");
 
   // data and input
   inline constexpr auto Input = TokenDef("input", flag::symtab | flag::lookup);
@@ -85,6 +94,12 @@ namespace rego
     flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
   inline constexpr auto RuleFunc = TokenDef(
     "rule-func",
+    flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
+  inline constexpr auto RuleSet = TokenDef(
+    "rule-set",
+    flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
+  inline constexpr auto RuleObj = TokenDef(
+    "rule-obj",
     flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
   inline constexpr auto DefaultRule =
     TokenDef("default-rule", flag::lookup | flag::lookdown);
@@ -125,6 +140,11 @@ namespace rego
   inline constexpr auto Binding = TokenDef("binding");
   inline constexpr auto DefaultTerm = TokenDef("default-term");
   inline constexpr auto Body = TokenDef("body");
+  inline constexpr auto Import = TokenDef("import");
+  inline constexpr auto Keyword =
+    TokenDef("keyword", flag::lookdown | flag::lookup);
+  inline constexpr auto Idx = TokenDef("idx");
+  inline constexpr auto Enumerate = TokenDef("enumerate");
 
   // lists
   inline constexpr auto List = TokenDef("list");
@@ -138,6 +158,8 @@ namespace rego
   inline constexpr auto Not = TokenDef("not");
   inline constexpr auto Default = TokenDef("default");
   inline constexpr auto Some = TokenDef("some");
+
+  inline const std::set<std::string> Keywords({"if", "in", "contains"});
 
   inline auto err(NodeRange& r, const std::string& msg)
   {

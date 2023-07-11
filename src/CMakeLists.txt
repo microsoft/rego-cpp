@@ -10,9 +10,13 @@ value.cc
 value_map.cc
 resolver.cc
 variable.cc
+wf.cc
 passes/input_data.cc
 passes/modules.cc
 passes/lists.cc
+passes/imports.cc
+passes/keywords.cc
+passes/if_else.cc
 passes/structure.cc
 passes/strings.cc
 passes/symbols.cc

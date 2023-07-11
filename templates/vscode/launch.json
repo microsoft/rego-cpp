@@ -171,6 +171,19 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "keywords",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/keywords.rego",
+        "-q",
+        "data.keywords.output"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "errors",
       "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
       "args": [

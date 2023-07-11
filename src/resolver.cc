@@ -238,6 +238,11 @@ namespace
 
 namespace rego
 {
+  std::int64_t Resolver::get_int(const Node& node)
+  {
+    return ::get_int(node);
+  }
+
   Node Resolver::negate(const Node& node)
   {
     if (node->type() == JSONInt)
@@ -294,7 +299,8 @@ namespace rego
     else
     {
       return err(
-        op, "Cannot perform arithmetic operations on non-numeric values");
+        op->parent()->shared_from_this(),
+        "Cannot perform arithmetic operations on non-numeric values");
     }
   }
 
@@ -680,7 +686,7 @@ namespace rego
 
     {
       CallStack callstack = std::make_shared<std::vector<Location>>();
-      Unifier unifier(Location(), rulebody, callstack);
+      Unifier unifier({"query"}, rulebody, callstack);
       unifier.unify();
     }
 

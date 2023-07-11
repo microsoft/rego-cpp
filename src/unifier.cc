@@ -18,8 +18,10 @@ namespace
       (Local <<= Var * (Val >>= Term | Undefined))
     | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
     | (DefaultRule <<= Var * Term)
-    | (RuleComp <<= Var * (Body >>= JSONTrue | JSONFalse | UnifyBody | Empty) * (Val >>= Term | UnifyBody))
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= Term | UnifyBody))
+    | (RuleComp <<= Var * (Body >>= JSONTrue | JSONFalse | UnifyBody | Empty) * (Val >>= Term | UnifyBody) * (Idx >>= JSONInt))
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= Term | UnifyBody) * (Idx >>= JSONInt))
+    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))
+    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= UnifyBody | Term) * (Val >>= UnifyBody | Term))
     | (Function <<= JSONString * ArgSeq)
     | (ObjectItem <<= Key * Term)
     | (Term <<= Scalar | Array | Object | Set)
@@ -392,9 +394,9 @@ namespace rego
       std::string func_name =
         std::string(value->at(wfi / Function / JSONString)->location().view());
       Node args_node = value->at(wfi / Function / ArgSeq);
-      if (func_name == "access_args")
+      if (func_name == "enumerate")
       {
-        Values arg_values = access_args(var, args_node->front());
+        Values arg_values = enumerate(var, args_node->front());
         values.insert(values.end(), arg_values.begin(), arg_values.end());
       }
       else
@@ -412,53 +414,80 @@ namespace rego
   {
     Values values;
     Nodes defs = node->lookup();
-
-    for (const auto& def : defs)
+    if (defs.empty())
     {
-      if (def->type() == Local)
+      return values;
+    }
+
+    Token peek_type = defs.front()->type();
+    if (peek_type == RuleSet)
+    {
+      // construct a set from all valid rules
+      auto maybe_node = resolve_ruleset(defs);
+      if (maybe_node)
       {
-        Node name = def->at(wfi / Local / Var);
-        if (m_variables.count(name->location()) > 0)
+        values.push_back(ValueDef::create(*maybe_node));
+      }
+    }
+    else if (peek_type == RuleObj)
+    {
+      // construct an object from all valid rules
+      auto maybe_node = resolve_ruleobj(defs);
+      if (maybe_node)
+      {
+        values.push_back(ValueDef::create(*maybe_node));
+      }
+    }
+    else
+    {
+      for (const auto& def : defs)
+      {
+        if (def->type() == Local)
         {
-          // part of the unification
-          Variable& var = m_variables.at(name->location());
-          Values valid_values = var.valid_values();
-          values.insert(values.end(), valid_values.begin(), valid_values.end());
+          Node name = def->at(wfi / Local / Var);
+          if (m_variables.count(name->location()) > 0)
+          {
+            // part of the unification
+            Variable& var = m_variables.at(name->location());
+            Values valid_values = var.valid_values();
+            values.insert(
+              values.end(), valid_values.begin(), valid_values.end());
+          }
+          else
+          {
+            // a resolved local from another problem in the same rule
+            // i.e. referring to a body local from the value.
+            values.push_back(ValueDef::create(def->at(wfi / Local / Val)));
+          }
+        }
+        else if (def->type() == ArgVar)
+        {
+          values.push_back(ValueDef::create(def->at(wfi / ArgVar / Term)));
+        }
+        else if (
+          def->type() == Data || def->type() == Module ||
+          def->type() == RuleFunc || def->type() == Input)
+        {
+          // these will always be an argument to apply_access
+          values.push_back(ValueDef::create(def));
+        }
+        else if (def->type() == RuleComp || def->type() == DefaultRule)
+        {
+          auto maybe_node = resolve_rulecomp(def);
+          if (maybe_node)
+          {
+            values.push_back(ValueDef::create(maybe_node.value()));
+          }
         }
         else
         {
-          // a resolved local from another problem in the same rule
-          // i.e. referring to a body local from the value.
-          values.push_back(ValueDef::create(def->at(wfi / Local / Val)));
+          values.push_back(
+            ValueDef::create(err(def, "Unsupported definition type")));
         }
-      }
-      else if (def->type() == ArgVar)
-      {
-        values.push_back(ValueDef::create(def->at(wfi / ArgVar / Term)));
-      }
-      else if (
-        def->type() == Data || def->type() == Module ||
-        def->type() == RuleFunc || def->type() == Input)
-      {
-        // these will always be an argument to apply_access
-        values.push_back(ValueDef::create(def));
-      }
-      else if (def->type() == RuleComp || def->type() == DefaultRule)
-      {
-        auto maybe_node = resolve_rulecomp(def);
-        if (maybe_node)
-        {
-          values.push_back(ValueDef::create(maybe_node.value()));
-        }
-      }
-      else
-      {
-        values.push_back(
-          ValueDef::create(err(def, "Unsupported definition type")));
       }
     }
 
-    return values;
+    return ValueDef::filter_by_rank(values);
   }
 
   Values Unifier::call_function(
@@ -518,21 +547,44 @@ namespace rego
         auto maybe_nodes = Resolver::apply_access(container, args[1]->node());
         if (maybe_nodes)
         {
-          Nodes nodes = maybe_nodes.value();
-          for (auto& node : nodes)
+          Nodes defs = maybe_nodes.value();
+          if (!defs.empty())
           {
-            if (node->type() == RuleComp || node->type() == DefaultRule)
+            Token peek_type = defs.front()->type();
+            if (peek_type == RuleSet)
             {
-              auto maybe_node = resolve_rulecomp(node);
+              auto maybe_node = resolve_ruleset(defs);
               if (maybe_node)
               {
-                values.push_back(
-                  ValueDef::create(var, maybe_node.value(), sources));
+                values.push_back(ValueDef::create(*maybe_node));
+              }
+            }
+            else if (peek_type == RuleObj)
+            {
+              auto maybe_node = resolve_ruleobj(defs);
+              if (maybe_node)
+              {
+                values.push_back(ValueDef::create(*maybe_node));
               }
             }
             else
             {
-              values.push_back(ValueDef::create(var, node, sources));
+              for (auto& def : defs)
+              {
+                if (def->type() == RuleComp || def->type() == DefaultRule)
+                {
+                  auto maybe_node = resolve_rulecomp(def);
+                  if (maybe_node)
+                  {
+                    values.push_back(
+                      ValueDef::create(var, maybe_node.value(), sources));
+                  }
+                }
+                else
+                {
+                  values.push_back(ValueDef::create(var, def, sources));
+                }
+              }
             }
           }
         }
@@ -603,10 +655,11 @@ namespace rego
     return values;
   }
 
-  Values Unifier::access_args(const Location& var, const Node& container_var)
+  Values Unifier::enumerate(const Location& var, const Node& container_var)
   {
-    Values args;
+    Values items;
     Values container_values = resolve_var(container_var);
+    bool add_source = is_local(container_var);
     for (auto& container_value : container_values)
     {
       Node container = container_value->node();
@@ -620,8 +673,14 @@ namespace rego
       {
         for (std::size_t i = 0; i < container->size(); ++i)
         {
-          args.push_back(
-            ValueDef::create(var, Scalar << (JSONInt ^ std::to_string(i))));
+          Node index = Scalar << (JSONInt ^ std::to_string(i));
+          Node tuple = Term << (Array << index << container->at(i));
+          Values sources({ValueDef::create(index)});
+          if (add_source)
+          {
+            sources.push_back(container_value);
+          }
+          items.push_back(ValueDef::create(var, tuple, sources));
         }
       }
 
@@ -631,25 +690,43 @@ namespace rego
         {
           std::string key = std::string(
             object_item->at(wfi / ObjectItem / Key)->location().view());
-          args.push_back(ValueDef::create(var, Scalar << (JSONString ^ key)));
+          Node key_str = (Scalar << (JSONString ^ key));
+          Node tuple = Term
+            << (Array << key_str << object_item->at(wfi / ObjectItem / Term));
+
+          Values sources({ValueDef::create(key_str)});
+          if (add_source)
+          {
+            sources.push_back(container_value);
+          }
+          items.push_back(ValueDef::create(var, tuple, sources));
         }
       }
 
       if (container->type() == Set)
       {
-        for (const Node& item : *container)
+        for (const Node& value : *container)
         {
-          args.push_back(ValueDef::create(var, item));
+          std::string key = to_json(value);
+          Node key_str = (Scalar << (JSONString ^ key));
+          Node tuple = Term << (Array << value << value);
+
+          Values sources({ValueDef::create(key_str)});
+          if (add_source)
+          {
+            sources.push_back(container_value);
+          }
+          items.push_back(ValueDef::create(var, tuple, sources));
         }
       }
     }
 
-    for (auto& arg : args)
+    for (auto& item : items)
     {
-      arg->mark_as_valid();
+      item->mark_as_valid();
     }
 
-    return args;
+    return items;
   }
 
   std::string Unifier::str() const
@@ -724,12 +801,15 @@ namespace rego
     callstack->pop_back();
   }
 
-  std::optional<Node> Unifier::resolve_rulecomp(const Node& rulecomp)
+  std::optional<RankedNode> Unifier::resolve_rulecomp(const Node& rulecomp)
   {
     if (rulecomp->type() == DefaultRule)
     {
-      return DefaultTerm
-        << rulecomp->at(wfi / DefaultRule / Term)->at(wfi / Term / Term);
+      std::int64_t index = std::numeric_limits<std::int64_t>::max();
+      return std::make_pair(
+        index,
+        DefaultTerm
+          << rulecomp->at(wfi / DefaultRule / Term)->at(wfi / Term / Term));
     }
 
     assert(rulecomp->type() == RuleComp);
@@ -737,6 +817,7 @@ namespace rego
     Location rulename = rulecomp->at(wfi / RuleComp / Var)->location();
     Node rulebody = rulecomp->at(wfi / RuleComp / Body);
     Node value = rulecomp->at(wfi / RuleComp / Val);
+    std::int64_t index = Resolver::get_int(rulecomp->at(wfi / RuleComp / Idx));
     if (rulebody->type() == JSONFalse)
     {
       return std::nullopt;
@@ -744,7 +825,7 @@ namespace rego
 
     if (rulebody->type() == JSONTrue)
     {
-      return value;
+      return std::make_pair(index, value);
     }
 
     // rulebody has not yet been unified
@@ -762,7 +843,7 @@ namespace rego
       }
       catch (const std::exception& e)
       {
-        return err(rulecomp, e.what());
+        return std::make_pair(index, err(rulecomp, e.what()));
       }
     }
 
@@ -770,7 +851,7 @@ namespace rego
 
     if (body_result->type() == Error)
     {
-      return body_result;
+      return std::make_pair(index, body_result);
     }
 
     if (body_result->type() == JSONTrue)
@@ -788,7 +869,7 @@ namespace rego
         }
         catch (const std::exception& e)
         {
-          return err(rulecomp, e.what());
+          return std::make_pair(index, err(rulecomp, e.what()));
         }
       }
     }
@@ -797,22 +878,23 @@ namespace rego
 
     if (body_result->type() == JSONTrue)
     {
-      return value;
+      return std::make_pair(index, value);
     }
 
     LOG("No value");
     return std::nullopt;
   }
 
-  std::optional<Node> Unifier::resolve_rulefunc(
+  std::optional<RankedNode> Unifier::resolve_rulefunc(
     const Node& rulefunc, const Nodes& args)
   {
     assert(rulefunc->type() == RuleFunc);
 
+    std::int64_t index = Resolver::get_int(rulefunc->at(wfi / RuleFunc / Idx));
     Node rule = Resolver::inject_args(rulefunc, args);
     if (rule->type() == Error)
     {
-      return rule;
+      return std::make_pair(index, rule);
     }
 
     if (rule->type() == Undefined)
@@ -832,14 +914,14 @@ namespace rego
     }
     catch (const std::exception& e)
     {
-      return err(rulefunc, e.what());
+      return std::make_pair(index, err(rulefunc, e.what()));
     }
 
     LOG("Rule func body result: ", to_json(body_result));
 
     if (body_result->type() == Error)
     {
-      return body_result;
+      return std::make_pair(index, body_result);
     }
 
     if (body_result->type() == JSONFalse || body_result->type() == Undefined)
@@ -861,11 +943,214 @@ namespace rego
       }
       catch (const std::exception& e)
       {
-        return err(rulefunc, e.what());
+        return std::make_pair(index, err(rulefunc, e.what()));
       }
     }
 
-    return value;
+    return std::make_pair(index, value);
+  }
+
+  std::optional<Node> Unifier::resolve_ruleset(const Nodes& ruleset)
+  {
+    std::map<std::string, Node> members;
+
+    for (const auto& rule : ruleset)
+    {
+      assert(rule->type() == RuleSet);
+      Location rulename = rule->at(wfi / RuleSet / Var)->location();
+      Node rulebody = rule->at(wfi / RuleSet / Body);
+      Node value = rule->at(wfi / RuleSet / Val);
+      if (rulebody->type() == JSONFalse)
+      {
+        continue;
+      }
+
+      if (rulebody->type() == JSONTrue)
+      {
+        members[to_json(value)] = value;
+        continue;
+      }
+
+      // rulebody has not yet been unified
+      Node body_result;
+      if (rulebody->type() == Empty)
+      {
+        body_result = JSONTrue;
+      }
+      else
+      {
+        try
+        {
+          Unifier unifier(rulename, rulebody, m_call_stack);
+          body_result = unifier.unify();
+        }
+        catch (const std::exception& e)
+        {
+          return err(rule, e.what());
+        }
+      }
+
+      LOG("Rule set body result: ", to_json(body_result));
+
+      if (body_result->type() == Error)
+      {
+        return body_result;
+      }
+
+      if (body_result->type() == JSONTrue)
+      {
+        if (value->type() == UnifyBody)
+        {
+          LOG("Evaluating rule set value");
+          try
+          {
+            Unifier unifier(rulename, value, m_call_stack);
+            unifier.unify();
+            Node result = unifier.bindings().front()->at(wfi / Binding / Term);
+            rule->replace(value, result);
+            value = result;
+          }
+          catch (const std::exception& e)
+          {
+            return err(rule, e.what());
+          }
+        }
+      }
+
+      rule->replace(rulebody, body_result);
+
+      if (body_result->type() == JSONTrue)
+      {
+        members[to_json(value)] = value;
+      }
+    }
+
+    if (members.size() == 0)
+    {
+      LOG("No value");
+      return std::nullopt;
+    }
+
+    Node set = NodeDef::create(Set);
+    for (auto& [_, value] : members)
+    {
+      set->push_back(value);
+    }
+    return set;
+  }
+
+  std::optional<Node> Unifier::resolve_ruleobj(const Nodes& ruleobj)
+  {
+    std::map<std::string, Node> members;
+
+    for (const auto& rule : ruleobj)
+    {
+      assert(rule->type() == RuleObj);
+      Location rulename = rule->at(wfi / RuleObj / Var)->location();
+      Node rulebody = rule->at(wfi / RuleObj / Body);
+      Node key = rule->at(wfi / RuleObj / Key);
+      Node value = rule->at(wfi / RuleObj / Val);
+      if (rulebody->type() == JSONFalse)
+      {
+        continue;
+      }
+
+      if (rulebody->type() == JSONTrue)
+      {
+        members[to_json(key)] = value;
+        continue;
+      }
+
+      // rulebody has not yet been unified
+      Node body_result;
+      if (rulebody->type() == Empty)
+      {
+        body_result = JSONTrue;
+      }
+      else
+      {
+        try
+        {
+          Unifier unifier(rulename, rulebody, m_call_stack);
+          body_result = unifier.unify();
+        }
+        catch (const std::exception& e)
+        {
+          return err(rule, e.what());
+        }
+      }
+
+      LOG("Rule obj body result: ", to_json(body_result));
+
+      if (body_result->type() == Error)
+      {
+        return body_result;
+      }
+
+      if (body_result->type() == JSONTrue)
+      {
+        if (key->type() == UnifyBody)
+        {
+          LOG("Evaluating rule obj key");
+          try
+          {
+            Unifier unifier(rulename, key, m_call_stack);
+            unifier.unify();
+            Node result = unifier.bindings().front()->at(wfi / Binding / Term);
+            rule->replace(key, result);
+            key = result;
+          }
+          catch (const std::exception& e)
+          {
+            return err(rule, e.what());
+          }
+        }
+
+        if (value->type() == UnifyBody)
+        {
+          LOG("Evaluating rule obj value");
+          try
+          {
+            Unifier unifier(rulename, value, m_call_stack);
+            unifier.unify();
+            Node result = unifier.bindings().front()->at(wfi / Binding / Term);
+            rule->replace(value, result);
+            value = result;
+          }
+          catch (const std::exception& e)
+          {
+            return err(rule, e.what());
+          }
+        }
+      }
+
+      rule->replace(rulebody, body_result);
+
+      if (body_result->type() == JSONTrue)
+      {
+        members[to_json(key)] = value;
+      }
+    }
+
+    if (members.size() == 0)
+    {
+      LOG("No value");
+      return std::nullopt;
+    }
+
+    Node obj = NodeDef::create(Object);
+    for (auto& [key, value] : members)
+    {
+      std::string key_loc = key;
+      if (key_loc.starts_with('"') && key_loc.ends_with('"'))
+      {
+        key_loc = key_loc.substr(1, key_loc.size() - 2);
+      }
+
+      obj->push_back(ObjectItem << (Key ^ key_loc) << value);
+    }
+
+    return obj;
   }
 
   Nodes Unifier::expressions() const
