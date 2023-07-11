@@ -99,8 +99,9 @@ namespace rego
           return (Scalar << _(NumTerm)->at(wfi / NumTerm / NumTerm));
         },
 
-      In(ArgSeq) * T(Function)[Function](
-             [](auto& n) { return is_in(*n.first, UnifyBody); }) >>
+      In(ArgSeq) * T(Function)[Function]([](auto& n) {
+        return is_in(*n.first, UnifyBody);
+      }) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"func"});
@@ -239,7 +240,7 @@ namespace rego
 
       In(ObjectItem) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid expression in object"); },
-      
+
       In(Expr) * Any[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid expression"); },
 
@@ -254,10 +255,10 @@ namespace rego
 
       In(ArgSeq) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Invalid reference"); },
-      
+
       In(ArgSeq) * T(Enumerate)[Enumerate] >>
         [](Match& _) { return err(_(Enumerate), "Invalid enumerate"); },
-      
+
       In(Object) * T(RefObjectItem)[RefObjectItem] >>
         [](Match& _) { return err(_(RefObjectItem), "Invalid object item"); },
     };

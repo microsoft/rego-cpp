@@ -449,9 +449,11 @@ namespace rego
 
       In(Expr) * T(Contains)[Contains] >>
         [](Match& _) { return err(_(Contains), "Invalid contains statement"); },
-      
+
       In(ExprCall) * (T(ArgSeq)[ArgSeq] << End) >>
-        [](Match& _) { return err(_(ArgSeq), "No arguments in function call"); },
+        [](Match& _) {
+          return err(_(ArgSeq), "No arguments in function call");
+        },
 
       T(Group)[Group] >> [](Match& _) { return err(_(Group), "Syntax error"); },
     };

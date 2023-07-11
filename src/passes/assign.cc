@@ -88,7 +88,7 @@ namespace rego
 
       In(Expr) * T(Unify)[Unify] >>
         [](Match& _) { return err(_(Unify), "Invalid assignment"); },
-      
+
       In(Expr) * T(Enumerate)[Enumerate] >>
         [](Match& _) { return err(_(Enumerate), "Invalid enumerate"); },
 

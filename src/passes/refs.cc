@@ -191,8 +191,8 @@ namespace rego
 
       // expr-call
       T(ExprCall)([](auto& n) { return is_in(*n.first, UnifyBody); })
-           << ((T(VarSeq) << (T(Var)[Head] * T(Var)++[Tail])) *
-               T(ArgSeq)[ArgSeq]) >>
+          << ((T(VarSeq) << (T(Var)[Head] * T(Var)++[Tail])) *
+              T(ArgSeq)[ArgSeq]) >>
         [](Match& _) {
           LOG("expr-call");
           Node seq = NodeDef::create(Seq);

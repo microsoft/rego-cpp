@@ -63,7 +63,7 @@ namespace rego
 
       In(ObjectItem) * (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Invalid key/value pair"); },
-      
+
       In(Group) * (T(Import)[Import] << End) >>
         [](Match& _) { return err(_(Import), "Invalid import"); },
     };

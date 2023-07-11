@@ -28,7 +28,7 @@ namespace rego
 
       In(Group) * (T(Else) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) { return Else << Undefined << _(UnifyBody); },
-      
+
       // errors
       In(Group) * T(IfTruthy)[IfTruthy] >>
         [](Match& _) { return err(_(IfTruthy), "Invalid if"); },

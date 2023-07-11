@@ -34,7 +34,8 @@ namespace rego
       In(Group) * (T(Some) << (T(List)[List] * End)) >>
         [](Match& _) {
           Node list = _(List);
-          if(list->size() == 0){
+          if (list->size() == 0)
+          {
             return err(list, "some must contain at least one variable");
           }
 
@@ -89,12 +90,12 @@ namespace rego
         [](Match& _) {
           return err(_(ObjectItem), "Invalid object item in some-decl");
         },
-      
-      In(VarSeq) *  T(ObjectItem)[ObjectItem] >> 
+
+      In(VarSeq) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) {
           return err(_(ObjectItem), "Invalid object item in var-seq");
         },
-      
+
       In(Some) * (T(List) * Any[Rhs]) >>
         [](Match& _) {
           return err(_(Rhs), "Invalid second node in some declaration");
@@ -105,7 +106,7 @@ namespace rego
 
       (In(Array) / In(Set) / In(List)) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) { return err(_(ObjectItem), "Invalid item"); },
-      
+
       In(Group) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Syntax error"); },
     };

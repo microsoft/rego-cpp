@@ -282,7 +282,7 @@ namespace rego
         [](Match& _) {
           return err(_(Empty), "RuleFunc cannot have an empty body");
         },
-      
+
       In(Expr) * T(Dot)[Dot] >>
         [](Match& _) { return err(_(Dot), "Invalid dot expression"); },
     };
