@@ -51,16 +51,22 @@ namespace rego
       std::inserter(other, other.begin()),
       [](const Value& value) { return value->json(); });
 
+    std::set<std::string> to_remove;
+
     bool changed = false;
     for (auto it = m_map.begin(); it != m_map.end(); ++it)
     {
       if (!other.contains(it->first))
       {
-        m_values.erase({it->first, it->second->str()});
-        m_keys.erase(it->first);
-        m_map.erase(it);
+        it->second->mark_as_invalid();
+        to_remove.insert(it->first);
         changed = true;
       }
+    }
+
+    for (auto key : to_remove)
+    {
+      erase(key);
     }
 
     return changed;
@@ -93,8 +99,9 @@ namespace rego
     for (auto it = begin; it != end; ++it)
     {
       m_values.erase({it->first, it->second->str()});
-      m_map.erase(it);
     }
+
+    m_map.erase(begin, end);
 
     return true;
   }
@@ -134,6 +141,7 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const ValueMap& values)
   {
+    os << "{";
     std::string sep = "";
     for (const auto& [key, value] : values.m_map)
     {

@@ -4,7 +4,7 @@
 
 namespace rego
 {
-  ValueDef::ValueDef(const Node& value) : m_node(value) {}
+  ValueDef::ValueDef(const Node& value) : m_node(value), m_rank(0) {}
 
   ValueDef::ValueDef(const Location& var, const Node& value) : ValueDef(value)
   {
@@ -13,6 +13,23 @@ namespace rego
 
   ValueDef::ValueDef(
     const Location& var, const Node& value, const Values& sources) :
+    ValueDef(var, value)
+  {
+    m_sources = sources;
+  }
+
+  ValueDef::ValueDef(const RankedNode& value) :
+    m_node(std::get<1>(value)), m_rank(std::get<0>(value))
+  {}
+
+  ValueDef::ValueDef(const Location& var, const RankedNode& value) :
+    ValueDef(value)
+  {
+    m_var = var;
+  }
+
+  ValueDef::ValueDef(
+    const Location& var, const RankedNode& value, const Values& sources) :
     ValueDef(var, value)
   {
     m_sources = sources;
@@ -41,6 +58,22 @@ namespace rego
 
   Value ValueDef::create(
     const Location& var, const Node& value, const Values& sources)
+  {
+    return std::shared_ptr<ValueDef>(new ValueDef(var, value, sources));
+  }
+
+  Value ValueDef::create(const RankedNode& value)
+  {
+    return std::shared_ptr<ValueDef>(new ValueDef(value));
+  }
+
+  Value ValueDef::create(const Location& var, const RankedNode& value)
+  {
+    return std::shared_ptr<ValueDef>(new ValueDef(var, value));
+  }
+
+  Value ValueDef::create(
+    const Location& var, const RankedNode& value, const Values& sources)
   {
     return std::shared_ptr<ValueDef>(new ValueDef(var, value, sources));
   }
@@ -157,6 +190,11 @@ namespace rego
     }
   }
 
+  std::int64_t ValueDef::rank() const
+  {
+    return m_rank;
+  }
+
   const Location& ValueDef::var() const
   {
     return m_var;
@@ -223,5 +261,26 @@ namespace rego
   bool operator==(const Value& lhs, const Value& rhs)
   {
     return lhs->str() == rhs->str();
+  }
+
+  Values ValueDef::filter_by_rank(const Values& values)
+  {
+    Values filtered;
+    std::int64_t min_index = std::numeric_limits<std::int64_t>::max();
+    for (auto& value : values)
+    {
+      if (value->rank() == min_index)
+      {
+        filtered.push_back(value);
+      }
+      else if (value->rank() < min_index)
+      {
+        filtered.clear();
+        filtered.push_back(value);
+        min_index = value->rank();
+      }
+    }
+
+    return filtered;
   }
 }

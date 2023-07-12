@@ -73,8 +73,8 @@ namespace rego
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
     return os << variable.m_local->at(wfi / Local / Var)->location().view()
-              << "(" << variable.m_dependency_score << ") = {"
-              << variable.m_values;
+              << "(" << variable.m_dependency_score
+              << ") = " << variable.m_values;
   }
 
   std::ostream& operator<<(

@@ -6,7 +6,8 @@ namespace rego
   PassDef merge_modules()
   {
     return {
-      In(ModuleSeq) * (T(Module) << (T(Var)[Id] * T(Policy)[Policy])) >>
+      In(ModuleSeq) *
+          (T(Module) << (T(Var)[Id] * T(ImportSeq) * T(Policy)[Policy])) >>
         [](Match& _) { return DataModule << _(Id) << (Module << *_[Policy]); },
 
       T(ModuleSeq) << (T(DataModule)++[DataModule] * End) >>

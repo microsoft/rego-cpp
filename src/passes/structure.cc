@@ -6,23 +6,48 @@ namespace
   using namespace rego;
   using namespace wf::ops;
 
-  const inline auto TermToken = T(Var) / T(Ref) / T(Array) / T(Object) / T(Set);
-  const inline auto ExprToken = T(Term) / ArithToken / BoolToken / T(Expr) /
-    ScalarToken / TermToken / T(JSONString) / T(Array) / T(Set) / T(Object) /
-    T(Paren) / T(Not) / T(Dot);
-  const inline auto StringToken = T(JSONString) / T(RawString);
+  const inline auto RefHeadToken = T(Var) / T(ExprCall);
 
   // clang-format off
   inline const auto wfi =
       (Top <<= Rego)
     | (Paren <<= (Group | List))
+    | (RefArgDot <<= Var)
+    | (Else <<= (Val >>= Undefined | Group) * UnifyBody)
     ;
   // clang-format on
+
+  Node to_elseseq(const NodeRange& elses, const Node& init_value)
+  {
+    Node value = init_value;
+    Node elseseq = NodeDef::create(ElseSeq);
+    for (auto it = elses.first; it < elses.second; ++it)
+    {
+      Node n = *it;
+      if (n->type() == UnifyBody)
+      {
+        n = Else << init_value->clone() << n;
+      }
+      else if (n->type() == Else)
+      {
+        Node else_value = n->at(wfi / Else / Val);
+        if (else_value->type() == Undefined)
+        {
+          n->replace(else_value, value->clone());
+        }
+        else
+        {
+          value = else_value;
+        }
+      }
+      elseseq->push_back(n);
+    }
+    return elseseq;
+  }
 }
 
 namespace rego
 {
-
   PassDef structure()
   {
     return {
@@ -42,74 +67,90 @@ namespace rego
       In(ObjectItemHead) * ScalarToken[Scalar] >>
         [](Match& _) { return Scalar << _(Scalar); },
 
-      (In(ObjectItemHead) / In(Expr)) * (T(Var)[Lhs] * T(Dot) * T(Var)[Rhs]) >>
+      (In(ObjectItemHead) / In(Expr)) *
+          (RefHeadToken[RefHead] * T(Dot) * T(Var)[Rhs]) >>
         [](Match& _) {
-          return Ref << _(Lhs) << (RefArgSeq << (RefArgDot << _(Rhs)));
-        },
-
-      (In(ObjectItemHead) / In(Expr)) * (T(Var)[Lhs] * T(Array)[Array]) >>
-        [](Match& _) {
-          return Ref << _(Lhs) << (RefArgSeq << (RefArgBrack << *_[Array]));
+          return Ref << (RefHead << _(RefHead))
+                     << (RefArgSeq << (RefArgDot << _(Rhs)));
         },
 
       (In(ObjectItemHead) / In(Expr)) *
-          ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) * T(Dot) *
-           T(Var)[Rhs]) >>
+          (RefHeadToken[RefHead] * T(Array)[Array]) >>
         [](Match& _) {
-          return Ref << _(Lhs)
+          return Ref << (RefHead << _(RefHead))
+                     << (RefArgSeq << (RefArgBrack << *_[Array]));
+        },
+
+      (In(ObjectItemHead) / In(Expr)) *
+          ((T(Ref) << (T(RefHead)[RefHead] * T(RefArgSeq)[RefArgSeq])) *
+           T(Dot) * T(Var)[Rhs]) >>
+        [](Match& _) {
+          return Ref << _(RefHead)
                      << (RefArgSeq << *_[RefArgSeq] << (RefArgDot << _(Rhs)));
         },
 
       (In(ObjectItemHead) / In(Expr)) *
-          ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) *
+          ((T(Ref) << (T(RefHead)[RefHead] * T(RefArgSeq)[RefArgSeq])) *
            T(Array)[Array]) >>
         [](Match& _) {
-          return Ref << _(Lhs)
+          return Ref << _(RefHead)
                      << (RefArgSeq << *_[RefArgSeq]
                                    << (RefArgBrack << *_[Array]));
         },
 
       (In(ObjectItemHead) / In(Expr)) *
-          ((T(Ref) << (T(Var)[Lhs] * T(RefArgSeq)[RefArgSeq])) *
+          ((T(Ref)
+            << ((T(RefHead) << T(Var)[RefHead]) *
+                (T(RefArgSeq) << (T(RefArgDot)++[RefArgDot] * End)))) *
            T(Paren)[Paren]) >>
         [](Match& _) {
-          Node refargcall = NodeDef::create(RefArgCall);
+          Node varseq = VarSeq << _(RefHead);
+          NodeRange dots = _[RefArgDot];
+          for (auto it = dots.first; it < dots.second; ++it)
+          {
+            Node n = *it;
+            varseq->push_back(n->at(wfi / RefArgDot / Var));
+          }
+
+          Node argseq = NodeDef::create(ArgSeq);
           Node paren = _(Paren);
           if (paren->at(wfi / Paren / Paren)->type() == List)
           {
             for (const auto& arg : *paren->at(wfi / Paren / Paren))
             {
-              refargcall->push_back(arg);
+              argseq->push_back(arg);
             }
           }
           else
           {
-            refargcall->push_back(paren->at(wfi / Paren / Paren));
+            argseq->push_back(paren->at(wfi / Paren / Paren));
           }
 
-          return Ref << _(Lhs) << (RefArgSeq << *_[RefArgSeq] << refargcall);
+          return ExprCall << varseq << argseq;
         },
 
       (In(ObjectItemHead) / In(Expr)) * (T(Var)[Var] * T(Paren)[Paren]) >>
         [](Match& _) {
-          Node refargcall = NodeDef::create(RefArgCall);
+          Node argseq = NodeDef::create(ArgSeq);
           Node paren = _(Paren);
           if (paren->at(wfi / Paren / Paren)->type() == List)
           {
             for (const auto& arg : *paren->at(wfi / Paren / Paren))
             {
-              refargcall->push_back(arg);
+              argseq->push_back(arg);
             }
           }
           else
           {
-            refargcall->push_back(paren->at(wfi / Paren / Paren));
+            argseq->push_back(paren->at(wfi / Paren / Paren));
           }
 
-          return Ref << _(Var) << (RefArgSeq << refargcall);
+          return ExprCall << (VarSeq << _(Var)) << argseq;
         },
 
-      In(RefArgCall) * T(Group)[Group] >>
+      In(Else) * T(Group)[Group] >> [](Match& _) { return Expr << *_[Group]; },
+
+      In(ArgSeq) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
       In(Expr) * (T(Paren) << T(Group)[Group]) >>
@@ -138,80 +179,27 @@ namespace rego
 
       In(Policy) *
           (T(Group)
-           << (T(Var)[Id] * T(UnifyBody)[Head] * T(UnifyBody)++[Tail])) >>
+           << (T(Var)[Id] * T(UnifyBody)[UnifyBody] *
+               (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
-          return Rule << (RuleHead
-                          << _(Id)
-                          << (RuleHeadComp
-                              << (AssignOperator << Assign)
-                              << (Expr << (Term << (Scalar << JSONTrue)))))
-                      << (RuleBodySeq << _(Head) << _[Tail]);
-        },
-
-      In(Policy) *
-          (T(Group)
-           << (T(Var)[Id] * T(Paren)[Paren] * T(UnifyBody)[Head] *
-               T(UnifyBody)++[Tail])) >>
-        [](Match& _) {
-          Node args = NodeDef::create(RuleArgs);
-          Node paren = _(Paren);
-          if (paren->at(wfi / Paren / Paren)->type() == List)
-          {
-            for (const auto& arg : *paren->at(wfi / Paren / Paren))
-            {
-              args->push_back(arg);
-            }
-          }
-          else
-          {
-            args->push_back(paren->at(wfi / Paren / Paren));
-          }
-
-          return Rule << (RuleHead
-                          << _(Id)
-                          << (RuleHeadFunc
-                              << args << (AssignOperator << Assign)
-                              << (Expr << (Term << (Scalar << JSONTrue)))))
-                      << (RuleBodySeq << _(Head) << _[Tail]);
-        },
-
-      In(Policy) *
-          (T(Group)
-           << (T(Var)[Id] * T(Paren)[Paren] * (T(Assign) / T(Unify)) *
-               ExprToken[Head] * ExprToken++[Tail] * T(UnifyBody)[Lhs] *
-               T(UnifyBody)++[Rhs])) >>
-        [](Match& _) {
-          Node args = NodeDef::create(RuleArgs);
-          Node paren = _(Paren);
-          if (paren->at(wfi / Paren / Paren)->type() == List)
-          {
-            for (const auto& arg : *paren->at(wfi / Paren / Paren))
-            {
-              args->push_back(arg);
-            }
-          }
-          else
-          {
-            args->push_back(paren->at(wfi / Paren / Paren));
-          }
-
-          return Rule << (RuleHead
-                          << _(Id)
-                          << (RuleHeadFunc << args << (AssignOperator << Assign)
-                                           << (Expr << _(Head) << _[Tail])))
-                      << (RuleBodySeq << _(Lhs) << _[Rhs]);
+          Node value = Expr << (Term << (Scalar << JSONTrue));
+          return Rule << (RuleHead << _(Id)
+                                   << (RuleHeadComp
+                                       << (AssignOperator << Assign) << value))
+                      << _(UnifyBody) << to_elseseq(_[Else], _(UnifyBody));
         },
 
       In(Policy) *
           (T(Group)
            << (T(Var)[Id] * (T(Assign) / T(Unify)) * ExprToken[Head] *
-               ExprToken++[Tail] * T(UnifyBody)[Lhs] * T(UnifyBody)++[Rhs])) >>
+               ExprToken++[Tail] * T(UnifyBody)[UnifyBody] *
+               (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
-          return Rule << (RuleHead
-                          << _(Id)
-                          << (RuleHeadComp << (AssignOperator << Assign)
-                                           << (Expr << _(Head) << _[Tail])))
-                      << (RuleBodySeq << _(Lhs) << _[Rhs]);
+          Node value = (Expr << _(Head) << _[Tail]);
+          return Rule << (RuleHead << _(Id)
+                                   << (RuleHeadComp
+                                       << (AssignOperator << Assign) << value))
+                      << _(UnifyBody) << to_elseseq(_[Else], value);
         },
 
       In(Policy) *
@@ -223,7 +211,124 @@ namespace rego
                           << _(Id)
                           << (RuleHeadComp << (AssignOperator << Assign)
                                            << (Expr << _(Head) << _[Tail])))
-                      << (RuleBodySeq << Empty);
+                      << Empty << ElseSeq;
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * T(Paren)[Paren] * T(UnifyBody)[UnifyBody] *
+               (T(Else) / T(UnifyBody))++[Else])) >>
+        [](Match& _) {
+          Node args = NodeDef::create(RuleArgs);
+          Node paren = _(Paren);
+          if (paren->at(wfi / Paren / Paren)->type() == List)
+          {
+            for (const auto& arg : *paren->at(wfi / Paren / Paren))
+            {
+              args->push_back(arg);
+            }
+          }
+          else
+          {
+            args->push_back(paren->at(wfi / Paren / Paren));
+          }
+
+          Node value = Expr << (Term << (Scalar << JSONTrue));
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadFunc << args << (AssignOperator << Assign)
+                                           << value))
+                      << _(UnifyBody) << to_elseseq(_[Else], value);
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * T(Paren)[Paren] * (T(Assign) / T(Unify)) *
+               ExprToken[Head] * ExprToken++[Tail] * T(UnifyBody)[UnifyBody] *
+               (T(Else) / T(UnifyBody))++[Else])) >>
+        [](Match& _) {
+          Node args = NodeDef::create(RuleArgs);
+          Node paren = _(Paren);
+          if (paren->at(wfi / Paren / Paren)->type() == List)
+          {
+            for (const auto& arg : *paren->at(wfi / Paren / Paren))
+            {
+              args->push_back(arg);
+            }
+          }
+          else
+          {
+            args->push_back(paren->at(wfi / Paren / Paren));
+          }
+
+          Node value = Expr << _(Head) << _[Tail];
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadFunc << args << (AssignOperator << Assign)
+                                           << value))
+                      << _(UnifyBody) << to_elseseq(_[Else], value);
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * T(Contains) * ExprToken[Head] * ExprToken++[Tail] *
+               T(UnifyBody)[UnifyBody])) >>
+        [](Match& _) {
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadSet << (Expr << _(Head) << _[Tail])))
+                      << _(UnifyBody) << ElseSeq;
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * T(Contains) * ExprToken[Head] *
+               ExprToken++[Tail])) >>
+        [](Match& _) {
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadSet << (Expr << _(Head) << _[Tail])))
+                      << Empty << ElseSeq;
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
+               T(UnifyBody)[UnifyBody])) >>
+        [](Match& _) {
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadObj
+                              << (Expr << *_[Key]) << (AssignOperator << Assign)
+                              << (Expr << (Term << (Scalar << JSONTrue)))))
+                      << _(UnifyBody) << ElseSeq;
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
+               (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail] *
+               T(UnifyBody)[UnifyBody])) >>
+        [](Match& _) {
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadObj << (Expr << *_[Key])
+                                          << (AssignOperator << Assign)
+                                          << (Expr << _(Head) << _[Tail])))
+                      << _(UnifyBody) << ElseSeq;
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
+               (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail])) >>
+        [](Match& _) {
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadObj << (Expr << *_[Key])
+                                          << (AssignOperator << Assign)
+                                          << (Expr << _(Head) << _[Tail])))
+                      << Empty << ElseSeq;
         },
 
       In(Policy) *
@@ -281,8 +386,17 @@ namespace rego
           (T(Group) << (T(Subtract) * (T(JSONInt) / T(JSONFloat))[Val])) >>
         [](Match& _) { return Term << (Scalar << Resolver::negate(_(Val))); },
 
-      In(SomeDecl) * (T(Group) << T(Var)[Var]) >>
+      In(SomeDecl) * (T(Group) << T(Default)) >>
+        [](Match&) { return InSome << Undefined; },
+
+      In(SomeDecl) * (T(Group) << (T(InSome) * ExprToken++[Expr] * End)) >>
+        [](Match& _) { return InSome << (Expr << _(Expr)); },
+
+      In(VarSeq) * (T(Group) << (T(Var)[Var] * End)) >>
         [](Match& _) { return _(Var); },
+
+      In(Expr) * T(InSome)[InSome] >>
+        [](Match& _) { return IsIn ^ _(InSome)->location(); },
 
       // errors
 
@@ -312,9 +426,6 @@ namespace rego
       (In(Group) / In(Expr)) * T(Paren)[Paren] >>
         [](Match& _) { return err(_(Paren), "Invalid function call"); },
 
-      In(RefArgSeq) * (T(RefArgCall)[RefArgCall] << End) >>
-        [](Match& _) { return err(_(RefArgCall), "Call has no arguments"); },
-
       (In(Expr) / In(UnifyBody)) * T(SomeDecl)[SomeDecl] >>
         [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
 
@@ -332,6 +443,17 @@ namespace rego
 
       T(RefArgBrack)[RefArgBrack] << (Any * Any) >>
         [](Match& _) { return err(_(RefArgBrack), "Invalid index"); },
+
+      In(Expr) * T(Else)[Else] >>
+        [](Match& _) { return err(_(Else), "Invalid else statement"); },
+
+      In(Expr) * T(Contains)[Contains] >>
+        [](Match& _) { return err(_(Contains), "Invalid contains statement"); },
+
+      In(ExprCall) * (T(ArgSeq)[ArgSeq] << End) >>
+        [](Match& _) {
+          return err(_(ArgSeq), "No arguments in function call");
+        },
 
       T(Group)[Group] >> [](Match& _) { return err(_(Group), "Syntax error"); },
     };

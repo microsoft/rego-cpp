@@ -1,5 +1,23 @@
 # Changelog
 
+## [2023-07-11 - Version 0.2.2](https://github.com/microsoft/scenepic/releases/tag/v0.2.2)
+Adding the `in`, `if`, `contains`, and `else` keywords.
+
+**New Features**
+- Added future keyword support to the runtime
+- Added `in`, `if`, `contains`, and `else` keywords to the runtime
+- Added partial set rule construction
+- Added partial object rule construction
+
+**Bug fixes**
+- Else rule bodies were not previously handled correctly when the else keyword
+  was omitted. This has been fixed.
+- `ExprCall` nodes can now (correctly) be a `RefHead`.
+
+**Improvements**
+- Function calls are now represented interally via a `ExprCall` node as opposed to
+  a `RefArgCall` node, to better reflect the target grammar.
+
 ## [2023-06-27 - Version 0.2.1](https://github.com/microsoft/scenepic/releases/tag/v0.2.1)
 Addressing various minor improvements, bugs, and documentation issues.
 

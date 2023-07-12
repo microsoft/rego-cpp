@@ -8,12 +8,13 @@ namespace
   using namespace wf::ops;
 
   const auto inline VarOrTerm = T(Var) / T(Term);
+  const auto inline Numbery = T(ArithInfix) / T(UnaryExpr) / T(NumTerm);
 
   // clang-format off
   inline const auto wfi =
       (Expr <<= (Val >>= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix | AssignInfix))
     | (AssignArg <<= (Val >>= RefTerm | NumTerm | UnaryExpr | ArithInfix | Term | BoolInfix))
-    | ((ObjectItem <<= Key * Expr))
+    | (ObjectItem <<= Key * Expr)
     | (RefObjectItem <<= RefTerm * Expr)
     ;
   // clang-format on
@@ -51,13 +52,14 @@ namespace rego
         [](Match& _) {
           LOG("<term> = <term>");
           Node seq = NodeDef::create(Seq);
-          Location temp = _.fresh({"unify"});
-          seq->push_back(Local << (Var ^ temp) << Undefined);
-          Node expr = Expr
-            << (BoolInfix << (BoolArg << _(Rhs)->at(wfi / AssignArg / Val))
-                          << Equals
-                          << (BoolArg << _(Lhs)->at(wfi / AssignArg / Val)));
-          seq->push_back(UnifyExpr << (Var ^ temp) << expr);
+          Location unify = _.fresh({"unify"});
+          return Seq << (Local << (Var ^ unify) << Undefined)
+                     << (UnifyExpr
+                         << (Var ^ unify)
+                         << (Expr << _(Lhs)->at(wfi / AssignArg / Val)))
+                     << (UnifyExpr
+                         << (Var ^ unify)
+                         << (Expr << _(Rhs)->at(wfi / AssignArg / Val)));
           return seq;
         },
 
@@ -237,14 +239,31 @@ namespace rego
           {
             if (item->type() == ObjectItem)
             {
-              Node index = Scalar
-                << (JSONString ^ item->at(wfi / ObjectItem / Key)->location());
+              Node index;
+              if (item->type() == RefObjectItem)
+              {
+                Location key = _.fresh({"key"});
+                seq->push_back(Local << (Var ^ key) << Undefined);
+                seq->push_back(
+                  AssignInfix
+                  << (AssignArg << (RefTerm << (Var ^ key)))
+                  << (AssignArg << item->at(wfi / RefObjectItem / RefTerm)));
+                index = RefTerm << (Var ^ key);
+              }
+              else
+              {
+                std::string key = std::string(
+                  item->at(wfi / ObjectItem / Key)->location().view());
+                index = Scalar << (JSONString ^ key);
+              }
               Node ref = SimpleRef << _(Rhs)->clone() << (RefArgBrack << index);
               seq->push_back(
-                AssignInfix
-                << (AssignArg
-                    << item->at(wfi / ObjectItem / Expr)->at(wfi / Expr / Val))
-                << (AssignArg << (RefTerm << ref)));
+                AssignInfix << (AssignArg << item
+                                               ->at(
+                                                 wfi / ObjectItem / Expr,
+                                                 wfi / RefObjectItem / Expr)
+                                               ->at(wfi / Expr / Val))
+                            << (AssignArg << (RefTerm << ref)));
             }
             else
             {
@@ -268,17 +287,48 @@ namespace rego
           seq->push_back(UnifyExpr << (Var ^ temp) << (Expr << _(RefTerm)));
           for (const auto& item : *_(Lhs))
           {
-            std::string key =
-              std::string(item->at(wfi / ObjectItem / Key)->location().view());
-            Node index = Scalar << (JSONString ^ key);
+            Node index;
+            if (item->type() == RefObjectItem)
+            {
+              Location key = _.fresh({"key"});
+              seq->push_back(Local << (Var ^ key) << Undefined);
+              seq->push_back(
+                AssignInfix
+                << (AssignArg << (RefTerm << (Var ^ key)))
+                << (AssignArg << item->at(wfi / RefObjectItem / RefTerm)));
+              index = RefTerm << (Var ^ key);
+            }
+            else
+            {
+              std::string key = std::string(
+                item->at(wfi / ObjectItem / Key)->location().view());
+              index = Scalar << (JSONString ^ key);
+            }
+
             Node ref = SimpleRef << (Var ^ temp) << (RefArgBrack << index);
             seq->push_back(
-              AssignInfix << (AssignArg << item->at(wfi / ObjectItem / Expr)
+              AssignInfix << (AssignArg << item
+                                             ->at(
+                                               wfi / ObjectItem / Expr,
+                                               wfi / RefObjectItem / Expr)
                                              ->at(wfi / Expr / Val))
                           << (AssignArg << (RefTerm << ref)));
           }
 
           return seq;
+        },
+
+      // <numbery> = <numbery>
+      In(UnifyBody) *
+          (T(AssignInfix)
+           << ((T(AssignArg) << Numbery[Lhs]) *
+               (T(AssignArg) << Numbery[Rhs]))) >>
+        [](Match& _) {
+          LOG("<numbery> = <numbery>");
+          Location unify = _.fresh({"unify"});
+          return Seq << (Local << (Var ^ unify) << Undefined)
+                     << (UnifyExpr << (Var ^ unify) << (Expr << _(Lhs)))
+                     << (UnifyExpr << (Var ^ unify) << (Expr << _(Rhs)));
         },
 
       // errors

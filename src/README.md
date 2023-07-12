@@ -10,16 +10,19 @@ module          = package policy
 package         = "package" var
 policy          = { rule }
 rule            = [ "default" ] rule-head { rule-body }
-rule-head       = var ( rule-head-comp | rule-head-func )
-rule-head-comp  = [ assign-operator expr ]
+rule-head       = var ( rule-head-set | rule-head-obj | rule-head-func | rule-head-comp )
+rule-head-comp  = [ assign-operator expr ] [ "if" ]
+rule-head-obj   = "[" term "]" [ assign-operator term ] [ "if" ]
 rule-head-func  = "(" rule-args ")" [ assign-operator term ] [ "if" ]
-rule-body       = "{" rule-body-item {(";" | ( [CR] LR)) rule-body-item } "}"
-rule-body-item  = expr | rule
+rule-head-set   = "contains" term [ "if" ] | "[" term "]"
 rule-args       = term { "," term }
+rule-body       = [ "else" [ assign-operator term ] [ "if" ] ] ( "{" query "}" ) | literal
+rule-body-item  = expr | rule
 query           = literal { ( ";" | ( [CR] LF ) ) literal }
 literal         = ( some-decl | expr | "not" expr )
-some-decl       = "some" term { "," term } 
-expr            = term | expr-infix | expr-parens | unary-expr
+some-decl       = "some" term { "," term } { "in" expr }
+expr            = term | expr-call | expr-infix | expr-parens | unary-expr
+expr-call       = var [ "." var ] "(" [ expr { "," expr } ] ")"
 expr-infix      = expr infix-operator expr
 expr-parens     = "(" expr ")"
 unary-expr      = "-" expr
@@ -28,11 +31,10 @@ infix-operator  = assign-operator | bool-operator | arith-operator
 bool-operator   = "==" | "!=" | "<" | ">" | ">=" | "<="
 arith-operator  = "+" | "-" | "*" | "/" | "%"
 assign-operator = ":=" | "="
-ref             = var { ref-arg }
-ref-arg         = ref-arg-dot | ref-arg-brack | ref-arg-call
-ref-arg-brack   = "[" ( scalar | var ) "]"
+ref             = ( var | expr-call ) { ref-arg }
+ref-arg         = ref-arg-dot | ref-arg-brack
+ref-arg-brack   = "[" ( scalar | var | array | object | set ) "]"
 ref-arg-dot     = "." var
-ref-arg-call    = "(" expr { "," expr } ")"
 var             = ( ALPHA | "_" ) { ALPHA | DIGIT | "_" }
 scalar          = string | NUMBER | TRUE | FALSE | NULL
 string          = STRING | raw-string
@@ -124,6 +126,7 @@ LF     Line Feed
 2. What should the correct behavior be for floating point modulo? (currently undefined)
 3. Why are global rule references not allowed in rule function definitions?
 4. Object unifications: why aren't vars allowed as keys? Why are additional keys not allowed which are not unified?
+5. Why can you not chain else-if statements but you can chain else statements with bodies?
 
 ## Unification
 
@@ -143,11 +146,3 @@ statements.
 | `{"one": a, "two": b} = array[i]`             | <code>foo = array[i]<br>a = foo["one"]<br>b = foo["two"]</code>                                                         | indirect + decompose |
 | `{a: 4, b: 3} = array[i]`                     | <code>foo = array[i]<br>t_0 = foo[i_0]<br>t_0 = 4<br>a = i_0<br>t_1 = foo[i_1]<br>t_1 = 3<br>b = i_1</code>             | (unsupported)        |
 | `foo[[a, 5]]`                                 | <code>x = foo[i]<br>[a, 5] = x</code>                                                                                   | add index            |
-
-Naturally, the indirect method requires the addition of new local variables to the `RuleBody`,
-but the eventual result is that all statements are of the form `<var> = <expr>`.
-
-Further thoughts. The above isn't enough, though it is a good start. We really want all expressions
-to be of the form `<var> = <fn>(<var|term>+)` or `<var> = <term`. In a subsequent pass we
-functionalize all expressions in a `RuleBody`, adding temporary variables as needed. That way
-the unifier is just operating over simple expressions.

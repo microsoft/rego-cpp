@@ -1,21 +1,53 @@
+#include "lang.h"
 #include "passes.h"
+#include "resolver.h"
 
 #include <sstream>
 
+namespace
+{
+  using namespace rego;
+  using namespace wf::ops;
+
+  // clang-format off
+  inline const auto wfi =
+      (Top <<= Rego)
+    | (NumTerm <<= JSONInt | JSONFloat)
+    ;
+  // clang-format on
+}
+
 namespace rego
 {
-  const inline auto AssignInfixArg = ArithInfixArg / T(Term) / T(BoolInfix);
+  const inline auto AssignInfixArg = T(RefTerm) / T(NumTerm) / T(UnaryExpr) /
+    T(ArithInfix) / T(Term) / T(BoolInfix) / T(Enumerate);
 
   PassDef assign()
   {
     return {
-      (In(RuleComp) / In(RuleFunc)) *
+      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
           (T(Expr)
            << (T(Term)[Term]([](auto& n) { return !contains_ref(*n.first); }) *
                End)) >>
         [](Match& _) { return _(Term); },
 
-      (In(RuleComp) / In(RuleFunc)) *
+      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
+          (T(Expr) << (T(NumTerm)[NumTerm] * End)) >>
+        [](Match& _) {
+          Node number = _(NumTerm)->at(wfi / NumTerm / NumTerm);
+          return Term << (Scalar << number);
+        },
+
+      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
+          (T(Expr)
+           << (T(UnaryExpr) << (T(ArithArg) << (T(NumTerm)[NumTerm])) * End)) >>
+        [](Match& _) {
+          Node number =
+            Resolver::negate(_(NumTerm)->at(wfi / NumTerm / NumTerm));
+          return Term << (Scalar << number);
+        },
+
+      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
           (T(Expr) << (AssignInfixArg[Arg] * End)) >>
         [](Match& _) {
           Location value = _.fresh({"value"});
@@ -57,7 +89,11 @@ namespace rego
       In(Expr) * T(Unify)[Unify] >>
         [](Match& _) { return err(_(Unify), "Invalid assignment"); },
 
-      (In(RuleComp) / In(RuleFunc)) * T(Expr)[Expr] >>
+      In(Expr) * T(Enumerate)[Enumerate] >>
+        [](Match& _) { return err(_(Enumerate), "Invalid enumerate"); },
+
+      (In(RuleComp) / In(RuleFunc) / In(RuleSet) / In(RuleObj)) *
+          T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid rule value"); },
     };
   }

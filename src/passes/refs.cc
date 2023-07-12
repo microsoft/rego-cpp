@@ -1,4 +1,5 @@
 #include "lang.h"
+#include "log.h"
 #include "passes.h"
 
 namespace
@@ -19,8 +20,32 @@ namespace rego
   PassDef refs()
   {
     return {
-      In(RefTerm) * (T(Ref) << (T(Var)[Var] * (T(RefArgSeq) << End))) >>
-        [](Match& _) { return _(Var); },
+      // var
+      In(RefTerm) *
+          (T(Ref) << ((T(RefHead) << T(Var)[Var]) * (T(RefArgSeq) << End))) >>
+        [](Match& _) {
+          LOG("var");
+          return _(Var);
+        },
+
+      // expr-call refhead
+      In(RefHead) * T(ExprCall)[ExprCall]([](auto& n) {
+        return is_in(*n.first, UnifyBody);
+      }) >>
+        [](Match& _) {
+          LOG("expr-call refhead");
+          Location call = _.fresh({"call"});
+          return Seq << (Lift << UnifyBody
+                              << (Local << (Var ^ call) << Undefined))
+                     << (Lift
+                         << UnifyBody
+                         << (Literal
+                             << (Expr
+                                 << (AssignInfix
+                                     << (AssignArg << (RefTerm << (Var ^ call)))
+                                     << (AssignArg << _(ExprCall))))))
+                     << (Var ^ call);
+        },
 
       // ref = ref
       In(UnifyBody) *
@@ -30,6 +55,7 @@ namespace rego
                    << ((T(AssignArg) << (T(RefTerm)[Lhs] << T(Ref))) *
                        (T(AssignArg) << (T(RefTerm)[Rhs] << T(Ref))))))) >>
         [](Match& _) {
+          LOG("ref = ref");
           Node seq = NodeDef::create(Seq);
           Location ref0 = _.fresh({"ref"});
           Location ref1 = _.fresh({"ref"});
@@ -53,14 +79,13 @@ namespace rego
           return seq;
         },
 
-      // ref
-      T(RefTerm)([](auto& n) { return is_in(*n.first, UnifyBody); })
-          << (T(Ref)
-              << (T(Var)[Var] *
-                  (T(RefArgSeq)
-                   << ((T(RefArgDot) / T(RefArgCall))[Head] *
-                       RefArg++[Tail])))) >>
+      // ref.a
+      T(RefTerm)
+          << (T(Ref)([](auto& n) { return is_in(*n.first, UnifyBody); })
+              << ((T(RefHead) << T(Var)[Var]) *
+                  (T(RefArgSeq) << (T(RefArgDot))[Head] * RefArg++[Tail]))) >>
         [](Match& _) {
+          LOG("ref.a");
           Node seq = NodeDef::create(Seq);
           Location ref = _.fresh({"ref"});
           seq->push_back(
@@ -78,7 +103,8 @@ namespace rego
           if (tail.second > tail.first)
           {
             seq->push_back(
-              RefTerm << (Ref << (Var ^ ref) << (RefArgSeq << tail)));
+              RefTerm
+              << (Ref << (RefHead << (Var ^ ref)) << (RefArgSeq << tail)));
           }
           else
           {
@@ -88,11 +114,13 @@ namespace rego
           return seq;
         },
 
-      T(RefTerm)([](auto& n) { return is_in(*n.first, UnifyBody); })
-          << (T(Ref)
-              << (T(Var)[Var] *
+      // ref[a]
+      T(RefTerm)
+          << (T(Ref)([](auto& n) { return is_in(*n.first, UnifyBody); })
+              << ((T(RefHead) << T(Var)[Var]) *
                   (T(RefArgSeq) << (T(RefArgBrack)[Head] * RefArg++[Tail])))) >>
         [](Match& _) {
+          LOG("ref[a]");
           Node seq = NodeDef::create(Seq);
           Location ref = _.fresh({"ref"});
           seq->push_back(
@@ -150,7 +178,8 @@ namespace rego
           if (tail.second > tail.first)
           {
             seq->push_back(
-              RefTerm << (Ref << (Var ^ ref) << (RefArgSeq << tail)));
+              RefTerm
+              << (Ref << (RefHead << (Var ^ ref)) << (RefArgSeq << tail)));
           }
           else
           {
@@ -160,9 +189,46 @@ namespace rego
           return seq;
         },
 
+      // expr-call
+      T(ExprCall)([](auto& n) { return is_in(*n.first, UnifyBody); })
+          << ((T(VarSeq) << (T(Var)[Head] * T(Var)++[Tail])) *
+              T(ArgSeq)[ArgSeq]) >>
+        [](Match& _) {
+          LOG("expr-call");
+          Node seq = NodeDef::create(Seq);
+          Node head = _(Head);
+          NodeRange tail = _[Tail];
+          if (tail.second > tail.first)
+          {
+            for (auto it = tail.first; it != tail.second; ++it)
+            {
+              Node n = *it;
+              Location ref = _.fresh({"ref"});
+              seq->push_back(
+                Lift << UnifyBody << (Local << (Var ^ ref) << Undefined));
+              seq->push_back(
+                Lift << UnifyBody
+                     << (Literal
+                         << (Expr
+                             << (AssignInfix
+                                 << (AssignArg << (RefTerm << (Var ^ ref)))
+                                 << (AssignArg
+                                     << (RefTerm
+                                         << (SimpleRef
+                                             << head << (RefArgDot << n))))))));
+              head = Var ^ ref;
+            }
+          }
+          seq->push_back(ExprCall << head << _(ArgSeq));
+          return seq;
+        },
+
       // errors
       T(Expr)[Expr] << (Any * Any) >>
         [](Match& _) { return err(_(Expr), "Invalid expression"); },
+
+      In(ExprCall) * T(VarSeq)[VarSeq] >>
+        [](Match& _) { return err(_(VarSeq), "Invalid function call"); },
     };
   }
 }

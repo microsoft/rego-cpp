@@ -13,6 +13,7 @@ namespace rego
   std::ostream& operator<<(std::ostream& os, const std::set<Location>& locs);
   std::ostream& operator<<(std::ostream& os, const std::vector<Location>& locs);
 
+//#define REGOCPP_LOGGING
 #ifdef REGOCPP_LOGGING
   namespace logging
   {

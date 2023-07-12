@@ -41,10 +41,12 @@ namespace rego
     Values evaluate_function(
       const Location& var, const std::string& func_name, const Args& args);
     Values resolve_var(const Node& var);
-    Values access_args(const Location& var, const Node& container);
-    std::optional<Node> resolve_rulecomp(const Node& rulecomp);
-    std::optional<Node> resolve_rulefunc(
+    Values enumerate(const Location& var, const Node& container);
+    std::optional<RankedNode> resolve_rulecomp(const Node& rulecomp);
+    std::optional<RankedNode> resolve_rulefunc(
       const Node& rulefunc, const Nodes& args);
+    std::optional<Node> resolve_ruleset(const Nodes& ruleset);
+    std::optional<Node> resolve_ruleobj(const Nodes& ruleobj);
     Values call_function(
       const Location& var, const std::string& name, const Values& args);
     bool is_local(const Node& var);

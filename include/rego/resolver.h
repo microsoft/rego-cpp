@@ -11,6 +11,7 @@ namespace rego
   class Resolver
   {
   public:
+    static std::int64_t get_int(const Node& node);
     static Node resolve_query(const Node& query);
     static std::string func_str(const Node& func);
     static std::string arg_str(const Node& arg);
