@@ -15,6 +15,13 @@ namespace rego
     }
   }
 
+  void ValueMap::clear()
+  {
+    m_map.clear();
+    m_keys.clear();
+    m_values.clear();
+  }
+
   bool ValueMap::contains(const Value& value) const
   {
     return m_values.contains({value->json(), value->str()});
@@ -127,15 +134,14 @@ namespace rego
 
   Nodes ValueMap::nodes() const
   {
+    Values values = valid_values();
+    std::sort(values.begin(), values.end());
     Nodes nodes;
     std::transform(
-      m_keys.begin(),
-      m_keys.end(),
+      values.begin(),
+      values.end(),
       std::back_inserter(nodes),
-      [this](const auto& key) {
-        auto it = m_map.lower_bound(key);
-        return it->second->to_term();
-      });
+      [](const auto& value) { return value->to_term(); });
     return nodes;
   }
 
@@ -159,13 +165,18 @@ namespace rego
   bool ValueMap::remove_invalid_values()
   {
     bool changed = false;
-    for (auto it = m_map.begin(); it != m_map.end(); ++it)
+
+    for (auto it = m_map.begin(); it != m_map.end();)
     {
       if (it->second->invalid())
       {
         m_values.erase({it->first, it->second->str()});
-        m_map.erase(it);
+        it = m_map.erase(it);
         changed = true;
+      }
+      else
+      {
+        ++it;
       }
     }
 
@@ -200,28 +211,5 @@ namespace rego
         value->mark_as_valid();
       }
     }
-  }
-
-  bool ValueMap::all_falsy() const
-  {
-    if (empty())
-    {
-      return false;
-    }
-
-    for (const auto& [_, value] : m_map)
-    {
-      if (!Resolver::is_falsy(value->to_term()))
-      {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  std::size_t ValueMap::size() const
-  {
-    return m_map.size();
   }
 }

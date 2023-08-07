@@ -2,24 +2,40 @@
 #include "log.h"
 #include "passes.h"
 
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-      (Top <<= Rego)
-    | (RefArgBrack <<= Scalar | Var | Object | Array | Set)
-    ;
-  // clang-format on
-}
-
 namespace rego
 {
-  PassDef refs()
+  // Processes all complex Ref objects and replaces them with SimpleRef objects,
+  // which only have a single argument by the use of temporary variables.
+  PassDef simple_refs()
   {
     return {
+      In(Module) * T(Import) >> [](Match&) -> Node { return {}; },
+
+      // non-var refhead
+      In(Ref) * T(RefHead)[RefHead]([](auto& n) {
+        Node head = *n.first;
+        return is_in(head, {UnifyBody}) && head->front()->type() != Var;
+      }) >>
+        [](Match& _) {
+          LOG("non-var refhead");
+          Location refhead = _.fresh({"refhead"});
+          Node head = _(RefHead)->front();
+          if (head->type() != ExprCall)
+          {
+            head = Term << head;
+          }
+
+          return Seq
+            << (Lift << UnifyBody << (Local << (Var ^ refhead) << Undefined))
+            << (Lift << UnifyBody
+                     << (Literal
+                         << (Expr
+                             << (AssignInfix
+                                 << (AssignArg << (RefTerm << (Var ^ refhead)))
+                                 << (AssignArg << head)))))
+            << (RefHead << (Var ^ refhead));
+        },
+
       // var
       In(RefTerm) *
           (T(Ref) << ((T(RefHead) << T(Var)[Var]) * (T(RefArgSeq) << End))) >>
@@ -30,7 +46,7 @@ namespace rego
 
       // expr-call refhead
       In(RefHead) * T(ExprCall)[ExprCall]([](auto& n) {
-        return is_in(*n.first, UnifyBody);
+        return is_in(*n.first, {UnifyBody});
       }) >>
         [](Match& _) {
           LOG("expr-call refhead");
@@ -81,7 +97,7 @@ namespace rego
 
       // ref.a
       T(RefTerm)
-          << (T(Ref)([](auto& n) { return is_in(*n.first, UnifyBody); })
+          << (T(Ref)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
               << ((T(RefHead) << T(Var)[Var]) *
                   (T(RefArgSeq) << (T(RefArgDot))[Head] * RefArg++[Tail]))) >>
         [](Match& _) {
@@ -116,7 +132,7 @@ namespace rego
 
       // ref[a]
       T(RefTerm)
-          << (T(Ref)([](auto& n) { return is_in(*n.first, UnifyBody); })
+          << (T(Ref)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
               << ((T(RefHead) << T(Var)[Var]) *
                   (T(RefArgSeq) << (T(RefArgBrack)[Head] * RefArg++[Tail])))) >>
         [](Match& _) {
@@ -145,7 +161,7 @@ namespace rego
                                            << (RefArgBrack
                                                << (RefTerm
                                                    << (Var ^ index))))))))));
-            Node arg = head->at(wfi / RefArgBrack / RefArgBrack);
+            Node arg = head->front();
             if (
               arg->type() == Array || arg->type() == Object ||
               arg->type() == Set || arg->type() == Scalar)
@@ -190,7 +206,7 @@ namespace rego
         },
 
       // expr-call
-      T(ExprCall)([](auto& n) { return is_in(*n.first, UnifyBody); })
+      T(ExprCall)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
           << ((T(VarSeq) << (T(Var)[Head] * T(Var)++[Tail])) *
               T(ArgSeq)[ArgSeq]) >>
         [](Match& _) {
@@ -229,6 +245,10 @@ namespace rego
 
       In(ExprCall) * T(VarSeq)[VarSeq] >>
         [](Match& _) { return err(_(VarSeq), "Invalid function call"); },
+
+      In(RefTerm) *
+          T(Ref)[Ref]([](auto& n) { return !is_in(*n.first, {UnifyBody}); }) >>
+        [](Match& _) { return err(_(Ref), "Unable to simplify reference"); },
     };
   }
 }

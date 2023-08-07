@@ -4,7 +4,7 @@ namespace
 {
   std::string raw_to_json(const std::string& raw_string)
   {
-    std::stringstream buf;
+    std::ostringstream buf;
     buf << '"';
     for (auto& c : raw_string)
     {
@@ -59,6 +59,7 @@ namespace
 
 namespace rego
 {
+  // Convert all RawString nodes to JSONString nodes.
   PassDef strings()
   {
     return {

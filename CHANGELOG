@@ -1,5 +1,33 @@
 # Changelog
 
+## [2023-08-08 - Version 0.2.3](https://github.com/microsoft/scenepic/releases/tag/v0.2.3)
+Adding the remainder of the missing language features, bringing the implementation fully
+compliant with the published v0.55.0 grammar.
+
+**New Features**
+- Array, Set, and Object comprehensions
+- `every` keyword
+- `import` support
+- `with` keyword
+- Basic built-in framework in place. Added some builtins as well:
+  * `print`
+  * `startswith`
+  * `endswith`
+  * `count`
+  * `to_number`
+  * `union`
+  * `intersection`
+- `bin-infix` support
+- `ref` package names
+
+**Bug fixes**
+- Nested enumeration was not working properly. This has been fixed.
+
+**Improvements**
+- Turning on unification logging can be done on the command line (no recompile needed)
+- Passes have been broken out for better comprehensibility
+- Build time has been reduced
+
 ## [2023-07-11 - Version 0.2.2](https://github.com/microsoft/scenepic/releases/tag/v0.2.2)
 Adding the `in`, `if`, `contains`, and `else` keywords.
 

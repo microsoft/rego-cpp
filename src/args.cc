@@ -47,7 +47,7 @@ namespace rego
 
   std::string Args::str() const
   {
-    std::stringstream buf;
+    std::ostringstream buf;
     buf << *this;
     return buf.str();
   }

@@ -4,12 +4,15 @@ This project is an effort to create a C++ interpreter for the OPA policy languag
 [Rego](https://www.openpolicyagent.org/docs/latest/policy-language/). Our goal is
 to build both a standalone executable and a library such that programmers who are working
 in C++ can interpret Rego programs natively. To achieve this we are building our
-interpereter on top of the experimental term rewriter
+interpreter on top of the experimental term rewriter
 [Trieste](https://github.com/microsoft/trieste).
 
 > **Warning**
-> This project is still in the early stages, and we do not currently support many
-> language features.
+> While this project has progressed to the point that we support full Rego language
+> (see [Language Support](#language-support) below) we do not support all built-ins
+> and do not yet have a system built to verify compatibility with the reference Go
+> implementation. As such, it should still be considered experimental software and
+> used with discretion.
 
 ## Getting Started
 
@@ -57,7 +60,8 @@ You can then build and run the tests using:
 ### Using the Interpreter
 
 The interpreter will be located at `build/dist/bin/rego_interpreter`. Here are
-some example commands using the provided example files:
+some example commands using the provided example files and run from the suggested
+`dist` install directory:
 
     ./bin/rego_interpreter -d examples/scalars.rego -q data.scalars.greeting
     "Hello"
@@ -65,7 +69,7 @@ some example commands using the provided example files:
     ./bin/rego_interpreter -d examples/objects.rego -q data.objects.sites[1].name
     "smoke1"
 
-    ./bin/rego_interpreter -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[data.objects.index]]"
+    ./bin/rego_interpreter -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
     [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
 
     ./bin/rego_interpreter -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
@@ -73,6 +77,96 @@ some example commands using the provided example files:
 
     ./bin/rego_interpreter -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
     {"one": 15, "two": 15}
+
+## Language Support
+
+At present we support v0.55.0 of the Rego grammar as defined by OPA:
+
+```ebnf
+module          = package { import } policy
+package         = "package" ref
+import          = "import" ref [ "as" var ]
+policy          = { rule }
+rule            = [ "default" ] rule-head { rule-body }
+rule-head       = ( ref | var ) ( rule-head-set | rule-head-obj | rule-head-func | rule-head-comp )
+rule-head-comp  = [ assign-operator term ] [ "if" ]
+rule-head-obj   = "[" term "]" [ assign-operator term ] [ "if" ]
+rule-head-func  = "(" rule-args ")" [ assign-operator term ] [ "if" ]
+rule-head-set   = "contains" term [ "if" ] | "[" term "]"
+rule-args       = term { "," term }
+rule-body       = [ "else" [ assign-operator term ] [ "if" ] ] ( "{" query "}" ) | literal
+query           = literal { ( ";" | ( [CR] LF ) ) literal }
+literal         = ( some-decl | expr | "not" expr ) { with-modifier }
+with-modifier   = "with" term "as" term
+some-decl       = "some" term { "," term } { "in" expr }
+expr            = term | expr-call | expr-infix | expr-every | expr-parens | unary-expr
+expr-call       = var [ "." var ] "(" [ expr { "," expr } ] ")"
+expr-infix      = expr infix-operator expr
+expr-every      = "every" var { "," var } "in" ( term | expr-call | expr-infix ) "{" query "}"
+expr-parens     = "(" expr ")"
+unary-expr      = "-" expr
+membership      = term [ "," term ] "in" term
+term            = ref | var | scalar | array | object | set | membership | array-compr | object-compr | set-compr
+array-compr     = "[" term "|" query "]"
+set-compr       = "{" term "|" query "}"
+object-compr    = "{" object-item "|" query "}"
+infix-operator  = assign-operator | bool-operator | arith-operator | bin-operator
+bool-operator   = "==" | "!=" | "<" | ">" | ">=" | "<="
+arith-operator  = "+" | "-" | "*" | "/"
+bin-operator    = "&" | "|"
+assign-operator = ":=" | "="
+ref             = ( var | array | object | set | array-compr | object-compr | set-compr | expr-call ) { ref-arg }
+ref-arg         = ref-arg-dot | ref-arg-brack
+ref-arg-brack   = "[" ( scalar | var | array | object | set | "_" ) "]"
+ref-arg-dot     = "." var
+var             = ( ALPHA | "_" ) { ALPHA | DIGIT | "_" }
+scalar          = string | NUMBER | TRUE | FALSE | NULL
+string          = STRING | raw-string
+raw-string      = "`" { CHAR-"`" } "`"
+array           = "[" term { "," term } "]"
+object          = "{" object-item { "," object-item } "}"
+object-item     = ( scalar | ref | var ) ":" term
+set             = empty-set | non-empty-set
+non-empty-set   = "{" term { "," term } "}"
+empty-set       = "set(" ")"
+```
+
+Definitions:
+```
+[]     optional (zero or one instances)
+{}     repetition (zero or more instances)
+|      alternation (one of the instances)
+()     grouping (order of expansion)
+STRING JSON string
+NUMBER JSON number
+TRUE   JSON true
+FALSE  JSON false
+NULL   JSON null
+CHAR   Unicode character
+ALPHA  ASCII characters A-Z and a-z
+DIGIT  ASCII characters 0-9
+CR     Carriage Return
+LF     Line Feed
+```
+
+### Builtins
+
+At the moment only support a few builtins, but are actively working on adding
+all the standard builtins. The following builtins are currently supported:
+
+- `print`
+- `startswith`
+- `endswith`
+- `count`
+- `to_number`
+- `intersection`
+- `union`
+
+### Compatibility with the OPA Rego Go implementation
+
+Our goal is to achieve and maintain full compatibility with the reference Go
+implementation. We are working on a test driver which will run the same tests
+and validate that we produce the same outputs.
     
 ## Contributing
 

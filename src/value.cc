@@ -1,10 +1,24 @@
 #include "value.h"
 
+#include "lang.h"
+#include "resolver.h"
+
 #include <sstream>
+
+namespace
+{
+  using namespace rego;
+
+  std::set<Token> scalar_tokens = {
+    JSONInt, JSONFloat, JSONString, JSONTrue, JSONFalse, JSONNull};
+  std::set<Token> term_tokens = {Scalar, Array, Object, Set, Undefined};
+}
 
 namespace rego
 {
-  ValueDef::ValueDef(const Node& value) : m_node(value), m_rank(0) {}
+  ValueDef::ValueDef(const Node& value) :
+    m_node(value), m_invalid(false), m_rank(0)
+  {}
 
   ValueDef::ValueDef(const Location& var, const Node& value) : ValueDef(value)
   {
@@ -78,34 +92,6 @@ namespace rego
     return std::shared_ptr<ValueDef>(new ValueDef(var, value, sources));
   }
 
-  bool ValueDef::merge_sources(const Value& other)
-  {
-    return merge_sources(other->m_sources);
-  }
-
-  bool ValueDef::merge_sources(const Values& others)
-  {
-    if (others.size() == 0)
-    {
-      return false;
-    }
-
-    Values all_sources;
-    std::set_union(
-      m_sources.begin(),
-      m_sources.end(),
-      others.begin(),
-      others.end(),
-      std::back_inserter(all_sources));
-    if (all_sources.size() != m_sources.size())
-    {
-      m_sources = all_sources;
-      return true;
-    }
-
-    return false;
-  }
-
   bool ValueDef::depends_on(const Value& source) const
   {
     return std::find(m_sources.begin(), m_sources.end(), source) !=
@@ -119,14 +105,15 @@ namespace rego
 
   std::string ValueDef::str() const
   {
-    std::stringstream buf;
+    std::ostringstream buf;
     buf << *this;
     return buf.str();
   }
 
-  void ValueDef::to_string(std::ostream& os, const Location& root) const
+  void ValueDef::to_string(
+    std::ostream& os, const Location& root, bool first) const
   {
-    if (m_var == root)
+    if (m_var == root && !first)
     {
       os << m_var.view();
       return;
@@ -138,12 +125,11 @@ namespace rego
     for (auto& source : m_sources)
     {
       os << sep;
-      source->to_string(os, root);
+      source->to_string(os, root, false);
       sep = ", ";
     }
     os << "}";
   }
-
   bool ValueDef::invalid() const
   {
     if (m_sources.size() == 0)
@@ -220,20 +206,19 @@ namespace rego
     }
 
     Node term = m_node;
-    if (
-      term->type() == JSONTrue || term->type() == JSONFalse ||
-      term->type() == JSONInt || term->type() == JSONFloat ||
-      term->type() == JSONString || term->type() == JSONNull)
+    if (scalar_tokens.contains(term->type()))
     {
       return Term << (Scalar << term);
     }
 
-    if (
-      term->type() == Scalar || term->type() == Array ||
-      term->type() == Object || term->type() == Set ||
-      term->type() == Undefined)
+    if (term_tokens.contains(term->type()))
     {
       return Term << term;
+    }
+
+    if (term->type() == TermSet)
+    {
+      return Term << Resolver::set(term);
     }
 
     return err(term, "Not a term");
@@ -246,21 +231,25 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const ValueDef& value)
   {
-    os << value.m_var.view() << "(" << value.json() << ") -> "
-       << value.m_sources.size() << "{";
-    std::string sep = "";
-    for (auto& source : value.m_sources)
-    {
-      os << sep;
-      source->to_string(os, value.m_var);
-      sep = ", ";
-    }
-    return os << "}";
+    value.to_string(os, value.m_var, true);
+    return os;
   }
 
   bool operator==(const Value& lhs, const Value& rhs)
   {
     return lhs->str() == rhs->str();
+  }
+
+  bool operator<(const Value& lhs, const Value& rhs)
+  {
+    if (lhs->m_sources.size() > 0 && rhs->m_sources.size() > 0)
+    {
+      if (lhs->m_sources[0]->m_var == rhs->m_sources[0]->m_var)
+      {
+        return lhs->m_sources[0] < rhs->m_sources[0];
+      }
+    }
+    return lhs->str() < rhs->str();
   }
 
   Values ValueDef::filter_by_rank(const Values& values)

@@ -1,23 +1,34 @@
 #include "lang.h"
 #include "passes.h"
 
-namespace rego
+namespace
 {
+  using namespace rego;
+
   const inline auto KeyToken =
     T(Var) / T(Square) / T(Dot) / ScalarToken / T(RawString) / T(JSONString);
+  const inline auto RefToken =
+    T(Var) / T(Dot) / T(Square) / T(RawString) / T(JSONString);
+  const inline auto ImportToken = T(Var) / T(Dot) / T(Square) / T(As);
+}
 
+namespace rego
+{
+  // Separates out Modules from the rest of the AST.
   PassDef modules()
   {
     return {
       In(ModuleSeq) *
           (T(File)
-           << ((T(Group) << (T(Package) * T(Var)[Id])) * T(Group)++[Tail])) >>
+           << ((T(Group) << (T(Package) * RefToken++[Package])) *
+               T(Group)++[Policy])) >>
         [](Match& _) {
-          return Module << (Package << _(Id)) << ImportSeq
-                        << (Policy << _[Tail]);
+          return Module << (Package << (Group << _[Package])) << ImportSeq
+                        << (Policy << _[Policy]);
         },
 
-      In(List) * (T(Group) << (KeyToken++[Key] * T(Colon) * Any++[Val])) >>
+      (In(List) / In(Compr)) *
+          (T(Group) << (KeyToken++[Key] * T(Colon) * Any++[Val])) >>
         [](Match& _) {
           return ObjectItem << (Group << _[Key]) << (Group << _[Val]);
         },
@@ -28,25 +39,57 @@ namespace rego
         },
 
       In(Policy) *
-          (T(Group) << (T(Import) * (T(Var) / T(Dot))++[Import] * End)) >>
-        [](Match& _) { return Import << (Group << _[Import]); },
-
-      In(ModuleSeq) *
-          (T(Module)
-           << (T(Package)[Package] * T(ImportSeq)[ImportSeq] *
-               (T(Policy)
-                << (T(Import)[Head] * T(Import)++[Tail] *
-                    (T(Group) / T(Import))++[Policy])))) >>
+          ((T(Group) << (T(Import) * ImportToken++[Import] * End)) *
+           (T(Group) << (T(As) * T(Var)[Var] * End))) >>
         [](Match& _) {
-          auto import_seq = _(ImportSeq);
-          import_seq->push_back(_(Head));
-          auto tail = _[Tail];
-          for (auto& node = tail.first; node != tail.second; ++node)
-          {
-            import_seq->push_back(*node);
-          }
+          return Lift << Module
+                      << (Import << (Group << _[Import] << As << _(Var)));
+        },
 
-          return Module << _(Package) << _(ImportSeq) << (Policy << _[Policy]);
+      In(Policy) * (T(Group) << (T(Import) * ImportToken++[Import] * End)) >>
+        [](Match& _) {
+          return Lift << Module << (Import << (Group << _[Import]));
+        },
+
+      In(Module) * (T(ImportSeq)[ImportSeq] * T(Import)[Import]) >>
+        [](Match& _) { return ImportSeq << *_[ImportSeq] << _(Import); },
+
+      In(ModuleSeq) * (T(Module)[Lhs] * T(Module)[Rhs])([](auto& n) {
+        Node lhs = *n.first;
+        Node rhs = *(n.first + 1);
+        Node lhs_pkg = (lhs / Package / Group);
+        Node rhs_pkg = (rhs / Package / Group);
+        if (lhs_pkg->size() != rhs_pkg->size())
+        {
+          return false;
+        }
+
+        for (std::size_t i = 0; i < lhs_pkg->size(); ++i)
+        {
+          if (lhs_pkg->at(i)->location() != rhs_pkg->at(i)->location())
+          {
+            return false;
+          }
+        }
+
+        return true;
+      }) >>
+        [](Match& _) {
+          Node pkg = _(Lhs) / Package;
+          Node imports = _(Lhs) / ImportSeq;
+          Node policy = _(Lhs) / Policy;
+          Node rhs_imports = _(Rhs) / ImportSeq;
+          Node rhs_policy = _(Rhs) / Policy;
+          imports->insert(
+            imports->end(), rhs_imports->begin(), rhs_imports->end());
+          policy->insert(policy->end(), rhs_policy->begin(), rhs_policy->end());
+          return Module << pkg << imports << policy;
+        },
+
+      T(Placeholder) >>
+        [](Match& _) {
+          Location temp = _.fresh({"_"});
+          return (Var ^ temp);
         },
 
       // errors
@@ -66,6 +109,9 @@ namespace rego
 
       In(Group) * (T(Import)[Import] << End) >>
         [](Match& _) { return err(_(Import), "Invalid import"); },
+
+      (In(Import) / In(Package)) * (T(Group)[Group] << End) >>
+        [](Match& _) { return err(_(Group), "Invalid import"); },
     };
   }
 }

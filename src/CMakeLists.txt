@@ -11,26 +11,39 @@ value_map.cc
 resolver.cc
 variable.cc
 wf.cc
+builtins.cc
 passes/input_data.cc
 passes/modules.cc
 passes/lists.cc
 passes/imports.cc
 passes/keywords.cc
 passes/if_else.cc
+passes/rules.cc
+passes/build_calls.cc
+passes/build_refs.cc
 passes/structure.cc
 passes/strings.cc
+passes/merge_data.cc
 passes/symbols.cc
+passes/replace_argvals.cc
+passes/lift_query.cc
+passes/constants.cc
+passes/enumerate.cc
 passes/locals.cc
+passes/compr.cc
+passes/absolute_refs.cc
+passes/merge_modules.cc
+passes/skips.cc
 passes/multiply_divide.cc
 passes/add_subtract.cc
 passes/comparison.cc
 passes/assign.cc
+passes/skip_refs.cc
+passes/simple_refs.cc
 passes/rulebody.cc
-passes/refs.cc
+passes/lift_to_rule.cc
 passes/functions.cc
-passes/merge_data.cc
-passes/merge_modules.cc
-passes/rules.cc
+passes/unify.cc
 passes/query.cc
 )
 
@@ -38,13 +51,15 @@ add_library(rego STATIC ${SOURCES})
 
 add_library(regocpp::rego ALIAS rego)
 
-if ( REGOCPP_LOGGING )
-  target_compile_definitions(rego PUBLIC REGOCPP_LOGGING)
-endif()
-
 target_link_libraries(rego
   PUBLIC
     trieste::trieste
+)
+
+target_precompile_headers(rego
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/lang.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/wf.h
 )
 
 target_include_directories( rego

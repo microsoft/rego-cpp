@@ -11,6 +11,7 @@ namespace rego
   {
   public:
     Interpreter(bool disable_well_formed_checks = false);
+    ~Interpreter();
     void add_module_file(const std::filesystem::path& path);
     void add_module(const std::string& name, const std::string& contents);
     void add_data_json_file(const std::filesystem::path& path);
@@ -30,6 +31,7 @@ namespace rego
   private:
     void write_ast(
       std::size_t index, const std::string& pass, const Node& ast) const;
+    bool has_error(const Node& ast) const;
     Parse m_parser;
     wf::Wellformed m_wf_parser;
     std::vector<PassCheck> m_passes;

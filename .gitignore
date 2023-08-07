@@ -12,5 +12,6 @@ _deps
 
 # misc
 build
+build-*
 .vscode
 .cache

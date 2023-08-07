@@ -15,8 +15,6 @@ namespace rego
   class ValueDef
   {
   public:
-    bool merge_sources(const Values& others);
-    bool merge_sources(const Value& other);
     void mark_as_valid();
     void mark_as_invalid();
 
@@ -32,6 +30,7 @@ namespace rego
     friend std::ostream& operator<<(std::ostream& os, const Value& value);
     friend std::ostream& operator<<(std::ostream& os, const ValueDef& value);
     friend bool operator==(const Value& lhs, const Value& rhs);
+    friend bool operator<(const Value& lhs, const Value& rhs);
 
     static Value create(const RankedNode& value);
     static Value create(const Location& var, const RankedNode& value);
@@ -45,7 +44,7 @@ namespace rego
     static Values filter_by_rank(const Values& values);
 
   private:
-    void to_string(std::ostream& buf, const Location& root) const;
+    void to_string(std::ostream& buf, const Location& root, bool first) const;
     Location m_var;
     Node m_node;
     Values m_sources;

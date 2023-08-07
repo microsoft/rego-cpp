@@ -17,6 +17,7 @@ namespace rego
     bool contains(const Value& value) const;
     bool intersect_with(const Values& values);
     bool remove_values_not_contained_in(const Values& values);
+    void clear();
     bool insert(const Value& value);
     bool erase(const std::string& json);
     bool empty() const;
@@ -25,8 +26,6 @@ namespace rego
     bool remove_invalid_values();
     void mark_valid_values(bool include_falsy);
     void mark_invalid_values();
-    bool all_falsy() const;
-    std::size_t size() const;
 
     friend std::ostream& operator<<(std::ostream& os, const ValueMap& values);
 

@@ -2,6 +2,7 @@
 
 namespace rego
 {
+  // Extracts the query result from the AST.
   PassDef query()
   {
     return {

@@ -1,6 +1,8 @@
 package keywords
 
 import future.keywords
+import data.apps as apps
+import data.sites as sites
 
 letters := ["a", "b", "c", "d"]
 
@@ -43,4 +45,13 @@ f["sum"] := sum {
     sum := a + b
 }
 
-output := [c, d, e, f]
+app_to_hostnames_obj[app_name] := hostnames if {
+    app := apps[_]
+    app_name := app.name
+    hostnames := [hostname | name := app.servers[_]
+                            s := sites[_].servers[_]
+                            s.name == name
+                            hostname := s.hostname]
+}
+
+output := [c, d, e, f, app_to_hostnames_obj["mongodb"] == ["oxygen"]]
