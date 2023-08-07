@@ -1,27 +1,38 @@
 #include "passes.h"
 
+namespace
+{
+  using namespace rego;
+
+  const inline auto ExprTailToken = ExprToken / T(InSome);
+}
+
 namespace rego
 {
-  PassDef if_else()
+  // Handles the if keyword.
+  PassDef ifs()
   {
     return {
-      In(Group) * (T(IfTruthy) * ExprToken[Head] * ExprToken++[Tail] * End) >>
+      In(Group) * (T(IfTruthy) * ExprToken[Head] * ExprTailToken++[Tail]) >>
         [](Match& _) { return UnifyBody << (Group << _(Head) << _[Tail]); },
-
-      In(Group) *
-          (T(IfTruthy) * ExprToken[Head] * ExprToken++[Tail] *
-           (T(UnifyBody) / T(Else))[UnifyBody]) >>
-        [](Match& _) {
-          return Seq << (UnifyBody << (Group << _(Head) << _[Tail]))
-                     << _(UnifyBody);
-        },
 
       In(Group) * (T(IfTruthy) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) { return _(UnifyBody); },
 
+      // errors
+
+      In(Group) * T(IfTruthy)[IfTruthy] >>
+        [](Match& _) { return err(_(IfTruthy), "Invalid if statement"); },
+    };
+  }
+
+  // Creates Else nodes
+  PassDef elses()
+  {
+    return {
       In(Group) *
           (T(Else) * (T(Assign) / T(Unify)) * ExprToken[Head] *
-           ExprToken++[Tail] * T(UnifyBody)[UnifyBody]) >>
+           ExprTailToken++[Tail] * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) {
           return Else << (Group << _(Head) << _[Tail]) << _(UnifyBody);
         },
@@ -29,12 +40,15 @@ namespace rego
       In(Group) * (T(Else) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) { return Else << Undefined << _(UnifyBody); },
 
-      // errors
-      In(Group) * T(IfTruthy)[IfTruthy] >>
-        [](Match& _) { return err(_(IfTruthy), "Invalid if"); },
+      In(Group) *
+          (T(Else) * (T(Assign) / T(Unify)) * T(Group)[Group] *
+           T(UnifyBody)[UnifyBody]) >>
+        [](Match& _) { return Else << _(Group) << _(UnifyBody); },
 
-      In(Group) * (T(Else) << End)[Else] >>
-        [](Match& _) { return err(_(Else), "Invalid else"); },
+      // errors
+      In(Group) * (T(Else)[Else] << End) >>
+        [](Match& _) { return err(_(Else), "Invalid else statement"); },
     };
   }
+
 }

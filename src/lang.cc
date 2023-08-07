@@ -13,7 +13,9 @@ namespace
   // clang-format off
   inline const auto wfi =
       (Binding <<= Var * Term)
-    | (ObjectItem <<= Key * Term)
+    | (ObjectItem <<= Key * (Val >>= Term))
+    | (DataItem <<= Key * (Val >>= DataTerm))
+    | (RefObjectItem <<= (Key >>= RefTerm) * (Val >>= Expr))
     | (Term <<= Scalar | Array | Object | Set | Undefined)
     | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
     ;
@@ -22,31 +24,48 @@ namespace
 
 namespace rego
 {
-  std::stringstream log_stream;
+  bool Logger::enabled = false;
+  std::string Logger::indent = "";
+
   std::vector<PassCheck> passes()
   {
     return {
-      {"input_data", input_data(), wf_pass_input_data},
-      {"modules", modules(), wf_pass_modules},
-      {"lists", lists(), wf_pass_lists},
-      {"imports", imports(), wf_pass_imports},
-      {"keywords", keywords(), wf_pass_keywords},
-      {"if_else", if_else(), wf_pass_if_else},
-      {"structure", structure(), wf_pass_structure},
-      {"strings", strings(), wf_pass_strings},
-      {"symbols", symbols(), wf_pass_symbols},
-      {"locals", locals(), wf_pass_locals},
-      {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
-      {"add_subtract", add_subtract(), wf_pass_add_subtract},
-      {"comparison", comparison(), wf_pass_comparison},
-      {"assign", assign(), wf_pass_assign},
-      {"refs", refs(), wf_pass_refs},
-      {"rulebody", rulebody(), wf_pass_rulebody},
-      {"functions", functions(), wf_pass_functions},
-      {"merge_data", merge_data(), wf_pass_merge_data},
-      {"merge_modules", merge_modules(), wf_pass_merge_modules},
-      {"rules", rules(), wf_pass_rules},
-      {"query", query(), wf_pass_query},
+      {"input_data", input_data(), &wf_pass_input_data},
+      {"modules", modules(), &wf_pass_modules},
+      {"imports", imports(), &wf_pass_imports},
+      {"keywords", keywords(), &wf_pass_keywords},
+      {"lists", lists(), &wf_pass_lists},
+      {"ifs", ifs(), &wf_pass_ifs},
+      {"elses", elses(), &wf_pass_elses},
+      {"rules", rules(), &wf_pass_rules},
+      {"build_calls", build_calls(), &wf_pass_build_calls},
+      {"build_refs", build_refs(), &wf_pass_build_refs},
+      {"structure", structure(), &wf_pass_structure},
+      {"strings", strings(), &wf_pass_strings},
+      {"merge_data", merge_data(), &wf_pass_merge_data},
+      {"symbols", symbols(), &wf_pass_symbols},
+      {"replace_argvals", replace_argvals(), &wf_pass_replace_argvals},
+      {"lift_query", lift_query(), &wf_pass_lift_query},
+      {"constants", constants(), &wf_pass_constants},
+      {"explicit_enums", explicit_enums(), &wf_pass_explicit_enums},
+      {"body_locals", body_locals(), &wf_pass_locals},
+      {"value_locals", value_locals(), &wf_pass_locals},
+      {"compr", compr(), &wf_pass_compr},
+      {"absolute_refs", absolute_refs(), &wf_pass_absolute_refs},
+      {"merge_modules", merge_modules(), &wf_pass_merge_modules},
+      {"skips", skips(), &wf_pass_skips},
+      {"multiply_divide", multiply_divide(), &wf_pass_multiply_divide},
+      {"add_subtract", add_subtract(), &wf_pass_add_subtract},
+      {"comparison", comparison(), &wf_pass_comparison},
+      {"assign", assign(), &wf_pass_assign},
+      {"skip_refs", skip_refs(), &wf_pass_skip_refs},
+      {"simple_refs", simple_refs(), &wf_pass_simple_refs},
+      {"implicit_enums", implicit_enums(), &wf_pass_implicit_enums},
+      {"rulebody", rulebody(), &wf_pass_rulebody},
+      {"lift_to_rule", lift_to_rule(), &wf_pass_lift_to_rule},
+      {"functions", functions(), &wf_pass_functions},
+      {"unify", unify(), &wf_pass_unify},
+      {"query", query(), &wf_pass_query},
     };
   }
 
@@ -55,29 +74,45 @@ namespace rego
     auto passdefs = passes();
     static Driver d(
       "rego",
+      nullptr,
       parser(),
       wf_parser,
       {
         {"input_data", input_data(), wf_pass_input_data},
         {"modules", modules(), wf_pass_modules},
-        {"lists", lists(), wf_pass_lists},
         {"imports", imports(), wf_pass_imports},
         {"keywords", keywords(), wf_pass_keywords},
-        {"if_else", if_else(), wf_pass_if_else},
+        {"lists", lists(), wf_pass_lists},
+        {"ifs", ifs(), wf_pass_ifs},
+        {"elses", elses(), wf_pass_elses},
+        {"rules", rules(), wf_pass_rules},
+        {"build_calls", build_calls(), wf_pass_build_calls},
+        {"build_refs", build_refs(), wf_pass_build_refs},
         {"structure", structure(), wf_pass_structure},
         {"strings", strings(), wf_pass_strings},
+        {"merge_data", merge_data(), wf_pass_merge_data},
         {"symbols", symbols(), wf_pass_symbols},
-        {"locals", locals(), wf_pass_locals},
+        {"replace_argvals", replace_argvals(), wf_pass_replace_argvals},
+        {"lift_query", lift_query(), wf_pass_lift_query},
+        {"constants", constants(), wf_pass_constants},
+        {"explicit_enums", explicit_enums(), wf_pass_explicit_enums},
+        {"body_locals", body_locals(), wf_pass_locals},
+        {"value_locals", value_locals(), wf_pass_locals},
+        {"compr", compr(), wf_pass_compr},
+        {"absolute_refs", absolute_refs(), wf_pass_absolute_refs},
+        {"merge_modules", merge_modules(), wf_pass_merge_modules},
+        {"skips", skips(), wf_pass_skips},
         {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
         {"add_subtract", add_subtract(), wf_pass_add_subtract},
         {"comparison", comparison(), wf_pass_comparison},
         {"assign", assign(), wf_pass_assign},
-        {"refs", refs(), wf_pass_refs},
+        {"skip_refs", skip_refs(), wf_pass_skip_refs},
+        {"simple_refs", simple_refs(), wf_pass_simple_refs},
+        {"implicit_enums", implicit_enums(), wf_pass_implicit_enums},
         {"rulebody", rulebody(), wf_pass_rulebody},
+        {"lift_to_rule", lift_to_rule(), wf_pass_lift_to_rule},
         {"functions", functions(), wf_pass_functions},
-        {"merge_data", merge_data(), wf_pass_merge_data},
-        {"merge_modules", merge_modules(), wf_pass_merge_modules},
-        {"rules", rules(), wf_pass_rules},
+        {"unify", unify(), wf_pass_unify},
         {"query", query(), wf_pass_query},
       });
     return d;
@@ -85,7 +120,7 @@ namespace rego
 
   std::string to_json(const Node& node)
   {
-    std::stringstream buf;
+    std::ostringstream buf;
     if (node->type() == JSONInt)
     {
       buf << node->location().view();
@@ -126,7 +161,7 @@ namespace rego
     {
       buf << '"' << node->location().view() << '"';
     }
-    else if (node->type() == Array)
+    else if (node->type() == Array || node->type() == DataArray)
     {
       buf << "[";
       std::string sep = "";
@@ -137,7 +172,7 @@ namespace rego
       }
       buf << "]";
     }
-    else if (node->type() == Set)
+    else if (node->type() == Set || node->type() == DataSet)
     {
       std::set<std::string> items;
       for (const auto& child : *node)
@@ -155,13 +190,13 @@ namespace rego
 
       buf << "]";
     }
-    else if (node->type() == Object)
+    else if (node->type() == Object || node->type() == DataObject)
     {
       std::map<std::string, std::string> items;
       for (const auto& child : *node)
       {
-        auto key = child->at(wfi / ObjectItem / Key);
-        auto value = child->at(wfi / ObjectItem / Term);
+        auto key = wfi / child / Key;
+        auto value = wfi / child / Val;
         items[to_json(key)] = to_json(value);
       }
 
@@ -175,14 +210,16 @@ namespace rego
 
       buf << "}";
     }
-    else if (node->type() == Scalar || node->type() == Term)
+    else if (
+      node->type() == Scalar || node->type() == Term ||
+      node->type() == DataTerm)
     {
-      return to_json(node->at(wfi / Scalar / Scalar, wfi / Term / Term));
+      return to_json(node->front());
     }
     else if (node->type() == Binding)
     {
-      buf << node->at(wfi / Binding / Var)->location().view() << " = "
-          << to_json(node->at(wfi / Binding / Term));
+      buf << (wfi / node / Var)->location().view() << " = "
+          << to_json(wfi / node / Term);
     }
     else if (node->type() == TermSet)
     {
@@ -195,13 +232,17 @@ namespace rego
       }
       buf << "}";
     }
+    else if (node->type() == BuiltInHook)
+    {
+      buf << "builtin(" << node->location().view() << ")";
+    }
     else if (node->type() == Error)
     {
-      buf << node->str();
+      buf << node;
     }
     else
     {
-      buf << node->type().str() << "(" << node.get() << ")";
+      buf << node->type().str() << "(" << static_cast<void*>(node.get()) << ")";
     }
 
     return buf.str();
@@ -209,7 +250,12 @@ namespace rego
 
   bool contains_ref(const Node& node)
   {
-    if (node->type() == RefTerm)
+    if (node->type() == NestedBody)
+    {
+      return false;
+    }
+
+    if (node->type() == Ref || node->type() == Var)
     {
       return true;
     }
@@ -227,6 +273,11 @@ namespace rego
 
   bool contains_local(const Node& node)
   {
+    if (node->type() == NestedBody)
+    {
+      return false;
+    }
+
     if (node->type() == Var)
     {
       Nodes defs = node->lookup();
@@ -250,9 +301,9 @@ namespace rego
     return false;
   }
 
-  bool is_in(const Node& node, const Token& type)
+  bool is_in(const Node& node, const std::set<Token>& types)
   {
-    if (node->type() == type)
+    if (types.contains(node->type()))
     {
       return true;
     }
@@ -262,7 +313,65 @@ namespace rego
       return false;
     }
 
-    return is_in(node->parent()->shared_from_this(), type);
+    return is_in(node->parent()->shared_from_this(), types);
+  }
+
+  bool is_constant(const Node& term)
+  {
+    if (term->type() == NumTerm)
+    {
+      return true;
+    }
+
+    if (term->type() == RefTerm)
+    {
+      return false;
+    }
+
+    if (term->type() != Term)
+    {
+      return false;
+    }
+
+    Node node = term->front();
+    if (node->type() == Scalar)
+    {
+      return true;
+    }
+
+    if (node->type() == Array || node->type() == Set)
+    {
+      for (auto& child : *node)
+      {
+        if (!is_constant(child->front()))
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    if (node->type() == Object)
+    {
+      for (auto& item : *node)
+      {
+        if (item->type() == RefObjectItem)
+        {
+          return false;
+        }
+
+        Node val = item / Val;
+        if (!is_constant(val->front()))
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
   std::ostream& operator<<(std::ostream& os, const std::set<Location>& locs)
@@ -289,5 +398,31 @@ namespace rego
     }
     os << "]";
     return os;
+  }
+
+  std::string strip_quotes(const std::string& str)
+  {
+    if (str.starts_with('"') && str.ends_with('"'))
+    {
+      return str.substr(1, str.size() - 2);
+    }
+
+    return str;
+  }
+
+  bool in_query(const Node& node)
+  {
+    if (node->type() == Rego)
+    {
+      return false;
+    }
+
+    if (node->type() == RuleComp)
+    {
+      std::string name = std::string((node / Var)->location().view());
+      return name.starts_with("query$");
+    }
+
+    return in_query(node->parent()->shared_from_this());
   }
 }

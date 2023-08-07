@@ -10,7 +10,7 @@ namespace
 
   // clang-format off
   inline const auto wfi =
-      (Local <<= Var * (Val >>= Undefined))
+      (Local <<= Var * (Val >>= Undefined | Term))
     | (Term <<= Scalar | Array | Object | Set | Undefined)
     | (DefaultTerm <<= Scalar | Array | Object | Set | Undefined)
     | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
@@ -21,34 +21,27 @@ namespace
 namespace rego
 {
   Variable::Variable(const Node& local) :
-    m_local(local),
-    m_visited(false),
-    m_initialized(false),
-    m_dependency_score(1)
+    m_local(local), m_initialized(false), m_dependency_score(1)
   {
-    Location name = local->at(wfi / Local / Var)->location();
+    Location name = (wfi / local / Var)->location();
     std::string name_str = std::string(name.view());
     m_unify = name_str.starts_with("unify$");
     m_user_var = name_str.find('$') == std::string::npos ||
-      name_str[0] == '$' || name_str.starts_with("value$");
-  }
-
-  bool Variable::depends_on(const Location& var) const
-  {
-    return m_dependencies.find(var) != m_dependencies.end();
-  }
-
-  void Variable::remove(const Value& value)
-  {
-    std::string key = to_json(value->node());
-    m_values.erase(key);
+      name_str[0] == '$' || name_str.starts_with("value$") ||
+      name_str.starts_with("out$");
   }
 
   std::string Variable::str() const
   {
-    std::stringstream buf;
+    std::ostringstream buf;
     buf << *this;
     return buf.str();
+  }
+
+  void Variable::reset()
+  {
+    m_values.clear();
+    m_initialized = false;
   }
 
   bool Variable::initialize(const Values& others)
@@ -70,11 +63,25 @@ namespace rego
     return changed;
   }
 
+  bool Variable::unify(const Values& others)
+  {
+    bool changed;
+    if (m_initialized)
+    {
+      changed = intersect_with(others);
+    }
+    else
+    {
+      changed = initialize(others);
+    }
+    mark_valid_values();
+    return changed;
+  }
+
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
-    return os << variable.m_local->at(wfi / Local / Var)->location().view()
-              << "(" << variable.m_dependency_score
-              << ") = " << variable.m_values;
+    return os << (wfi / variable.m_local / Var)->location().view() << "("
+              << variable.m_dependency_score << ") = " << variable.m_values;
   }
 
   std::ostream& operator<<(
@@ -104,32 +111,6 @@ namespace rego
     m_values.mark_valid_values(!m_unify);
   }
 
-  std::size_t Variable::compute_dependency_score(
-    std::map<Location, Variable>& variables)
-  {
-    if (m_visited)
-    {
-      return m_dependency_score;
-    }
-
-    m_visited = true;
-    m_dependency_score = std::transform_reduce(
-      m_dependencies.cbegin(),
-      m_dependencies.cend(),
-      m_dependency_score,
-      std::plus{},
-      [&variables](auto& dep) {
-        return variables.at(dep).compute_dependency_score(variables);
-      });
-
-    return m_dependency_score;
-  }
-
-  bool Variable::all_falsy() const
-  {
-    return m_values.all_falsy();
-  }
-
   Node Variable::to_term() const
   {
     Nodes nodes = m_values.nodes();
@@ -138,7 +119,7 @@ namespace rego
     {
       if (nodes[0]->type() == DefaultTerm)
       {
-        return Term << nodes[0]->at(wfi / DefaultTerm / DefaultTerm);
+        return Term << nodes[0]->front();
       }
 
       return nodes[0];
@@ -178,38 +159,20 @@ namespace rego
     return m_user_var;
   }
 
-  bool Variable::initialized() const
-  {
-    return m_initialized;
-  }
-
   std::size_t Variable::dependency_score() const
   {
     return m_dependency_score;
   }
 
-  const Node& Variable::local() const
+  Variable& Variable::dependency_score(std::size_t score)
   {
-    return m_local;
+    m_dependency_score = score;
+    return *this;
   }
 
   const std::set<Location>& Variable::dependencies() const
   {
     return m_dependencies;
-  }
-
-  void Variable::compute_dependency_scores(
-    std::map<Location, Variable>& variables)
-  {
-    for (auto& [_, variable] : variables)
-    {
-      variable.m_visited = false;
-    }
-
-    for (auto& [_, variable] : variables)
-    {
-      variable.compute_dependency_score(variables);
-    }
   }
 
   std::size_t Variable::increase_dependency_score(std::size_t amount)
@@ -254,13 +217,13 @@ namespace rego
     Node term = to_term();
     if (term->type() == Error)
     {
-      m_local->at(wfi / Local / Val) = term;
+      m_local->back() = term;
       return term;
     }
 
     if (Resolver::is_truthy(term) || m_user_var)
     {
-      m_local->at(wfi / Local / Val) = term;
+      m_local->back() = term;
     }
     else
     {
@@ -272,25 +235,37 @@ namespace rego
 
   Location Variable::name() const
   {
-    return m_local->at(wfi / Local / Var)->location();
+    return (wfi / m_local / Var)->location();
   }
 
   bool Variable::has_cycle(const std::map<Location, Variable>& variables) const
   {
     std::set<Location> visited;
 
-    std::vector<Location> stack({name()});
+    std::vector<Location> stack(m_dependencies.begin(), m_dependencies.end());
     while (!stack.empty())
     {
       Location loc = stack.back();
       stack.pop_back();
 
-      if (visited.contains(loc))
+      if (loc == name())
       {
         return true;
       }
 
+      if (visited.contains(loc))
+      {
+        continue;
+      }
+
       visited.insert(loc);
+
+      if (!variables.contains(loc))
+      {
+        // This is a variable from an outer scope and thus
+        // cannot cause a cycle.
+        continue;
+      }
 
       const Variable& variable = variables.at(loc);
       for (const auto& dep : variable.dependencies())

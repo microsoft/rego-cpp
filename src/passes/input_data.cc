@@ -2,6 +2,7 @@
 
 namespace rego
 {
+  // Separates out Input and Data nodes from the rest of the AST.
   PassDef input_data()
   {
     return {

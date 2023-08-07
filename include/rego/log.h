@@ -13,92 +13,91 @@ namespace rego
   std::ostream& operator<<(std::ostream& os, const std::set<Location>& locs);
   std::ostream& operator<<(std::ostream& os, const std::vector<Location>& locs);
 
-//#define REGOCPP_LOGGING
-#ifdef REGOCPP_LOGGING
-  namespace logging
+  struct Logger
   {
+    static bool enabled;
+    static std::string indent;
 
-    static std::string indent = "";
-
-    inline void increase_print_indent()
+    static inline void increase_print_indent()
     {
       indent += "  ";
     }
 
-    inline void decrease_print_indent()
+    static inline void decrease_print_indent()
     {
       indent = indent.substr(0, indent.size() - 2);
     }
 
     template <typename T>
-    inline void print(const T& value)
+    static inline void print(const T& value)
     {
-      std::cout << value << std::endl;
+      if (enabled)
+      {
+        std::cout << value << std::endl;
+      }
     }
 
     template <typename T, typename... Types>
-    void print(T head, Types... tail)
+    static void print(T head, Types... tail)
     {
-      std::cout << head;
-
-      print(tail...);
-    }
-
-    template <typename T>
-    inline void print_vector_inline(const std::vector<T>& values)
-    {
-      std::cout << indent << "[";
-      std::string sep = "";
-      for (auto& value : values)
+      if (enabled)
       {
-        std::cout << sep << value;
-        sep = ", ";
+        std::cout << head;
+        print(tail...);
       }
-      std::cout << "]" << std::endl;
     }
 
     template <typename T>
-    inline void print_vector_custom(
-      const std::vector<T>& values,
-      std::function<std::string(const T&)> to_string)
+    static inline void print_vector_inline(const std::vector<T>& values)
     {
-      for (auto& value : values)
+      if (enabled)
       {
-        print(indent, to_string(value));
+        std::cout << indent << "[";
+        std::string sep = "";
+        for (auto& value : values)
+        {
+          std::cout << sep << value;
+          sep = ", ";
+        }
+        std::cout << "]" << std::endl;
+      }
+    }
+
+    template <typename T, typename P>
+    static inline void print_vector_custom(
+      const std::vector<T>& values, P (*transform)(const T&))
+    {
+      if (enabled)
+      {
+        for (auto& value : values)
+        {
+          print(indent, transform(value));
+        }
       }
     }
 
     template <typename K, typename V>
-    inline void print_map_values(const std::map<K, V>& values)
+    static inline void print_map_values(const std::map<K, V>& values)
     {
-      print(indent, "{");
-      for (auto& [_, value] : values)
+      if (enabled)
       {
-        print(indent, "  ", value);
+        print(indent, "{");
+        for (auto& [_, value] : values)
+        {
+          print(indent, "  ", value);
+        }
+        print(indent, "}");
       }
-      print(indent, "}");
     }
-  }
+  };
 
-#  define LOG(...) logging::print(logging::indent, __VA_ARGS__)
-#  define LOG_HEADER(message, header) \
-    logging::print(logging::indent, (header), (message), (header))
-#  define LOG_VECTOR(vector) logging::print_vector_inline((vector))
-#  define LOG_VECTOR_CUSTOM(vector, to_string) \
-    logging::print_vector_custom((vector), (to_string))
-#  define LOG_MAP_VALUES(map) logging::print_map_values((map))
-#  define LOG_INDENT() logging::increase_print_indent()
-#  define LOG_UNINDENT() logging::decrease_print_indent()
-
-#else
-
-#  define LOG(...)
-#  define LOG_HEADER(message, header)
-#  define LOG_VECTOR(vector)
-#  define LOG_VECTOR_CUSTOM(vector, to_string)
-#  define LOG_MAP_VALUES(map)
-#  define LOG_INDENT()
-#  define LOG_UNINDENT()
-
-#endif
+// clang-format off
+#  define LOG(...) Logger::print(Logger::indent, __VA_ARGS__)
+#  define LOG_HEADER(message, header) Logger::print(Logger::indent, (header), (message), (header))
+#  define LOG_VECTOR(vector) Logger::print_vector_inline((vector))
+#  define LOG_VECTOR_CUSTOM(vector, transform) Logger::print_vector_custom((vector), (transform))
+#  define LOG_MAP_VALUES(map) Logger::print_map_values((map))
+#  define LOG_INDENT() Logger::increase_print_indent()
+#  define LOG_UNINDENT() Logger::decrease_print_indent()
+  // clang-format on
 }

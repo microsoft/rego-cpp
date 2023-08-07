@@ -1,165 +1,205 @@
 #pragma once
 
 #include "trieste/driver.h"
+#include "trieste/token.h"
 
 namespace rego
 {
   using namespace trieste;
 
   // grammar tokens
-  inline constexpr auto Module = TokenDef("module", flag::symtab);
-  inline constexpr auto Package = TokenDef("package");
-  inline constexpr auto Policy = TokenDef("policy");
-  inline constexpr auto Rule = TokenDef("rule");
-  inline constexpr auto RuleHead = TokenDef("rule-head");
-  inline constexpr auto RuleHeadComp = TokenDef("rule-head-comp");
-  inline constexpr auto RuleHeadFunc = TokenDef("rule-head-func");
-  inline constexpr auto RuleHeadSet = TokenDef("rule-head-set");
-  inline constexpr auto RuleHeadObj = TokenDef("rule-head-obj");
-  inline constexpr auto RuleArgs = TokenDef("rule-args");
-  inline constexpr auto Query = TokenDef("query", flag::symtab);
-  inline constexpr auto Literal = TokenDef("literal");
-  inline constexpr auto Expr = TokenDef("expr");
-  inline constexpr auto ExprInfix = TokenDef("expr-infix");
-  inline constexpr auto ExprCall = TokenDef("expr-call");
-  inline constexpr auto UnaryExpr = TokenDef("unary-expr");
-  inline constexpr auto NotExpr = TokenDef("not-expr");
-  inline constexpr auto Term = TokenDef("term");
-  inline constexpr auto InfixOperator = TokenDef("infix-operator");
-  inline constexpr auto BoolOperator = TokenDef("bool-operator");
-  inline constexpr auto ArithOperator = TokenDef("arith-operator");
-  inline constexpr auto AssignOperator = TokenDef("assign-operator");
-  inline constexpr auto Ref = TokenDef("ref");
-  inline constexpr auto RefArgBrack = TokenDef("ref-arg-brack");
-  inline constexpr auto RefArgDot = TokenDef("ref-arg-dot");
-  inline constexpr auto Var = TokenDef("var", flag::print);
-  inline constexpr auto Scalar = TokenDef("scalar");
-  inline constexpr auto String = TokenDef("string");
-  inline constexpr auto Array = TokenDef("array");
-  inline constexpr auto Object = TokenDef("object", flag::symtab);
-  inline constexpr auto Set = TokenDef("set");
-  inline constexpr auto EmptySet = TokenDef("empty-set");
-  inline constexpr auto ObjectItem = TokenDef("object-item", flag::lookdown);
-  inline constexpr auto RefObjectItem = TokenDef("ref-object-item");
-  inline constexpr auto RawString = TokenDef("raw-string", flag::print);
-  inline constexpr auto JSONString = TokenDef("STRING", flag::print);
-  inline constexpr auto JSONInt = TokenDef("INT", flag::print);
-  inline constexpr auto JSONFloat = TokenDef("FLOAT", flag::print);
-  inline constexpr auto JSONTrue = TokenDef("true");
-  inline constexpr auto JSONFalse = TokenDef("false");
-  inline constexpr auto JSONNull = TokenDef("null");
-  inline constexpr auto Equals = TokenDef("==");
-  inline constexpr auto NotEquals = TokenDef("!=");
-  inline constexpr auto LessThan = TokenDef("<");
-  inline constexpr auto GreaterThan = TokenDef(">");
-  inline constexpr auto LessThanOrEquals = TokenDef("<=");
-  inline constexpr auto GreaterThanOrEquals = TokenDef(">=");
-  inline constexpr auto Add = TokenDef("+");
-  inline constexpr auto Subtract = TokenDef("-");
-  inline constexpr auto Multiply = TokenDef("*");
-  inline constexpr auto Divide = TokenDef("/");
-  inline constexpr auto Modulo = TokenDef("%");
-  inline constexpr auto Assign = TokenDef(":=");
-  inline constexpr auto Unify = TokenDef("=");
-  inline constexpr auto SomeDecl = TokenDef("some-decl");
-  inline constexpr auto IfTruthy = TokenDef("if");
-  inline constexpr auto InSome = TokenDef("in-some");
-  inline constexpr auto IsIn = TokenDef("is-in");
-  inline constexpr auto Contains = TokenDef("contains");
-  inline constexpr auto Else = TokenDef("else");
+  inline const auto Module = TokenDef("module", flag::symtab);
+  inline const auto Package = TokenDef("package");
+  inline const auto Policy = TokenDef("policy");
+  inline const auto Rule = TokenDef("rule");
+  inline const auto RuleHead = TokenDef("rule-head");
+  inline const auto RuleHeadComp = TokenDef("rule-head-comp");
+  inline const auto RuleHeadFunc = TokenDef("rule-head-func");
+  inline const auto RuleHeadSet = TokenDef("rule-head-set");
+  inline const auto RuleHeadObj = TokenDef("rule-head-obj");
+  inline const auto RuleArgs = TokenDef("rule-args");
+  inline const auto Query = TokenDef("query", flag::symtab);
+  inline const auto Literal = TokenDef("literal");
+  inline const auto Expr = TokenDef("expr");
+  inline const auto ExprInfix = TokenDef("expr-infix");
+  inline const auto ExprCall = TokenDef("expr-call");
+  inline const auto ExprEvery = TokenDef("expr-every");
+  inline const auto UnaryExpr = TokenDef("unary-expr");
+  inline const auto NotExpr = TokenDef("not-expr");
+  inline const auto Term = TokenDef("term");
+  inline const auto InfixOperator = TokenDef("infix-operator");
+  inline const auto BoolOperator = TokenDef("bool-operator");
+  inline const auto ArithOperator = TokenDef("arith-operator");
+  inline const auto AssignOperator = TokenDef("assign-operator");
+  inline const auto Ref = TokenDef("ref");
+  inline const auto RefArgBrack = TokenDef("ref-arg-brack");
+  inline const auto RefArgDot = TokenDef("ref-arg-dot");
+  inline const auto Var = TokenDef("var", flag::print);
+  inline const auto Scalar = TokenDef("scalar");
+  inline const auto String = TokenDef("string");
+  inline const auto Array = TokenDef("array");
+  inline const auto Object = TokenDef("object", flag::symtab);
+  inline const auto Set = TokenDef("set");
+  inline const auto EmptySet = TokenDef("empty-set");
+  inline const auto ObjectItem = TokenDef("object-item", flag::lookdown);
+  inline const auto RefObjectItem = TokenDef("ref-object-item");
+  inline const auto RawString = TokenDef("raw-string", flag::print);
+  inline const auto JSONString = TokenDef("STRING", flag::print);
+  inline const auto JSONInt = TokenDef("INT", flag::print);
+  inline const auto JSONFloat = TokenDef("FLOAT", flag::print);
+  inline const auto JSONTrue = TokenDef("true");
+  inline const auto JSONFalse = TokenDef("false");
+  inline const auto JSONNull = TokenDef("null");
+  inline const auto Equals = TokenDef("==");
+  inline const auto NotEquals = TokenDef("!=");
+  inline const auto LessThan = TokenDef("<");
+  inline const auto GreaterThan = TokenDef(">");
+  inline const auto LessThanOrEquals = TokenDef("<=");
+  inline const auto GreaterThanOrEquals = TokenDef(">=");
+  inline const auto Add = TokenDef("+");
+  inline const auto Subtract = TokenDef("-");
+  inline const auto Multiply = TokenDef("*");
+  inline const auto Divide = TokenDef("/");
+  inline const auto Modulo = TokenDef("%");
+  inline const auto And = TokenDef("&");
+  inline const auto Or = TokenDef("|");
+  inline const auto Assign = TokenDef(":=");
+  inline const auto Unify = TokenDef("=");
+  inline const auto Default = TokenDef("default");
+  inline const auto Some = TokenDef("some");
+  inline const auto SomeDecl = TokenDef("some-decl");
+  inline const auto IfTruthy = TokenDef("if");
+  inline const auto InSome = TokenDef("in-some");
+  inline const auto MemberOf = TokenDef("member-of");
+  inline const auto Contains = TokenDef("contains");
+  inline const auto Else = TokenDef("else");
+  inline const auto As = TokenDef("as");
+  inline const auto With = TokenDef("with");
+  inline const auto Every = TokenDef("every");
+  inline const auto ArrayCompr = TokenDef("array-compr");
+  inline const auto ObjectCompr = TokenDef("object-compr");
+  inline const auto SetCompr = TokenDef("set-compr");
 
   // intermediate tokens
-  inline constexpr auto UnifyBody = TokenDef("unify-body");
-  inline constexpr auto RefHead = TokenDef("ref-head");
-  inline constexpr auto RefArgSeq = TokenDef("ref-arg-seq");
-  inline constexpr auto DataSeq = TokenDef("data-seq");
-  inline constexpr auto ModuleSeq = TokenDef("module-seq");
-  inline constexpr auto DataItem = TokenDef("data-item");
-  inline constexpr auto DataItemSeq = TokenDef("data-item");
-  inline constexpr auto DataModule = TokenDef("data-module", flag::lookdown);
-  inline constexpr auto DataModuleSeq = TokenDef("data-module-seq");
-  inline constexpr auto ObjectItemHead = TokenDef("object-item-head");
-  inline constexpr auto ObjectItemSeq = TokenDef("object-item-seq");
-  inline constexpr auto ImportSeq = TokenDef("import-seq");
-  inline constexpr auto VarSeq = TokenDef("var-seq");
-  inline constexpr auto ElseSeq = TokenDef("else-seq");
+  inline const auto UnifyBody = TokenDef("unify-body");
+  inline const auto RefHead = TokenDef("ref-head");
+  inline const auto RefArgSeq = TokenDef("ref-arg-seq");
+  inline const auto DataSeq = TokenDef("data-seq");
+  inline const auto ModuleSeq = TokenDef("module-seq");
+  inline const auto DataItemSeq = TokenDef("data-item-seq");
+  inline const auto DataItem = TokenDef("data-item", flag::lookdown);
+  inline const auto DataObject = TokenDef("data-object", flag::symtab);
+  inline const auto DataArray = TokenDef("data-array");
+  inline const auto DataSet = TokenDef("data-set");
+  inline const auto Submodule = TokenDef("submodule", flag::lookdown);
+  inline const auto DataTerm = TokenDef("data-term");
+  inline const auto ObjectItemHead = TokenDef("object-item-head");
+  inline const auto ObjectItemSeq = TokenDef("object-item-seq");
+  inline const auto ImportSeq = TokenDef("import-seq");
+  inline const auto VarSeq = TokenDef("var-seq");
+  inline const auto ElseSeq = TokenDef("else-seq");
+  inline const auto WithSeq = TokenDef("with-seq");
+  inline const auto SkipSeq = TokenDef("skip-seq");
+  inline const auto ItemSeq = TokenDef("item-seq");
 
   // data and input
-  inline constexpr auto Input = TokenDef("input", flag::symtab | flag::lookup);
-  inline constexpr auto Data = TokenDef("data", flag::symtab | flag::lookup);
+  inline const auto Input = TokenDef("input", flag::symtab | flag::lookup);
+  inline const auto Data = TokenDef("data", flag::symtab | flag::lookup);
 
   // fused
-  inline constexpr auto RuleComp = TokenDef(
+  inline const auto RuleComp = TokenDef(
     "rule-comp",
     flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
-  inline constexpr auto RuleFunc = TokenDef(
+  inline const auto RuleFunc = TokenDef(
     "rule-func",
     flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
-  inline constexpr auto RuleSet = TokenDef(
+  inline const auto RuleSet = TokenDef(
     "rule-set",
     flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
-  inline constexpr auto RuleObj = TokenDef(
+  inline const auto RuleObj = TokenDef(
     "rule-obj",
     flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
-  inline constexpr auto DefaultRule =
+  inline const auto DefaultRule =
     TokenDef("default-rule", flag::lookup | flag::lookdown);
-  inline constexpr auto Local =
-    TokenDef("local", flag::lookup | flag::shadowing);
-  inline constexpr auto ArithInfix = TokenDef("arith-infix");
-  inline constexpr auto BoolInfix = TokenDef("bool-infix");
-  inline constexpr auto AssignInfix = TokenDef("assign-infix");
-  inline constexpr auto ArgVar = TokenDef("arg-var", flag::lookup);
-  inline constexpr auto ArgVal = TokenDef("arg-val");
+  inline const auto Local = TokenDef("local", flag::lookup | flag::shadowing);
+  inline const auto ArithInfix = TokenDef("arith-infix");
+  inline const auto BinInfix = TokenDef("bin-infix");
+  inline const auto BoolInfix = TokenDef("bool-infix");
+  inline const auto AssignInfix = TokenDef("assign-infix");
+  inline const auto ArgVar = TokenDef("arg-var", flag::lookup);
+  inline const auto ArgVal = TokenDef("arg-val");
+  inline const auto LiteralWith = TokenDef("literal-with");
+  inline const auto LiteralEnum = TokenDef("literal-enum");
 
   // utility
-  inline constexpr auto Undefined = TokenDef("undefined");
-  inline constexpr auto Rego = TokenDef("rego", flag::symtab);
-  inline constexpr auto Math = TokenDef("math");
-  inline constexpr auto Op = TokenDef("op");
-  inline constexpr auto Comparison = TokenDef("comparison");
-  inline constexpr auto Function = TokenDef("function");
-  inline constexpr auto Arg = TokenDef("arg");
-  inline constexpr auto ArgSeq = TokenDef("arg-seq");
-  inline constexpr auto Val = TokenDef("value");
-  inline constexpr auto Id = TokenDef("id");
-  inline constexpr auto Head = TokenDef("head");
-  inline constexpr auto Tail = TokenDef("tail");
-  inline constexpr auto Lhs = TokenDef("lhs");
-  inline constexpr auto Rhs = TokenDef("rhs");
-  inline constexpr auto Key = TokenDef("key", flag::print);
-  inline constexpr auto RefTerm = TokenDef("ref-term");
-  inline constexpr auto NumTerm = TokenDef("num-term");
-  inline constexpr auto ArithArg = TokenDef("arith-arg");
-  inline constexpr auto BoolArg = TokenDef("bool-arg");
-  inline constexpr auto AssignArg = TokenDef("assign-arg");
-  inline constexpr auto RuleHeadType = TokenDef("rule-head-type");
-  inline constexpr auto UnifyExpr = TokenDef("unify-expr");
-  inline constexpr auto TermSet = TokenDef("term-set");
-  inline constexpr auto Empty = TokenDef("empty");
-  inline constexpr auto SimpleRef = TokenDef("simple-ref");
-  inline constexpr auto Binding = TokenDef("binding");
-  inline constexpr auto DefaultTerm = TokenDef("default-term");
-  inline constexpr auto Body = TokenDef("body");
-  inline constexpr auto Import = TokenDef("import");
-  inline constexpr auto Keyword =
+  inline const auto Undefined = TokenDef("undefined");
+  inline const auto Rego = TokenDef("rego", flag::symtab);
+  inline const auto Math = TokenDef("math");
+  inline const auto Op = TokenDef("op");
+  inline const auto Comparison = TokenDef("comparison");
+  inline const auto Function = TokenDef("function");
+  inline const auto Arg = TokenDef("arg");
+  inline const auto ArgSeq = TokenDef("arg-seq");
+  inline const auto Val = TokenDef("value");
+  inline const auto Id = TokenDef("id");
+  inline const auto Head = TokenDef("head");
+  inline const auto Tail = TokenDef("tail");
+  inline const auto Lhs = TokenDef("lhs");
+  inline const auto Rhs = TokenDef("rhs");
+  inline const auto Key = TokenDef("key", flag::print);
+  inline const auto RefTerm = TokenDef("ref-term");
+  inline const auto NumTerm = TokenDef("num-term");
+  inline const auto ArithArg = TokenDef("arith-arg");
+  inline const auto BinArg = TokenDef("bin-arg");
+  inline const auto BoolArg = TokenDef("bool-arg");
+  inline const auto AssignArg = TokenDef("assign-arg");
+  inline const auto RuleHeadType = TokenDef("rule-head-type");
+  inline const auto UnifyExpr = TokenDef("unify-expr");
+  inline const auto UnifyExprWith = TokenDef("unify-expr-with");
+  inline const auto UnifyExprCompr = TokenDef("unify-expr-compr");
+  inline const auto UnifyExprEnum = TokenDef("unify-expr-enum");
+  inline const auto TermSet = TokenDef("term-set");
+  inline const auto Empty = TokenDef("empty");
+  inline const auto SimpleRef = TokenDef("simple-ref");
+  inline const auto Binding = TokenDef("binding");
+  inline const auto DefaultTerm = TokenDef("default-term");
+  inline const auto Body = TokenDef("body");
+  inline const auto Import =
+    TokenDef("import", flag::lookdown | flag::lookup | flag::shadowing);
+  inline const auto Keyword =
     TokenDef("keyword", flag::lookdown | flag::lookup);
-  inline constexpr auto Idx = TokenDef("idx");
-  inline constexpr auto Enumerate = TokenDef("enumerate");
+  inline const auto Idx = TokenDef("idx");
+  inline const auto Skip = TokenDef("skip", flag::lookup);
+  inline const auto NestedBody = TokenDef("nested-body", flag::symtab);
+  inline const auto BuiltInHook = TokenDef("builtin-hook", flag::lookup);
+  inline const auto RuleRef = TokenDef("rule-ref");
+  inline const auto Item = TokenDef("item");
+  inline const auto Enumerate = TokenDef("enumerate");
+  inline const auto Compr = TokenDef("compr");
+  inline const auto Merge = TokenDef("merge");
+  inline const auto ToValues = TokenDef("to-values");
+  inline const auto ImportRef = TokenDef("import-ref");
+  inline const auto WithRef = TokenDef("with-ref");
+  inline const auto WithExpr = TokenDef("with-expr");
+  inline const auto EverySeq = TokenDef("every-seq");
 
   // lists
-  inline constexpr auto List = TokenDef("list");
+  inline const auto List = TokenDef("list");
 
   // parser
-  inline constexpr auto Brace = TokenDef("brace");
-  inline constexpr auto Dot = TokenDef("dot");
-  inline constexpr auto Colon = TokenDef("colon");
-  inline constexpr auto Square = TokenDef("square");
-  inline constexpr auto Paren = TokenDef("paren");
-  inline constexpr auto Not = TokenDef("not");
-  inline constexpr auto Default = TokenDef("default");
-  inline constexpr auto Some = TokenDef("some");
+  inline const auto Brace = TokenDef("brace");
+  inline const auto Dot = TokenDef("dot");
+  inline const auto Colon = TokenDef("colon");
+  inline const auto Square = TokenDef("square");
+  inline const auto Paren = TokenDef("paren");
+  inline const auto Not = TokenDef("not");
+  inline const auto Placeholder = TokenDef("_");
 
-  inline const std::set<std::string> Keywords({"if", "in", "contains"});
+  inline const std::set<std::string> Keywords(
+    {"if", "in", "contains", "every"});
+
+  inline const std::set<Token> RuleTypes(
+    {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
 
   inline auto err(NodeRange& r, const std::string& msg)
   {
@@ -178,10 +218,13 @@ namespace rego
 
   Parse parser();
   Driver& driver();
-  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed&>;
+  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
   std::vector<PassCheck> passes();
   std::string to_json(const Node& node);
   bool contains_local(const Node& node);
   bool contains_ref(const Node& node);
-  bool is_in(const Node& node, const Token& token);
+  bool is_in(const Node& node, const std::set<Token>& token);
+  bool in_query(const Node& node);
+  bool is_constant(const Node& node);
+  std::string strip_quotes(const std::string& str);
 }

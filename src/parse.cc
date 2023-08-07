@@ -30,6 +30,11 @@ namespace rego
               m.pop(Some);
               m.term();
             }
+            if (m.in(With))
+            {
+              m.pop(With);
+              m.term();
+            }
           },
 
         // Whitespace between tokens.
@@ -47,12 +52,26 @@ namespace rego
         // List
         "," >> [](auto& m) { m.seq(List); },
 
+        // Or
+        "\\|" >> [](auto& m) { m.add(Or); },
+
+        // And
+        "&" >> [](auto& m) { m.add(And); },
+
+        // Placeholder
+        "_" >> [](auto& m) { m.add(Placeholder); },
+
         // Brace.
         R"((\{)[[:blank:]]*)" >> [](auto& m) { m.push(Brace, 1); },
 
         R"(\})" >>
           [](auto& m) {
             m.term({List});
+            if (m.in(Some))
+            {
+              m.pop(Some);
+              m.term();
+            }
             m.pop(Brace);
           },
 
@@ -62,6 +81,11 @@ namespace rego
         R"(\])" >>
           [](auto& m) {
             m.term({List});
+            if (m.in(Some))
+            {
+              m.pop(Some);
+              m.term();
+            }
             m.pop(Square);
           },
 
@@ -71,6 +95,11 @@ namespace rego
         R"(\))" >>
           [](auto& m) {
             m.term({List});
+            if (m.in(Some))
+            {
+              m.pop(Some);
+              m.term();
+            }
             m.pop(Paren);
           },
 
@@ -109,11 +138,21 @@ namespace rego
         // Import
         "import\\b" >> [](auto& m) { m.add(Import); },
 
+        // As
+        "as\\b" >>
+          [](auto& m) {
+            m.term();
+            m.add(As);
+          },
+
+        // With
+        "with\\b" >> [](auto& m) { m.push(With); },
+
         // Empty set.
         R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
 
         // Not
-        R"(not)" >> [](auto& m) { m.add(Not); },
+        "not\\b" >> [](auto& m) { m.add(Not); },
 
         // Dot.
         R"(\.)" >> [](auto& m) { m.add(Dot); },

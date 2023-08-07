@@ -1,63 +1,32 @@
 #include "lang.h"
 #include "passes.h"
-#include "resolver.h"
 
 #include <sstream>
-
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-      (Top <<= Rego)
-    | (NumTerm <<= JSONInt | JSONFloat)
-    ;
-  // clang-format on
-}
 
 namespace rego
 {
   const inline auto AssignInfixArg = T(RefTerm) / T(NumTerm) / T(UnaryExpr) /
-    T(ArithInfix) / T(Term) / T(BoolInfix) / T(Enumerate);
+    T(ArithInfix) / T(BinInfix) / T(Term) / T(BoolInfix) / T(ExprCall) /
+    T(Enumerate);
 
+  // Transforms unification expressions into AssignInfix nodes.
   PassDef assign()
   {
     return {
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
-          (T(Expr)
-           << (T(Term)[Term]([](auto& n) { return !contains_ref(*n.first); }) *
-               End)) >>
-        [](Match& _) { return _(Term); },
-
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
-          (T(Expr) << (T(NumTerm)[NumTerm] * End)) >>
+      In(Expr) *
+          (AssignInfixArg[Head](
+             [](auto& n) { return is_in(*n.first, {UnifyBody}); }) *
+           T(Unify) * AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs] *
+           End) >>
         [](Match& _) {
-          Node number = _(NumTerm)->at(wfi / NumTerm / NumTerm);
-          return Term << (Scalar << number);
-        },
-
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
-          (T(Expr)
-           << (T(UnaryExpr) << (T(ArithArg) << (T(NumTerm)[NumTerm])) * End)) >>
-        [](Match& _) {
-          Node number =
-            Resolver::negate(_(NumTerm)->at(wfi / NumTerm / NumTerm));
-          return Term << (Scalar << number);
-        },
-
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
-          (T(Expr) << (AssignInfixArg[Arg] * End)) >>
-        [](Match& _) {
-          Location value = _.fresh({"value"});
-          return UnifyBody << (Local << (Var ^ value) << Undefined)
-                           << (Literal
-                               << (Expr
-                                   << (AssignInfix
-                                       << (AssignArg
-                                           << (RefTerm << (Var ^ value)))
-                                       << (AssignArg << _(Arg)))));
+          return Seq << (Lift
+                         << UnifyBody
+                         << (Literal
+                             << (Expr
+                                 << (AssignInfix << (AssignArg << _(Lhs))
+                                                 << (AssignArg << _(Rhs))))))
+                     << (AssignInfix << (AssignArg << _(Head))
+                                     << (AssignArg << _(Lhs)->clone()));
         },
 
       In(Expr) * (AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>
@@ -65,10 +34,11 @@ namespace rego
           return AssignInfix << (AssignArg << _(Lhs)) << (AssignArg << _(Rhs));
         },
 
-      In(UnifyBody) * T(Literal) << (T(Expr) << (AssignInfixArg[Arg] * End)) >>
+      In(UnifyBody) *
+          (T(Literal) << (T(Expr) << (AssignInfixArg[Arg] * End))) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
-          std::string prefix = is_in(_(Arg), Query) ? "value" : "unify";
+          std::string prefix = in_query(_(Arg)) ? "value" : "unify";
           Location temp = _.fresh({prefix});
           seq->push_back(Local << (Var ^ temp) << Undefined);
           seq->push_back(
@@ -89,12 +59,12 @@ namespace rego
       In(Expr) * T(Unify)[Unify] >>
         [](Match& _) { return err(_(Unify), "Invalid assignment"); },
 
-      In(Expr) * T(Enumerate)[Enumerate] >>
-        [](Match& _) { return err(_(Enumerate), "Invalid enumerate"); },
-
       (In(RuleComp) / In(RuleFunc) / In(RuleSet) / In(RuleObj)) *
           T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid rule value"); },
+
+      In(Expr) * T(Enumerate)[Enumerate] >>
+        [](Match& _) { return err(_(Enumerate), "Invalid enumeration"); },
     };
   }
 }

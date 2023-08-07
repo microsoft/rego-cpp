@@ -18,7 +18,14 @@ namespace rego
     m_debug_path("."),
     m_debug_enabled(false),
     m_well_formed_checks_enabled(!disable_well_formed_checks)
-  {}
+  {
+    wf::push_back(&wf_parser);
+  }
+
+  Interpreter::~Interpreter()
+  {
+    wf::pop_front();
+  }
 
   void Interpreter::add_module_file(const std::filesystem::path& path)
   {
@@ -85,6 +92,24 @@ namespace rego
     m_input->push_back(input);
   }
 
+  bool Interpreter::has_error(const Node& node) const
+  {
+    if (node->type() == Error)
+    {
+      return true;
+    }
+
+    for (auto& child : *node)
+    {
+      if (has_error(child))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   std::string Interpreter::query(const std::string& query_expr) const
   {
     auto ast = NodeDef::create(Top);
@@ -95,6 +120,17 @@ namespace rego
     {
       m_input->push_back(NodeDef::create(Undefined));
     }
+
+    // sort the modules by their package name. This will allow
+    // us to easily merge modules which are defined across multiple
+    // files.
+    std::sort(m_module_seq->begin(), m_module_seq->end(), [](auto& a, auto& b) {
+      auto a_pkg = a->front();
+      auto b_pkg = b->front();
+      auto a_str = std::string(a_pkg->location().view());
+      auto b_str = std::string(b_pkg->location().view());
+      return a_pkg->location() < b_pkg->location();
+    });
 
     rego->push_back(query);
     rego->push_back(m_input);
@@ -111,7 +147,7 @@ namespace rego
     write_ast(0, "parse", ast);
     if (!ok)
     {
-      std::stringstream buf;
+      std::ostringstream buf;
       ast->errors(buf);
       throw std::runtime_error(buf.str());
     }
@@ -119,27 +155,34 @@ namespace rego
     for (std::size_t i = 0; i < m_passes.size(); ++i)
     {
       auto& [pass_name, pass, wf] = m_passes[i];
+      wf::push_back(wf);
       auto [new_ast, count, changes] = pass->run(ast);
+      wf::pop_front();
       ast = new_ast;
 
+      ok = wf->build_st(ast, std::cout);
       write_ast(i + 1, pass_name, ast);
 
-      ok = wf.build_st(ast, std::cout);
       if (m_well_formed_checks_enabled)
       {
-        ok = wf.check(ast, std::cout) && ok;
+        ok = wf->check(ast, std::cout) && ok;
+      }
+
+      if (has_error(ast))
+      {
+        ok = false;
       }
 
       if (!ok)
       {
-        std::stringstream buf;
+        std::ostringstream buf;
         buf << "Failed at pass " << pass_name << std::endl;
         ast->errors(buf);
         throw std::runtime_error(buf.str());
       }
     }
 
-    std::stringstream result_buf;
+    std::ostringstream result_buf;
     for (auto result : *ast)
     {
       result_buf << rego::to_json(result) << std::endl;

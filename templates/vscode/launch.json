@@ -176,11 +176,84 @@
       "args": [
         "-d",
         "./examples/keywords.rego",
+        "./examples/data2.json",
+        "-i",
+        "./examples/input0.json",
         "-q",
         "data.keywords.output"
       ],
       "cwd": "${workspaceFolder}/build/dist/"
     },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "imports",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/scalars.rego",
+        "./examples/import0.rego",
+        "./examples/import1.rego",
+        "./examples/import2.rego",
+        "-q",
+        "data.scalars.output"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "with",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/bodies.rego",
+        "./examples/with.rego",
+        "-q",
+        "data.bodies.output"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "every",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/every.rego",
+        "-q",
+        "data.every.output"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "compr",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/compr.rego",
+        "./examples/data2.json",
+        "-q",
+        "data.compr.output"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "enumerate",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/enumerate.rego",
+        "-q",
+        "data.enumerate.a"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },    
     {
       "type": "lldb",
       "request": "launch",

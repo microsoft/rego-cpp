@@ -1,12 +1,9 @@
 #include "interpreter.h"
+#include "log.h"
 
 int main(int argc, char** argv)
 {
   CLI::App app;
-
-  auto interpreter = rego::Interpreter();
-
-  interpreter.executable(argv[0]);
 
   app.set_help_all_flag("--help-all", "Expand all help");
 
@@ -22,6 +19,9 @@ int main(int argc, char** argv)
   std::string query_expr;
   app.add_option("-q,--query", query_expr, "Query")->required();
 
+  bool enable_logging{false};
+  app.add_flag("-l,--logging", enable_logging, "Enable logging");
+
   try
   {
     app.parse(argc, argv);
@@ -30,6 +30,11 @@ int main(int argc, char** argv)
   {
     return app.exit(e);
   }
+
+  rego::Logger::enabled = enable_logging;
+
+  auto interpreter = rego::Interpreter();
+  interpreter.executable(argv[0]);
 
   if (!input_path.empty())
   {

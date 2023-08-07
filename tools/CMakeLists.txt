@@ -28,7 +28,12 @@ functions_prod "-d\texamples/functions.rego\t-i\texamples/input2.json\t-q\t[data
 functions_ref "-d\texamples/functions.rego\t-q\t[data.functions.h(1, 2).a, data.functions.h(3, 4).b]" [=[\[1, 4\]]=]
 unify "-d\texamples/unify.rego\t-q\tdata.unify.output" [=[\[{"bar": 2, "foo": 1}, 3, true, true, "bar", 4, 3, \"foo\"\]]=]
 compare "-d\texamples/compare.rego\t-q\tdata.compare.output" [=[\[true, false, false, true\]]=]
-keywords "-d\texamples/keywords.rego\t-i\texamples/input0.json\t-q\tdata.keywords.output" [=[\[4, "found", \["0", "a"\], {"a": 3, "b": 5, "c": true, "sum": 8}\]]=]
+keywords "-d\texamples/keywords.rego\texamples/data2.json\t-i\texamples/input0.json\t-q\tdata.keywords.output" [=[\[4, "found", \["0", "a"\], {"a": 3, "b": 5, "c": true, "sum": 8}, true\]]=]
+imports "-d\texamples/scalars.rego\texamples/import0.rego\texamples/import1.rego\texamples/import2.rego\t-q\tdata.scalars.output" [=[\[305, true, 469\]]=]
+with "-d\texamples/bodies.rego\texamples/with.rego\t-q\tdata.bodies.output" [=[\[8, 2, \[\[100, 300\], {"bar": 300, "foo": 200}\], 3, 0\]]=]
+every "-d\texamples/every.rego\texamples/data2.json\t-q\tdata.every.output" "true"
+compr "-d\texamples/compr.rego\texamples/data2.json\t-q\tdata.compr.output" "true"
+setops "-d\texamples/setops.rego\t-q\tdata.setops.output" "true"
 )
 
 add_test(NAME rego_trieste COMMAND rego_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_trieste>)
