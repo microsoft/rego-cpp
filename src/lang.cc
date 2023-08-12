@@ -61,6 +61,7 @@ namespace rego
       {"skip_refs", skip_refs(), &wf_pass_skip_refs},
       {"simple_refs", simple_refs(), &wf_pass_simple_refs},
       {"implicit_enums", implicit_enums(), &wf_pass_implicit_enums},
+      {"init", init(), &wf_pass_init},
       {"rulebody", rulebody(), &wf_pass_rulebody},
       {"lift_to_rule", lift_to_rule(), &wf_pass_lift_to_rule},
       {"functions", functions(), &wf_pass_functions},
@@ -71,7 +72,6 @@ namespace rego
 
   Driver& driver()
   {
-    auto passdefs = passes();
     static Driver d(
       "rego",
       nullptr,
@@ -109,6 +109,7 @@ namespace rego
         {"skip_refs", skip_refs(), wf_pass_skip_refs},
         {"simple_refs", simple_refs(), wf_pass_simple_refs},
         {"implicit_enums", implicit_enums(), wf_pass_implicit_enums},
+        {"init", init(), wf_pass_init},
         {"rulebody", rulebody(), wf_pass_rulebody},
         {"lift_to_rule", lift_to_rule(), wf_pass_lift_to_rule},
         {"functions", functions(), wf_pass_functions},

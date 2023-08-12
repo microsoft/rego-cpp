@@ -40,6 +40,7 @@ passes/comparison.cc
 passes/assign.cc
 passes/skip_refs.cc
 passes/simple_refs.cc
+passes/init.cc
 passes/rulebody.cc
 passes/lift_to_rule.cc
 passes/functions.cc

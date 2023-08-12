@@ -130,6 +130,7 @@ namespace rego
   inline const auto ArgVal = TokenDef("arg-val");
   inline const auto LiteralWith = TokenDef("literal-with");
   inline const auto LiteralEnum = TokenDef("literal-enum");
+  inline const auto LiteralInit = TokenDef("literal-init");
 
   // utility
   inline const auto Undefined = TokenDef("undefined");

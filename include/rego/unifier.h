@@ -15,38 +15,38 @@ namespace rego
 {
   using namespace trieste;
 
+  class UnifierDef;
+  using Unifier = std::shared_ptr<UnifierDef>;
   using CallStack = std::shared_ptr<std::vector<Location>>;
   using ValuesLookup = std::map<std::string, Values>;
   using WithStack = std::shared_ptr<std::vector<ValuesLookup>>;
+  using UnifierCache = std::shared_ptr<NodeMap<Unifier>>;
 
-  class Unifier
+  class UnifierDef
   {
   public:
-    Unifier(
+    UnifierDef(
       const Location& rule,
       const Node& rulebody,
       CallStack call_stack,
       WithStack with_stack,
       const BuiltIns& builtins,
-      std::size_t max_passes = 100);
-    ~Unifier();
+      UnifierCache cache);
     Node unify();
     Nodes expressions() const;
     Nodes bindings() const;
     std::string str() const;
     std::string dependency_str() const;
-    friend std::ostream& operator<<(std::ostream& os, const Unifier& unifier);
-
-  private:
-    Unifier(
+    static Unifier create(
       const Location& rule,
       const Node& rulebody,
       CallStack call_stack,
       WithStack with_stack,
       const BuiltIns& builtins,
-      std::size_t max_passes,
-      Unifier* outer);
-    std::shared_ptr<Unifier> nested(const Location& rule, const Node& rulebody);
+      UnifierCache cache);
+    friend std::ostream& operator<<(std::ostream& os, const Unifier& unifier);
+
+  private:
     Unifier rule_unifier(const Location& rule, const Node& rulebody);
     void init_from_body(const Node& rulebody, std::vector<Node>& statements);
     void add_variable(const Node& local);
@@ -98,9 +98,8 @@ namespace rego
     CallStack m_call_stack;
     WithStack m_with_stack;
     BuiltIns m_builtins;
-    std::size_t m_max_passes;
     std::size_t m_retries;
     Token m_parent_type;
-    Unifier* m_outer;
+    UnifierCache m_cache;
   };
 }

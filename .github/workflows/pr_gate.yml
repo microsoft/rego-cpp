@@ -8,6 +8,15 @@ on:
 jobs:
   cpp-format:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path: 
+          - check: src
+            exclude: ''
+          - check: test
+            exclude: ''
+          - check: tools
+            exclude: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -16,8 +25,8 @@ jobs:
         uses: jidicula/clang-format-action@v4.8.0
         with:
           clang-format-version: '13'
-          check-path: src
-          exclude-regex: /examples/
+          check-path: ${{matrix.path['check']}}
+          exclude-regex: ${{matrix.path['exclude']}}
 
   linux:
     runs-on: ubuntu-latest

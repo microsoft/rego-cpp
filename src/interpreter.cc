@@ -64,6 +64,11 @@ namespace rego
     m_data_seq->push_back(data);
   }
 
+  void Interpreter::add_data(const Node& node)
+  {
+    m_data_seq->push_back(node);
+  }
+
   void Interpreter::add_input_json_file(const std::filesystem::path& path)
   {
     if (m_input->size() > 0)
@@ -92,6 +97,16 @@ namespace rego
     m_input->push_back(input);
   }
 
+  void Interpreter::add_input(const Node& node)
+  {
+    if (m_input->size() > 0)
+    {
+      throw std::runtime_error("Input already set");
+    }
+
+    m_input->push_back(node);
+  }
+
   bool Interpreter::has_error(const Node& node) const
   {
     if (node->type() == Error)
@@ -110,7 +125,7 @@ namespace rego
     return false;
   }
 
-  std::string Interpreter::query(const std::string& query_expr) const
+  Node Interpreter::raw_query(const std::string& query_expr) const
   {
     auto ast = NodeDef::create(Top);
     auto rego = NodeDef::create(rego::Rego);
@@ -182,6 +197,12 @@ namespace rego
       }
     }
 
+    return ast;
+  }
+
+  std::string Interpreter::query(const std::string& query_expr) const
+  {
+    Node ast = raw_query(query_expr);
     std::ostringstream result_buf;
     for (auto result : *ast)
     {

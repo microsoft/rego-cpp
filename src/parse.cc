@@ -6,6 +6,33 @@ namespace rego
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const std::string numeric = "0123456789";
   const std::string alphanumeric = alpha + numeric;
+  const std::size_t max_string_length = 10;
+
+  template <typename T>
+  std::string rand_string(T& rnd)
+  {
+    // TODO add valid non-alphanum characters
+    std::ostringstream buf;
+    std::size_t length = rnd() % max_string_length;
+    for (std::size_t i = 0; i < length; ++i)
+    {
+      buf << alphanumeric[rnd() % alphanumeric.size()];
+    }
+    return buf.str();
+  }
+
+  template <typename T>
+  std::string rand_raw_string(T& rnd)
+  {
+    // TODO add valid non-alphanum characters
+    std::ostringstream buf;
+    std::size_t length = rnd() % max_string_length;
+    for (std::size_t i = 0; i < length; ++i)
+    {
+      buf << alphanumeric[rnd() % alphanumeric.size()];
+    }
+    return buf.str();
+  }
 
   Parse parser()
   {
@@ -217,6 +244,8 @@ namespace rego
       JSONTrue >> [](auto&) { return "true"; },
       JSONFalse >> [](auto&) { return "false"; },
       JSONNull >> [](auto&) { return "null"; },
+      JSONString >> [](auto& rnd) { return rand_string(rnd); },
+      RawString >> [](auto& rnd) { return rand_raw_string(rnd); },
     });
 
     return p;

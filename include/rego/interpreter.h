@@ -16,9 +16,12 @@ namespace rego
     void add_module(const std::string& name, const std::string& contents);
     void add_data_json_file(const std::filesystem::path& path);
     void add_data_json(const std::string& json);
+    void add_data(const Node& node);
     void add_input_json_file(const std::filesystem::path& path);
     void add_input_json(const std::string& json);
+    void add_input(const Node& node);
     std::string query(const std::string& query_expr) const;
+    Node raw_query(const std::string& query_expr) const;
     Interpreter& debug_path(const std::filesystem::path& prefix);
     const std::filesystem::path& debug_path() const;
     Interpreter& debug_enabled(bool enabled);

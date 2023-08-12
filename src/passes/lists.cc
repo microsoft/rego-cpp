@@ -21,6 +21,11 @@ namespace
 
   bool contains(const Node& node, const std::set<Token>& tokens)
   {
+    if (node->type() == Error)
+    {
+      return false;
+    }
+
     if (tokens.contains(node->type()))
     {
       return true;

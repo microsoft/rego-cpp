@@ -257,6 +257,40 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "setops",
+      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "args": [
+        "-d",
+        "./examples/setops.rego",
+        "-q",
+        "data.setops.output"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "test",
+      "program": "${workspaceFolder}/build/dist/bin/rego_test",
+      "args": [
+        "tests/regocpp.yaml"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "yaml_test",
+      "program": "${workspaceFolder}/build/dist/bin/yaml_test",
+      "args": [
+        "test",
+        "-f"
+      ],
+      "cwd": "${workspaceFolder}/build/dist/"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "errors",
       "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
       "args": [

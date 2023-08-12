@@ -1,11 +1,13 @@
-#include "interpreter.h"
-#include "log.h"
+#include "rego.h"
 
 int main(int argc, char** argv)
 {
   CLI::App app;
 
   app.set_help_all_flag("--help-all", "Expand all help");
+
+  std::string query_expr;
+  app.add_option("query,-q,--query", query_expr, "Query")->required();
 
   std::vector<std::filesystem::path> data_paths;
   app.add_option("-d,--data", data_paths, "Data/Policy files");
@@ -15,9 +17,6 @@ int main(int argc, char** argv)
 
   std::filesystem::path output;
   app.add_option("-a,--ast", output, "Output the AST");
-
-  std::string query_expr;
-  app.add_option("-q,--query", query_expr, "Query")->required();
 
   bool enable_logging{false};
   app.add_flag("-l,--logging", enable_logging, "Enable logging");
