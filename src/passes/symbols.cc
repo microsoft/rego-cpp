@@ -12,7 +12,7 @@ namespace
 
   void find_assigned_vars(const Node& node, Nodes& vars)
   {
-    if (node->type() == LiteralWith)
+    if (node->type() == LiteralWith || node->type() == SomeDecl)
     {
       return;
     }
@@ -271,6 +271,7 @@ namespace rego
         [](Match& _) {
           Location item = _.fresh({"item"});
           Location every = _.fresh({"every"});
+
           return Seq
             << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
             << (Lift << UnifyBody << (LiteralEnum << (Var ^ item) << _(Expr)))

@@ -42,7 +42,7 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Unifier& unifier)
   {
-    for (const auto& [first, second] : unifier.m_variables)
+    for (const auto& [first, second] : unifier->m_variables)
     {
       os << first.view() << "(" << second.dependency_score() << ") -> {";
       std::string sep = "";
@@ -54,7 +54,7 @@ namespace rego
       os << "}" << std::endl;
     }
     os << std::endl;
-    for (const auto& unifyexpr : unifier.m_statements)
+    for (const auto& unifyexpr : unifier->m_statements)
     {
       if (unifyexpr->type() == UnifyExprWith)
       {
@@ -68,53 +68,30 @@ namespace rego
     return os;
   }
 
-  Unifier::Unifier(
+  UnifierDef::UnifierDef(
     const Location& rule,
     const Node& rulebody,
     CallStack call_stack,
     WithStack with_stack,
     const BuiltIns& builtins,
-    std::size_t max_passes) :
-    Unifier(
-      rule, rulebody, call_stack, with_stack, builtins, max_passes, nullptr)
-  {}
-
-  Unifier::Unifier(
-    const Location& rule,
-    const Node& rulebody,
-    CallStack call_stack,
-    WithStack with_stack,
-    const BuiltIns& builtins,
-    std::size_t max_passes,
-    Unifier* outer) :
+    UnifierCache cache) :
     m_rule(rule),
     m_call_stack(call_stack),
     m_with_stack(with_stack),
     m_builtins(builtins),
-    m_max_passes(max_passes),
     m_parent_type(rulebody->parent()->type()),
-    m_outer(outer)
+    m_cache(cache)
   {
-    if (this->push_rule(rule))
-    {
-      throw std::runtime_error("Recursion detected in rule body");
-    }
     init_from_body(rulebody, m_statements);
     compute_dependency_scores();
     m_retries = Variable::detect_cycles(m_variables);
     if (m_retries > 0)
     {
       LOG("Detected ", m_retries, " cycles in dependency graph");
-      m_max_passes = std::max(m_max_passes, m_retries + 1);
     }
   }
 
-  Unifier::~Unifier()
-  {
-    this->pop_rule(m_rule);
-  }
-
-  void Unifier::init_from_body(
+  void UnifierDef::init_from_body(
     const Node& rulebody, std::vector<Node>& statements)
   {
     std::for_each(rulebody->begin(), rulebody->end(), [&](const auto& stmt) {
@@ -136,13 +113,13 @@ namespace rego
     });
   }
 
-  void Unifier::add_variable(const Node& local)
+  void UnifierDef::add_variable(const Node& local)
   {
     auto name = (wfi / local / Var)->location();
     m_variables.insert({name, Variable(local)});
   }
 
-  void Unifier::add_unifyexpr(const Node& unifyexpr)
+  void UnifierDef::add_unifyexpr(const Node& unifyexpr)
   {
     Node lhs = wfi / unifyexpr / Var;
     Node rhs = wfi / unifyexpr / Val;
@@ -160,7 +137,7 @@ namespace rego
     var.insert_dependencies(deps.begin(), deps.end());
   }
 
-  void Unifier::compute_dependency_scores()
+  void UnifierDef::compute_dependency_scores()
   {
     std::set<Location> visited;
     for (auto& [_, variable] : m_variables)
@@ -184,7 +161,7 @@ namespace rego
     }
   }
 
-  std::size_t Unifier::compute_dependency_score(
+  std::size_t UnifierDef::compute_dependency_score(
     Variable& variable, std::set<Location>& visited)
   {
     if (visited.contains(variable.name()))
@@ -206,12 +183,12 @@ namespace rego
     return score;
   }
 
-  bool Unifier::is_local(const Node& var)
+  bool UnifierDef::is_local(const Node& var)
   {
     return is_variable(var->location());
   }
 
-  std::size_t Unifier::scan_vars(
+  std::size_t UnifierDef::scan_vars(
     const Node& expr, std::vector<Location>& locals)
   {
     std::size_t num_vars = 0;
@@ -239,7 +216,8 @@ namespace rego
     return num_vars;
   }
 
-  void Unifier::execute_statements(Nodes::iterator begin, Nodes::iterator end)
+  void UnifierDef::execute_statements(
+    Nodes::iterator begin, Nodes::iterator end)
   {
     for (auto it = begin; it != end; ++it)
     {
@@ -271,7 +249,7 @@ namespace rego
     }
   }
 
-  void Unifier::reset()
+  void UnifierDef::reset()
   {
     for (auto& [_, var] : m_variables)
     {
@@ -279,13 +257,13 @@ namespace rego
     }
   }
 
-  void Unifier::pass()
+  void UnifierDef::pass()
   {
     LOG_MAP_VALUES(m_variables);
     execute_statements(m_statements.begin(), m_statements.end());
   }
 
-  void Unifier::mark_invalid_values()
+  void UnifierDef::mark_invalid_values()
   {
     for (auto& [_, var] : m_variables)
     {
@@ -299,14 +277,14 @@ namespace rego
     }
   }
 
-  void Unifier::remove_invalid_values()
+  void UnifierDef::remove_invalid_values()
   {
     std::for_each(m_variables.begin(), m_variables.end(), [](auto& pair) {
       pair.second.remove_invalid_values();
     });
   }
 
-  Node Unifier::bind_variables()
+  Node UnifierDef::bind_variables()
   {
     return std::accumulate(
       m_variables.begin(),
@@ -331,9 +309,13 @@ namespace rego
       });
   }
 
-  Node Unifier::unify()
+  Node UnifierDef::unify()
   {
-    reset();
+    if (this->push_rule(this->m_rule))
+    {
+      throw std::runtime_error("Recursion detected in rule body");
+    }
+
     LOG_HEADER("Unification", "=====");
 
     LOG("exprs: ");
@@ -354,10 +336,11 @@ namespace rego
     LOG_HEADER("Complete", "=====");
 
     Node result = bind_variables();
+    this->pop_rule(this->m_rule);
     return result;
   }
 
-  Args Unifier::create_args(const Node& args)
+  Args UnifierDef::create_args(const Node& args)
   {
     Args function_args;
     for (auto arg : *args)
@@ -382,7 +365,7 @@ namespace rego
     return function_args;
   }
 
-  Values Unifier::evaluate_function(
+  Values UnifierDef::evaluate_function(
     const Location& var, const std::string& func_name, const Args& args)
   {
     LOG("> calling ", func_name, " with ", args);
@@ -410,7 +393,7 @@ namespace rego
     return values;
   }
 
-  Values Unifier::evaluate(const Location& var, const Node& value)
+  Values UnifierDef::evaluate(const Location& var, const Node& value)
   {
     Values values;
     if (value->type() == Var)
@@ -558,7 +541,7 @@ namespace rego
     return values;
   }
 
-  Values Unifier::resolve_var(const Node& node)
+  Values UnifierDef::resolve_var(const Node& node)
   {
     Values values = check_with(node);
     if (!values.empty())
@@ -646,7 +629,7 @@ namespace rego
     return ValueDef::filter_by_rank(values);
   }
 
-  Values Unifier::call_function(
+  Values UnifierDef::call_function(
     const Location& var, const std::string& func_name, const Values& args)
   {
     Values values;
@@ -832,7 +815,7 @@ namespace rego
     return values;
   }
 
-  Values Unifier::enumerate(const Location& var, const Node& container_var)
+  Values UnifierDef::enumerate(const Location& var, const Node& container_var)
   {
     Values items;
     Values container_values = resolve_var(container_var);
@@ -889,14 +872,14 @@ namespace rego
     return items;
   }
 
-  std::string Unifier::str() const
+  std::string UnifierDef::str() const
   {
     std::ostringstream buf;
-    buf << *this;
+    buf << this;
     return buf.str();
   }
 
-  std::string Unifier::dependency_str() const
+  std::string UnifierDef::dependency_str() const
   {
     std::ostringstream buf;
     for (auto& [name, var] : m_variables)
@@ -914,7 +897,7 @@ namespace rego
     return buf.str();
   }
 
-  std::size_t Unifier::compute_dependency_score(const Node& unifyexpr)
+  std::size_t UnifierDef::compute_dependency_score(const Node& unifyexpr)
   {
     if (unifyexpr->type() == Local)
     {
@@ -960,7 +943,7 @@ namespace rego
     return score;
   }
 
-  bool Unifier::push_rule(const Location& rule)
+  bool UnifierDef::push_rule(const Location& rule)
   {
     LOG("Pushing rule: ", rule.view());
     LOG("Call stack: ", *m_call_stack);
@@ -976,7 +959,7 @@ namespace rego
     return false;
   }
 
-  void Unifier::pop_rule(const Location& rule)
+  void UnifierDef::pop_rule(const Location& rule)
   {
     if (m_call_stack->size() == 0)
     {
@@ -993,7 +976,7 @@ namespace rego
     m_call_stack->pop_back();
   }
 
-  Values Unifier::check_with(const Node& var)
+  Values UnifierDef::check_with(const Node& var)
   {
     std::string key_str = std::string(var->location().view());
     for (auto it = m_with_stack->rbegin(); it != m_with_stack->rend(); ++it)
@@ -1027,7 +1010,7 @@ namespace rego
     return {};
   }
 
-  Values Unifier::resolve_skip(const Node& skip)
+  Values UnifierDef::resolve_skip(const Node& skip)
   {
     assert(skip->type() == Skip);
     LOG("Resolving skip: ", to_json(skip->front()));
@@ -1122,7 +1105,7 @@ namespace rego
     return values;
   }
 
-  std::optional<RankedNode> Unifier::resolve_rulecomp(const Node& rulecomp)
+  std::optional<RankedNode> UnifierDef::resolve_rulecomp(const Node& rulecomp)
   {
     if (rulecomp->type() == DefaultRule)
     {
@@ -1147,7 +1130,7 @@ namespace rego
     {
       try
       {
-        body_result = rule_unifier(rulename, rulebody).unify();
+        body_result = rule_unifier(rulename, rulebody)->unify();
       }
       catch (const std::exception& e)
       {
@@ -1170,8 +1153,8 @@ namespace rego
         try
         {
           Unifier unifier = rule_unifier(rulename, value);
-          unifier.unify();
-          auto bindings = unifier.bindings();
+          unifier->unify();
+          auto bindings = unifier->bindings();
           Node result;
           for (auto& binding : bindings)
           {
@@ -1200,7 +1183,7 @@ namespace rego
     return std::nullopt;
   }
 
-  std::optional<RankedNode> Unifier::resolve_rulefunc(
+  std::optional<RankedNode> UnifierDef::resolve_rulefunc(
     const Node& rulefunc, const Nodes& args)
   {
     assert(rulefunc->type() == RuleFunc);
@@ -1224,7 +1207,7 @@ namespace rego
 
     try
     {
-      body_result = rule_unifier(rulename, rulebody).unify();
+      body_result = rule_unifier(rulename, rulebody)->unify();
     }
     catch (const std::exception& e)
     {
@@ -1252,8 +1235,8 @@ namespace rego
       try
       {
         Unifier unifier = rule_unifier(rulename, value);
-        unifier.unify();
-        auto bindings = unifier.bindings();
+        unifier->unify();
+        auto bindings = unifier->bindings();
         for (auto& binding : bindings)
         {
           Node var = binding / Var;
@@ -1273,7 +1256,7 @@ namespace rego
     return std::make_pair(index, value);
   }
 
-  std::optional<Node> Unifier::resolve_ruleset(const Nodes& ruleset)
+  std::optional<Node> UnifierDef::resolve_ruleset(const Nodes& ruleset)
   {
     Node argseq = NodeDef::create(ArgSeq);
 
@@ -1294,7 +1277,7 @@ namespace rego
       {
         try
         {
-          body_result = rule_unifier(rulename, rulebody).unify();
+          body_result = rule_unifier(rulename, rulebody)->unify();
         }
         catch (const std::exception& e)
         {
@@ -1317,8 +1300,8 @@ namespace rego
           try
           {
             Unifier unifier = rule_unifier(rulename, value);
-            unifier.unify();
-            auto bindings = unifier.bindings();
+            unifier->unify();
+            auto bindings = unifier->bindings();
             Node result;
             for (auto& binding : bindings)
             {
@@ -1354,7 +1337,7 @@ namespace rego
     return Resolver::set(argseq);
   }
 
-  std::optional<Node> Unifier::resolve_ruleobj(const Nodes& ruleobj)
+  std::optional<Node> UnifierDef::resolve_ruleobj(const Nodes& ruleobj)
   {
     Node argseq = NodeDef::create(ArgSeq);
 
@@ -1375,7 +1358,7 @@ namespace rego
       {
         try
         {
-          body_result = rule_unifier(rulename, rulebody).unify();
+          body_result = rule_unifier(rulename, rulebody)->unify();
         }
         catch (const std::exception& e)
         {
@@ -1398,8 +1381,8 @@ namespace rego
           try
           {
             Unifier unifier = rule_unifier(rulename, value);
-            unifier.unify();
-            auto bindings = unifier.bindings();
+            unifier->unify();
+            auto bindings = unifier->bindings();
             Node result;
             for (auto& binding : bindings)
             {
@@ -1439,7 +1422,7 @@ namespace rego
     return Resolver::object(argseq);
   }
 
-  Nodes Unifier::expressions() const
+  Nodes UnifierDef::expressions() const
   {
     Nodes terms;
     for (auto& [loc, var] : m_variables)
@@ -1452,7 +1435,7 @@ namespace rego
     return terms;
   }
 
-  Nodes Unifier::bindings() const
+  Nodes UnifierDef::bindings() const
   {
     Nodes bindings;
     for (auto& [loc, var] : m_variables)
@@ -1465,7 +1448,7 @@ namespace rego
     return bindings;
   }
 
-  void Unifier::push_with(const Node& withseq)
+  void UnifierDef::push_with(const Node& withseq)
   {
     LOG("pushing with lookup");
     ValuesLookup lookup;
@@ -1482,32 +1465,42 @@ namespace rego
     m_with_stack->push_back(lookup);
   }
 
-  void Unifier::pop_with()
+  void UnifierDef::pop_with()
   {
     LOG("popping with lookup");
     m_with_stack->pop_back();
   }
 
-  std::shared_ptr<Unifier> Unifier::nested(
-    const Location& rule, const Node& rulebody)
+  Unifier UnifierDef::create(
+    const Location& rule,
+    const Node& rulebody,
+    CallStack call_stack,
+    WithStack with_stack,
+    const BuiltIns& builtins,
+    UnifierCache cache)
   {
-    return std::shared_ptr<Unifier>(new Unifier(
-      rule, rulebody, m_call_stack, m_with_stack, m_builtins, 1, this));
+    if (cache->contains(rulebody))
+    {
+      Unifier unifier = cache->at(rulebody);
+      unifier->reset();
+      return unifier;
+    }
+    else
+    {
+      Unifier unifier = std::make_shared<UnifierDef>(
+        rule, rulebody, call_stack, with_stack, builtins, cache);
+      cache->insert({rulebody, unifier});
+      return unifier;
+    }
   }
 
-  Unifier Unifier::rule_unifier(const Location& rule, const Node& rulebody)
+  Unifier UnifierDef::rule_unifier(const Location& rule, const Node& rulebody)
   {
-    return Unifier(
-      rule,
-      rulebody,
-      m_call_stack,
-      m_with_stack,
-      m_builtins,
-      m_max_passes,
-      nullptr);
+    return create(
+      rule, rulebody, m_call_stack, m_with_stack, m_builtins, m_cache);
   }
 
-  Node Unifier::resolve_every(const Node& varseq, const Node& nestedbody)
+  Node UnifierDef::resolve_every(const Node& varseq, const Node& nestedbody)
   {
     Node item = varseq->at(0);
     Node key, val;
@@ -1547,7 +1540,7 @@ namespace rego
       {
         key->back() = item_node->at(0);
       }
-      Node result = rule_unifier(name, body).unify();
+      Node result = rule_unifier(name, body)->unify();
       if (result->type() == JSONFalse)
       {
         return JSONFalse;
@@ -1562,38 +1555,28 @@ namespace rego
     return JSONTrue;
   }
 
-  bool Unifier::is_variable(const Location& name) const
+  bool UnifierDef::is_variable(const Location& name) const
   {
     if (m_variables.contains(name))
     {
       return true;
     }
 
-    if (m_outer != nullptr)
-    {
-      return m_outer->is_variable(name);
-    }
-
     return false;
   }
 
-  Variable& Unifier::get_variable(const Location& name)
+  Variable& UnifierDef::get_variable(const Location& name)
   {
     if (m_variables.contains(name))
     {
       return m_variables.at(name);
     }
 
-    if (m_outer != nullptr)
-    {
-      return m_outer->get_variable(name);
-    }
-
     std::string name_str = std::string(name.view());
     throw std::runtime_error("Variable " + name_str + " not found");
   }
 
-  Values Unifier::resolve_compr(const Location& var, const Node& compr)
+  Values UnifierDef::resolve_compr(const Location& var, const Node& compr)
   {
     Values values;
     if (compr->type() == ArrayCompr)

@@ -49,6 +49,8 @@ else()
         src/*.h
         include/rego/*.h
         tools/*.cc
+        tests/*.cc
+        tests/*.h
   )
 
   add_custom_target(regocpp_format
@@ -69,6 +71,7 @@ option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
 
 if(REGOCPP_BUILD_TESTS)
   enable_testing()
+  add_subdirectory(tests)
 endif()
 
 add_subdirectory(src)
@@ -116,6 +119,11 @@ install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
 if (REGOCPP_BUILD_TOOLS)
   install(TARGETS rego_interpreter rego_trieste RUNTIME)
   install(DIRECTORY tools/examples DESTINATION .)
+endif()
+
+if (REGOCPP_BUILD_TESTS)
+  install(TARGETS rego_test yaml_trieste RUNTIME)
+  install(FILES tests/regocpp.yaml DESTINATION tests)
 endif()
 
 export(EXPORT ${PROJECT_NAME}_Targets

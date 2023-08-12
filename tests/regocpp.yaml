@@ -1,0 +1,1063 @@
+cases:
+- modules:
+  - |
+    package scalars
+    
+    greeting := "Hello"
+    max_height := 42
+    pi := 3.14159
+    allowed := true
+    location := null
+  note       : regocpp/scalars
+  query      : data.scalars.greeting = x
+  want_result:
+    x: Hello
+- data:
+    one:
+      bar: Foo
+      baz: 5
+      be : true
+      bop: 23.4
+    two:
+      bar: Bar
+      baz: 12.3
+      be : false
+      bop: 42
+    three:
+      bar: Baz
+      baz: 15
+      be : true
+      bop: 4.23
+  input:
+    a: 10
+    b: "20"
+    c: 30.0
+    d: true
+  modules:
+  - |
+    package objects
+    
+    rect := {`width`: 2, "height": 4}
+    cube := {"width": 3, `height`: 4, "depth": 5}
+    a := 42
+    b := false
+    c := null
+    d := {"a": a, "x": [b, c]}
+    index := 1
+    shapes := [rect, cube]
+    names := ["prod", `smoke1`, "dev"]
+    sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
+    e := {
+        a: "foo",
+        "three": c,
+        names[2]: b,
+        "four": d,
+    }
+    f := e["dev"]
+  note : regocpp/input_data
+  query: "[data.one, input.b, data.objects.sites[1]] = x"
+  want_result:
+    x:
+    - bar: Foo
+      baz: 5
+      be: true
+      bop: 23.4
+    - "20"
+    - name: smoke1
+- modules:
+  - |
+    package objects
+    
+    rect := {`width`: 2, "height": 4}
+    cube := {"width": 3, `height`: 4, "depth": 5}
+    a := 42
+    b := false
+    c := null
+    d := {"a": a, "x": [b, c]}
+    index := 1
+    shapes := [rect, cube]
+    names := ["prod", `smoke1`, "dev"]
+    sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
+    e := {
+        a: "foo",
+        "three": c,
+        names[2]: b,
+        "four": d,
+    }
+    f := e["dev"]
+  note : regocpp/objects
+  query: data.objects.sites[1].name = x
+  want_result:
+    x: smoke1
+- note: regocpp/query_math
+  query: x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4
+  want_result:
+    x: 5
+    y: 9.4
+- note: regocpp/expressions
+  modules:
+  - |
+    package expressions
+    
+    a := 5
+    b := -2
+    c := a + b
+    d := c * -2.5
+    e := (a + b) == 7
+    f := (c + d) != 7
+    g := 3 > -1
+    h := 2.5 >= a
+    i := b < a
+    j := 1.0 <= 2.1
+    k := a - (b + -c) * (-d / 2) + 3.7
+  query: data.expressions.k > 27 = x
+  want_result:
+    x: true
+- note: regocpp/bodies
+  modules:
+  - |
+    package bodies
+    
+    val := -1
+    a := 5
+    b := 3
+    c := a + b { a; b; a > b }
+    d := val {
+      input.a < a
+      val := a + data.bodies.b
+    } {
+      input.a >= data.bodies.a
+      val := a - b
+    }
+    
+    e := {"one": x, "two": y + z} {
+      x := a * b
+      c
+      y := d
+      z := x - y
+    }
+    
+    default f := false
+    
+    f {
+      b < a
+      not d
+    }
+    
+    f {
+      input.c > d
+    }
+    
+    g {
+      d == a + b
+      a < b
+    }
+  input:
+    a: 10
+    b: "20"
+    c: 30.0
+    d: true
+  query: data.bodies.e = x
+  want_result:
+    x:
+      one: 15
+      two: 15
+- note: regocpp/bodies_undef
+  modules:
+  - |
+    package bodies
+    
+    val := -1
+    a := 5
+    b := 3
+    c := a + b { a; b; a > b }
+    d := val {
+      input.a < a
+      val := a + data.bodies.b
+    } {
+      input.a >= data.bodies.a
+      val := a - b
+    }
+    
+    e := {"one": x, "two": y + z} {
+      x := a * b
+      c
+      y := d
+      z := x - y
+    }
+    
+    default f := false
+    
+    f {
+      b < a
+      not d
+    }
+    
+    f {
+      input.c > d
+    }
+    
+    g {
+      d == a + b
+      a < b
+    }
+  input:
+    a: 10
+    b: "20"
+    c: 30.0
+    d: true
+  query: data.bodies.g = x
+  want_defined: false
+- note: regocpp/sets
+  modules:
+  - |
+    package sets
+    
+    a := 1
+    b := 1
+    c := 2
+    d := 3
+    
+    e := "one"
+    f := "one"
+    g := "two"
+    h := "three" {
+      d > c
+      c > b
+      b >= a
+    }
+    
+    i := {"foo": 1}
+    j := {"foo": 1}
+    k := {"foo": 2, "bar": 1, "baz": 1}
+    l := {"foo": 3, "bar": 2, "baz": 1}
+    
+    int_set := {4, a, c, d, b}
+    string_set := {"four", g, f, e}
+    obj_set := {i, j, k, l}
+    array_set := {[a, b], [b, a], [a, c], [a, d], [b, c], [b, d], [c, d]}
+    
+    empty_set := set()
+    
+    m {
+      data.sets.int_set[1]
+      string_set["one"]
+      data.sets.obj_set[{"foo": 1}]
+      array_set[[1, 1]]
+    }
+  query: data.sets.string_set = x
+  want_result:
+    x:
+      four: null
+      one: null
+      two: null
+- note: regocpp/sets_membership
+  modules:
+  - |
+    package sets
+    
+    a := 1
+    b := 1
+    c := 2
+    d := 3
+    
+    e := "one"
+    f := "one"
+    g := "two"
+    h := "three" {
+      d > c
+      c > b
+      b >= a
+    }
+    
+    i := {"foo": 1}
+    j := {"foo": 1}
+    k := {"foo": 2, "bar": 1, "baz": 1}
+    l := {"foo": 3, "bar": 2, "baz": 1}
+    
+    int_set := {4, a, c, d, b}
+    string_set := {"four", g, f, e}
+    obj_set := {i, j, k, l}
+    array_set := {[a, b], [b, a], [a, c], [a, d], [b, c], [b, d], [c, d]}
+    
+    empty_set := set()
+    
+    m {
+      data.sets.int_set[1]
+      string_set["one"]
+      data.sets.obj_set[{"foo": 1}]
+      array_set[[1, 1]]
+    }
+  query: data.sets.m = x
+  want_result:
+    x: true
+- note: regocpp/var_keys
+  modules:
+  - |
+    package objects
+
+    rect := {`width`: 2, "height": 4}
+    cube := {"width": 3, `height`: 4, "depth": 5}
+    a := 42
+    b := false
+    c := null
+    d := {"a": a, "x": [b, c]}
+    index := 1
+    shapes := [rect, cube]
+    names := ["prod", `smoke1`, "dev"]
+    sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
+    e := {
+        a: "foo",
+        "three": c,
+        names[2]: b,
+        "four": d,
+    }
+    f := e["dev"]
+  query: data.objects.f = x
+  want_result:
+    x: false
+- note: regocpp/multi/0
+  input:
+    a: 10
+  modules:
+  - |
+    package multi
+
+    default a := 0
+
+    a := val {
+        input.a > 0
+        input.a < 10
+        input.a % 2 == 1
+        val := input.a * 10
+    } {
+        input.a > 0
+        input.a < 10
+        input.a % 2 == 0
+        val := input.a * 10 + 1
+    }
+    
+    a := input.a / 10 {
+        input.a >= 10
+    }
+  query: data.multi.a = x
+  want_result:
+    x: 1
+- note: regocpp/multi/1
+  input:
+    a: 4
+  modules:
+  - |
+    package multi
+
+    default a := 0
+
+    a := val {
+        input.a > 0
+        input.a < 10
+        input.a % 2 == 1
+        val := input.a * 10
+    } {
+        input.a > 0
+        input.a < 10
+        input.a % 2 == 0
+        val := input.a * 10 + 1
+    }
+    
+    a := input.a / 10 {
+        input.a >= 10
+    }
+  query: data.multi.a = x
+  want_result:
+    x: 41
+- note: regocpp/multi/2
+  input:
+    a: 7
+  modules:
+  - |
+    package multi
+
+    default a := 0
+
+    a := val {
+        input.a > 0
+        input.a < 10
+        input.a % 2 == 1
+        val := input.a * 10
+    } {
+        input.a > 0
+        input.a < 10
+        input.a % 2 == 0
+        val := input.a * 10 + 1
+    }
+    
+    a := input.a / 10 {
+        input.a >= 10
+    }
+  query: data.multi.a = x
+  want_result:
+    x: 70
+- note: regocpp/functions/sum
+  input:
+    key: sum
+  modules:
+  - |
+    package functions
+
+    f(a, b, c) := sum {
+      b != -1
+        g(input.key)
+        sum := a + b + c
+    }
+
+    f(a, -1, c) := sum {
+        g(input.key)
+        sum := a + c
+    }
+
+    f(a, b, c) := prod {
+        not g(input.key)
+        prod := a * b * c
+    }
+
+    g("sum") {
+        true
+    }
+
+    g("prod") {
+        false
+    }
+
+    h(a, b) := result {
+        result := {
+            "a": a,
+            "b": b
+        }
+    }
+  query: "[data.functions.f(1, 2, 3), data.functions.f(1, -1, 3)] = x"
+  want_result:
+    x:
+    - 6
+    - 4
+- note: regocpp/functions/prod
+  input:
+    key: prod
+  modules:
+  - |
+    package functions
+
+    f(a, b, c) := sum {
+      b != -1
+        g(input.key)
+        sum := a + b + c
+    }
+
+    f(a, -1, c) := sum {
+        g(input.key)
+        sum := a + c
+    }
+
+    f(a, b, c) := prod {
+        not g(input.key)
+        prod := a * b * c
+    }
+
+    g("sum") {
+        true
+    }
+
+    g("prod") {
+        false
+    }
+
+    h(a, b) := result {
+        result := {
+            "a": a,
+            "b": b
+        }
+    }
+  query: "[data.functions.f(1, 2, 3), data.functions.f(1, -1, 3)] = x"
+  want_result:
+    x:
+    - 6
+    - -3
+- note: regocpp/functions/ref
+  modules:
+  - |
+    package functions
+
+    f(a, b, c) := sum {
+      b != -1
+        g(input.key)
+        sum := a + b + c
+    }
+
+    f(a, -1, c) := sum {
+        g(input.key)
+        sum := a + c
+    }
+
+    f(a, b, c) := prod {
+        not g(input.key)
+        prod := a * b * c
+    }
+
+    g("sum") {
+        true
+    }
+
+    g("prod") {
+        false
+    }
+
+    h(a, b) := result {
+        result := {
+            "a": a,
+            "b": b
+        }
+    }
+  query: "[data.functions.h(1, 2).a, data.functions.h(3, 4).b] = x"
+  want_result:
+    x:
+    - 1
+    - 4
+- note: regocpp/unify
+  modules:
+  - |
+    package unify
+
+    tuples = [[1, 1], [1, 2], [2, 3], [3, 5], [5, 8]]
+    letters = {["a", 1], ["b", 2], ["c", 3], ["d", 4]}
+    mixed = [[0, 1, 2], [3, 4, 5, 6], {"foo": 7}]
+
+    a := {
+      "foo": 1,
+        "bar": 2,
+    }
+
+    b := x + y {
+        some x, y
+        [1, x] = tuples[i]
+        {"foo": y, "bar": 2} = a
+        i != 0
+    }
+
+    c {
+        i != 0
+        x = tuples[i]
+        i = x[1] - 1
+    }
+
+    d {
+      tuple := tuples[i]
+        tuple[0] >= 3
+        tuple[1] >= 5
+    }
+
+    e := key {
+        target = 2
+        some key
+      a[key] = target
+    }
+
+    f := x + y {
+        letters[["a", x]]
+        letters[["c", y]]
+    }
+
+    g := j {
+      x = mixed[i]
+        x[j] = 6
+    }
+
+    h := j {
+      x = mixed[i]
+        x[j] = 7
+    }
+
+    output := [a, b, c, d, e, f, g, h]
+  query: data.unify.output = x
+  want_result:
+    x:
+    - {"bar": 2, "foo": 1}
+    - 3
+    - true
+    - true
+    - bar
+    - 4
+    - 3
+    - foo
+- note: regocpp/compare
+  modules:
+  - |
+    package compare
+
+    a := {"one": 1, "two": 2}
+    b := {"two": 2, "three": 3}
+    c := "2"
+    d := "0001"
+    e := [0, 1, 2]
+    f := [0, 0, 0, 4]
+    g := {"b": "2", "a": "1"}
+    h := {"b": "1", "a": "2"}
+
+    output := [a < b, c < d, e < f, g < h]
+  query: data.compare.output = x
+  want_result:
+    x: [true, false, false, true]
+- note: regocpp/keywords
+  data:
+    sites:
+    - region: east
+      name: prod
+      servers:
+      - {"name": "web-0", "hostname": "hydrogen"}
+      - {"name": "web-1", "hostname": "helium"}
+      - {"name": "db-0", "hostname": "lithium"}
+    - region: west
+      name: smoke
+      servers:
+      - {"name": "web-1000", "hostname": "beryllium"}
+      - {"name": "web-1001", "hostname": "boron"}
+      - {"name": "db-1000", "hostname": "carbon"}
+    - region: west
+      name: dev
+      servers:
+      - {"name": "web-dev", "hostname": "nitrogen"}
+      - {"name": "db-dev", "hostname": "oxygen"}
+    apps:
+    - name: web
+      servers: ["web-0", "web-1", "web-1000", "web-1001", "web-dev"]
+    - name: mysql
+      servers: ["db-0", "db-1000"]
+    - name: mongodb
+      servers: ["db-dev"]
+    containers:
+    - image: redis
+      ipaddress: "10.0.0.1"
+      name: big_stallman
+    - image: nginx
+      ipaddress: "10.0.0.2"
+      name: cranky_euclid
+  input:
+    a: 10
+    b: "20"
+    c: 30.0
+    d: true
+  modules:
+  - |
+    package keywords
+
+    import future.keywords
+    import data.apps as apps
+    import data.sites as sites
+
+    letters := ["a", "b", "c", "d"]
+
+    a := 3
+    b := 5
+    c := 4 if input.a > a else := 5 if {input.a > a} else := -1 if input.a <= a
+
+    d := val if {
+        some i, x in letters
+        x == "b"
+        some j in [1, 2, "a"]
+        x == letters[j]
+        i == j
+        "d" in letters
+        val := "found"
+    }
+
+    e contains "0" if {
+        input.d
+        input.b == "20"
+    }
+
+    e contains "a" if {
+        input.a > a
+    }
+
+    e contains "1" if input.key == "sum"
+
+    e contains a + b if input.key == "sum"
+
+    e contains "2" if input.key == "prod"
+
+    e contains a * b if input.key == "prod"
+
+    f["a"] := a
+    f["b"] := b
+    f["c"] if c
+    f["sum"] := sum {
+        sum := a + b
+    }
+
+    app_to_hostnames_obj[app_name] := hostnames if {
+        app := apps[_]
+        app_name := app.name
+        hostnames := [hostname | name := app.servers[_]
+                                s := sites[_].servers[_]
+                                s.name == name
+                                hostname := s.hostname]
+    }
+
+    output := [c, d, e, f, app_to_hostnames_obj["mongodb"] == ["oxygen"]]
+  query: data.keywords.output = x
+  want_result:
+    x:
+    - 4
+    - "found"
+    - ["0", "a"]
+    - {"a": 3, "b": 5, "c": true, "sum": 8}
+    - true
+- note: regocpp/imports
+  modules:
+  - |
+    package scalars
+
+    greeting := "Hello"
+    max_height := 42
+    pi := 3.14159
+    allowed := true
+    location := null
+  - |
+    package scalars.more.stuff
+
+    import data.scalars.max_height
+    import data.scalars.more.stuff["and.more"].stuff.shared as shared_stuff
+    
+    shared := 7
+    a := max_height
+    b := a * shared + shared_stuff
+  - |
+    package scalars.more.stuff["and.more"].stuff
+
+    import data.scalars.max_height
+    import data.scalars["more"].stuff["shared"] as shared_stuff
+
+    shared := 11
+    a := max_height
+    b := a * shared + shared_stuff
+  - |
+    package scalars
+
+    output := [
+        data.scalars.more.stuff.b,
+        allowed,
+        data.scalars.more.stuff["and.more"].stuff.b
+    ]
+  query: data.scalars.output = x
+  want_result:
+    x:
+    - 305
+    - true
+    - 469
+- note: regocpp/with
+  modules:
+  - |
+    package bodies
+
+    val := -1
+    a := 5
+    b := 3
+    c := a + b { a; b; a > b }
+    d := val {
+      input.a < a
+      val := a + data.bodies.b
+    } {
+      input.a >= data.bodies.a
+      val := a - b
+    }
+
+    e := {"one": x, "two": y + z} {
+      x := a * b
+      c
+      y := d
+      z := x - y
+    }
+
+    default f := false
+
+    f {
+      b < a
+      not d
+    }
+
+    f {
+      input.c > d
+    }
+
+    g {
+      d == a + b
+      a < b
+    }
+  - |
+    package bodies
+
+    import future.keywords.if
+    import future.keywords.in
+
+    d_sum := result {
+        result := d with input.a as a - 1
+    }
+
+    d_diff := result {
+        result := d with input.a as a + 1
+    }
+
+    inner := [x, y] if {
+        x := input.foo
+        y := input.bar
+    }
+
+    middle := [a, b] if {
+        a := inner with input.foo as 100
+        b := input
+    }
+
+    outer := result if {
+        result := middle with input as {"foo": 200, "bar": 300}
+    }
+
+    mycount(x) := count(x)
+
+    mock_count(x) := 0 if "x" in x
+    mock_count(x) := count(x) if not "x" in x
+
+    use_count := result {
+        result := mycount([1, 2, 3]) with count as mock_count
+    }
+
+    use_mock := result {
+        result := mycount(["x", "y", "z"]) with count as mock_count
+    }
+
+    output := [d_sum, d_diff, outer, use_count, use_mock]
+  query: data.bodies.output = x
+  want_result:
+    x:
+    - 8
+    - 2
+    - [[100, 300], {"bar": 300, "foo": 200}]
+    - 3
+    - 0
+- note: regocpp/every
+  data:
+    sites:
+    - region: east
+      name: prod
+      servers:
+      - {"name": "web-0", "hostname": "hydrogen"}
+      - {"name": "web-1", "hostname": "helium"}
+      - {"name": "db-0", "hostname": "lithium"}
+    - region: west
+      name: smoke
+      servers:
+      - {"name": "web-1000", "hostname": "beryllium"}
+      - {"name": "web-1001", "hostname": "boron"}
+      - {"name": "db-1000", "hostname": "carbon"}
+    - region: west
+      name: dev
+      servers:
+      - {"name": "web-dev", "hostname": "nitrogen"}
+      - {"name": "db-dev", "hostname": "oxygen"}
+    apps:
+    - name: web
+      servers: ["web-0", "web-1", "web-1000", "web-1001", "web-dev"]
+    - name: mysql
+      servers: ["db-0", "db-1000"]
+    - name: mongodb
+      servers: ["db-dev"]
+    containers:
+    - image: redis
+      ipaddress: "10.0.0.1"
+      name: big_stallman
+    - image: nginx
+      ipaddress: "10.0.0.2"
+      name: cranky_euclid
+  modules:
+  - |
+    package every
+
+    import future.keywords.every
+    import future.keywords.if
+    import data.sites as sites
+
+    names_with_dev if {
+        some site in sites
+        site.name == "dev"
+
+        every server in site.servers {
+            endswith(server.name, "-dev")
+        }
+    }
+
+    array_domain if {
+        every i, x in [1, 2, 3] { x-i == 1 } # array domain
+    }
+
+    object_domain if {
+        every k, v in {"foo": "bar", "fox": "baz" } { # object domain
+            startswith(k, "f")
+            startswith(v, "b")
+        }
+    }
+
+    set_domain if {
+        every x in {1, 2, 3} { x != 4 } # set domain
+    }
+
+    xs := [2, 2, 4, 8]
+    larger_than_one(x) := x > 1
+
+    rule_every if {
+        every x in xs { larger_than_one(x) }
+    }
+
+    not_less_or_equal_one if not lte_one
+
+    lte_one if {
+        some x in xs
+        not larger_than_one(x)
+    }
+
+    output {
+      names_with_dev
+        array_domain
+        object_domain
+        set_domain
+        rule_every
+        not_less_or_equal_one
+    }
+  query: data.every.output = x
+  want_result:
+    x: true
+- note: regocpp/compr
+  data:
+    sites:
+    - region: east
+      name: prod
+      servers:
+      - {"name": "web-0", "hostname": "hydrogen"}
+      - {"name": "web-1", "hostname": "helium"}
+      - {"name": "db-0", "hostname": "lithium"}
+    - region: west
+      name: smoke
+      servers:
+      - {"name": "web-1000", "hostname": "beryllium"}
+      - {"name": "web-1001", "hostname": "boron"}
+      - {"name": "db-1000", "hostname": "carbon"}
+    - region: west
+      name: dev
+      servers:
+      - {"name": "web-dev", "hostname": "nitrogen"}
+      - {"name": "db-dev", "hostname": "oxygen"}
+    apps:
+    - name: web
+      servers: ["web-0", "web-1", "web-1000", "web-1001", "web-dev"]
+    - name: mysql
+      servers: ["db-0", "db-1000"]
+    - name: mongodb
+      servers: ["db-dev"]
+    containers:
+    - image: redis
+      ipaddress: "10.0.0.1"
+      name: big_stallman
+    - image: nginx
+      ipaddress: "10.0.0.2"
+      name: cranky_euclid
+  modules:
+  - |
+    package compr
+
+    import future.keywords.if
+    import data.apps as apps
+    import data.sites as sites
+
+    region := "west"
+    names := [name | sites[i].region == region; name := sites[i].name]
+
+    app_to_hostnames := {app.name: hostnames |
+        app := apps[_]
+        hostnames := [hostname |
+                        name := app.servers[_]
+                        s := sites[_].servers[_]
+                        s.name == name
+                        hostname := s.hostname]
+    }
+
+    a := [1, 2, 3, 4, 3, 4, 3, 4, 5]
+    b := {x | x = a[_]}
+
+    output {
+        names == ["smoke", "dev"]
+        app_to_hostnames == {
+          "mongodb": ["oxygen"],
+            "mysql": ["lithium","carbon"],
+            "web": ["hydrogen", "helium", "beryllium", "boron", "nitrogen"]
+        }
+        b == {1, 2, 3, 4, 5}
+    }
+  query: data.compr.output = x
+  want_result:
+    x: true
+- note: regocpp/setops
+  modules:
+  - |
+    package setops
+
+    import future.keywords.in
+
+    a := {1, 2, 3, 4}
+    b := {3, 4, 5}
+    c := {4, 5, 6}
+    d := {2, 3, 4}
+    e := a | b & c | d
+    f := {x | some x in b & c | d}
+    g := [a | b]
+    h := [a | b, 4]
+    i := { a: b | c }
+    j := { a: b, c: d | e}
+    k := a - d
+
+    output {
+      e == {1, 2, 3, 4, 5}
+        f == {2, 3, 4, 5}
+        g == [a]
+        h == [{1, 2, 3, 4, 5}, 4]
+        i == {
+          a: {3, 4, 5}
+        }
+        j == {
+          a: {3, 4, 5},
+            c: {1, 2, 3, 4, 5}
+        }
+        k == {1}
+        1 in a | b
+        3 in a & b | c & d
+    }
+  query: data.setops.output = x
+  want_result:
+    x: true
+- note: regocpp/enumerate
+  modules:
+  - |
+    package enumerate
+
+    import future.keywords.in
+
+    numbers := [1, 2, 3, 4, 5]
+    letters := ["1", "2", "3", "4", "5"]
+
+    a := item {
+        some n in numbers
+        some l in letters
+        to_number(l) == n
+        item = [n, l]
+        item[0] == 3
+    }
+  query: data.enumerate.a = x
+  want_result:
+    x:
+      - 3
+      - "3"

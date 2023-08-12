@@ -1111,13 +1111,14 @@ namespace rego
 
     Node rulebody = defs[0] / Val;
     {
-      Unifier unifier(
+      auto unifier = UnifierDef::create(
         {"query"},
         rulebody,
         std::make_shared<std::vector<Location>>(),
         std::make_shared<std::vector<ValuesLookup>>(),
-        BuiltIns().register_standard_builtins());
-      unifier.unify();
+        BuiltIns().register_standard_builtins(),
+        std::make_shared<NodeMap<Unifier>>());
+      unifier->unify();
     }
 
     Node result = NodeDef::create(Query);
@@ -1150,6 +1151,11 @@ namespace rego
         }
       }
 
+      if (term->type() == Undefined)
+      {
+        continue;
+      }
+
       if (term->type() != Term)
       {
         term = Term << term;
@@ -1167,6 +1173,11 @@ namespace rego
         // a fuzzer variable ($ followed by a number)
         result->push_back(Binding << var << term);
       }
+    }
+
+    if (result->size() == 0)
+    {
+      result->push_back(Undefined);
     }
 
     return result;

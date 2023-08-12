@@ -441,8 +441,16 @@ namespace rego
   inline const auto wf_pass_implicit_enums = wf_pass_simple_refs;
 
   // clang-format off
-  inline const auto wf_pass_rulebody =
+  inline const auto wf_pass_init =
     wf_pass_implicit_enums
+    | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralInit)++[1])
+    | (LiteralInit <<= AssignInfix)
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_rulebody =
+    wf_pass_init
     | (Module <<= (Import | RuleComp | DefaultRule | RuleFunc | RuleSet | RuleObj | Submodule)++)
     | (UnifyExpr <<= Var * (Val >>= NotExpr | Expr))
     | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate)
@@ -488,16 +496,16 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_unify =
     wf_pass_functions
-    | (Query <<= (Term | Binding)++[1])
+    | (Query <<= (Term | Binding | Undefined)++[1])
     | (Binding <<= Var * Term)[Var]
-    | (Term <<= Scalar | Array | Object | Set | Undefined)
+    | (Term <<= Scalar | Array | Object | Set)
     ;
   // clang-format on
 
   // clang-format off
   inline const auto wf_pass_query =
     wf_pass_unify
-    | (Top <<= (Binding | Term)++[1])
+    | (Top <<= (Binding | Term | Undefined)++[1])
     ;
   // clang-format on
 }
