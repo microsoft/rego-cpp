@@ -12,6 +12,12 @@ namespace rego_test
     return {
       In(Top) * T(File)[File] >> [](Match& _) { return Block << *_[File]; },
 
+      In(Block) * (T(Group) << (T(String) * T(Colon) * (T(Brace) << End))) >>
+        [](Match&) { return Node(); },
+
+      In(Block) * ((T(Group) << (T(String) * T(Colon) * End)) * (T(Group)[Group] << (T(String) * T(Colon)))) >>
+        [](Match& _){ return _(Group);},
+
       In(Group) * T(Brace)[Brace] >>
         [](Match& _) { return Block << *_[Brace]; },
 
@@ -235,9 +241,9 @@ namespace rego_test
            << ((T(Key)[Key]([](auto& n) {
                  return name_equals(*n.first, {"want_result"});
                })) *
-               T(Mapping)[Mapping])) >>
+               T(Sequence)[Sequence])) >>
         [](Match& _) {
-          return KeyValue << _(Key) << (WantResult << *_[Mapping]);
+          return KeyValue << _(Key) << (WantResult << *_[Sequence]);
         },
 
       In(rego::List) *
@@ -285,6 +291,11 @@ namespace rego_test
         [](Match& _) {
           return rego::Binding << (rego::Var ^ _(Key))
                                << (rego::Term << _(Val));
+        },
+
+      In(WantResult) * (T(Entry) << T(Mapping)[Mapping]) >>
+        [](Match& _) {
+          return Seq << *_[Mapping];
         },
 
       In(rego::Term) * T(Mapping)[Mapping] >>

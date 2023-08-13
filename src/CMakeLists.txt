@@ -46,6 +46,8 @@ passes/lift_to_rule.cc
 passes/functions.cc
 passes/unify.cc
 passes/query.cc
+builtins/numbers.cc
+builtins/sets.cc
 )
 
 add_library(rego STATIC ${SOURCES})

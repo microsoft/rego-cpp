@@ -17,11 +17,6 @@ namespace
       return;
     }
 
-    if (!std::filesystem::is_directory(debug_path))
-    {
-      std::filesystem::create_directory(debug_path);
-    }
-
     std::filesystem::path output;
     if (index < 10)
     {
@@ -214,8 +209,8 @@ namespace
     }
 
     os << "wanted: " << wanted << std::endl;
-    os << "actual: " << actual << std::endl;
-    os << "        ";
+    os << "  actual: " << actual << std::endl;
+    os << "          ";
     for (std::size_t i = 0; i < length; ++i)
     {
       if (errors.contains(i))
@@ -243,7 +238,7 @@ namespace
 
       if (actual_bindings[key] != value)
       {
-        diff(key + "= " + actual_bindings[key], key + "= " + value, os);
+        diff(key + " = " + actual_bindings[key], key + " = " + value, os);
         return false;
       }
     }
@@ -257,6 +252,14 @@ namespace rego_test
   std::optional<std::vector<TestCase>> TestCase::load(
     const std::filesystem::path& path, const std::filesystem::path& debug_path)
   {
+    if(!debug_path.empty()){
+    if(std::filesystem::is_directory(debug_path)){
+      std::filesystem::remove_all(debug_path);
+    }
+
+    std::filesystem::create_directory(debug_path);
+    }
+
     auto ast = parser().parse(path);
     bool ok = wf_parser.build_st(ast, std::cerr);
     ok = wf_parser.check(ast, std::cerr) && ok;
@@ -356,10 +359,15 @@ namespace rego_test
       .strict_error(get_bool(test_case_map, "strict_error"));
   }
 
-  Result TestCase::run(const std::filesystem::path& executable_path) const
+  Result TestCase::run(const std::filesystem::path& executable_path, const std::filesystem::path& debug_path) const
   {
     rego::Interpreter interpreter;
     interpreter.executable(executable_path);
+    if(!debug_path.empty() > 0){
+      interpreter.debug_enabled(true);
+      interpreter.debug_path(debug_path);
+    }
+
     for (std::size_t i = 0; i < m_modules.size(); ++i)
     {
       std::string name = "module" + std::to_string(i);
@@ -390,7 +398,12 @@ namespace rego_test
     }
     else if (m_want_result)
     {
-      pass = compare(actual, m_want_result, error);
+      if(actual->front()->type() != Undefined){
+        pass = compare(actual, m_want_result, error);
+      }else{
+        pass = false;
+        error << "undefined";
+      }
     }
     else if (m_want_defined)
     {
@@ -420,9 +433,21 @@ namespace rego_test
     return m_note;
   }
 
+  const std::string& TestCase::category() const
+  {
+    return m_category;
+  }
+
   TestCase& TestCase::note(const std::string& note)
   {
     m_note = note;
+    auto pos = m_note.find('/');
+    if(pos == std::string::npos){
+      m_category = "";
+    }else{
+      m_category = m_note.substr(0, pos);
+    }
+
     return *this;
   }
 

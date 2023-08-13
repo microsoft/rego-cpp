@@ -1101,7 +1101,7 @@ namespace rego
     return results;
   }
 
-  Node Resolver::resolve_query(const Node& query)
+  Node Resolver::resolve_query(const Node& query, const BuiltIns& builtins)
   {
     Nodes defs = resolve_varseq(query->front());
     if (defs.size() != 1)
@@ -1116,7 +1116,7 @@ namespace rego
         rulebody,
         std::make_shared<std::vector<Location>>(),
         std::make_shared<std::vector<ValuesLookup>>(),
-        BuiltIns().register_standard_builtins(),
+        builtins,
         std::make_shared<NodeMap<Unifier>>());
       unifier->unify();
     }
@@ -1182,4 +1182,56 @@ namespace rego
 
     return result;
   }
+
+  Node Resolver::abs(const Node& node) {
+    auto maybe_number = maybe_unwrap_number(node);
+    if(!maybe_number.has_value()){
+      return err(node, "Not a number");
+    }
+
+    Node number = maybe_number.value();
+    if(number->type() == JSONInt){
+      std::int64_t value = get_int(number);
+      if(value < 0){
+        value *= -1;
+      }
+      return JSONInt ^ std::to_string(value);
+    } else {
+      double value = get_double(number);
+      if(value < 0){
+        value *= -1;
+      }
+      return JSONFloat ^ std::to_string(value);
+    }
+  }
+
+  Node Resolver::ceil(const Node& node) {
+    auto maybe_number = maybe_unwrap_number(node);
+    if(!maybe_number.has_value()){
+      return err(node, "Not a number");
+    }
+
+    Node number = maybe_number.value();
+    if(number->type() == JSONInt){
+      return number;
+    } else {
+      std::int64_t value = static_cast<std::int64_t>(std::ceil(get_double(number)));
+      return JSONInt ^ std::to_string(value);
+    }
+  }
+
+  Node Resolver::floor(const Node& node) {
+    auto maybe_number = maybe_unwrap_number(node);
+    if(!maybe_number.has_value()){
+      return err(node, "Not a number");
+    }
+
+    Node number = maybe_number.value();
+    if(number->type() == JSONInt){
+      return number;
+    } else {
+      std::int64_t value = static_cast<std::int64_t>(std::floor(get_double(number)));
+      return JSONInt ^ std::to_string(value);
+    }
+  }  
 }

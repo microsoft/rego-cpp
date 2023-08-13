@@ -116,7 +116,7 @@ namespace
 namespace rego
 {
   // Discovers skip paths in the AST to constant DataTerm nodes.
-  PassDef skips()
+  PassDef skips(const BuiltIns& builtins)
   {
     SkipMap skip_links = std::make_shared<std::map<std::string, Node>>();
 
@@ -124,7 +124,6 @@ namespace rego
       dir::topdown | dir::once,
     };
 
-    BuiltIns builtins = BuiltIns().register_standard_builtins();
     for (auto [location, _] : builtins)
     {
       std::string name = std::string(location.view());

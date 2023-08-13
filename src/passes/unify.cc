@@ -18,7 +18,7 @@ namespace
 namespace rego
 {
   // Performs unification.
-  PassDef unify()
+  PassDef unify(const BuiltIns& builtins)
   {
     PassDef unify = {
       dir::topdown | dir::once,
@@ -51,11 +51,11 @@ namespace rego
           [](Match& _) { return err(_(Query), "no values in query"); },
       }};
 
-    unify.pre(Rego, [](Node node) {
+    unify.pre(Rego, [builtins](Node node) {
       Node query = wfi / node / Query;
       try
       {
-        Node result = Resolver::resolve_query(query);
+        Node result = Resolver::resolve_query(query, builtins);
         node->replace(query, result);
       }
       catch (const std::exception& e)

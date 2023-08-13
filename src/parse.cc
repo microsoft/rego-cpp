@@ -86,7 +86,7 @@ namespace rego
         "&" >> [](auto& m) { m.add(And); },
 
         // Placeholder
-        "_" >> [](auto& m) { m.add(Placeholder); },
+        "_\b" >> [](auto& m) { m.add(Placeholder); },
 
         // Brace.
         R"((\{)[[:blank:]]*)" >> [](auto& m) { m.push(Brace, 1); },

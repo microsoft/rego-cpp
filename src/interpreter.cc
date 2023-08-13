@@ -11,7 +11,6 @@ namespace rego
   Interpreter::Interpreter(bool disable_well_formed_checks) :
     m_parser(parser()),
     m_wf_parser(wf_parser),
-    m_passes(passes()),
     m_module_seq(NodeDef::create(ModuleSeq)),
     m_data_seq(NodeDef::create(DataSeq)),
     m_input(NodeDef::create(Input)),
@@ -20,6 +19,7 @@ namespace rego
     m_well_formed_checks_enabled(!disable_well_formed_checks)
   {
     wf::push_back(&wf_parser);
+    m_builtins.register_standard_builtins();
   }
 
   Interpreter::~Interpreter()
@@ -167,9 +167,10 @@ namespace rego
       throw std::runtime_error(buf.str());
     }
 
-    for (std::size_t i = 0; i < m_passes.size(); ++i)
+    auto passes = rego::passes(m_builtins);
+    for (std::size_t i = 0; i < passes.size(); ++i)
     {
-      auto& [pass_name, pass, wf] = m_passes[i];
+      auto& [pass_name, pass, wf] = passes[i];
       wf::push_back(wf);
       auto [new_ast, count, changes] = pass->run(ast);
       wf::pop_front();
@@ -215,6 +216,13 @@ namespace rego
   Interpreter& Interpreter::debug_path(const std::filesystem::path& path)
   {
     m_debug_path = path;
+    if(!m_debug_path.empty()){
+    if(std::filesystem::is_directory(m_debug_path)){
+      std::filesystem::remove_all(m_debug_path);
+    }
+
+    std::filesystem::create_directory(m_debug_path);
+    }
     return *this;
   }
 
@@ -253,11 +261,6 @@ namespace rego
       return;
     }
 
-    if (!std::filesystem::is_directory(m_debug_path))
-    {
-      std::filesystem::create_directory(m_debug_path);
-    }
-
     std::filesystem::path output;
     if (index < 10)
     {
@@ -289,5 +292,15 @@ namespace rego
   const std::filesystem::path& Interpreter::executable() const
   {
     return m_parser.executable();
+  }
+
+  BuiltIns& Interpreter::builtins()
+  {
+    return m_builtins;
+  }
+
+  const BuiltIns& Interpreter::builtins() const
+  {
+    return m_builtins;
   }
 }

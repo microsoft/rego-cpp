@@ -245,6 +245,14 @@ namespace rego_test
        // Character
        "." >> [](auto& m) { m.extend(String); }});
 
+    p.done([indents](auto& m) {
+      while (!indents->empty())
+      {
+        m.term({Block});
+        indents->pop_back();
+      }
+    });
+
     p.gen({
       Integer >> [](auto& rnd) { return std::to_string(rnd() % 100); },
       Float >>

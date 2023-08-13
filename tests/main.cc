@@ -1,8 +1,38 @@
 #include "test_case.h"
 
+#include <type_traits>
+
 const std::string Green = "\x1b[32m";
 const std::string Reset = "\x1b[0m";
 const std::string Red = "\x1b[31m";
+const std::string White = "\x1b[37m";
+
+using TestCases = std::map<std::string, std::vector<rego_test::TestCase>>;
+
+void load_testcases(
+  const std::filesystem::path& path,
+  const std::filesystem::path& debug_path,
+  TestCases& testcases)
+{
+  std::vector<rego_test::TestCase> test_cases;
+  auto maybe_test_cases = rego_test::TestCase::load(path, debug_path);
+  if (maybe_test_cases.has_value())
+  {
+    test_cases = *maybe_test_cases;
+    for (auto test_case : test_cases)
+    {
+      if (!testcases.contains(test_case.category()))
+      {
+        testcases[test_case.category()] = std::vector<rego_test::TestCase>();
+      }
+      testcases[test_case.category()].push_back(test_case);
+    }
+  }
+  else
+  {
+    std::cout << "Unable to parse test cases in " << path << std::endl;
+  }
+}
 
 int main(int argc, char** argv)
 {
@@ -17,6 +47,17 @@ int main(int argc, char** argv)
   app.add_option(
     "-a,--ast", debug_path, "Output the AST (debugging for test case parser)");
 
+  std::vector<std::filesystem::path> case_dirs;
+  app.add_option(
+    "-d,--dir", case_dirs, "Directories containing test cas  e YAML files");
+
+  bool enable_logging{false};
+  app.add_flag("-l,--logging", enable_logging, "Enable logging");
+
+  bool fail_first{false};
+  app.add_flag(
+    "-f,--fail-first", fail_first, "Stop after first test case failure");
+
   try
   {
     app.parse(argc, argv);
@@ -26,36 +67,42 @@ int main(int argc, char** argv)
     return app.exit(e);
   }
 
-  int failures = 0;
-  for (auto path : case_paths)
+  rego::Logger::enabled = enable_logging;
+
+  TestCases all_testcases;
+  if (!case_dirs.empty())
   {
-    std::vector<rego_test::TestCase> test_cases;
-    auto maybe_test_cases = rego_test::TestCase::load(path, debug_path);
-    if (maybe_test_cases.has_value())
+    for (auto dir : case_dirs)
     {
-      test_cases = *maybe_test_cases;
+      for (auto& p : std::filesystem::directory_iterator(dir))
+      {
+        case_paths.push_back(p);
+      }
     }
-    else
-    {
-      std::cout << "Unable to parse test cases in " << path << std::endl;
-      continue;
-    }
+  }
 
-    std::cout << path << std::endl;
+  for (auto p : case_paths)
+  {
+    load_testcases(p, debug_path, all_testcases);
+  }
 
-    for (auto& test_case : test_cases)
+  int failures = 0;
+  for (auto& [category, cat_cases] : all_testcases)
+  {
+    std::cout << White << category << std::endl;
+    for (auto& testcase : cat_cases)
     {
       try
       {
         auto start = std::chrono::steady_clock::now();
-        auto result = test_case.run(argv[0]);
+        auto result = testcase.run(argv[0], debug_path);
         auto end = std::chrono::steady_clock::now();
         const std::chrono::duration<double> elapsed = end - start;
 
         if (result.passed)
         {
-          std::cout << Green << "  PASS: " << Reset << test_case.note()
-                    << std::fixed << std::setw(62 - test_case.note().length())
+          std::cout << Green << "  PASS: " << Reset << testcase.note()
+                    << std::fixed << std::setw(62 - testcase.note().length())
                     << std::internal << std::setprecision(2) << elapsed.count()
                     << " sec" << std::endl;
         }
@@ -63,21 +110,31 @@ int main(int argc, char** argv)
         {
           failures++;
           std::cout << std::setw(70) << Red << "  FAIL: " << Reset
-                    << test_case.note() << std::fixed
-                    << std::setw(62 - test_case.note().length())
-                    << std::internal << std::setprecision(2) << elapsed.count()
-                    << " sec" << std::endl;
+                    << testcase.note() << std::fixed
+                    << std::setw(62 - testcase.note().length()) << std::internal
+                    << std::setprecision(2) << elapsed.count() << " sec"
+                    << std::endl;
           std::cout << "  " << result.error << std::endl;
+          std::cout << "(from " << testcase.filename() << ")" << std::endl;
+          if(fail_first){
+            break;
+          }
         }
       }
       catch (const std::exception& e)
       {
         failures++;
         std::cout << std::setw(70) << Red << "  FAIL: " << Reset
-                  << test_case.note() << std::endl;
+                  << testcase.note() << std::endl;
         std::cout << "  " << e.what() << std::endl;
-        continue;
+        std::cout << "(from " << testcase.filename() << ")" << std::endl;
+        if(fail_first){
+          break;
+        }
       }
+    }
+    if(failures > 0 && fail_first){
+      break;
     }
 
     std::cout << std::endl;

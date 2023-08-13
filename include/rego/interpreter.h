@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lang.h"
+#include "builtins.h"
 
 #include <string>
 
@@ -30,6 +31,8 @@ namespace rego
     bool well_formed_checks_enabled() const;
     Interpreter& executable(const std::filesystem::path& path);
     const std::filesystem::path& executable() const;
+    BuiltIns& builtins();
+    const BuiltIns& builtins() const;
 
   private:
     void write_ast(
@@ -37,12 +40,12 @@ namespace rego
     bool has_error(const Node& ast) const;
     Parse m_parser;
     wf::Wellformed m_wf_parser;
-    std::vector<PassCheck> m_passes;
     Node m_module_seq;
     Node m_data_seq;
     Node m_input;
     std::filesystem::path m_debug_path;
     bool m_debug_enabled;
     bool m_well_formed_checks_enabled;
+    BuiltIns m_builtins;
   };
 }

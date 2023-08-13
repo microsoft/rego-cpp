@@ -3,6 +3,8 @@
 #include "trieste/driver.h"
 #include "trieste/token.h"
 
+#include "builtins.h"
+
 namespace rego
 {
   using namespace trieste;
@@ -218,9 +220,9 @@ namespace rego
   }
 
   Parse parser();
-  Driver& driver();
+  Driver& driver(const BuiltIns& builtins);
   using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
-  std::vector<PassCheck> passes();
+  std::vector<PassCheck> passes(const BuiltIns& builtins);
   std::string to_json(const Node& node);
   bool contains_local(const Node& node);
   bool contains_ref(const Node& node);

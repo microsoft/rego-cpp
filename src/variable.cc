@@ -26,9 +26,19 @@ namespace rego
     Location name = (wfi / local / Var)->location();
     std::string name_str = std::string(name.view());
     m_unify = name_str.starts_with("unify$");
-    m_user_var = name_str.find('$') == std::string::npos ||
-      name_str[0] == '$' || name_str.starts_with("value$") ||
-      name_str.starts_with("out$");
+    m_user_var = is_user_var(name_str);
+  }
+
+  bool Variable::is_user_var(const std::string& name)
+  {
+    if (name.starts_with("__") && name.ends_with("__"))
+    {
+      // OPA test local variables use this convention
+      return false;
+    }
+
+    return name.find('$') == std::string::npos || name[0] == '$' ||
+      name.starts_with("value$") || name.starts_with("out$");
   }
 
   std::string Variable::str() const

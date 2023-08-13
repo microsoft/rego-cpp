@@ -4,6 +4,8 @@
 #include <string>
 #include <trieste/driver.h>
 
+#include "builtins.h"
+
 namespace rego
 {
   using namespace trieste;
@@ -28,7 +30,7 @@ namespace rego
     static double get_double(const Node& node);
     static std::string get_string(const Node& node);
     static bool get_bool(const Node& node);
-    static Node resolve_query(const Node& query);
+    static Node resolve_query(const Node& query, const BuiltIns& builtins);
     static NodePrinter stmt_str(const Node& stmt);
     static NodePrinter func_str(const Node& func);
     static NodePrinter arg_str(const Node& arg);
@@ -59,6 +61,9 @@ namespace rego
     static bool is_truthy(const Node& node);
     static Nodes object_lookdown(const Node& object, const Node& query);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
+    static Node abs(const Node& value);
+    static Node ceil(const Node& value);
+    static Node floor(const Node& value);
   };
 
   std::ostream& operator<<(

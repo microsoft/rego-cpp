@@ -30,6 +30,7 @@ namespace rego
     Location name() const;
 
     static std::size_t detect_cycles(std::map<Location, Variable>& variables);
+    static bool is_user_var(const std::string& name);
 
     template <typename T>
     void insert_dependencies(T start, T end)

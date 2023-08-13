@@ -51,8 +51,8 @@ namespace rego_test
     | (Block <<= Group++[1])
     | (LiteralString <<= Group++[1])
     | (FoldedString <<= Group++[1])
-    | (Brace <<= Group++[1])
-    | (Square <<= Group++[1])
+    | (Brace <<= Group++)
+    | (Square <<= Group++)
     | (Group <<= wf_parse_tokens++[1])
     ;
   // clang-format on

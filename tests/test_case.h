@@ -23,7 +23,10 @@ namespace rego_test
       const std::filesystem::path& path,
       const std::filesystem::path& debug_path = "");
 
-    Result run(const std::filesystem::path& executable_path) const;
+    Result run(const std::filesystem::path& executable_path, const std::filesystem::path& debug_path) const;
+
+    /** name of the test case category. */
+    const std::string& category() const;
 
     /** name of file that case was loaded from */
     const std::filesystem::path& filename() const;
@@ -81,6 +84,7 @@ namespace rego_test
     static TestCase create_from_node(const Node& test_case_map);
     std::filesystem::path m_filename;
     std::string m_note;
+    std::string m_category;
     std::string m_query;
     std::vector<std::string> m_modules;
     Node m_data;

@@ -2,8 +2,9 @@
 
 #include "lang.h"
 #include "resolver.h"
+#include "builtins/register.h"
 
-namespace builtins
+namespace
 {
   using namespace rego;
 
@@ -103,15 +104,7 @@ namespace builtins
     return Resolver::scalar(true);
   }
 
-  Node intersection(const Nodes& args)
-  {
-    return Resolver::set_intersection(args[0], args[1]);
-  }
 
-  Node union_(const Nodes& args)
-  {
-    return Resolver::set_union(args[0], args[1]);
-  }
 }
 
 namespace rego
@@ -124,45 +117,50 @@ namespace rego
 
   bool BuiltIns::is_builtin(const Location& name) const
   {
-    return s_builtins.contains(name);
+    return m_builtins.contains(name);
   }
 
   Node BuiltIns::call(const Location& name, const Nodes& args) const
   {
-    return s_builtins.at(name)->behavior(args);
+    return m_builtins.at(name)->behavior(args);
   }
 
   BuiltIns& BuiltIns::register_builtin(const BuiltIn& built_in)
   {
-    s_builtins[built_in->name] = built_in;
+    m_builtins[built_in->name] = built_in;
     return *this;
   }
 
   BuiltIns& BuiltIns::register_standard_builtins()
   {
     register_builtin(
-      BuiltInDef::create(Location("startswith"), 2, builtins::startswith));
+      BuiltInDef::create(Location("startswith"), 2, ::startswith));
     register_builtin(
-      BuiltInDef::create(Location("endswith"), 2, builtins::endswith));
-    register_builtin(BuiltInDef::create(Location("count"), 1, builtins::count));
+      BuiltInDef::create(Location("endswith"), 2, ::endswith));
+    register_builtin(BuiltInDef::create(Location("count"), 1, ::count));
     register_builtin(
-      BuiltInDef::create(Location("to_number"), 1, builtins::to_number));
+      BuiltInDef::create(Location("to_number"), 1, ::to_number));
     register_builtin(
-      BuiltInDef::create(Location("print"), AnyArity, builtins::print));
-    register_builtin(
-      BuiltInDef::create(Location("union"), 2, builtins::union_));
-    register_builtin(
-      BuiltInDef::create(Location("intersection"), 2, builtins::intersection));
+      BuiltInDef::create(Location("print"), AnyArity, ::print));
+
+    register_builtins(builtins::sets());
+    register_builtins(builtins::numbers());
+    
     return *this;
   }
 
   std::map<Location, BuiltIn>::const_iterator BuiltIns::begin() const
   {
-    return s_builtins.begin();
+    return m_builtins.begin();
   }
 
   std::map<Location, BuiltIn>::const_iterator BuiltIns::end() const
   {
-    return s_builtins.end();
+    return m_builtins.end();
+  }
+
+  const BuiltIn& BuiltIns::at(const Location& name) const
+  {
+    return m_builtins.at(name);
   }
 }

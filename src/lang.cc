@@ -27,7 +27,7 @@ namespace rego
   bool Logger::enabled = false;
   std::string Logger::indent = "";
 
-  std::vector<PassCheck> passes()
+  std::vector<PassCheck> passes(const BuiltIns& builtins)
   {
     return {
       {"input_data", input_data(), &wf_pass_input_data},
@@ -53,11 +53,11 @@ namespace rego
       {"compr", compr(), &wf_pass_compr},
       {"absolute_refs", absolute_refs(), &wf_pass_absolute_refs},
       {"merge_modules", merge_modules(), &wf_pass_merge_modules},
-      {"skips", skips(), &wf_pass_skips},
+      {"skips", skips(builtins), &wf_pass_skips},
       {"multiply_divide", multiply_divide(), &wf_pass_multiply_divide},
       {"add_subtract", add_subtract(), &wf_pass_add_subtract},
       {"comparison", comparison(), &wf_pass_comparison},
-      {"assign", assign(), &wf_pass_assign},
+      {"assign", assign(builtins), &wf_pass_assign},
       {"skip_refs", skip_refs(), &wf_pass_skip_refs},
       {"simple_refs", simple_refs(), &wf_pass_simple_refs},
       {"implicit_enums", implicit_enums(), &wf_pass_implicit_enums},
@@ -65,12 +65,12 @@ namespace rego
       {"rulebody", rulebody(), &wf_pass_rulebody},
       {"lift_to_rule", lift_to_rule(), &wf_pass_lift_to_rule},
       {"functions", functions(), &wf_pass_functions},
-      {"unify", unify(), &wf_pass_unify},
+      {"unify", unify(builtins), &wf_pass_unify},
       {"query", query(), &wf_pass_query},
     };
   }
 
-  Driver& driver()
+  Driver& driver(const BuiltIns& builtins)
   {
     static Driver d(
       "rego",
@@ -101,11 +101,11 @@ namespace rego
         {"compr", compr(), wf_pass_compr},
         {"absolute_refs", absolute_refs(), wf_pass_absolute_refs},
         {"merge_modules", merge_modules(), wf_pass_merge_modules},
-        {"skips", skips(), wf_pass_skips},
+        {"skips", skips(builtins), wf_pass_skips},
         {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
         {"add_subtract", add_subtract(), wf_pass_add_subtract},
         {"comparison", comparison(), wf_pass_comparison},
-        {"assign", assign(), wf_pass_assign},
+        {"assign", assign(builtins), wf_pass_assign},
         {"skip_refs", skip_refs(), wf_pass_skip_refs},
         {"simple_refs", simple_refs(), wf_pass_simple_refs},
         {"implicit_enums", implicit_enums(), wf_pass_implicit_enums},
@@ -113,7 +113,7 @@ namespace rego
         {"rulebody", rulebody(), wf_pass_rulebody},
         {"lift_to_rule", lift_to_rule(), wf_pass_lift_to_rule},
         {"functions", functions(), wf_pass_functions},
-        {"unify", unify(), wf_pass_unify},
+        {"unify", unify(builtins), wf_pass_unify},
         {"query", query(), wf_pass_query},
       });
     return d;
