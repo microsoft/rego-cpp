@@ -261,7 +261,7 @@ namespace rego_test
     return false;
   }
 
-  std::optional<std::vector<TestCase>> TestCase::load(
+  std::vector<TestCase> TestCase::load(
     const std::filesystem::path& path, const std::filesystem::path& debug_path)
   {
     if (!debug_path.empty())
@@ -287,6 +287,7 @@ namespace rego_test
     }
 
     auto passes = rego_test::passes();
+    std::vector<TestCase> test_cases;
 
     for (std::size_t i = 0; i < passes.size(); ++i)
     {
@@ -312,65 +313,75 @@ namespace rego_test
         buf << "Failed at pass " << pass_name << std::endl;
         ast->errors(buf);
         std::cerr << buf.str() << std::endl;
-        return std::nullopt;
+        return test_cases;
       }
     }
 
-    std::vector<TestCase> test_cases;
     Node case_seq = ast->front()->front()->back();
     for (Node entry : *case_seq)
     {
-      Node test_case = entry->front();
-      test_cases.push_back(
-        TestCase::create_from_node(test_case).filename(path));
+      auto maybe_testcase = TestCase::create_from_node(entry->front());
+      if (maybe_testcase.has_value())
+      {
+        test_cases.push_back(maybe_testcase->filename(path));
+      }
     }
 
     return test_cases;
   }
 
-  TestCase TestCase::create_from_node(const Node& test_case_map)
+  std::optional<TestCase> TestCase::create_from_node(const Node& test_case_map)
   {
-    TestCase test_case;
-    auto note = maybe_get_string(test_case_map, "note");
-    if (note.has_value())
+    try
     {
-      test_case = test_case.note(*note);
-    }
-    else
-    {
-      throw std::runtime_error("Note is required");
-    }
+      TestCase test_case;
+      auto note = maybe_get_string(test_case_map, "note");
+      if (note.has_value())
+      {
+        test_case = test_case.note(*note);
+      }
+      else
+      {
+        throw std::runtime_error("Note is required");
+      }
 
-    auto query = maybe_get_string(test_case_map, "query");
-    if (query.has_value())
-    {
-      test_case = test_case.query(*query);
-    }
-    else
-    {
-      throw std::runtime_error("Query is required");
-    }
+      auto query = maybe_get_string(test_case_map, "query");
+      if (query.has_value())
+      {
+        test_case = test_case.query(*query);
+      }
+      else
+      {
+        throw std::runtime_error("Query is required");
+      }
 
-    auto data = maybe_get_file(test_case_map, "data");
-    if (data.has_value())
-    {
-      test_case = test_case.data(*data);
-    }
+      auto data = maybe_get_file(test_case_map, "data");
+      if (data.has_value())
+      {
+        test_case = test_case.data(*data);
+      }
 
-    auto input = maybe_get_file(test_case_map, "input");
-    if (input.has_value())
-    {
-      test_case = test_case.input(*input);
-    }
+      auto input = maybe_get_file(test_case_map, "input");
+      if (input.has_value())
+      {
+        test_case = test_case.input(*input);
+      }
 
-    return test_case.modules(get_modules(test_case_map))
-      .input_term(get_string(test_case_map, "input_term"))
-      .want_defined(get_bool(test_case_map, "want_defined"))
-      .want_result(get_node(test_case_map, "want_result"))
-      .want_error_code(get_string(test_case_map, "want_error_code"))
-      .want_error(get_string(test_case_map, "want_error"))
-      .sort_bindings(get_bool(test_case_map, "sort_bindings"))
-      .strict_error(get_bool(test_case_map, "strict_error"));
+      return test_case.modules(get_modules(test_case_map))
+        .input_term(get_string(test_case_map, "input_term"))
+        .want_defined(get_bool(test_case_map, "want_defined"))
+        .want_result(get_node(test_case_map, "want_result"))
+        .want_error_code(get_string(test_case_map, "want_error_code"))
+        .want_error(get_string(test_case_map, "want_error"))
+        .sort_bindings(get_bool(test_case_map, "sort_bindings"))
+        .strict_error(get_bool(test_case_map, "strict_error"));
+    }
+    catch (const std::exception& e)
+    {
+      std::cerr << "Error: " << e.what() << std::endl;
+      std::cerr << test_case_map->location().str() << std::endl;
+      return std::nullopt;
+    }
   }
 
   Result TestCase::run(

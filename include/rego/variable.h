@@ -3,8 +3,6 @@
 #include "value.h"
 #include "value_map.h"
 
-#include <trieste/driver.h>
-
 namespace rego
 {
   class Variable

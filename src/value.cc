@@ -176,7 +176,7 @@ namespace rego
     }
   }
 
-  std::int64_t ValueDef::rank() const
+  rank_t ValueDef::rank() const
   {
     return m_rank;
   }
@@ -255,7 +255,7 @@ namespace rego
   Values ValueDef::filter_by_rank(const Values& values)
   {
     Values filtered;
-    std::int64_t min_index = std::numeric_limits<std::int64_t>::max();
+    rank_t min_index = std::numeric_limits<rank_t>::max();
     for (auto& value : values)
     {
       if (value->rank() == min_index)
@@ -271,5 +271,10 @@ namespace rego
     }
 
     return filtered;
+  }
+
+  rank_t ValueDef::get_rank(const Node& node) 
+  {
+    return std::stoul(to_json(node));
   }
 }

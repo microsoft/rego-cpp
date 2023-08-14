@@ -1,6 +1,7 @@
 #pragma once
 
-#include <trieste/driver.h>
+#include "lang.h"
+
 #include <functional>
 #include <string>
 

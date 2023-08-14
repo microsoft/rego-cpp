@@ -21,7 +21,7 @@ namespace rego_test
   {
   public:
     /** Loads a test case from a YAML file */
-    static std::optional<std::vector<TestCase>> load(
+    static std::vector<TestCase> load(
       const std::filesystem::path& path,
       const std::filesystem::path& debug_path = "");
 
@@ -95,7 +95,7 @@ namespace rego_test
     static bool get_bool(const Node& mapping, const std::string& name);
     static std::vector<std::string> get_modules(const Node& mapping);
     static void diff(const std::string& actual, const std::string& wanted, std::ostream& os);
-    static TestCase create_from_node(const Node& test_case_map);
+    static std::optional<TestCase> create_from_node(const Node& test_case_map);
 
     std::filesystem::path m_filename;
     std::string m_note;

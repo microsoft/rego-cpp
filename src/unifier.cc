@@ -678,6 +678,12 @@ namespace rego
     {
       Node container = args[0]->node();
 
+      if (container->type() == Error)
+      {
+        values.push_back(ValueDef::create(var, container, sources));
+        return values;
+      }
+
       if (container->type() == Term)
       {
         container = container->front();
@@ -1131,7 +1137,7 @@ namespace rego
   {
     if (rulecomp->type() == DefaultRule)
     {
-      std::int64_t index = std::numeric_limits<std::int64_t>::max();
+      rank_t index = std::numeric_limits<rank_t>::max();
       return std::make_pair(
         index, DefaultTerm << (wfi / rulecomp / Term)->front());
     }
@@ -1141,7 +1147,7 @@ namespace rego
     Location rulename = (wfi / rulecomp / Var)->location();
     Node rulebody = wfi / rulecomp / Body;
     Node value = wfi / rulecomp / Val;
-    std::int64_t index = Resolver::get_int(wfi / rulecomp / Idx);
+    rank_t index = ValueDef::get_rank(wfi / rulecomp / Idx);
 
     Node body_result;
     if (rulebody->type() == Empty)
@@ -1210,7 +1216,7 @@ namespace rego
   {
     assert(rulefunc->type() == RuleFunc);
 
-    std::int64_t index = Resolver::get_int(wfi / rulefunc / Idx);
+    rank_t index = ValueDef::get_rank(wfi / rulefunc / Idx);
     Node rule = Resolver::inject_args(rulefunc, args);
     if (rule->type() == Error)
     {

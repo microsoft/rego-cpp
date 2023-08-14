@@ -2,15 +2,16 @@
 
 #include <optional>
 #include <string>
-#include <trieste/driver.h>
 
+#include "lang.h"
 #include "builtins.h"
+#include "bigint.h"
 
 namespace rego
 {
   using namespace trieste;
   using PrintNode = std::ostream& (*)(std::ostream&, const Node&);
-
+  
   class Resolver
   {
   public:
@@ -20,9 +21,9 @@ namespace rego
       PrintNode printer;
     };
 
-    static std::int64_t get_int(const Node& node);
+    static BigInt get_int(const Node& node);
 
-    static Node scalar(int64_t value);
+    static Node scalar(BigInt value);
     static Node scalar(double value);
     static Node scalar(bool value);
     static Node scalar(const std::string& value);
@@ -64,6 +65,7 @@ namespace rego
     static Node abs(const Node& value);
     static Node ceil(const Node& value);
     static Node floor(const Node& value);
+    static Node round(const Node& value);
   };
 
   std::ostream& operator<<(

@@ -43,13 +43,13 @@ namespace
       collection->type() == Object || collection->type() == Array ||
       collection->type() == Set)
     {
-      return Resolver::scalar(static_cast<std::int64_t>(collection->size()));
+      return Resolver::scalar(BigInt(collection->size()));
     }
     else if (collection->type() == JSONString)
     {
       std::string collection_str =
         strip_quotes(std::string(collection->location().view()));
-      return Resolver::scalar(static_cast<std::int64_t>(collection_str.size()));
+      return Resolver::scalar(BigInt(collection_str.size()));
     }
     else
     {
@@ -69,8 +69,7 @@ namespace
 
     try
     {
-      std::int64_t int_value = std::stoll(number_str);
-      return Resolver::scalar(int_value);
+      return Resolver::scalar(args[0]->location());
     }
     catch (const std::invalid_argument)
     {

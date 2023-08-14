@@ -31,9 +31,9 @@ namespace
     ;
   // clang-format on
 
-  std::int64_t get_int(const Node& node)
+  BigInt get_int(const Node& node)
   {
-    return std::stoll(to_json(node));
+    return BigInt(node->location());
   }
 
   double get_double(const Node& node)
@@ -41,9 +41,9 @@ namespace
     return std::stod(to_json(node));
   }
 
-  Node do_arith(const Node& op, std::int64_t lhs, std::int64_t rhs)
+  Node do_arith(const Node& op, BigInt lhs, BigInt rhs)
   {
-    std::int64_t value;
+    BigInt value;
     if (op->type() == Add)
     {
       value = lhs + rhs;
@@ -58,16 +58,20 @@ namespace
     }
     else if (op->type() == Divide)
     {
-      if (rhs == 0)
+      return err(op, "unsupported math operation");
+      /*
+      In case we need integer division in the future.
+      if (rhs.is_zero())
       {
-        return err(op, "divide by zero");
+        return err(op, "divide by zero", "eval_builtin_error");
       }
 
       value = lhs / rhs;
+      */
     }
     else if (op->type() == Modulo)
     {
-      if (rhs == 0)
+      if (rhs.is_zero())
       {
         return err(op, "modulo by zero", "eval_builtin_error");
       }
@@ -79,7 +83,7 @@ namespace
       return err(op, "unsupported math operation");
     }
 
-    return JSONInt ^ std::to_string(value);
+    return JSONInt ^ value.loc();
   }
 
   Node do_arith(const Node& op, double lhs, double rhs)
@@ -101,7 +105,7 @@ namespace
     {
       if (rhs == 0.0)
       {
-        return err(op, "divide by zero");
+        return err(op, "divide by zero", "eval_builtin_error");
       }
 
       value = lhs / rhs;
@@ -116,11 +120,12 @@ namespace
     }
 
     std::ostringstream oss;
-    oss << std::setprecision(8) << std::noshowpoint << value;
+    oss << std::setprecision(std::numeric_limits<double>::max_digits10)
+        << std::noshowpoint << value;
     return JSONFloat ^ oss.str();
   }
 
-  Node do_bool(const Node& op, std::int64_t lhs, std::int64_t rhs)
+  Node do_bool(const Node& op, BigInt lhs, BigInt rhs)
   {
     bool value;
     if (op->type() == Equals)
@@ -249,15 +254,15 @@ namespace
 
 namespace rego
 {
-  std::int64_t Resolver::get_int(const Node& node)
+  BigInt Resolver::get_int(const Node& node)
   {
     assert(node->type() == JSONInt);
     return ::get_int(node);
   }
 
-  Node Resolver::scalar(std::int64_t value)
+  Node Resolver::scalar(BigInt value)
   {
-    return JSONInt ^ std::to_string(value);
+    return JSONInt ^ value.loc();
   }
 
   double Resolver::get_double(const Node& node)
@@ -306,9 +311,8 @@ namespace rego
   {
     if (node->type() == JSONInt)
     {
-      std::int64_t value = get_int(node);
-      value *= -1;
-      return JSONInt ^ std::to_string(value);
+      BigInt value = get_int(node);
+      return JSONInt ^ value.negate().loc();
     }
     else if (node->type() == JSONFloat)
     {
@@ -346,7 +350,7 @@ namespace rego
     {
       Node lhs_number = maybe_lhs_number.value();
       Node rhs_number = maybe_rhs_number.value();
-      if (lhs_number->type() == JSONInt && rhs_number->type() == JSONInt)
+      if (lhs_number->type() == JSONInt && rhs_number->type() == JSONInt && op->type() != Divide)
       {
         return do_arith(op, get_int(lhs_number), get_int(rhs_number));
       }
@@ -558,8 +562,8 @@ namespace rego
 
       if (index->type() == JSONInt)
       {
-        auto i = get_int(index);
-        if (i >= 0 && static_cast<std::size_t>(i) < container->size())
+        auto i = get_int(index).to_size();
+        if (i < container->size())
         {
           Node value = container->at(i);
           if (value->type() == Expr)
@@ -1219,12 +1223,12 @@ namespace rego
     Node number = maybe_number.value();
     if (number->type() == JSONInt)
     {
-      std::int64_t value = get_int(number);
-      if (value < 0)
+      BigInt value = get_int(number);
+      if (value.is_negative())
       {
-        value *= -1;
+        value = value.negate();
       }
-      return JSONInt ^ std::to_string(value);
+      return JSONInt ^ value.loc();
     }
     else
     {
@@ -1252,9 +1256,8 @@ namespace rego
     }
     else
     {
-      std::int64_t value =
-        static_cast<std::int64_t>(std::ceil(get_double(number)));
-      return JSONInt ^ std::to_string(value);
+      BigInt value(static_cast<std::int64_t>(std::ceil(get_double(number))));
+      return JSONInt ^ value.loc();
     }
   }
 
@@ -1273,9 +1276,28 @@ namespace rego
     }
     else
     {
-      std::int64_t value =
-        static_cast<std::int64_t>(std::floor(get_double(number)));
-      return JSONInt ^ std::to_string(value);
+      BigInt value(static_cast<std::int64_t>(std::floor(get_double(number))));
+      return JSONInt ^ value.loc();
+    }
+  }
+
+  Node Resolver::round(const Node& node)
+  {
+    auto maybe_number = maybe_unwrap_number(node);
+    if (!maybe_number.has_value())
+    {
+      return err(node, "Not a number");
+    }
+
+    Node number = maybe_number.value();
+    if (number->type() == JSONInt)
+    {
+      return number;
+    }
+    else
+    {
+      BigInt value(static_cast<std::int64_t>(std::round(get_double(number))));
+      return JSONInt ^ value.loc();
     }
   }
 }

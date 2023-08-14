@@ -18,6 +18,11 @@ namespace {
   {
     return Resolver::floor(args[0]);
   }
+
+  Node round(const Nodes& args)
+  {
+    return Resolver::round(args[0]);
+  }
 }
 
 namespace rego {
@@ -28,6 +33,7 @@ namespace rego {
         BuiltInDef::create(Location("abs"), 1, abs),
         BuiltInDef::create(Location("ceil"), 1, ceil),
         BuiltInDef::create(Location("floor"), 1, floor),
+        BuiltInDef::create(Location("round"), 1, round)
       };
     }
   }

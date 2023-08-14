@@ -14,23 +14,15 @@ void load_testcases(
   const std::filesystem::path& debug_path,
   TestCases& testcases)
 {
-  std::vector<rego_test::TestCase> test_cases;
-  auto maybe_test_cases = rego_test::TestCase::load(path, debug_path);
-  if (maybe_test_cases.has_value())
+  std::vector<rego_test::TestCase> test_cases =
+    rego_test::TestCase::load(path, debug_path);
+  for (auto test_case : test_cases)
   {
-    test_cases = *maybe_test_cases;
-    for (auto test_case : test_cases)
+    if (!testcases.contains(test_case.category()))
     {
-      if (!testcases.contains(test_case.category()))
-      {
-        testcases[test_case.category()] = std::vector<rego_test::TestCase>();
-      }
-      testcases[test_case.category()].push_back(test_case);
+      testcases[test_case.category()] = std::vector<rego_test::TestCase>();
     }
-  }
-  else
-  {
-    std::cout << "Unable to parse test cases in " << path << std::endl;
+    testcases[test_case.category()].push_back(test_case);
   }
 }
 

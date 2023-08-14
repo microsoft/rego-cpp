@@ -2,15 +2,13 @@
 
 #include "lang.h"
 
-#include <cstdint>
-#include <trieste/driver.h>
-
 namespace rego
 {
   class ValueDef;
+  using rank_t = std::size_t;
   using Value = std::shared_ptr<ValueDef>;
   using Values = std::vector<Value>;
-  using RankedNode = std::pair<std::int64_t, Node>;
+  using RankedNode = std::pair<rank_t, Node>;
 
   class ValueDef
   {
@@ -26,7 +24,7 @@ namespace rego
     const Node& node() const;
     const Values& sources() const;
     Node to_term() const;
-    std::int64_t rank() const;
+    rank_t rank() const;
     friend std::ostream& operator<<(std::ostream& os, const Value& value);
     friend std::ostream& operator<<(std::ostream& os, const ValueDef& value);
     friend bool operator==(const Value& lhs, const Value& rhs);
@@ -42,6 +40,7 @@ namespace rego
       const Location& var, const Node& value, const Values& sources);
     static Value copy_to(const Value& value, const Location& var);
     static Values filter_by_rank(const Values& values);
+    static rank_t get_rank(const Node& node);
 
   private:
     void to_string(std::ostream& buf, const Location& root, bool first) const;
@@ -49,7 +48,7 @@ namespace rego
     Node m_node;
     Values m_sources;
     bool m_invalid;
-    std::int64_t m_rank;
+    rank_t m_rank;
     ValueDef(const RankedNode& value);
     ValueDef(const Location& var, const RankedNode& value);
     ValueDef(

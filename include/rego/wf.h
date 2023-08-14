@@ -374,6 +374,15 @@ namespace rego
     ;
   // clang-format on
 
+  // clang-format off
+  inline const auto wf_pass_unary =
+    wf_pass_skips
+    | (UnaryExpr <<= ArithArg)
+    | (ArithArg <<= (Expr | RefTerm | NumTerm | UnaryExpr | ExprCall))
+    | (Expr <<= (RefTerm | NumTerm | Term | Unify | Expr | UnaryExpr |ExprCall | ExprEvery | Set | SetCompr | UnaryExpr | wf_arith_op | wf_bin_op | wf_bool_op)++[1])
+    ;
+  // clang-format on
+
   inline const auto wf_math_tokens =
     RefTerm | NumTerm | UnaryExpr | ArithInfix | ExprCall;
 
@@ -382,13 +391,13 @@ namespace rego
 
   // clang-format off
   inline const auto wf_pass_multiply_divide =
-    wf_pass_skips
+    wf_pass_unary
     | (ArithInfix <<= ArithArg * (Op >>= Multiply | Divide | Modulo) * ArithArg)
-    | (ArithArg <<= (Add | Subtract | Expr | wf_math_tokens)++[1])
+    | (ArithArg <<= Expr | wf_math_tokens)
     | (BinInfix <<= BinArg * (Op >>= And) * BinArg)
-    | (BinArg <<= (Or | Expr | wf_bin_tokens)++[1])
+    | (BinArg <<= (Expr | wf_bin_tokens)++[1])
     | (UnaryExpr <<= ArithArg)
-    | (Expr <<= (NumTerm | RefTerm | Term | Add | Subtract | Or | wf_bool_op | Unify | Expr | ArithInfix | BinInfix | ExprCall | ExprEvery | Set | SetCompr)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr | UnaryExpr | ArithInfix | BinInfix | ExprCall | ExprEvery | Set | SetCompr | Add | Subtract | Or | wf_bool_op)++[1])
     ;
   // clang-format on
 
@@ -399,7 +408,7 @@ namespace rego
     | (ArithArg <<= Expr | wf_math_tokens)
     | (BinInfix <<= BinArg * (Op >>= wf_bin_op) * BinArg)
     | (BinArg <<= Expr | wf_bin_tokens)
-    | (Expr <<= (NumTerm | RefTerm | Term | wf_bool_op | Unify | Expr | UnaryExpr | ArithInfix | BinInfix | ExprCall | ExprEvery | Set | SetCompr)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr | UnaryExpr | ArithInfix | BinInfix | ExprCall | ExprEvery | Set | SetCompr | wf_bool_op)++[1])
     ;
   // clang-format on
 
@@ -412,7 +421,7 @@ namespace rego
     | (BinArg <<= wf_bin_tokens)
     | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralNot)++[1])
     | (LiteralNot <<= Expr)
-    | (Expr <<= (NumTerm | RefTerm | Term | UnaryExpr | Unify | Expr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate | Set | SetCompr)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr| UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate | Set | SetCompr)++[1])
     | (Enumerate <<= Expr)
     ;
   // clang-format on
