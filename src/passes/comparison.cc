@@ -4,7 +4,7 @@ namespace rego
 {
   const inline auto NotArg = ArithInfixArg / T(BoolInfix);
   const inline auto BoolInfixArg = T(RefTerm) / T(NumTerm) / T(UnaryExpr) /
-    T(ArithInfix) / T(Term) / T(ExprCall) / T(BinInfix);
+    T(ArithInfix) / T(Term) / T(ExprCall) / T(BinInfix) / T(Set) / T(SetCompr);
   const inline auto RefArgBrackArg =
     T(Scalar) / T(Var) / T(Object) / T(Array) / T(Set);
 
@@ -12,8 +12,8 @@ namespace rego
   PassDef comparison()
   {
     return {
-      In(Expr) * (T(Expr) << (BoolInfixArg[Arg] * End)) >>
-        [](Match& _) { return _(Arg); },
+      In(UnifyBody) * (T(Literal) << (T(Expr) << (T(Not) * Any++[Expr]))) >>
+        [](Match& _) { return LiteralNot << (Expr << _[Expr]); },
 
       In(Literal) *
           (T(Expr)
@@ -32,6 +32,9 @@ namespace rego
                               << _(Rhs));
         },
 
+      In(Expr) * (T(Expr) << (BoolInfixArg[Arg] * End)) >>
+        [](Match& _) { return _(Arg); },
+
       In(Expr) * (BoolInfixArg[Lhs] * BoolToken[Op] * BoolInfixArg[Rhs]) >>
         [](Match& _) {
           return BoolInfix << (BoolArg << _(Lhs)) << _(Op)
@@ -39,13 +42,12 @@ namespace rego
         },
 
       In(Expr) *
-          (~T(Not)[Not] * BoolInfixArg[Lhs]([](auto& n) {
-            return is_in(*n.first, {UnifyBody});
-          }) *
+          (BoolInfixArg[Lhs](
+             [](auto& n) { return is_in(*n.first, {UnifyBody}); }) *
            T(MemberOf) * BoolInfixArg[Rhs]) >>
         [](Match& _) {
           Location item = _.fresh({"item"});
-          Location unify = _.fresh({_(Not) == nullptr ? "unify" : "not"});
+          Location unify = _.fresh({is_in(_(Lhs), {LiteralNot}) ? "not" : "unify"});
           Node seq = Seq
             << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
             << (Lift << UnifyBody << (Local << (Var ^ unify) << Undefined))
@@ -65,23 +67,14 @@ namespace rego
                                                      << (JSONInt ^ "1")))))))))
             << (RefTerm << (Var ^ unify)) << Unify << _(Lhs);
 
-          if (_(Not) != nullptr)
-          {
-            seq
-              << (Lift << UnifyBody
-                       << (Literal
-                           << (NotExpr
-                               << (Expr << (RefTerm << (Var ^ unify))))));
-          }
-
           return seq;
         },
 
+      In(Expr) * (T(Set) / T(SetCompr))[Set] >>
+        [](Match& _) { return Term << _(Set); },
+
       In(RefArgBrack) * (T(Term) << RefArgBrackArg[Arg]) >>
         [](Match& _) { return _(Arg); },
-
-      In(Literal) * (T(Expr) << (T(Not) * NotArg[Val])) >>
-        [](Match& _) { return NotExpr << (Expr << _(Val)); },
 
       (In(ArithArg) / In(BoolArg)) * (T(Expr) << ArithInfixArg[Val]) >>
         [](Match& _) { return _(Val); },
@@ -93,9 +86,6 @@ namespace rego
 
       In(Expr) * T(Not)[Not] >>
         [](Match& _) { return err(_(Not), "Invalid not"); },
-
-      In(Literal) * (T(NotExpr)[NotExpr] << End) >>
-        [](Match& _) { return err(_(NotExpr), "Invalid not"); },
 
       In(Expr) * T(MemberOf)[MemberOf] >>
         [](Match& _) { return err(_(MemberOf), "Invalid in statement"); },

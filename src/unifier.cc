@@ -1052,17 +1052,47 @@ namespace rego
         }
       }
 
-      for (auto& rule : rules)
+      auto peek_type = rules[0]->type();
+      if (peek_type == RuleSet)
       {
-        if (rule->type() == RuleComp)
+        // construct a set from all valid rules
+        auto maybe_node = resolve_ruleset(rules);
+        if (maybe_node)
         {
-          Node body = rule / Body;
-          Node val = rule / Val;
-          if (body->type() == Empty && val->type() == Term)
+          values.push_back(ValueDef::create(*maybe_node));
+        }
+      }
+      else if (peek_type == RuleObj)
+      {
+        // construct an object from all valid rules
+        auto maybe_node = resolve_ruleobj(rules);
+        if (maybe_node)
+        {
+          values.push_back(ValueDef::create(*maybe_node));
+        }
+      }
+      else
+      {
+        for (auto& rule : rules)
+        {
+          if (rule->type() == RuleComp)
           {
-            values.push_back(ValueDef::create(val->clone()));
+            Node body = rule / Body;
+            Node val = rule / Val;
+            if (body->type() == Empty && val->type() == Term)
+            {
+              values.push_back(ValueDef::create(val->clone()));
+            }
+            else
+            {
+              auto maybe_node = resolve_rulecomp(rule);
+              if (maybe_node)
+              {
+                values.push_back(ValueDef::create(maybe_node.value()));
+              }
+            }
           }
-          else
+          else if (rule->type() == DefaultRule)
           {
             auto maybe_node = resolve_rulecomp(rule);
             if (maybe_node)
@@ -1070,18 +1100,10 @@ namespace rego
               values.push_back(ValueDef::create(maybe_node.value()));
             }
           }
-        }
-        else if (rule->type() == DefaultRule)
-        {
-          auto maybe_node = resolve_rulecomp(rule);
-          if (maybe_node)
+          else
           {
-            values.push_back(ValueDef::create(maybe_node.value()));
+            values.push_back(ValueDef::create(rule));
           }
-        }
-        else
-        {
-          values.push_back(ValueDef::create(rule));
         }
       }
     }

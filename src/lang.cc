@@ -119,7 +119,7 @@ namespace rego
     return d;
   }
 
-  std::string to_json(const Node& node)
+  std::string to_json(const Node& node, bool sort)
   {
     std::ostringstream buf;
     if (node->type() == JSONInt)
@@ -164,11 +164,20 @@ namespace rego
     }
     else if (node->type() == Array || node->type() == DataArray)
     {
-      buf << "[";
-      std::string sep = "";
+      std::vector<std::string> items;
       for (const auto& child : *node)
       {
-        buf << sep << to_json(child);
+        items.push_back(to_json(child, sort));
+      }
+
+      if(sort){
+        std::sort(items.begin(), items.end());
+      }
+      buf << "[";
+      std::string sep = "";
+      for (const auto& item : items)
+      {
+        buf << sep << item;
         sep = ", ";
       }
       buf << "]";
@@ -178,7 +187,7 @@ namespace rego
       std::set<std::string> items;
       for (const auto& child : *node)
       {
-        items.insert(to_json(child));
+        items.insert(to_json(child, sort));
       }
 
       buf << "[";
@@ -198,7 +207,7 @@ namespace rego
       {
         auto key = wfi / child / Key;
         auto value = wfi / child / Val;
-        items[to_json(key)] = to_json(value);
+        items[to_json(key, sort)] = to_json(value, sort);
       }
 
       buf << "{";
@@ -215,12 +224,12 @@ namespace rego
       node->type() == Scalar || node->type() == Term ||
       node->type() == DataTerm)
     {
-      return to_json(node->front());
+      return to_json(node->front(), sort);
     }
     else if (node->type() == Binding)
     {
       buf << (wfi / node / Var)->location().view() << " = "
-          << to_json(wfi / node / Term);
+          << to_json(wfi / node / Term, sort);
     }
     else if (node->type() == TermSet)
     {
@@ -228,7 +237,7 @@ namespace rego
       std::string sep = "";
       for (const auto& child : *node)
       {
-        buf << sep << to_json(child);
+        buf << sep << to_json(child, sort);
         sep = ", ";
       }
       buf << "}";
@@ -425,5 +434,15 @@ namespace rego
     }
 
     return in_query(node->parent()->shared_from_this());
+  }
+
+  Node err(NodeRange& r, const std::string& msg, const std::string& code)
+  {
+    return Error << (ErrorMsg ^ msg) << (ErrorAst << r) << (ErrorCode ^ code);
+  }
+
+  Node err(Node node, const std::string& msg, const std::string& code)
+  {
+    return Error << (ErrorMsg ^ msg) << (ErrorAst << node->clone()) << (ErrorCode ^ code);
   }
 }

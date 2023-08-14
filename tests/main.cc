@@ -41,15 +41,12 @@ int main(int argc, char** argv)
   app.set_help_all_flag("--help-all", "Expand all help");
 
   std::vector<std::filesystem::path> case_paths;
-  app.add_option("case,-c,--case", case_paths, "Test case YAML files");
+  app.add_option(
+    "case,-c,--case", case_paths, "Test case YAML files or directories");
 
   std::filesystem::path debug_path;
   app.add_option(
     "-a,--ast", debug_path, "Output the AST (debugging for test case parser)");
-
-  std::vector<std::filesystem::path> case_dirs;
-  app.add_option(
-    "-d,--dir", case_dirs, "Directories containing test cas  e YAML files");
 
   bool enable_logging{false};
   app.add_flag("-l,--logging", enable_logging, "Enable logging");
@@ -70,20 +67,19 @@ int main(int argc, char** argv)
   rego::Logger::enabled = enable_logging;
 
   TestCases all_testcases;
-  if (!case_dirs.empty())
+  for (auto file_or_dir : case_paths)
   {
-    for (auto dir : case_dirs)
+    if (std::filesystem::is_directory(file_or_dir))
     {
-      for (auto& p : std::filesystem::directory_iterator(dir))
+      for (auto& p : std::filesystem::directory_iterator(file_or_dir))
       {
-        case_paths.push_back(p);
+        load_testcases(p, debug_path, all_testcases);
       }
     }
-  }
-
-  for (auto p : case_paths)
-  {
-    load_testcases(p, debug_path, all_testcases);
+    else
+    {
+      load_testcases(file_or_dir, debug_path, all_testcases);
+    }
   }
 
   int failures = 0;
@@ -109,14 +105,14 @@ int main(int argc, char** argv)
         else
         {
           failures++;
-          std::cout << std::setw(70) << Red << "  FAIL: " << Reset
-                    << testcase.note() << std::fixed
-                    << std::setw(62 - testcase.note().length()) << std::internal
-                    << std::setprecision(2) << elapsed.count() << " sec"
-                    << std::endl;
+          std::cout << Red << "  FAIL: " << Reset << testcase.note()
+                    << std::fixed << std::setw(62 - testcase.note().length())
+                    << std::internal << std::setprecision(2) << elapsed.count()
+                    << " sec" << std::endl;
           std::cout << "  " << result.error << std::endl;
           std::cout << "(from " << testcase.filename() << ")" << std::endl;
-          if(fail_first){
+          if (fail_first)
+          {
             break;
           }
         }
@@ -124,16 +120,17 @@ int main(int argc, char** argv)
       catch (const std::exception& e)
       {
         failures++;
-        std::cout << std::setw(70) << Red << "  FAIL: " << Reset
-                  << testcase.note() << std::endl;
+        std::cout << Red << "  FAIL: " << Reset << testcase.note() << std::endl;
         std::cout << "  " << e.what() << std::endl;
         std::cout << "(from " << testcase.filename() << ")" << std::endl;
-        if(fail_first){
+        if (fail_first)
+        {
           break;
         }
       }
     }
-    if(failures > 0 && fail_first){
+    if (failures > 0 && fail_first)
+    {
       break;
     }
 

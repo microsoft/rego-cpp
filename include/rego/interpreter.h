@@ -37,7 +37,7 @@ namespace rego
   private:
     void write_ast(
       std::size_t index, const std::string& pass, const Node& ast) const;
-    bool has_error(const Node& ast) const;
+    Node get_errors(const Node& ast) const;
     Parse m_parser;
     wf::Wellformed m_wf_parser;
     Node m_module_seq;

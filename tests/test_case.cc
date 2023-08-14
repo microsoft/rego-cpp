@@ -2,11 +2,10 @@
 
 #include "rego_test.h"
 
-namespace
+namespace rego_test
 {
-  using namespace rego_test;
 
-  void write_ast(
+  void TestCase::write_ast(
     const std::filesystem::path& debug_path,
     std::size_t index,
     const std::string& pass,
@@ -57,7 +56,8 @@ namespace
     return false;
   }
 
-  std::optional<Node> maybe_get_file(Node mapping, const std::string& name)
+  std::optional<Node> TestCase::maybe_get_file(
+    const Node& mapping, const std::string& name)
   {
     Location loc(name);
     Nodes defs = mapping->lookdown(loc);
@@ -76,8 +76,8 @@ namespace
     return std::nullopt;
   }
 
-  std::optional<std::string> maybe_get_string(
-    Node mapping, const std::string& name)
+  std::optional<std::string> TestCase::maybe_get_string(
+    const Node& mapping, const std::string& name)
   {
     Location loc(name);
     Nodes defs = mapping->lookdown(loc);
@@ -98,7 +98,7 @@ namespace
     return std::nullopt;
   }
 
-  std::string get_string(Node mapping, const std::string& name)
+  std::string TestCase::get_string(const Node& mapping, const std::string& name)
   {
     auto maybe_string = maybe_get_string(mapping, name);
     if (maybe_string.has_value())
@@ -109,7 +109,7 @@ namespace
     return "";
   }
 
-  Node get_node(Node mapping, const std::string& name)
+  Node TestCase::get_node(const Node& mapping, const std::string& name)
   {
     Location loc(name);
     Nodes defs = mapping->lookdown(loc);
@@ -126,7 +126,7 @@ namespace
     return {};
   }
 
-  bool get_bool(Node mapping, const std::string& name)
+  bool TestCase::get_bool(const Node& mapping, const std::string& name)
   {
     Location loc(name);
     Nodes defs = mapping->lookdown(loc);
@@ -147,7 +147,7 @@ namespace
     return false;
   }
 
-  std::vector<std::string> get_modules(Node mapping)
+  std::vector<std::string> TestCase::get_modules(const Node& mapping)
   {
     Location loc("modules");
     Nodes defs = mapping->lookdown(loc);
@@ -174,22 +174,22 @@ namespace
     return modules;
   }
 
-  using BindingMap = std::map<std::string, std::string>;
-
-  BindingMap to_binding_map(const Node& node)
+  BindingMap TestCase::to_binding_map(const Node& node) const
   {
     BindingMap bindings;
     for (auto& binding : *node)
     {
       std::string key = std::string((binding / rego::Var)->location().view());
-      std::string value = rego::to_json((binding / rego::Term));
+      std::string value =
+        rego::to_json((binding / rego::Term), m_sort_bindings);
       bindings[key] = value;
     }
 
     return bindings;
   }
 
-  void diff(std::string actual, std::string wanted, std::ostream& os)
+  void TestCase::diff(
+    const std::string& actual, const std::string& wanted, std::ostream& os)
   {
     std::set<std::size_t> errors;
     std::size_t index = 0;
@@ -224,7 +224,8 @@ namespace
     }
   }
 
-  bool compare(Node actual, Node wanted, std::ostream& os)
+  bool TestCase::compare(
+    const Node& actual, const Node& wanted, std::ostream& os) const
   {
     BindingMap actual_bindings = to_binding_map(actual);
     BindingMap wanted_bindings = to_binding_map(wanted);
@@ -245,19 +246,32 @@ namespace
 
     return true;
   }
-}
 
-namespace rego_test
-{
+  bool TestCase::compare(
+    const std::string& actual,
+    const std::string& wanted,
+    std::ostream& os) const
+  {
+    if (actual == wanted)
+    {
+      return true;
+    }
+
+    diff(actual, wanted, os);
+    return false;
+  }
+
   std::optional<std::vector<TestCase>> TestCase::load(
     const std::filesystem::path& path, const std::filesystem::path& debug_path)
   {
-    if(!debug_path.empty()){
-    if(std::filesystem::is_directory(debug_path)){
-      std::filesystem::remove_all(debug_path);
-    }
+    if (!debug_path.empty())
+    {
+      if (std::filesystem::is_directory(debug_path))
+      {
+        std::filesystem::remove_all(debug_path);
+      }
 
-    std::filesystem::create_directory(debug_path);
+      std::filesystem::create_directory(debug_path);
     }
 
     auto ast = parser().parse(path);
@@ -359,11 +373,14 @@ namespace rego_test
       .strict_error(get_bool(test_case_map, "strict_error"));
   }
 
-  Result TestCase::run(const std::filesystem::path& executable_path, const std::filesystem::path& debug_path) const
+  Result TestCase::run(
+    const std::filesystem::path& executable_path,
+    const std::filesystem::path& debug_path) const
   {
     rego::Interpreter interpreter;
     interpreter.executable(executable_path);
-    if(!debug_path.empty() > 0){
+    if (!debug_path.empty() > 0)
+    {
       interpreter.debug_enabled(true);
       interpreter.debug_path(debug_path);
     }
@@ -385,24 +402,75 @@ namespace rego_test
 
     bool pass = true;
     std::ostringstream error;
-    Node actual = interpreter.raw_query(m_query);
+    Node actual;
+    try
+    {
+      actual = interpreter.raw_query(m_query);
+    }
+    catch (const std::exception& e)
+    {
+      return {false, e.what()};
+    }
+
+    if (actual->type() == ErrorSeq)
+    {
+      if (actual->size() > 1)
+      {
+        pass = false;
+        error << "expected one error, actual: " << actual << std::endl;
+      }
+      else
+      {
+        actual = actual->front();
+      }
+    }
+
     if (m_want_error.length() > 0)
     {
-      pass = false;
-      error << "Unsupported test option";
+      if (actual->type() != Error)
+      {
+        pass = false;
+        error << "wanted an error, actual: " << actual << std::endl;
+      }
+      else
+      {
+        std::string actual_error =
+          std::string((actual / ErrorMsg)->location().view());
+        std::string actual_code =
+          std::string((actual / ErrorCode)->location().view());
+        bool pass_error = compare(actual_error, m_want_error, error);
+        bool pass_code = compare(actual_code, m_want_error_code, error);
+        pass = pass_error && pass_code;
+      }
     }
     else if (m_want_error_code.length() > 0)
     {
-      pass = false;
-      error << "Unsupported test option";
+      std::string actual_code =
+        std::string((actual / ErrorCode)->location().view());
+      pass = compare(actual_code, m_want_error_code, error);
     }
     else if (m_want_result)
     {
-      if(actual->front()->type() != Undefined){
-        pass = compare(actual, m_want_result, error);
-      }else{
+      if (actual->front()->type() != Undefined)
+      {
+        if (actual->type() == Error)
+        {
+          pass = false;
+          error << "wanted a result, received: " << std::endl;
+          error << "  error: " << (actual / ErrorMsg)->location().view()
+                << std::endl;
+          error << "  code: " << (actual / ErrorCode)->location().view()
+                << std::endl;
+        }
+        else
+        {
+          pass = compare(actual, m_want_result, error);
+        }
+      }
+      else
+      {
         pass = false;
-        error << "undefined";
+        error << "wanted a result, but was undefined";
       }
     }
     else if (m_want_defined)
@@ -442,9 +510,12 @@ namespace rego_test
   {
     m_note = note;
     auto pos = m_note.find('/');
-    if(pos == std::string::npos){
+    if (pos == std::string::npos)
+    {
       m_category = "";
-    }else{
+    }
+    else
+    {
       m_category = m_note.substr(0, pos);
     }
 

@@ -67,6 +67,11 @@ namespace
     }
     else if (op->type() == Modulo)
     {
+      if (rhs == 0)
+      {
+        return err(op, "modulo by zero", "eval_builtin_error");
+      }
+
       value = lhs % rhs;
     }
     else
@@ -103,8 +108,7 @@ namespace
     }
     else if (op->type() == Modulo)
     {
-      // current behavior of OPA interpreter is to return undefined
-      return Undefined;
+      return err(op, "modulo on floating-point number", "eval_builtin_error");
     }
     else
     {
@@ -358,6 +362,12 @@ namespace rego
       if (maybe_lhs_set.has_value() && maybe_rhs_set.has_value())
       {
         return bininfix(op, maybe_lhs_set.value(), maybe_rhs_set.value());
+      }
+
+      if (maybe_lhs_number.has_value() && maybe_rhs_set.has_value())
+      {
+        return err(
+          rhs, "operand 2 must be number but got set", "eval_type_error");
       }
 
       return err(
@@ -690,9 +700,14 @@ namespace rego
 
   Node Resolver::set_intersection(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set || rhs->type() != Set)
+    if (lhs->type() != Set)
     {
-      return err("intersection: both arguments must be sets");
+      return err(lhs, "intersection: both arguments must be sets");
+    }
+
+    if (rhs->type() != Set)
+    {
+      return err(rhs, "intersection: both arguments must be sets");
     }
 
     Node set = NodeDef::create(Set);
@@ -715,9 +730,14 @@ namespace rego
 
   Node Resolver::set_union(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set || rhs->type() != Set)
+    if (lhs->type() != Set)
     {
-      return err("intersection: both arguments must be sets");
+      return err(lhs, "union: both arguments must be sets");
+    }
+
+    if (rhs->type() != Set)
+    {
+      return err(rhs, "union: both arguments must be sets");
     }
 
     std::map<std::string, Node> members;
@@ -746,9 +766,14 @@ namespace rego
 
   Node Resolver::set_difference(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set || rhs->type() != Set)
+    if (lhs->type() != Set)
     {
-      return err("intersection: both arguments must be sets");
+      return err(lhs, "difference: both arguments must be sets");
+    }
+
+    if (rhs->type() != Set)
+    {
+      return err(rhs, "difference: both arguments must be sets");
     }
 
     Node set = NodeDef::create(Set);
@@ -1183,55 +1208,74 @@ namespace rego
     return result;
   }
 
-  Node Resolver::abs(const Node& node) {
+  Node Resolver::abs(const Node& node)
+  {
     auto maybe_number = maybe_unwrap_number(node);
-    if(!maybe_number.has_value()){
+    if (!maybe_number.has_value())
+    {
       return err(node, "Not a number");
     }
 
     Node number = maybe_number.value();
-    if(number->type() == JSONInt){
+    if (number->type() == JSONInt)
+    {
       std::int64_t value = get_int(number);
-      if(value < 0){
+      if (value < 0)
+      {
         value *= -1;
       }
       return JSONInt ^ std::to_string(value);
-    } else {
+    }
+    else
+    {
       double value = get_double(number);
-      if(value < 0){
+      if (value < 0)
+      {
         value *= -1;
       }
       return JSONFloat ^ std::to_string(value);
     }
   }
 
-  Node Resolver::ceil(const Node& node) {
+  Node Resolver::ceil(const Node& node)
+  {
     auto maybe_number = maybe_unwrap_number(node);
-    if(!maybe_number.has_value()){
+    if (!maybe_number.has_value())
+    {
       return err(node, "Not a number");
     }
 
     Node number = maybe_number.value();
-    if(number->type() == JSONInt){
+    if (number->type() == JSONInt)
+    {
       return number;
-    } else {
-      std::int64_t value = static_cast<std::int64_t>(std::ceil(get_double(number)));
+    }
+    else
+    {
+      std::int64_t value =
+        static_cast<std::int64_t>(std::ceil(get_double(number)));
       return JSONInt ^ std::to_string(value);
     }
   }
 
-  Node Resolver::floor(const Node& node) {
+  Node Resolver::floor(const Node& node)
+  {
     auto maybe_number = maybe_unwrap_number(node);
-    if(!maybe_number.has_value()){
+    if (!maybe_number.has_value())
+    {
       return err(node, "Not a number");
     }
 
     Node number = maybe_number.value();
-    if(number->type() == JSONInt){
+    if (number->type() == JSONInt)
+    {
       return number;
-    } else {
-      std::int64_t value = static_cast<std::int64_t>(std::floor(get_double(number)));
+    }
+    else
+    {
+      std::int64_t value =
+        static_cast<std::int64_t>(std::floor(get_double(number)));
       return JSONInt ^ std::to_string(value);
     }
-  }  
+  }
 }

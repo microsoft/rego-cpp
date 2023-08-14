@@ -1,6 +1,7 @@
 #include "interpreter.h"
 
 #include "lang.h"
+#include "trieste/ast.h"
 #include "wf.h"
 
 #include <iostream>
@@ -107,22 +108,28 @@ namespace rego
     m_input->push_back(node);
   }
 
-  bool Interpreter::has_error(const Node& node) const
+  Node Interpreter::get_errors(const Node& node) const
   {
     if (node->type() == Error)
     {
-      return true;
+      return node->clone();
     }
 
+    Node errorseq = NodeDef::create(ErrorSeq);
     for (auto& child : *node)
     {
-      if (has_error(child))
+      Node error = get_errors(child);
+      if (error->type() == Error)
       {
-        return true;
+        errorseq->push_back(error);
+      }
+      else if (error->size() > 0)
+      {
+        errorseq->insert(errorseq->end(), error->begin(), error->end());
       }
     }
 
-    return false;
+    return errorseq;
   }
 
   Node Interpreter::raw_query(const std::string& query_expr) const
@@ -162,9 +169,7 @@ namespace rego
     write_ast(0, "parse", ast);
     if (!ok)
     {
-      std::ostringstream buf;
-      ast->errors(buf);
-      throw std::runtime_error(buf.str());
+      return get_errors(ast);
     }
 
     auto passes = rego::passes(m_builtins);
@@ -184,17 +189,22 @@ namespace rego
         ok = wf->check(ast, std::cout) && ok;
       }
 
-      if (has_error(ast))
+      Node errors = get_errors(ast);
+      if (errors->size() > 0)
       {
         ok = false;
       }
 
       if (!ok)
       {
-        std::ostringstream buf;
-        buf << "Failed at pass " << pass_name << std::endl;
-        ast->errors(buf);
-        throw std::runtime_error(buf.str());
+        if(errors->size() == 0){
+          std::ostringstream error;
+          error << "Failed at pass " << pass_name << std::endl;
+          ast->errors(error);
+          errors->push_back(err(ast, error.str(), "well_formed_error"));
+        }
+
+        return errors;
       }
     }
 
@@ -205,9 +215,26 @@ namespace rego
   {
     Node ast = raw_query(query_expr);
     std::ostringstream result_buf;
-    for (auto result : *ast)
+    if (ast->type() == ErrorSeq)
     {
-      result_buf << rego::to_json(result) << std::endl;
+      result_buf << "errors:" << std::endl;
+
+      for (auto& error : *ast)
+      {
+        result_buf << "---" << std::endl;
+        result_buf << "error: " << (error / ErrorMsg)->location().view()
+                   << std::endl;
+        result_buf << "code: " << (error / ErrorCode)->location().view()
+                   << std::endl;
+        result_buf << error / ErrorAst;
+      }
+    }
+    else
+    {
+      for (auto result : *ast)
+      {
+        result_buf << rego::to_json(result) << std::endl;
+      }
     }
 
     return result_buf.str();
@@ -216,12 +243,14 @@ namespace rego
   Interpreter& Interpreter::debug_path(const std::filesystem::path& path)
   {
     m_debug_path = path;
-    if(!m_debug_path.empty()){
-    if(std::filesystem::is_directory(m_debug_path)){
-      std::filesystem::remove_all(m_debug_path);
-    }
+    if (!m_debug_path.empty())
+    {
+      if (std::filesystem::is_directory(m_debug_path))
+      {
+        std::filesystem::remove_all(m_debug_path);
+      }
 
-    std::filesystem::create_directory(m_debug_path);
+      std::filesystem::create_directory(m_debug_path);
     }
     return *this;
   }

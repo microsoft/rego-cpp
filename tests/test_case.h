@@ -9,6 +9,8 @@ namespace rego_test
 {
   using namespace rego;
 
+  using BindingMap = std::map<std::string, std::string>;
+
   struct Result
   {
     bool passed;
@@ -81,7 +83,20 @@ namespace rego_test
     TestCase& strict_error(bool strict_error);
 
   private:
+    BindingMap to_binding_map(const Node& node) const;
+    bool compare(const Node& actual, const Node& wanted, std::ostream& os) const;
+    bool compare(const std::string& actual, const std::string& wanted, std::ostream& os) const;
+
+    static void write_ast(const std::filesystem::path& debug_path, std::size_t index, const std::string& pass, const Node& ast);
+    static std::optional<Node> maybe_get_file(const Node& mapping, const std::string& name);
+    static std::optional<std::string> maybe_get_string(const Node& mapping, const std::string& name);
+    static std::string get_string(const Node& mapping, const std::string& name);
+    static Node get_node(const Node& mapping, const std::string& name);
+    static bool get_bool(const Node& mapping, const std::string& name);
+    static std::vector<std::string> get_modules(const Node& mapping);
+    static void diff(const std::string& actual, const std::string& wanted, std::ostream& os);
     static TestCase create_from_node(const Node& test_case_map);
+
     std::filesystem::path m_filename;
     std::string m_note;
     std::string m_category;

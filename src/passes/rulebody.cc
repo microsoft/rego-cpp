@@ -77,15 +77,41 @@ namespace rego
                      << (Var ^ temp);
         },
 
-      // <expr>|<notexpr>
-      In(UnifyBody) * (T(Literal) << (T(Expr) / T(NotExpr))[Expr]) >>
+      // <expr>
+      In(UnifyBody) * (T(Literal) << T(Expr)[Expr]) >>
         [](Match& _) {
-          Node seq = NodeDef::create(Seq);
           std::string prefix = in_query(_(Expr)) ? "value" : "unify";
           Location temp = _.fresh({prefix});
-          seq->push_back(Local << (Var ^ temp) << Undefined);
-          seq->push_back(UnifyExpr << (Var ^ temp) << _(Expr));
-          return seq;
+          return Seq << (Local << (Var ^ temp) << Undefined)
+                     << (UnifyExpr << (Var ^ temp) << _(Expr));
+        },
+
+      // not any = any
+      In(UnifyBody) *
+          (T(LiteralNot)
+           << (T(Expr)
+               << (T(AssignInfix)
+                   << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
+        [](Match& _) {
+          LOG("not any = any");
+          std::string prefix = in_query(_(Lhs)) ? "value" : "unify";
+          Location unify = _.fresh({prefix});
+          Location temp = _.fresh({"not"});
+          return Seq << (Local << (Var ^ temp) << Undefined)
+                     << (Local << (Var ^ unify) << Undefined)
+                     << (UnifyExpr << (Var ^ temp) << (Expr << _(Lhs)->front()))
+                     << (UnifyExpr << (Var ^ temp) << (Expr << _(Rhs)->front()))
+                     << (UnifyExprNot << (Var ^ unify)
+                                      << (Expr << (RefTerm << (Var ^ temp))));
+        },
+
+      // <notexpr>
+      In(UnifyBody) * (T(LiteralNot) << T(Expr)[Expr]) >>
+        [](Match& _) {
+          std::string prefix = in_query(_(Expr)) ? "value" : "unify";
+          Location temp = _.fresh({prefix});
+          return Seq << (Local << (Var ^ temp) << Undefined)
+                     << (UnifyExprNot << (Var ^ temp) << _(Expr));
         },
 
       // <term> = <term>

@@ -182,13 +182,10 @@ namespace rego
 
       In(Policy) *
           (T(Group)
-           << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
-          return Rule << (RuleHead << _(Id)
-                                   << (RuleHeadObj << _(Key)
-                                                   << (AssignOperator << Assign)
-                                                   << (Group << JSONTrue)))
+          return Rule << (RuleHead << _(Id) << (RuleHeadSet << _(Item)))
                       << _(UnifyBody) << ElseSeq;
         },
 

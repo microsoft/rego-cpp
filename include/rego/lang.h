@@ -27,7 +27,6 @@ namespace rego
   inline const auto ExprCall = TokenDef("expr-call");
   inline const auto ExprEvery = TokenDef("expr-every");
   inline const auto UnaryExpr = TokenDef("unary-expr");
-  inline const auto NotExpr = TokenDef("not-expr");
   inline const auto Term = TokenDef("term");
   inline const auto InfixOperator = TokenDef("infix-operator");
   inline const auto BoolOperator = TokenDef("bool-operator");
@@ -133,6 +132,7 @@ namespace rego
   inline const auto LiteralWith = TokenDef("literal-with");
   inline const auto LiteralEnum = TokenDef("literal-enum");
   inline const auto LiteralInit = TokenDef("literal-init");
+  inline const auto LiteralNot = TokenDef("literal-not");
 
   // utility
   inline const auto Undefined = TokenDef("undefined");
@@ -161,6 +161,7 @@ namespace rego
   inline const auto UnifyExprWith = TokenDef("unify-expr-with");
   inline const auto UnifyExprCompr = TokenDef("unify-expr-compr");
   inline const auto UnifyExprEnum = TokenDef("unify-expr-enum");
+  inline const auto UnifyExprNot = TokenDef("unify-expr-not");
   inline const auto TermSet = TokenDef("term-set");
   inline const auto Empty = TokenDef("empty");
   inline const auto SimpleRef = TokenDef("simple-ref");
@@ -185,6 +186,8 @@ namespace rego
   inline const auto WithRef = TokenDef("with-ref");
   inline const auto WithExpr = TokenDef("with-expr");
   inline const auto EverySeq = TokenDef("every-seq");
+  inline const auto ErrorCode = TokenDef("error-code", flag::print);
+  inline const auto ErrorSeq = TokenDef("error-seq");
 
   // lists
   inline const auto List = TokenDef("list");
@@ -204,26 +207,15 @@ namespace rego
   inline const std::set<Token> RuleTypes(
     {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
 
-  inline auto err(NodeRange& r, const std::string& msg)
-  {
-    return Error << (ErrorMsg ^ msg) << (ErrorAst << r);
-  }
+  Node err(NodeRange& r, const std::string& msg, const std::string& code = "runtime_error");
 
-  inline auto err(Node node, const std::string& msg)
-  {
-    return Error << (ErrorMsg ^ msg) << (ErrorAst << node->clone());
-  }
-
-  inline auto err(const std::string& msg)
-  {
-    return Error << (ErrorMsg ^ msg);
-  }
+  Node err(Node node, const std::string& msg, const std::string& code = "runtime_error");
 
   Parse parser();
   Driver& driver(const BuiltIns& builtins);
   using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
   std::vector<PassCheck> passes(const BuiltIns& builtins);
-  std::string to_json(const Node& node);
+  std::string to_json(const Node& node, bool sort=false);
   bool contains_local(const Node& node);
   bool contains_ref(const Node& node);
   bool is_in(const Node& node, const std::set<Token>& token);

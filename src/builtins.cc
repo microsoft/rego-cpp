@@ -14,7 +14,7 @@ namespace
     auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
     if (!maybe_search.has_value() || !maybe_base.has_value())
     {
-      return err("startswith: expected string arguments");
+      return err(args[0], "startswith: expected string arguments");
     }
 
     std::string search = Resolver::get_string(*maybe_search);
@@ -28,7 +28,7 @@ namespace
     auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
     if (!maybe_search.has_value() || !maybe_base.has_value())
     {
-      return err("endswith: expected string arguments");
+      return err(args[0], "endswith: expected string arguments");
     }
 
     std::string search = Resolver::get_string(*maybe_search);
@@ -53,7 +53,7 @@ namespace
     }
     else
     {
-      return err("count: expected collection");
+      return err(args[0], "count: expected collection");
     }
   }
 
@@ -62,7 +62,7 @@ namespace
     auto maybe_number = Resolver::maybe_unwrap_string(args[0]);
     if (!maybe_number.has_value())
     {
-      return err("to_number: expected string argument");
+      return err(args[0], "to_number: expected string argument");
     }
 
     std::string number_str = Resolver::get_string(*maybe_number);
@@ -81,7 +81,7 @@ namespace
       }
       catch (const std::invalid_argument)
       {
-        return err("to_number: invalid number");
+        return err(args[0], "to_number: invalid number");
       }
     }
   }

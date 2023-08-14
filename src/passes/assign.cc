@@ -94,6 +94,20 @@ namespace rego
           return AssignInfix << (AssignArg << _(Lhs)) << (AssignArg << _(Rhs));
         },
 
+      In(Expr) *
+          (AssignInfixArg[Lhs] * T(Unify) * (T(Set) / T(SetCompr))[Rhs]) >>
+        [](Match& _) {
+          return AssignInfix << (AssignArg << _(Lhs))
+                             << (AssignArg << (Term << _(Rhs)));
+        },
+
+      In(Expr) *
+          ((T(Set) / T(SetCompr))[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>
+        [](Match& _) {
+          return AssignInfix << (AssignArg << (Term << _(Lhs)))
+                             << (AssignArg << _(Rhs));
+        },
+
       In(Literal) *
           (T(Expr)
            << (T(ExprCall) << (T(VarSeq)[VarSeq] * T(ArgSeq)[ArgSeq])(
@@ -109,7 +123,7 @@ namespace rego
                             << (AssignArg << (ExprCall << varseq << argseq)));
         },
 
-      In(NotExpr) *
+      In(LiteralNot) *
           (T(Expr)
            << (T(ExprCall) << (T(VarSeq)[VarSeq] * T(ArgSeq)[ArgSeq])(
                  [builtins, cache](auto& n) {
