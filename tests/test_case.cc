@@ -390,7 +390,7 @@ namespace rego_test
   {
     rego::Interpreter interpreter;
     interpreter.executable(executable_path);
-    if (!debug_path.empty() > 0)
+    if (!debug_path.empty())
     {
       interpreter.debug_enabled(true);
       interpreter.debug_path(debug_path);

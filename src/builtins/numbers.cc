@@ -175,7 +175,8 @@ namespace
       strip_quotes(std::string(maybe_seed_string.value()->location().view()));
     std::size_t n = BigInt(args[1]->location()).to_size();
     std::hash<std::string> hash;
-    std::mt19937 rng(hash(seed_string));
+    auto seed = static_cast<std::mt19937::result_type>(hash(seed_string));
+    std::mt19937 rng(seed);
     std::size_t value = rng() % n;
     return JSONInt ^ std::to_string(value);
   }

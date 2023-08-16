@@ -97,7 +97,7 @@ namespace rego
       {
         carry = 0;
       }
-      result.push_back(sum + '0');
+      result.push_back(static_cast<char>(sum) + '0');
     }
 
     // lhs will have the same or more digits
@@ -114,7 +114,7 @@ namespace rego
       {
         carry = 0;
       }
-      result.push_back(sum + '0');
+      result.push_back(static_cast<char>(sum) + '0');
     }
 
     if (carry > 0)
@@ -210,7 +210,7 @@ namespace rego
       }
 
       auto diff = lhs_digit - rhs_digit;
-      result.push_back(diff + '0');
+      result.push_back(static_cast<char>(diff) + '0');
     }
 
     // lhs will have the same or more digits
@@ -229,7 +229,7 @@ namespace rego
         borrow = true;
       }
 
-      result.push_back(lhs_digit + '0');
+      result.push_back(static_cast<char>(lhs_digit) + '0');
     }
 
     assert(!borrow);
@@ -309,12 +309,12 @@ namespace rego
         {
           carry = 0;
         }
-        intermediate.push_back(product + '0');
+        intermediate.push_back(static_cast<char>(product) + '0');
       }
 
       if (carry > 0)
       {
-        intermediate.push_back(carry + '0');
+        intermediate.push_back(static_cast<char>(carry) + '0');
       }
 
       std::reverse(intermediate.begin(), intermediate.end());
@@ -400,7 +400,7 @@ namespace rego
       }
 
       leading = false;
-      quotient.push_back(digit + '0');
+      quotient.push_back(static_cast<char>(digit) + '0');
     }
 
     return DivideResult{quotient, remainder};
