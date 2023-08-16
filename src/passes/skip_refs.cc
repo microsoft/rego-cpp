@@ -98,21 +98,19 @@ namespace rego
 
           return Ref << (RefHead << (Var ^ skip.path)) << refargseq;
         },
-      
-      In(ExprCall) * T(VarSeq)[VarSeq]([skips](auto& n){
+
+      In(ExprCall) * T(VarSeq)[VarSeq]([skips](auto& n) {
         return skip_prefix_varseq(skips, *n.first).length > 0;
       }) >>
         [skips](Match& _) {
           SkipPrefix skip = skip_prefix_varseq(skips, _(VarSeq));
           Node varseq = (_(VarSeq));
-          varseq->erase(
-            varseq->begin(), varseq->begin() + skip.length);
+          varseq->erase(varseq->begin(), varseq->begin() + skip.length);
 
           varseq->push_front(Var ^ skip.path);
 
           return varseq;
-        }
-    };
+        }};
 
     skip_refs.pre(Rego, [skips](Node node) {
       Node skipseq = node / SkipSeq;

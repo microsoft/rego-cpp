@@ -154,7 +154,8 @@ namespace rego
 
       In(UnifyBody) * T(Local)[Local]([](auto& n) {
         Node local = *n.first;
-        if((local / Var)->location().view().starts_with("out$")){
+        if ((local / Var)->location().view().starts_with("out$"))
+        {
           return false;
         }
 

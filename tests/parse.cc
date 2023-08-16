@@ -116,7 +116,7 @@ namespace rego_test
         R"([[:digit:]]+\b)" >> [](auto& m) { m.add(Integer); },
 
         // Space.
-        " " >> [](auto&) { },
+        " " >> [](auto&) {},
       });
 
     p("indent",

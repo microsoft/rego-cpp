@@ -173,7 +173,7 @@ namespace rego
 
       In(Expr) * (T(Term) << (T(Scalar) << (T(JSONInt) / T(JSONFloat))[Val])) >>
         [](Match& _) { return NumTerm << _(Val); },
-      
+
       In(Expr) * (T(Term) << (T(Set) / T(SetCompr))[Set]) >>
         [](Match& _) { return _(Set); },
 

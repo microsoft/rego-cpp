@@ -47,7 +47,8 @@ namespace rego
            T(MemberOf) * BoolInfixArg[Rhs]) >>
         [](Match& _) {
           Location item = _.fresh({"item"});
-          Location unify = _.fresh({is_in(_(Lhs), {LiteralNot}) ? "not" : "unify"});
+          Location unify =
+            _.fresh({is_in(_(Lhs), {LiteralNot}) ? "not" : "unify"});
           Node seq = Seq
             << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
             << (Lift << UnifyBody << (Local << (Var ^ unify) << Undefined))
@@ -80,7 +81,7 @@ namespace rego
         [](Match& _) { return _(Val); },
 
       // errors
-    
+
       T(Expr)[Expr] << End >>
         [](Match& _) { return err(_(Expr), "Empty expression"); },
 
@@ -95,7 +96,7 @@ namespace rego
 
       In(BoolArg) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid boolean argument"); },
-      
+
       In(BoolArg) * (T(Set) / T(SetCompr))[Set] >>
         [](Match& _) { return err(_(Set), "Invalid boolean argument"); },
 

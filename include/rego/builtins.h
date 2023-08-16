@@ -33,7 +33,7 @@ namespace rego
     template <typename T>
     BuiltIns& register_builtins(const T& built_ins)
     {
-      for(auto& built_in : built_ins)
+      for (auto& built_in : built_ins)
       {
         register_builtin(built_in);
       }

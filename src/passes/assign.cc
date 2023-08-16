@@ -172,7 +172,7 @@ namespace rego
 
       In(Expr) * T(Enumerate)[Enumerate] >>
         [](Match& _) { return err(_(Enumerate), "Invalid enumeration"); },
-      
+
       In(Expr) * (T(Set) / T(SetCompr))[Set] >>
         [](Match& _) { return err(_(Set), "Invalid set in expression"); },
     };

@@ -1,17 +1,17 @@
 #pragma once
 
+#include "bigint.h"
+#include "builtins.h"
+#include "lang.h"
+
 #include <optional>
 #include <string>
-
-#include "lang.h"
-#include "builtins.h"
-#include "bigint.h"
 
 namespace rego
 {
   using namespace trieste;
   using PrintNode = std::ostream& (*)(std::ostream&, const Node&);
-  
+
   class Resolver
   {
   public:

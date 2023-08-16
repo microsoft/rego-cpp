@@ -50,8 +50,7 @@ namespace rego
       const std::string_view& lhs, const std::string_view& rhs);
     static bool greater_than(
       const std::string_view& lhs, const std::string_view& rhs);
-    static bool equal(
-      const std::string_view& lhs, const std::string_view& rhs);
+    static bool equal(const std::string_view& lhs, const std::string_view& rhs);
     static std::string add(
       const std::string_view& lhs, const std::string_view& rhs, bool negative);
     static std::string subtract(

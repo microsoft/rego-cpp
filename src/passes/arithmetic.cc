@@ -8,12 +8,11 @@ namespace rego
   // Finds unary expressions
   PassDef unary()
   {
-    return
-    {
+    return {
       In(Expr) * (Start * T(Subtract) * ArithInfixArg[Val]) >>
         [](Match& _) { return UnaryExpr << (ArithArg << _(Val)); },
 
-        In(Expr) * (AllOps[Op] * T(Subtract) * ArithInfixArg[Val]) >>
+      In(Expr) * (AllOps[Op] * T(Subtract) * ArithInfixArg[Val]) >>
         [](Match& _) {
           return Seq << _(Op) << (UnaryExpr << (ArithArg << _(Val)));
         },
@@ -101,7 +100,7 @@ namespace rego
 
       // errors
 
-      In(Expr) * (T(Add)/T(Subtract))[Op] >>
+      In(Expr) * (T(Add) / T(Subtract))[Op] >>
         [](Match& _) { return err(_(Op), "Invalid add/subtract"); },
 
       In(Expr) * T(Or)[Op] >>

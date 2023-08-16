@@ -172,7 +172,8 @@ namespace rego
         items.push_back(to_json(child, sort));
       }
 
-      if(sort){
+      if (sort)
+      {
         std::sort(items.begin(), items.end());
       }
       buf << "[";
@@ -445,6 +446,7 @@ namespace rego
 
   Node err(Node node, const std::string& msg, const std::string& code)
   {
-    return Error << (ErrorMsg ^ msg) << (ErrorAst << node->clone()) << (ErrorCode ^ code);
+    return Error << (ErrorMsg ^ msg) << (ErrorAst << node->clone())
+                 << (ErrorCode ^ code);
   }
 }

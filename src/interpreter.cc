@@ -197,7 +197,8 @@ namespace rego
 
       if (!ok)
       {
-        if(errors->size() == 0){
+        if (errors->size() == 0)
+        {
           std::ostringstream error;
           error << "Failed at pass " << pass_name << std::endl;
           ast->errors(error);

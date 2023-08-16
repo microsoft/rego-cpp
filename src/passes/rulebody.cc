@@ -161,7 +161,8 @@ namespace rego
 
           Location unify = _.fresh({"unify"});
           return Seq << (Local << (Var ^ unify) << Undefined)
-                     << (UnifyExpr << _(Lhs)->clone() << (Expr << _(Rhs)->front()))
+                     << (UnifyExpr << _(Lhs)->clone()
+                                   << (Expr << _(Rhs)->front()))
                      << (UnifyExpr << (Var ^ unify)
                                    << (Expr << (RefTerm << _(Lhs))));
         },

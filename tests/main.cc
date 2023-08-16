@@ -46,7 +46,7 @@ int main(int argc, char** argv)
   bool fail_first{false};
   app.add_flag(
     "-f,--fail-first", fail_first, "Stop after first test case failure");
-  
+
   std::string note;
   app.add_option("-n,--note", note, "Note of specific test to run");
 
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
         load_testcases(p, debug_path, all_testcases);
       }
     }
-    else if(std::filesystem::exists(file_or_dir))
+    else if (std::filesystem::exists(file_or_dir))
     {
       load_testcases(file_or_dir, debug_path, all_testcases);
     }
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
     std::cout << White << category << std::endl;
     for (auto& testcase : cat_cases)
     {
-      if(!note.empty() && testcase.note().find(note) == std::string::npos)
+      if (!note.empty() && testcase.note().find(note) == std::string::npos)
       {
         continue;
       }

@@ -1,9 +1,8 @@
 #pragma once
 
+#include "builtins.h"
 #include "trieste/driver.h"
 #include "trieste/token.h"
-
-#include "builtins.h"
 
 namespace rego
 {
@@ -207,15 +206,21 @@ namespace rego
   inline const std::set<Token> RuleTypes(
     {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
 
-  Node err(NodeRange& r, const std::string& msg, const std::string& code = "runtime_error");
+  Node err(
+    NodeRange& r,
+    const std::string& msg,
+    const std::string& code = "runtime_error");
 
-  Node err(Node node, const std::string& msg, const std::string& code = "runtime_error");
+  Node err(
+    Node node,
+    const std::string& msg,
+    const std::string& code = "runtime_error");
 
   Parse parser();
   Driver& driver(const BuiltIns& builtins);
   using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
   std::vector<PassCheck> passes(const BuiltIns& builtins);
-  std::string to_json(const Node& node, bool sort=false);
+  std::string to_json(const Node& node, bool sort = false);
   bool contains_local(const Node& node);
   bool contains_ref(const Node& node);
   bool is_in(const Node& node, const std::set<Token>& token);

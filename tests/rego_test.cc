@@ -15,8 +15,10 @@ namespace rego_test
       In(Block) * (T(Group) << (T(String) * T(Colon) * (T(Brace) << End))) >>
         [](Match&) { return Node(); },
 
-      In(Block) * ((T(Group) << (T(String) * T(Colon) * End)) * (T(Group)[Group] << (T(String) * T(Colon)))) >>
-        [](Match& _){ return _(Group);},
+      In(Block) *
+          ((T(Group) << (T(String) * T(Colon) * End)) *
+           (T(Group)[Group] << (T(String) * T(Colon)))) >>
+        [](Match& _) { return _(Group); },
 
       In(Group) * T(Brace)[Brace] >>
         [](Match& _) { return Block << *_[Brace]; },
@@ -60,7 +62,7 @@ namespace rego_test
       // errors
       In(Group) * (T(Block)[Block] << End) >>
         [](Match& _) { return err(_(Block), "Syntax error: empty block"); },
-      
+
       (In(Entry) / In(Block)) * (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
 
@@ -300,9 +302,7 @@ namespace rego_test
         },
 
       In(WantResult) * (T(Entry) << T(Mapping)[Mapping]) >>
-        [](Match& _) {
-          return Seq << *_[Mapping];
-        },
+        [](Match& _) { return Seq << *_[Mapping]; },
 
       In(rego::Term) * T(Mapping)[Mapping] >>
         [](Match& _) {

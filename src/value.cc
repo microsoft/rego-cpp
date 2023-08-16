@@ -273,7 +273,7 @@ namespace rego
     return filtered;
   }
 
-  rank_t ValueDef::get_rank(const Node& node) 
+  rank_t ValueDef::get_rank(const Node& node)
   {
     return std::stoul(to_json(node));
   }
