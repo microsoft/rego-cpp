@@ -1,9 +1,8 @@
 #pragma once
 
-#include "lang.h"
-
 #include <functional>
 #include <string>
+#include <trieste/driver.h>
 
 namespace rego
 {
