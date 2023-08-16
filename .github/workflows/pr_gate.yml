@@ -40,7 +40,7 @@ jobs:
           sudo apt-get install ninja-build
 
       - name: CMake config
-        run: cmake -B ${{github.workspace}}/build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
+        run: cmake -B ${{github.workspace}}/build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1 -DREGOCPP_OPA_TESTS=1
 
       - name: CMake build
         working-directory: ${{github.workspace}}/build
@@ -59,7 +59,7 @@ jobs:
       
       - name: CMake config
         run: |
-          cmake -B ${{github.workspace}}/build -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
+          cmake -B ${{github.workspace}}/build -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1 -DREGOCPP_OPA_TESTS=1
       
       - name: CMake build
         working-directory: ${{github.workspace}}/build

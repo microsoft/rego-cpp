@@ -70,7 +70,8 @@ if(REGOCPP_OPA_TESTS)
   find_package(Git REQUIRED)
   if(NOT IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/opa)
     execute_process(COMMAND ${GIT_EXECUTABLE} clone --depth=1 --branch v0.55.0 https://github.com/open-policy-agent/opa/ 
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                    OUTPUT_QUIET)
   endif()
 endif()
 
