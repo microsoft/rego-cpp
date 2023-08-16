@@ -66,6 +66,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
 option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" OFF)
 option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
+option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
 
 # -------------------- Walk the subdirectories --------------------
 
