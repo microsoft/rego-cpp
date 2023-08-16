@@ -28,7 +28,7 @@ Create a build directory and initialize the cmake project:
 
     mkdir build
     cd build
-    cmake .. --DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
+    cmake .. -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
 
 You can then build and run the tests using:
 
