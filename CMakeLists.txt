@@ -35,7 +35,25 @@ FetchContent_Declare(
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 
 set(TRIESTE_BUILD_SAMPLES OFF)
+
+if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
+  if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message(FATAL_ERROR "Speculative load hardening is only supported with Clang")
+  endif()
+endif()
+
+if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
+  # Also build dependencies with speculative load hardening
+  # when the flag is enabled
+  set(CMAKE_CXX_FLAGS_SAVED "${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mllvm -x86-speculative-load-hardening")
+endif()
+
 FetchContent_MakeAvailable(trieste)
+
+if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_SAVED}")
+endif()
 
 find_program(CLANG_FORMAT NAMES clang-format-10 clang-format-14 )
 
