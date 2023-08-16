@@ -52,11 +52,14 @@ namespace rego_test
           return Float ^ loc;
         },
 
-      (In(LiteralString) / In(FoldedString)) *
+      (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
+       In(DoubleQuoteString)) *
           (T(Group) << T(String)[String]) >>
         [](Match& _) { return _(String); },
 
-      (In(LiteralString) / In(FoldedString)) * (T(Group) << T(Blank)) >>
+      (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
+       In(DoubleQuoteString)) *
+          (T(Group) << T(Blank)) >>
         [](Match&) { return String ^ ""; },
 
       // errors
@@ -82,6 +85,16 @@ namespace rego_test
       In(FoldedString) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid folded string element"); },
 
+      In(SingleQuoteString) * T(Group)[Group] >>
+        [](Match& _) {
+          return err(_(Group), "Invalid single-quoted string element");
+        },
+
+      In(DoubleQuoteString) * T(Group)[Group] >>
+        [](Match& _) {
+          return err(_(Group), "Invalid double-quoted string element");
+        },
+
     };
   }
 
@@ -103,7 +116,9 @@ namespace rego_test
           return String ^ buf.str();
         },
 
-      In(Group) * (T(FoldedString) << (T(String)++[String])) >>
+      In(Group) *
+          ((T(FoldedString) / T(SingleQuoteString) / T(DoubleQuoteString))
+           << (T(String)++[String])) >>
         [](Match& _) {
           std::ostringstream buf;
           std::string sep = "";
@@ -167,6 +182,21 @@ namespace rego_test
           }
 
           return KeyValue << (Key ^ key_loc) << _(Val);
+        },
+
+      (In(Entry) / In(Block)) *
+          ((T(Group) << ((T(Scalar) << T(String))[Key] * End)) *
+           (T(Group) << (T(Colon) * Any[Val]))) >>
+        [](Match& _) {
+          Location key_loc = _(Key)->location();
+          std::string key = std::string(key_loc.view());
+          std::size_t length = key.find(' ');
+          if (length != std::string::npos)
+          {
+            key_loc.len = length;
+          }
+
+          return KeyValue << (Key ^ key_loc) << (Group << _[Val]);
         },
 
       In(Entry) * T(KeyValue)[KeyValue] >>

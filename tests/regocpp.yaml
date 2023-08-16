@@ -55,7 +55,9 @@ cases:
     }
     f := e["dev"]
   note : regocpp/input_data
-  query: "[data.one, input.b, data.objects.sites[1]] = x"
+  query: "[data.one,
+    input.b, 
+    data.objects.sites[1]] = x"
   want_result:
     - x:
       - bar: Foo
@@ -90,7 +92,8 @@ cases:
   want_result:
     - x: smoke1
 - note: regocpp/query_math
-  query: x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4
+  query: 'x=5;
+    y=x + (2 - 4 * 0.25) * -3 + 7.4'
   want_result:
     - x: 5
     - y: 9.4

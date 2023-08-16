@@ -117,7 +117,7 @@ namespace
       return err(
         args[0],
         "numbers.range: operand 1 must be integer number but got "
-        "floating-point\n    number",
+        "floating-point number",
         "eval_type_error");
     }
 
@@ -126,7 +126,7 @@ namespace
       return err(
         args[1],
         "numbers.range: operand 2 must be integer number but got "
-        "floating-point\n    number",
+        "floating-point number",
         "eval_type_error");
     }
 

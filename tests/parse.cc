@@ -26,6 +26,13 @@ namespace rego_test
     std::size_t indent;
   };
 
+  enum class Quote
+  {
+    None,
+    Single,
+    Double
+  };
+
   Parse parser()
   {
     Parse p(depth::file);
@@ -33,6 +40,7 @@ namespace rego_test
     indents->push_back(0);
     auto indent = std::make_shared<std::size_t>(0);
     auto string_indent = std::make_shared<std::size_t>(0);
+    auto quote = std::make_shared<Quote>(Quote::None);
 
     p("start",
       {
@@ -78,10 +86,20 @@ namespace rego_test
         ",[[:blank:]]*" >> [](auto& m) { m.term(); },
 
         // Double quote string
-        R"re2("([^"]*)")re2" >> [](auto& m) { m.add(String, 1); },
+        "\"" >>
+          [quote](auto& m) {
+            m.push(DoubleQuoteString, 1);
+            m.mode("multiline-string");
+            *quote = Quote::Double;
+          },
 
         // Single quote string
-        R"('([^'^\\]*)')" >> [](auto& m) { m.add(String, 1); },
+        "'" >>
+          [quote](auto& m) {
+            m.push(SingleQuoteString, 1);
+            m.mode("multiline-string");
+            *quote = Quote::Single;
+          },
 
         // KeyValue.
         ":[ ]*" >> [](auto& m) { m.add(Colon); },
@@ -202,11 +220,21 @@ namespace rego_test
                {
                  m.pop(LiteralString);
                }
-               else
+               else if (m.in(FoldedString))
                {
                  m.pop(FoldedString);
                }
              }
+           }
+           else if (m.in(SingleQuoteString) || m.in(DoubleQuoteString))
+           {
+             if (*string_indent == 0)
+             {
+               *string_indent = *indent;
+             }
+             m.mode("multiline-string");
+             m.add(String);
+             return;
            }
            else
            {
@@ -243,6 +271,42 @@ namespace rego_test
            *indent = 0;
            m.term();
            m.mode("indent");
+         },
+
+       R"(\\")" >> [](auto& m) { m.extend(String); },
+
+       "\"" >>
+         [string_indent, quote](auto& m) {
+           if (*quote == Quote::Double)
+           {
+             m.term();
+             *quote = Quote::None;
+             *string_indent = 0;
+             m.pop(DoubleQuoteString);
+             m.term();
+             m.mode("start");
+           }
+           else
+           {
+             m.extend(String);
+           }
+         },
+
+       "'" >>
+         [string_indent, quote](auto& m) {
+           if (*quote == Quote::Single)
+           {
+             m.term();
+             *quote = Quote::None;
+             *string_indent = 0;
+             m.pop(SingleQuoteString);
+             m.term();
+             m.mode("start");
+           }
+           else
+           {
+             m.extend(String);
+           }
          },
 
        // Character

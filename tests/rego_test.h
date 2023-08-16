@@ -28,6 +28,8 @@ namespace rego_test
   inline const auto Null = TokenDef("yaml-null", flag::print);
   inline const auto LiteralString = TokenDef("yaml-literal-string");
   inline const auto FoldedString = TokenDef("yaml-folded-string");
+  inline const auto SingleQuoteString = TokenDef("yaml-single-quote-string");
+  inline const auto DoubleQuoteString = TokenDef("yaml-double-quote-string");
   inline const auto Scalar = TokenDef("yaml-scalar");
   inline const auto Data = TokenDef("yaml-data");
   inline const auto Input = TokenDef("yaml-input");
@@ -41,8 +43,8 @@ namespace rego_test
   inline const auto Square = TokenDef("yaml-square");
 
   inline const auto wf_parse_tokens = Block | String | Integer | Float | True |
-    False | Null | Colon | LiteralString | FoldedString | Hyphen | Blank |
-    Brace | Square;
+    False | Null | Colon | LiteralString | FoldedString | SingleQuoteString |
+    DoubleQuoteString | Hyphen | Blank | Brace | Square;
 
   // clang-format off
   inline const auto wf_parser =
@@ -51,6 +53,8 @@ namespace rego_test
     | (Block <<= Group++[1])
     | (LiteralString <<= Group++[1])
     | (FoldedString <<= Group++[1])
+    | (SingleQuoteString <<= Group++[1])
+    | (DoubleQuoteString <<= Group++[1])
     | (Brace <<= Group++)
     | (Square <<= Group++)
     | (Group <<= wf_parse_tokens++[1])
@@ -58,7 +62,8 @@ namespace rego_test
   // clang-format on
 
   inline const auto wf_entry_tokens = Block | String | Integer | Float | True |
-    False | Null | Colon | Entry | LiteralString | FoldedString;
+    False | Null | Colon | Entry | LiteralString | FoldedString |
+    SingleQuoteString | DoubleQuoteString;
 
   // clang-format off
   inline const auto wf_pass_entry =
@@ -66,6 +71,8 @@ namespace rego_test
     | (Top <<= Block)
     | (LiteralString <<= String++[1])
     | (FoldedString <<= String++[1])
+    | (SingleQuoteString <<= String++[1])
+    | (DoubleQuoteString <<= String++[1])
     | (Entry <<= Block | Group)
     | (Group <<= wf_entry_tokens++[1])
     ;
