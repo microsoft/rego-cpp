@@ -5,10 +5,14 @@
 namespace rego
 {
   Location BigInt::Zero = Location("0");
+  Location BigInt::One = Location("1");
 
   BigInt::BigInt() : m_loc(BigInt::Zero) {}
 
-  BigInt::BigInt(const Location& loc) : m_loc(loc) {}
+  BigInt::BigInt(const Location& loc) : m_loc(loc)
+  {
+    assert(is_int(loc));
+  }
 
   BigInt::BigInt(const std::int64_t value) : BigInt(std::to_string(value)) {}
 
@@ -470,14 +474,14 @@ namespace rego
       }
       else
       {
-        return true;
+        return false;
       }
     }
     else
     {
       if (rhs.is_negative())
       {
-        return false;
+        return true;
       }
       else
       {
@@ -535,5 +539,36 @@ namespace rego
   {
     os << bigint.m_loc.view();
     return os;
+  }
+
+  BigInt BigInt::increment() const
+  {
+    return *this + One;
+  }
+
+  BigInt BigInt::decrement() const
+  {
+    return *this - One;
+  }
+
+  bool BigInt::is_int(const Location& loc)
+  {
+    std::set<char> digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    auto it = loc.view().begin();
+    auto end = loc.view().end();
+    if (*it == '-')
+    {
+      ++it;
+    }
+
+    for (; it != end; ++it)
+    {
+      if (!digits.contains(*it))
+      {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

@@ -286,24 +286,54 @@ namespace rego
 
   Node UnifierDef::bind_variables()
   {
+    LOG("bind and check variables:");
     return std::accumulate(
       m_variables.begin(),
       m_variables.end(),
-      NodeDef::create(JSONTrue),
+      Undefined ^ "undefined",
       [](Node result, auto& pair) {
         Variable& var = pair.second;
+        if (!var.is_unify() && !var.is_user_var())
+        {
+          return result;
+        }
+
         Node node = var.bind();
+
         if (node->type() == Error || node->type() == Undefined)
         {
+          LOG("> ", var.name().view(), ": Undefined or Error");
           return node;
         }
-        else if (node->type() == TermSet)
+
+        if (node->type() == TermSet)
         {
-          if (node->size() == 0 && (var.is_unify() || var.is_user_var()))
+          if (var.is_unify())
           {
-            return NodeDef::create(JSONFalse);
+            if (node->size() == 0)
+            {
+              LOG("> ", var.name().view(), ": Empty TermSet => false");
+              return JSONFalse ^ "false";
+            }
+            if (result->type() == Undefined)
+            {
+              LOG("> ", var.name().view(), ": TermSet => true");
+              return JSONTrue ^ "true";
+            }
+          }
+          else if (node->size() > 0 && result->type() == Undefined)
+          {
+            LOG("> ", var.name().view(), ": TermSet => true");
+            return JSONTrue ^ "true";
           }
         }
+        else if (result->type() == Undefined)
+        {
+          LOG("> ", var.name().view(), ": Term => true");
+          return JSONTrue ^ "true";
+        }
+
+        LOG("> ", var.name().view(), ": ", result->location().view());
 
         return result;
       });
@@ -332,10 +362,11 @@ namespace rego
     }
 
     LOG_MAP_VALUES(m_variables);
+
     LOG_UNINDENT();
+    Node result = bind_variables();
     LOG_HEADER("Complete", "=====");
 
-    Node result = bind_variables();
     this->pop_rule(this->m_rule);
     return result;
   }
@@ -1233,13 +1264,20 @@ namespace rego
     Node rulebody = wfi / rule / Body;
     Node body_result;
 
-    try
+    if (rulebody->type() == Empty)
     {
-      body_result = rule_unifier(rulename, rulebody)->unify();
+      body_result = JSONTrue;
     }
-    catch (const std::exception& e)
+    else
     {
-      return std::make_pair(index, err(rulefunc, e.what()));
+      try
+      {
+        body_result = rule_unifier(rulename, rulebody)->unify();
+      }
+      catch (const std::exception& e)
+      {
+        return std::make_pair(index, err(rulefunc, e.what()));
+      }
     }
 
     LOG("Rule func body result: ", to_json(body_result));
@@ -1371,6 +1409,10 @@ namespace rego
 
     for (const auto& rule : ruleobj)
     {
+      if (rule->type() == Error)
+      {
+        return rule;
+      }
       assert(rule->type() == RuleObj);
       Location rulename = (wfi / rule / Var)->location();
       Node rulebody = wfi / rule / Body;

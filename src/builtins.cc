@@ -1,8 +1,8 @@
 #include "builtins.h"
 
+#include "builtins/register.h"
 #include "lang.h"
 #include "resolver.h"
-#include "builtins/register.h"
 
 namespace
 {
@@ -39,22 +39,31 @@ namespace
   Node count(const Nodes& args)
   {
     Node collection = args[0];
+    if (collection->type() == Term)
+    {
+      collection = collection->front();
+    }
+
     if (
       collection->type() == Object || collection->type() == Array ||
       collection->type() == Set)
     {
       return Resolver::scalar(BigInt(collection->size()));
     }
-    else if (collection->type() == JSONString)
+
+    if (collection->type() == Scalar)
+    {
+      collection = collection->front();
+    }
+
+    if (collection->type() == JSONString)
     {
       std::string collection_str =
         strip_quotes(std::string(collection->location().view()));
       return Resolver::scalar(BigInt(collection_str.size()));
     }
-    else
-    {
-      return err(args[0], "count: expected collection");
-    }
+
+    return err(args[0], "count: expected collection");
   }
 
   Node to_number(const Nodes& args)
@@ -65,23 +74,20 @@ namespace
       return err(args[0], "to_number: expected string argument");
     }
 
-    std::string number_str = Resolver::get_string(*maybe_number);
+    if (BigInt::is_int(args[0]->location()))
+    {
+      return JSONInt ^ args[0]->location();
+    }
 
+    std::string number_str = Resolver::get_string(*maybe_number);
     try
     {
-      return Resolver::scalar(args[0]->location());
+      double float_value = std::stod(number_str);
+      return Resolver::scalar(float_value);
     }
     catch (const std::invalid_argument)
     {
-      try
-      {
-        double float_value = std::stod(number_str);
-        return Resolver::scalar(float_value);
-      }
-      catch (const std::invalid_argument)
-      {
-        return err(args[0], "to_number: invalid number");
-      }
+      return err(args[0], "to_number: invalid number");
     }
   }
 
@@ -102,7 +108,6 @@ namespace
     std::cout << buf.str();
     return Resolver::scalar(true);
   }
-
 
 }
 
@@ -134,17 +139,14 @@ namespace rego
   {
     register_builtin(
       BuiltInDef::create(Location("startswith"), 2, ::startswith));
-    register_builtin(
-      BuiltInDef::create(Location("endswith"), 2, ::endswith));
+    register_builtin(BuiltInDef::create(Location("endswith"), 2, ::endswith));
     register_builtin(BuiltInDef::create(Location("count"), 1, ::count));
-    register_builtin(
-      BuiltInDef::create(Location("to_number"), 1, ::to_number));
-    register_builtin(
-      BuiltInDef::create(Location("print"), AnyArity, ::print));
+    register_builtin(BuiltInDef::create(Location("to_number"), 1, ::to_number));
+    register_builtin(BuiltInDef::create(Location("print"), AnyArity, ::print));
 
     register_builtins(builtins::sets());
     register_builtins(builtins::numbers());
-    
+
     return *this;
   }
 

@@ -120,7 +120,7 @@ namespace
     }
 
     std::ostringstream oss;
-    oss << std::setprecision(std::numeric_limits<double>::max_digits10)
+    oss << std::setprecision(std::numeric_limits<double>::max_digits10 - 1)
         << std::noshowpoint << value;
     return JSONFloat ^ oss.str();
   }
@@ -274,7 +274,8 @@ namespace rego
   Node Resolver::scalar(double value)
   {
     std::ostringstream oss;
-    oss << std::setprecision(8) << std::noshowpoint << value;
+    oss << std::setprecision(std::numeric_limits<double>::max_digits10 - 1)
+        << std::noshowpoint << value;
     return JSONFloat ^ oss.str();
   }
 
@@ -350,7 +351,9 @@ namespace rego
     {
       Node lhs_number = maybe_lhs_number.value();
       Node rhs_number = maybe_rhs_number.value();
-      if (lhs_number->type() == JSONInt && rhs_number->type() == JSONInt && op->type() != Divide)
+      if (
+        lhs_number->type() == JSONInt && rhs_number->type() == JSONInt &&
+        op->type() != Divide)
       {
         return do_arith(op, get_int(lhs_number), get_int(rhs_number));
       }
@@ -547,6 +550,11 @@ namespace rego
   std::optional<Nodes> Resolver::apply_access(
     const Node& container, const Node& arg)
   {
+    if (is_undefined(container))
+    {
+      return std::nullopt;
+    }
+
     if (container->type() == Array)
     {
       Node index = arg;
@@ -1040,6 +1048,24 @@ namespace rego
     return false;
   }
 
+  bool Resolver::is_undefined(const Node& node)
+  {
+    if (node->type() == Undefined)
+    {
+      return true;
+    }
+
+    for (auto& child : *node)
+    {
+      if (is_undefined(child))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   bool Resolver::is_falsy(const Node& node)
   {
     if (node->type() != Term)
@@ -1053,7 +1079,7 @@ namespace rego
       value = value->front();
       return value->type() == JSONFalse;
     }
-    else if (value->type() == Undefined)
+    else if (is_undefined(value))
     {
       return true;
     }
@@ -1210,94 +1236,5 @@ namespace rego
     }
 
     return result;
-  }
-
-  Node Resolver::abs(const Node& node)
-  {
-    auto maybe_number = maybe_unwrap_number(node);
-    if (!maybe_number.has_value())
-    {
-      return err(node, "Not a number");
-    }
-
-    Node number = maybe_number.value();
-    if (number->type() == JSONInt)
-    {
-      BigInt value = get_int(number);
-      if (value.is_negative())
-      {
-        value = value.negate();
-      }
-      return JSONInt ^ value.loc();
-    }
-    else
-    {
-      double value = get_double(number);
-      if (value < 0)
-      {
-        value *= -1;
-      }
-      return JSONFloat ^ std::to_string(value);
-    }
-  }
-
-  Node Resolver::ceil(const Node& node)
-  {
-    auto maybe_number = maybe_unwrap_number(node);
-    if (!maybe_number.has_value())
-    {
-      return err(node, "Not a number");
-    }
-
-    Node number = maybe_number.value();
-    if (number->type() == JSONInt)
-    {
-      return number;
-    }
-    else
-    {
-      BigInt value(static_cast<std::int64_t>(std::ceil(get_double(number))));
-      return JSONInt ^ value.loc();
-    }
-  }
-
-  Node Resolver::floor(const Node& node)
-  {
-    auto maybe_number = maybe_unwrap_number(node);
-    if (!maybe_number.has_value())
-    {
-      return err(node, "Not a number");
-    }
-
-    Node number = maybe_number.value();
-    if (number->type() == JSONInt)
-    {
-      return number;
-    }
-    else
-    {
-      BigInt value(static_cast<std::int64_t>(std::floor(get_double(number))));
-      return JSONInt ^ value.loc();
-    }
-  }
-
-  Node Resolver::round(const Node& node)
-  {
-    auto maybe_number = maybe_unwrap_number(node);
-    if (!maybe_number.has_value())
-    {
-      return err(node, "Not a number");
-    }
-
-    Node number = maybe_number.value();
-    if (number->type() == JSONInt)
-    {
-      return number;
-    }
-    else
-    {
-      BigInt value(static_cast<std::int64_t>(std::round(get_double(number))));
-      return JSONInt ^ value.loc();
-    }
   }
 }

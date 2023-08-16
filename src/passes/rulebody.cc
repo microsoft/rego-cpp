@@ -1,6 +1,7 @@
 #include "lang.h"
 #include "log.h"
 #include "passes.h"
+#include "variable.h"
 
 namespace
 {
@@ -143,7 +144,7 @@ namespace rego
           return AssignInfix << _(Rhs) << _(Lhs);
         },
 
-      // a = <term>
+      // a = any
       In(UnifyBody) *
           (T(AssignInfix)
            << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs]([](auto& n) {
@@ -151,11 +152,21 @@ namespace rego
                                  }))) *
                T(AssignArg)[Rhs])) >>
         [](Match& _) {
-          LOG("a = <term>");
-          return UnifyExpr << _(Lhs) << (Expr << wfi / _(Rhs) / Val);
+          LOG("a = any");
+          auto name = _(Lhs)->location().view();
+          if (Variable::is_unify(name) || Variable::is_user_var(name))
+          {
+            return UnifyExpr << _(Lhs) << (Expr << _(Rhs)->front());
+          }
+
+          Location unify = _.fresh({"unify"});
+          return Seq << (Local << (Var ^ unify) << Undefined)
+                     << (UnifyExpr << _(Lhs)->clone() << (Expr << _(Rhs)->front()))
+                     << (UnifyExpr << (Var ^ unify)
+                                   << (Expr << (RefTerm << _(Lhs))));
         },
 
-      // <ref> = <term>
+      // <ref> = any
       In(UnifyBody) *
           (T(AssignInfix)
            << ((T(AssignArg) << (T(RefTerm)[Lhs] << T(SimpleRef)([](auto& n) {
@@ -163,14 +174,13 @@ namespace rego
                                  }))) *
                T(AssignArg)[Rhs])) >>
         [](Match& _) {
-          LOG("<ref> = <term>");
+          LOG("<ref> = any");
           Node seq = NodeDef::create(Seq);
-          Location temp = _.fresh({"ref"});
-          seq->push_back(Local << (Var ^ temp) << Undefined);
-          seq->push_back(UnifyExpr << (Var ^ temp) << (Expr << _(Lhs)));
-          seq->push_back(
-            UnifyExpr << (Var ^ temp) << (Expr << wfi / _(Rhs) / Val));
-          return seq;
+          Location unify = _.fresh({"unify"});
+          return Seq << (Local << (Var ^ unify) << Undefined)
+                     << (UnifyExpr << (Var ^ unify) << (Expr << _(Lhs)))
+                     << (UnifyExpr << (Var ^ unify)
+                                   << (Expr << wfi / _(Rhs) / Val));
         },
 
       // <array> = <array>

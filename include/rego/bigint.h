@@ -17,6 +17,10 @@ namespace rego
     std::size_t to_size() const;
     bool is_negative() const;
     bool is_zero() const;
+    BigInt increment() const;
+    BigInt decrement() const;
+
+    static bool is_int(const Location& loc);
 
     friend BigInt operator+(const BigInt& lhs, const BigInt& rhs);
     friend BigInt operator-(const BigInt& lhs, const BigInt& rhs);
@@ -59,5 +63,6 @@ namespace rego
     std::string_view digits() const;
     Location m_loc;
     static Location Zero;
+    static Location One;
   };
 }

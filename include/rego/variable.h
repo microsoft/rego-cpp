@@ -28,7 +28,8 @@ namespace rego
     Location name() const;
 
     static std::size_t detect_cycles(std::map<Location, Variable>& variables);
-    static bool is_user_var(const std::string& name);
+    static bool is_unify(const std::string_view& name);
+    static bool is_user_var(const std::string_view& name);
 
     template <typename T>
     void insert_dependencies(T start, T end)

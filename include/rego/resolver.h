@@ -60,12 +60,9 @@ namespace rego
     static std::optional<Node> maybe_unwrap_set(const Node& term);
     static bool is_falsy(const Node& node);
     static bool is_truthy(const Node& node);
+    static bool is_undefined(const Node& node);
     static Nodes object_lookdown(const Node& object, const Node& query);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
-    static Node abs(const Node& value);
-    static Node ceil(const Node& value);
-    static Node floor(const Node& value);
-    static Node round(const Node& value);
   };
 
   std::ostream& operator<<(

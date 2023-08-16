@@ -46,6 +46,9 @@ int main(int argc, char** argv)
   bool fail_first{false};
   app.add_flag(
     "-f,--fail-first", fail_first, "Stop after first test case failure");
+  
+  std::string note;
+  app.add_option("-n,--note", note, "Note of specific test to run");
 
   try
   {
@@ -80,6 +83,11 @@ int main(int argc, char** argv)
     std::cout << White << category << std::endl;
     for (auto& testcase : cat_cases)
     {
+      if(!note.empty() && testcase.note().find(note) == std::string::npos)
+      {
+        continue;
+      }
+
       try
       {
         auto start = std::chrono::steady_clock::now();
