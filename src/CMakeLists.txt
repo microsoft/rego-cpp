@@ -53,9 +53,6 @@ add_library(rego STATIC ${SOURCES})
 add_library(regocpp::rego ALIAS rego)
 
 if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
-  if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    message(FATAL_ERROR "Speculative load hardening is only supported with Clang")
-  endif()
   target_compile_options(rego PRIVATE -mllvm -x86-speculative-load-hardening)
 endif()
 
