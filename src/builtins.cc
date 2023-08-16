@@ -1,9 +1,10 @@
 #include "builtins.h"
 
+#include "builtins/register.h"
 #include "lang.h"
 #include "resolver.h"
 
-namespace builtins
+namespace
 {
   using namespace rego;
 
@@ -13,7 +14,7 @@ namespace builtins
     auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
     if (!maybe_search.has_value() || !maybe_base.has_value())
     {
-      return err("startswith: expected string arguments");
+      return err(args[0], "startswith: expected string arguments");
     }
 
     std::string search = Resolver::get_string(*maybe_search);
@@ -27,7 +28,7 @@ namespace builtins
     auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
     if (!maybe_search.has_value() || !maybe_base.has_value())
     {
-      return err("endswith: expected string arguments");
+      return err(args[0], "endswith: expected string arguments");
     }
 
     std::string search = Resolver::get_string(*maybe_search);
@@ -38,22 +39,31 @@ namespace builtins
   Node count(const Nodes& args)
   {
     Node collection = args[0];
+    if (collection->type() == Term)
+    {
+      collection = collection->front();
+    }
+
     if (
       collection->type() == Object || collection->type() == Array ||
       collection->type() == Set)
     {
-      return Resolver::scalar(static_cast<std::int64_t>(collection->size()));
+      return Resolver::scalar(BigInt(collection->size()));
     }
-    else if (collection->type() == JSONString)
+
+    if (collection->type() == Scalar)
+    {
+      collection = collection->front();
+    }
+
+    if (collection->type() == JSONString)
     {
       std::string collection_str =
         strip_quotes(std::string(collection->location().view()));
-      return Resolver::scalar(static_cast<std::int64_t>(collection_str.size()));
+      return Resolver::scalar(BigInt(collection_str.size()));
     }
-    else
-    {
-      return err("count: expected collection");
-    }
+
+    return err(args[0], "count: expected collection");
   }
 
   Node to_number(const Nodes& args)
@@ -61,27 +71,23 @@ namespace builtins
     auto maybe_number = Resolver::maybe_unwrap_string(args[0]);
     if (!maybe_number.has_value())
     {
-      return err("to_number: expected string argument");
+      return err(args[0], "to_number: expected string argument");
+    }
+
+    if (BigInt::is_int(args[0]->location()))
+    {
+      return JSONInt ^ args[0]->location();
     }
 
     std::string number_str = Resolver::get_string(*maybe_number);
-
     try
     {
-      std::int64_t int_value = std::stoll(number_str);
-      return Resolver::scalar(int_value);
+      double float_value = std::stod(number_str);
+      return Resolver::scalar(float_value);
     }
     catch (const std::invalid_argument)
     {
-      try
-      {
-        double float_value = std::stod(number_str);
-        return Resolver::scalar(float_value);
-      }
-      catch (const std::invalid_argument)
-      {
-        return err("to_number: invalid number");
-      }
+      return err(args[0], "to_number: invalid number");
     }
   }
 
@@ -103,15 +109,6 @@ namespace builtins
     return Resolver::scalar(true);
   }
 
-  Node intersection(const Nodes& args)
-  {
-    return Resolver::set_intersection(args[0], args[1]);
-  }
-
-  Node union_(const Nodes& args)
-  {
-    return Resolver::set_union(args[0], args[1]);
-  }
 }
 
 namespace rego
@@ -124,45 +121,47 @@ namespace rego
 
   bool BuiltIns::is_builtin(const Location& name) const
   {
-    return s_builtins.contains(name);
+    return m_builtins.contains(name);
   }
 
   Node BuiltIns::call(const Location& name, const Nodes& args) const
   {
-    return s_builtins.at(name)->behavior(args);
+    return m_builtins.at(name)->behavior(args);
   }
 
   BuiltIns& BuiltIns::register_builtin(const BuiltIn& built_in)
   {
-    s_builtins[built_in->name] = built_in;
+    m_builtins[built_in->name] = built_in;
     return *this;
   }
 
   BuiltIns& BuiltIns::register_standard_builtins()
   {
     register_builtin(
-      BuiltInDef::create(Location("startswith"), 2, builtins::startswith));
-    register_builtin(
-      BuiltInDef::create(Location("endswith"), 2, builtins::endswith));
-    register_builtin(BuiltInDef::create(Location("count"), 1, builtins::count));
-    register_builtin(
-      BuiltInDef::create(Location("to_number"), 1, builtins::to_number));
-    register_builtin(
-      BuiltInDef::create(Location("print"), AnyArity, builtins::print));
-    register_builtin(
-      BuiltInDef::create(Location("union"), 2, builtins::union_));
-    register_builtin(
-      BuiltInDef::create(Location("intersection"), 2, builtins::intersection));
+      BuiltInDef::create(Location("startswith"), 2, ::startswith));
+    register_builtin(BuiltInDef::create(Location("endswith"), 2, ::endswith));
+    register_builtin(BuiltInDef::create(Location("count"), 1, ::count));
+    register_builtin(BuiltInDef::create(Location("to_number"), 1, ::to_number));
+    register_builtin(BuiltInDef::create(Location("print"), AnyArity, ::print));
+
+    register_builtins(builtins::sets());
+    register_builtins(builtins::numbers());
+
     return *this;
   }
 
   std::map<Location, BuiltIn>::const_iterator BuiltIns::begin() const
   {
-    return s_builtins.begin();
+    return m_builtins.begin();
   }
 
   std::map<Location, BuiltIn>::const_iterator BuiltIns::end() const
   {
-    return s_builtins.end();
+    return m_builtins.end();
+  }
+
+  const BuiltIn& BuiltIns::at(const Location& name) const
+  {
+    return m_builtins.at(name);
   }
 }

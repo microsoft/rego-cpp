@@ -1,8 +1,11 @@
 #pragma once
 
+#include "bigint.h"
+#include "builtins.h"
+#include "lang.h"
+
 #include <optional>
 #include <string>
-#include <trieste/driver.h>
 
 namespace rego
 {
@@ -18,9 +21,9 @@ namespace rego
       PrintNode printer;
     };
 
-    static std::int64_t get_int(const Node& node);
+    static BigInt get_int(const Node& node);
 
-    static Node scalar(int64_t value);
+    static Node scalar(BigInt value);
     static Node scalar(double value);
     static Node scalar(bool value);
     static Node scalar(const std::string& value);
@@ -28,7 +31,7 @@ namespace rego
     static double get_double(const Node& node);
     static std::string get_string(const Node& node);
     static bool get_bool(const Node& node);
-    static Node resolve_query(const Node& query);
+    static Node resolve_query(const Node& query, const BuiltIns& builtins);
     static NodePrinter stmt_str(const Node& stmt);
     static NodePrinter func_str(const Node& func);
     static NodePrinter arg_str(const Node& arg);
@@ -57,6 +60,7 @@ namespace rego
     static std::optional<Node> maybe_unwrap_set(const Node& term);
     static bool is_falsy(const Node& node);
     static bool is_truthy(const Node& node);
+    static bool is_undefined(const Node& node);
     static Nodes object_lookdown(const Node& object, const Node& query);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
   };

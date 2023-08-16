@@ -2,5 +2,6 @@
 
 int main(int argc, char** argv)
 {
-  return rego::driver().run(argc, argv);
+  auto builtins = rego::BuiltIns().register_standard_builtins();
+  return rego::driver(builtins).run(argc, argv);
 }

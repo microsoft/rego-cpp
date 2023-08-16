@@ -24,6 +24,12 @@ project( regocpp VERSION ${REGOCPP_VERSION} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# -------------------- Options --------------------------
+
+option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" OFF)
+option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
+option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
+
 # -------------------- Find packages --------------------------
 
 FetchContent_Declare(
@@ -60,12 +66,16 @@ else()
                     ${ALL_SOURCE_FILES})
 endif()
 
+if(REGOCPP_OPA_TESTS)
+  find_package(Git REQUIRED)
+  if(NOT IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/opa)
+    execute_process(COMMAND ${GIT_EXECUTABLE} clone --depth=1 --branch v0.55.0 https://github.com/open-policy-agent/opa/ 
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                    OUTPUT_QUIET)
+  endif()
+endif()
+
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
-
-# -------------------- Options --------------------------
-
-option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" OFF)
-option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
 
 # -------------------- Walk the subdirectories --------------------
 
@@ -123,7 +133,7 @@ endif()
 
 if (REGOCPP_BUILD_TESTS)
   install(TARGETS rego_test yaml_trieste RUNTIME)
-  install(FILES tests/regocpp.yaml DESTINATION tests)
+  install(FILES tests/regocpp.yaml tests/bigint.yaml DESTINATION tests)
 endif()
 
 export(EXPORT ${PROJECT_NAME}_Targets

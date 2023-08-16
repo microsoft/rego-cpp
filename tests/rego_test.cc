@@ -12,6 +12,14 @@ namespace rego_test
     return {
       In(Top) * T(File)[File] >> [](Match& _) { return Block << *_[File]; },
 
+      In(Block) * (T(Group) << (T(String) * T(Colon) * (T(Brace) << End))) >>
+        [](Match&) { return Node(); },
+
+      In(Block) *
+          ((T(Group) << (T(String) * T(Colon) * End)) *
+           (T(Group)[Group] << (T(String) * T(Colon)))) >>
+        [](Match& _) { return _(Group); },
+
       In(Group) * T(Brace)[Brace] >>
         [](Match& _) { return Block << *_[Brace]; },
 
@@ -44,14 +52,23 @@ namespace rego_test
           return Float ^ loc;
         },
 
-      (In(LiteralString) / In(FoldedString)) *
+      (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
+       In(DoubleQuoteString)) *
           (T(Group) << T(String)[String]) >>
         [](Match& _) { return _(String); },
 
-      (In(LiteralString) / In(FoldedString)) * (T(Group) << T(Blank)) >>
+      (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
+       In(DoubleQuoteString)) *
+          (T(Group) << T(Blank)) >>
         [](Match&) { return String ^ ""; },
 
       // errors
+      In(Group) * (T(Block)[Block] << End) >>
+        [](Match& _) { return err(_(Block), "Syntax error: empty block"); },
+
+      (In(Entry) / In(Block)) * (T(Group)[Group] << End) >>
+        [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
+
       In(Group) * T(Hyphen)[Hyphen] >>
         [](Match& _) {
           return err(_(Hyphen), "Invalid sequence entry declaration");
@@ -67,6 +84,16 @@ namespace rego_test
 
       In(FoldedString) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid folded string element"); },
+
+      In(SingleQuoteString) * T(Group)[Group] >>
+        [](Match& _) {
+          return err(_(Group), "Invalid single-quoted string element");
+        },
+
+      In(DoubleQuoteString) * T(Group)[Group] >>
+        [](Match& _) {
+          return err(_(Group), "Invalid double-quoted string element");
+        },
 
     };
   }
@@ -89,7 +116,9 @@ namespace rego_test
           return String ^ buf.str();
         },
 
-      In(Group) * (T(FoldedString) << (T(String)++[String])) >>
+      In(Group) *
+          ((T(FoldedString) / T(SingleQuoteString) / T(DoubleQuoteString))
+           << (T(String)++[String])) >>
         [](Match& _) {
           std::ostringstream buf;
           std::string sep = "";
@@ -153,6 +182,21 @@ namespace rego_test
           }
 
           return KeyValue << (Key ^ key_loc) << _(Val);
+        },
+
+      (In(Entry) / In(Block)) *
+          ((T(Group) << ((T(Scalar) << T(String))[Key] * End)) *
+           (T(Group) << (T(Colon) * Any[Val]))) >>
+        [](Match& _) {
+          Location key_loc = _(Key)->location();
+          std::string key = std::string(key_loc.view());
+          std::size_t length = key.find(' ');
+          if (length != std::string::npos)
+          {
+            key_loc.len = length;
+          }
+
+          return KeyValue << (Key ^ key_loc) << (Group << _[Val]);
         },
 
       In(Entry) * T(KeyValue)[KeyValue] >>
@@ -235,9 +279,9 @@ namespace rego_test
            << ((T(Key)[Key]([](auto& n) {
                  return name_equals(*n.first, {"want_result"});
                })) *
-               T(Mapping)[Mapping])) >>
+               T(Sequence)[Sequence])) >>
         [](Match& _) {
-          return KeyValue << _(Key) << (WantResult << *_[Mapping]);
+          return KeyValue << _(Key) << (WantResult << *_[Sequence]);
         },
 
       In(rego::List) *
@@ -286,6 +330,9 @@ namespace rego_test
           return rego::Binding << (rego::Var ^ _(Key))
                                << (rego::Term << _(Val));
         },
+
+      In(WantResult) * (T(Entry) << T(Mapping)[Mapping]) >>
+        [](Match& _) { return Seq << *_[Mapping]; },
 
       In(rego::Term) * T(Mapping)[Mapping] >>
         [](Match& _) {
