@@ -71,9 +71,14 @@ int main(int argc, char** argv)
         load_testcases(p, debug_path, all_testcases);
       }
     }
-    else
+    else if(std::filesystem::exists(file_or_dir))
     {
       load_testcases(file_or_dir, debug_path, all_testcases);
+    }
+    else
+    {
+      std::cerr << "Not a file: " << file_or_dir << std::endl;
+      return 1;
     }
   }
 

@@ -191,6 +191,14 @@ namespace rego
 
       In(Policy) *
           (T(Group)
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) * End)) >>
+        [](Match& _) {
+          return Rule << (RuleHead << _(Id) << (RuleHeadSet << _(Item)))
+                      << Empty << ElseSeq;
+        },
+
+      In(Policy) *
+          (T(Group)
            << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
                (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail] *
                T(UnifyBody)[UnifyBody])) >>

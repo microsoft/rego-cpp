@@ -80,6 +80,9 @@ namespace rego
         [](Match& _) { return _(Val); },
 
       // errors
+    
+      T(Expr)[Expr] << End >>
+        [](Match& _) { return err(_(Expr), "Empty expression"); },
 
       In(Expr) * BoolToken[Op] >>
         [](Match& _) { return err(_(Op), "Invalid comparison"); },
@@ -92,6 +95,9 @@ namespace rego
 
       In(BoolArg) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid boolean argument"); },
+      
+      In(BoolArg) * (T(Set) / T(SetCompr))[Set] >>
+        [](Match& _) { return err(_(Set), "Invalid boolean argument"); },
 
       In(ArithArg) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid argument"); },

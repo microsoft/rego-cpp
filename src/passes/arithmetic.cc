@@ -101,6 +101,12 @@ namespace rego
 
       // errors
 
+      In(Expr) * (T(Add)/T(Subtract))[Op] >>
+        [](Match& _) { return err(_(Op), "Invalid add/subtract"); },
+
+      In(Expr) * T(Or)[Op] >>
+        [](Match& _) { return err(_(Op), "Invalid set union"); },
+
       T(ArithArg)[ArithArg] << (Any * Any) >>
         [](Match& _) {
           return err(_(ArithArg), "Argument can only have one element");

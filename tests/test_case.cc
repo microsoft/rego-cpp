@@ -427,8 +427,13 @@ namespace rego_test
     {
       if (actual->size() > 1)
       {
-        pass = false;
         error << "expected one error, actual: " << actual << std::endl;
+        return {false, error.str()};
+      }
+      else if (actual->size() == 0)
+      {
+        error << actual << std::endl;
+        return {false, error.str()};
       }
       else
       {
