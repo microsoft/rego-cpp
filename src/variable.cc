@@ -115,7 +115,7 @@ namespace rego
 
   void Variable::mark_invalid_values()
   {
-    m_values.mark_invalid_values();
+    //m_values.mark_invalid_values();
   }
 
   void Variable::mark_valid_values()

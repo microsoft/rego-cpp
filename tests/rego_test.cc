@@ -36,22 +36,6 @@ namespace rego_test
       In(Group) * (T(Hyphen) * (T(Block) / T(Group))[Entry]) >>
         [](Match& _) { return Entry << _(Entry); },
 
-      In(Group) * (T(Hyphen)[Hyphen] * T(Integer)[Integer]) >>
-        [](Match& _) {
-          Location loc0 = _(Hyphen)->location();
-          Location loc1 = _(Integer)->location();
-          Location loc(loc0.source, loc0.pos, loc1.pos + loc1.len - loc0.pos);
-          return Integer ^ loc;
-        },
-
-      In(Group) * (T(Hyphen)[Hyphen] * T(Float)[Float]) >>
-        [](Match& _) {
-          Location loc0 = _(Hyphen)->location();
-          Location loc1 = _(Float)->location();
-          Location loc(loc0.source, loc0.pos, loc1.pos + loc1.len - loc0.pos);
-          return Float ^ loc;
-        },
-
       (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
        In(DoubleQuoteString)) *
           (T(Group) << T(String)[String]) >>
@@ -197,6 +181,20 @@ namespace rego_test
           }
 
           return KeyValue << (Key ^ key_loc) << (Group << _[Val]);
+        },
+
+      (In(Entry) / In(Block)) *
+          ((T(Group) << ((T(Scalar) << T(String))[Key] * T(Colon))) * End) >>
+        [](Match& _) {
+          Location key_loc = _(Key)->location();
+          std::string key = std::string(key_loc.view());
+          std::size_t length = key.find(' ');
+          if (length != std::string::npos)
+          {
+            key_loc.len = length;
+          }
+
+          return KeyValue << (Key ^ key_loc) << (Group << Sequence);
         },
 
       In(Entry) * T(KeyValue)[KeyValue] >>

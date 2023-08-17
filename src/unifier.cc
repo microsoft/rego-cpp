@@ -1174,6 +1174,9 @@ namespace rego
     }
 
     assert(rulecomp->type() == RuleComp);
+    if(rulecomp->type() != RuleComp){
+      return std::nullopt;
+    }
 
     Location rulename = (wfi / rulecomp / Var)->location();
     Node rulebody = wfi / rulecomp / Body;
@@ -1246,6 +1249,9 @@ namespace rego
     const Node& rulefunc, const Nodes& args)
   {
     assert(rulefunc->type() == RuleFunc);
+    if(rulefunc->type() != RuleFunc){
+      return std::nullopt;
+    }
 
     rank_t index = ValueDef::get_rank(wfi / rulefunc / Idx);
     Node rule = Resolver::inject_args(rulefunc, args);
@@ -1329,6 +1335,10 @@ namespace rego
     for (const auto& rule : ruleset)
     {
       assert(rule->type() == RuleSet);
+      if(rule->type() != RuleSet){
+        return std::nullopt;
+      }
+
       Location rulename = (wfi / rule / Var)->location();
       Node rulebody = wfi / rule / Body;
       Node value = wfi / rule / Val;
@@ -1414,6 +1424,10 @@ namespace rego
         return rule;
       }
       assert(rule->type() == RuleObj);
+      if(rule->type() != RuleObj){
+        return std::nullopt;
+      }
+
       Location rulename = (wfi / rule / Var)->location();
       Node rulebody = wfi / rule / Body;
       Node value = wfi / rule / Val;

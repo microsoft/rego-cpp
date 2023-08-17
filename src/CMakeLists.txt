@@ -46,8 +46,12 @@ passes/lift_to_rule.cc
 passes/functions.cc
 passes/unify.cc
 passes/query.cc
+builtins/aggregates.cc
+builtins/encoding.cc
 builtins/numbers.cc
 builtins/sets.cc
+# third-party
+builtins/base64/base64.cpp
 )
 
 add_library(rego STATIC ${SOURCES})

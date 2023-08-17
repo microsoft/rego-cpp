@@ -41,6 +41,7 @@ namespace rego_test
   inline const auto Blank = TokenDef("yaml-blank");
   inline const auto Brace = TokenDef("yaml-brace");
   inline const auto Square = TokenDef("yaml-square");
+  inline const auto Empty = TokenDef("yaml-empty");
 
   inline const auto wf_parse_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | LiteralString | FoldedString | SingleQuoteString |
@@ -63,7 +64,7 @@ namespace rego_test
 
   inline const auto wf_entry_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | Entry | LiteralString | FoldedString |
-    SingleQuoteString | DoubleQuoteString;
+    SingleQuoteString | DoubleQuoteString | Empty;
 
   // clang-format off
   inline const auto wf_pass_entry =
@@ -84,7 +85,7 @@ namespace rego_test
   // clang-format off
   inline const auto wf_pass_sequence =
     wf_pass_entry
-    | (Sequence <<= Entry++[1])
+    | (Sequence <<= Entry++)
     | (Group <<= wf_sequence_tokens++[1])
     ;
   // clang-format on   
@@ -109,7 +110,7 @@ namespace rego_test
   // clang-format off
   inline const auto wf_pass_mapping =
     wf_pass_keyvalue
-    | (Mapping <<= KeyValue++[1])
+    | (Mapping <<= KeyValue++)
     | (Entry <<= Group)
     | (Group <<= Mapping | Scalar | Sequence)
     ;
@@ -119,8 +120,8 @@ namespace rego_test
     (Top <<= Document)
     | (Document <<= KeyValue)
     | (KeyValue <<= Key * (Val >>= Scalar | Sequence | Mapping))[Key]
-    | (Sequence <<= Entry++[1])
-    | (Mapping <<= KeyValue++[1])
+    | (Sequence <<= Entry++)
+    | (Mapping <<= KeyValue++)
     | (Entry <<= Scalar | Sequence | Mapping)
     | (Scalar <<= String | Integer | Float | True | False | Null)
     ;
@@ -140,7 +141,7 @@ namespace rego_test
     | (rego::Square <<= rego::List)
     | (rego::List <<= Group++)
     | (Group <<= rego::wf_parse_tokens++[1])
-    | (WantResult <<= rego::Binding++[1])
+    | (WantResult <<= rego::Binding++)
     | (rego::Binding <<= rego::Var * rego::Term)
     | (rego::Term <<= wf_rego_term_tokens)
     | (rego::Object <<= rego::ObjectItem++[1])
