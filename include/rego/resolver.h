@@ -19,6 +19,7 @@ namespace rego
     {
       Node node;
       PrintNode printer;
+      std::string str() const;
     };
 
     static BigInt get_int(const Node& node);
@@ -63,6 +64,10 @@ namespace rego
     static bool is_undefined(const Node& node);
     static Nodes object_lookdown(const Node& object, const Node& query);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
+    static Node membership(const Node& index, const Node& item, const Node& itemseq);
+    static Node membership(const Node& item, const Node& itemseq);
+    static std::vector<std::string> array_find(const Node& array, const std::string& search);
+    static std::vector<std::string> object_find(const Node& object, const std::string& search);
   };
 
   std::ostream& operator<<(

@@ -43,20 +43,29 @@ namespace rego
       WithStack with_stack,
       const BuiltIns& builtins,
       UnifierCache cache);
-    friend std::ostream& operator<<(std::ostream& os, const Unifier& unifier);
 
   private:
+    struct Dependency {
+      std::string name;
+      std::set<std::size_t> dependencies;
+      std::size_t score;
+    };
+
     Unifier rule_unifier(const Location& rule, const Node& rulebody);
-    void init_from_body(const Node& rulebody, std::vector<Node>& statements);
-    void add_variable(const Node& local);
-    void add_unifyexpr(const Node& unifyexpr);
+    void init_from_body(const Node& rulebody, std::vector<Node>& statements, std::size_t root);
+    std::size_t add_variable(const Node& local);
+    std::size_t add_unifyexpr(const Node& unifyexpr);
     void add_withpush(const Node& withpush);
     void add_withpop(const Node& withpop);
-    void compute_dependency_scores();
     void reset();
-    std::size_t compute_dependency_score(const Node& unifyexpr);
-    std::size_t compute_dependency_score(
-      Variable& var, std::set<Location>& visited);
+    
+    void compute_dependency_scores();
+    std::size_t compute_dependency_score(std::size_t index, std::set<size_t>& visited);
+    std::size_t dependency_score(const Variable& var) const;
+    std::size_t dependency_score(const Node& expr) const;
+    std::size_t detect_cycles() const;
+    bool has_cycle(std::size_t id) const;
+
     Values evaluate(const Location& var, const Node& value);
     Values evaluate_function(
       const Location& var, const std::string& func_name, const Args& args);
@@ -99,5 +108,7 @@ namespace rego
     std::size_t m_retries;
     Token m_parent_type;
     UnifierCache m_cache;
+    NodeMap<std::size_t> m_expr_ids;
+    std::vector<Dependency> m_dependency_graph;
   };
 }

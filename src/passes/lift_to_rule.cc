@@ -23,7 +23,7 @@ namespace
       return false;
     }
 
-    return local->parent() != unifybody.get();
+    return var->common_parent(local) != unifybody;
   }
 
   void add_captures(Node body, Node node, Locs& locs)
@@ -173,7 +173,7 @@ namespace rego
               for (auto& [var, out_var] : out_map)
               {
                 rulevalue
-                  << (ObjectItem << (Key ^ var)
+                  << (ObjectItem << (Expr << (Term << (Scalar << (JSONString ^ var))))
                                  << (Expr << (RefTerm << (Var ^ out_var))));
               }
               Location value = _.fresh({"value"});

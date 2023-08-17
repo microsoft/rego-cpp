@@ -18,6 +18,7 @@ passes/modules.cc
 passes/lists.cc
 passes/imports.cc
 passes/keywords.cc
+passes/membership.cc
 passes/if_else.cc
 passes/rules.cc
 passes/build_calls.cc

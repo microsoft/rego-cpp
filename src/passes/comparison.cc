@@ -22,49 +22,18 @@ namespace rego
         [](Match& _) {
           std::set<Token> set_types = {Set, SetCompr};
           Node lhs = _(Lhs);
-          if(set_types.contains(lhs->type()))
+          if (set_types.contains(lhs->type()))
           {
             lhs = Term << lhs;
           }
 
           Node rhs = _(Rhs);
-          if(set_types.contains(rhs->type()))
+          if (set_types.contains(rhs->type()))
           {
             rhs = Term << rhs;
           }
 
-          return BoolInfix << (BoolArg << lhs) << _(Op)
-                           << (BoolArg << rhs);
-        },
-
-      In(Expr) *
-          (BoolInfixArg[Lhs](
-             [](auto& n) { return is_in(*n.first, {UnifyBody}); }) *
-           T(MemberOf) * BoolInfixArg[Rhs]) >>
-        [](Match& _) {
-          Location item = _.fresh({"item"});
-          Location unify =
-            _.fresh({is_in(_(Lhs), {LiteralNot}) ? "not" : "unify"});
-          Node seq = Seq
-            << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
-            << (Lift << UnifyBody << (Local << (Var ^ unify) << Undefined))
-            << (Lift << UnifyBody
-                     << (Literal
-                         << (Expr << (RefTerm << (Var ^ item)) << Unify
-                                  << (Enumerate << (Expr << _(Rhs))))))
-            << (Lift << UnifyBody
-                     << (Literal
-                         << (Expr
-                             << (RefTerm << (Var ^ unify)) << Unify
-                             << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (JSONInt ^ "1")))))))))
-            << (RefTerm << (Var ^ unify)) << Unify << _(Lhs);
-
-          return seq;
+          return BoolInfix << (BoolArg << lhs) << _(Op) << (BoolArg << rhs);
         },
 
       In(Expr) * (T(Set) / T(SetCompr))[Set] >>
@@ -86,9 +55,6 @@ namespace rego
 
       In(Expr) * T(Not)[Not] >>
         [](Match& _) { return err(_(Not), "Invalid not"); },
-
-      In(Expr) * T(MemberOf)[MemberOf] >>
-        [](Match& _) { return err(_(MemberOf), "Invalid in statement"); },
 
       In(BoolArg) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid boolean argument"); },

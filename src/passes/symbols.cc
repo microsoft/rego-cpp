@@ -145,26 +145,6 @@ namespace rego
           (T(Term) << (T(Scalar) / T(Array) / T(Object) / T(Set))[Val]) >>
         [](Match& _) { return ArgVal << _(Val); },
 
-      In(ObjectItem) * ((T(ObjectItemHead) << T(Scalar)[Scalar])) >>
-        [](Match& _) {
-          std::string key = strip_quotes(to_json(_(Scalar)));
-          return Key ^ key;
-        },
-
-      In(Object) *
-          (T(ObjectItem)
-           << ((T(ObjectItemHead) << T(Var)[Var]) * T(Expr)[Expr])) >>
-        [](Match& _) {
-          return RefObjectItem << (RefTerm << _(Var)) << _(Expr);
-        },
-
-      In(Object) *
-          (T(ObjectItem)
-           << ((T(ObjectItemHead) << T(Ref)[Ref]) * T(Expr)[Expr])) >>
-        [](Match& _) {
-          return RefObjectItem << (RefTerm << _(Ref)) << _(Expr);
-        },
-
       In(Expr) * (T(Expr) << (T(Term)[Term] * End)) >>
         [](Match& _) { return _(Term); },
 
@@ -180,10 +160,7 @@ namespace rego
       In(RefArgBrack) * T(Var)[Var] >>
         [](Match& _) { return RefTerm << _(Var); },
 
-      In(UnifyBody) *
-          (T(Literal)
-           << (T(SomeDecl)
-               << (T(VarSeq)[VarSeq] * (T(InSome) << T(Undefined))))) >>
+      In(UnifyBody) * (T(Literal) << (T(SomeDecl) << T(VarSeq)[VarSeq])) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           for (auto& var : *_(VarSeq))
@@ -195,16 +172,16 @@ namespace rego
 
       In(UnifyBody) *
           (T(Literal)
-           << (T(SomeDecl)
-               << ((T(VarSeq) << (T(Var)[Val] * End)) *
-                   (T(InSome) << T(Expr)[Expr])))) >>
+           << (T(SomeExpr)
+               << (T(Undefined) * T(Expr)[Item] *
+                   (T(IsIn) << T(Expr)[ItemSeq])))) >>
         [](Match& _) {
           Location item = _.fresh({"item"});
           return Seq << (Local << (Var ^ item) << Undefined)
-                     << (LiteralEnum << (Var ^ item) << _(Expr))
+                     << (LiteralEnum << (Var ^ item) << _(ItemSeq))
                      << (Literal
                          << (Expr
-                             << (RefTerm << _(Val)->clone()) << Unify
+                             << _(Item) << Unify
                              << (RefTerm
                                  << (Ref << (RefHead << (Var ^ item))
                                          << (RefArgSeq
@@ -216,7 +193,7 @@ namespace rego
       In(Expr) *
           (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
            << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
-               (T(InSome) << T(Expr)[Expr]))) >>
+               (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
           Location item = _.fresh({"item"});
           Location every = _.fresh({"every"});
@@ -238,18 +215,16 @@ namespace rego
 
       In(UnifyBody) *
           (T(Literal)
-           << (T(SomeDecl)
-               << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
-                   (T(InSome) << T(Expr)[Expr])))) >>
+           << (T(SomeExpr)
+               << (T(Expr)[Idx] * T(Expr)[Item] *
+                   (T(IsIn) << T(Expr)[ItemSeq])))) >>
         [](Match& _) {
           Location item = _.fresh({"item"});
           return Seq << (Local << (Var ^ item) << Undefined)
-                     << (LiteralEnum << (Var ^ item) << _(Expr))
-                     << (Local << _(Idx) << Undefined)
-                     << (Local << _(Val) << Undefined)
+                     << (LiteralEnum << (Var ^ item) << _(ItemSeq))
                      << (Literal
                          << (Expr
-                             << (RefTerm << _(Idx)->clone()) << Unify
+                             << _(Idx) << Unify
                              << (RefTerm
                                  << (Ref << (RefHead << (Var ^ item))
                                          << (RefArgSeq
@@ -258,7 +233,7 @@ namespace rego
                                                      << (JSONInt ^ "0"))))))))
                      << (Literal
                          << (Expr
-                             << (RefTerm << _(Val)->clone()) << Unify
+                             << _(Item) << Unify
                              << (RefTerm
                                  << (Ref << (RefHead << (Var ^ item))
                                          << (RefArgSeq
@@ -270,7 +245,7 @@ namespace rego
       In(Expr) *
           (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
            << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
-               T(UnifyBody)[UnifyBody] * (T(InSome) << T(Expr)[Expr]))) >>
+               T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
           Location item = _.fresh({"item"});
           Location every = _.fresh({"every"});
@@ -372,9 +347,6 @@ namespace rego
           return err(_(RuleHead), "No rule functions allowed in rule bodies");
         },
 
-      In(ObjectItem) * T(ObjectItemHead)[ObjectItemHead] >>
-        [](Match& _) { return err(_(ObjectItemHead), "Invalid object key"); },
-
       In(Term) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Invalid ref term"); },
 
@@ -396,10 +368,10 @@ namespace rego
       In(Expr) * T(Dot)[Dot] >>
         [](Match& _) { return err(_(Dot), "Invalid dot expression"); },
 
-      In(ExprEvery) * (T(InSome)[InSome] << T(Undefined)) >>
+      In(ExprEvery) * (T(IsIn)[IsIn] << T(Undefined)) >>
         [](Match& _) {
           return err(
-            _(InSome),
+            _(IsIn),
             "Every statement requires an explicit sequence to evaluate.");
         },
 

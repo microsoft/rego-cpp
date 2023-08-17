@@ -11,9 +11,7 @@ namespace
 
   // clang-format off
   inline const auto wfi =
-      (ObjectItem <<= Key * Expr)
-    | (RefObjectItem <<= RefTerm * Expr)
-    | (NumTerm <<= JSONInt | JSONFloat)
+    (NumTerm <<= JSONInt | JSONFloat)
     | (ArithArg <<= RefTerm | NumTerm | UnaryExpr | ArithInfix)
     | (BoolArg <<= Term | RefTerm | NumTerm | UnaryExpr | ArithInfix)
     | (RefArgDot <<= Var)
@@ -58,23 +56,22 @@ namespace rego
 
       (In(UnifyExpr) / In(ArgSeq)) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) {
-          Node seq = NodeDef::create(Seq);
-          seq->push_back(wfi / _(ObjectItem) / Key);
-          seq->push_back(wfi / _(ObjectItem) / Expr);
-          return seq;
-        },
-
-      (In(UnifyExpr) / In(ArgSeq)) * T(RefObjectItem)[RefObjectItem] >>
-        [](Match& _) {
-          Node seq = NodeDef::create(Seq);
-          seq->push_back(wfi / _(RefObjectItem) / RefTerm);
-          seq->push_back(wfi / _(RefObjectItem) / Expr);
-          return seq;
+          return Seq << *_[ObjectItem];
         },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(Enumerate) << T(Expr)[Expr]) >>
         [](Match& _) {
           return Function << (JSONString ^ "enumerate") << (ArgSeq << _(Expr));
+        },
+
+      (In(UnifyExpr) / In(ArgSeq)) * (T(Membership) << (T(Expr)[Idx] * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
+        [](Match& _){
+          return Function << (JSONString ^ "membership-tuple") << (ArgSeq << _(Idx) << _(Item) << _(ItemSeq));
+        },
+
+      (In(UnifyExpr) / In(ArgSeq)) * (T(Membership) << (T(Undefined) * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
+        [](Match& _){
+          return Function << (JSONString ^ "membership-single") << (ArgSeq << _(Item) << _(ItemSeq));
         },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(Term) << T(Array)[Array]) >>
@@ -268,6 +265,9 @@ namespace rego
 
       (In(Object) / In(ObjectItemSeq)) * T(DataItem)[DataItem] >>
         [](Match& _) { return ObjectItem << *_[DataItem]; },
+      
+      In(ObjectItem) * T(Key)[Key] >>
+        [](Match& _) { return Term << (Scalar << (JSONString ^ _(Key))); },
 
       (In(ObjectItem) / In(Array) / In(Set)) * T(DataTerm)[DataTerm] >>
         [](Match& _) { return Term << *_[DataTerm]; },
@@ -291,9 +291,6 @@ namespace rego
 
       In(ArgSeq) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Invalid reference"); },
-
-      In(Object) * T(RefObjectItem)[RefObjectItem] >>
-        [](Match& _) { return err(_(RefObjectItem), "Invalid object item"); },
 
       In(ObjectItem) * T(Module)[Module] >>
         [](Match& _) {

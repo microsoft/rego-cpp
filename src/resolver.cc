@@ -21,7 +21,7 @@ namespace
     | (Term <<= Scalar | Array | Object | Set)
     | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
     | (ArgVal <<= Scalar | Array | Object | Set)
-    | (ObjectItem <<= Key * Term)
+    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
     | (ArgVar <<= Var * (Val >>= Term | Undefined))
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
     | (Function <<= JSONString * ArgSeq)
@@ -618,7 +618,7 @@ namespace rego
         }
         else if (def->type() == ObjectItem)
         {
-          nodes.push_back(wfi / def / Term);
+          nodes.push_back(wfi / def / Val);
         }
         else if (def->type() == Submodule)
         {
@@ -657,9 +657,8 @@ namespace rego
     Node object = NodeDef::create(Object);
     for (std::size_t i = 0; i < object_items->size(); i += 2)
     {
-      std::string key_str = strip_quotes(to_json(object_items->at(i)));
       object->push_back(
-        ObjectItem << (Key ^ key_str) << object_items->at(i + 1));
+        ObjectItem << object_items->at(i) << object_items->at(i + 1));
     }
 
     return object;
@@ -1103,7 +1102,7 @@ namespace rego
         defs.begin(),
         defs.end(),
         std::back_inserter(terms),
-        [](const Node& def) { return wfi / def / Term; });
+        [](const Node& def) { return wfi / def / Val; });
       return terms;
     }
 
@@ -1120,7 +1119,7 @@ namespace rego
 
       if (key_str == query_str)
       {
-        terms.push_back(wfi / object_item / Term);
+        terms.push_back(wfi / object_item / Val);
       }
     }
 
@@ -1235,11 +1234,97 @@ namespace rego
       }
     }
 
-    if (result->size() == 0)
+    return result;
+  }
+
+  Node Resolver::membership(
+    const Node& index, const Node& item, const Node& itemseq)
+  {
+    std::vector<std::string> indices;
+    if (itemseq->type() == Array || itemseq->type() == Set)
     {
-      result->push_back(Undefined);
+      indices = array_find(itemseq, to_json(item));
+    }
+    else if (itemseq->type() == Object)
+    {
+      indices = object_find(itemseq, to_json(item));
+    }
+    else
+    {
+      return JSONFalse ^ "false";
     }
 
-    return result;
+    std::string index_str = to_json(index);
+    for (auto& i : indices)
+    {
+      if (i == index_str)
+      {
+        return JSONTrue ^ "true";
+      }
+    }
+
+    return JSONFalse ^ "false";
+  }
+
+  Node Resolver::membership(const Node& item, const Node& itemseq)
+  {
+    std::vector<std::string> indices;
+    if (itemseq->type() == Array || itemseq->type() == Set)
+    {
+      indices = array_find(itemseq, to_json(item));
+    }
+    else if (itemseq->type() == Object)
+    {
+      indices = object_find(itemseq, to_json(item));
+    }
+    else
+    {
+      return JSONFalse ^ "false";
+    }
+
+    if (indices.size() > 0)
+    {
+      return JSONTrue ^ "True";
+    }
+
+    return JSONFalse ^ "false";
+  }
+
+  std::vector<std::string> Resolver::array_find(
+    const Node& array, const std::string& search)
+  {
+    std::vector<std::string> indices;
+    for (std::size_t i = 0; i < array->size(); ++i)
+    {
+      Node item = array->at(i);
+      if (to_json(item) == search)
+      {
+        indices.push_back(std::to_string(i));
+      }
+    }
+
+    return indices;
+  }
+
+  std::vector<std::string> Resolver::object_find(
+    const Node& object, const std::string& search)
+  {
+    std::vector<std::string> indices;
+    for (auto& objectitem : *object)
+    {
+      if (to_json(objectitem / Val) == search)
+      {
+        indices.push_back(to_json(objectitem / Key));
+      }
+    }
+
+    return indices;
+  }
+
+  std::string Resolver::NodePrinter::str() const
+  {
+    std::ostringstream buf;
+    buf << *this;
+    return buf.str();
   }
 }

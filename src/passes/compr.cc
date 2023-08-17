@@ -63,8 +63,8 @@ namespace rego
                                << (Expr
                                    << (Term
                                        << (Object
-                                           << (RefObjectItem
-                                               << (RefTerm << (Var ^ key))
+                                           << (ObjectItem
+                                               << (Expr << (RefTerm << (Var ^ key)))
                                                << _(Val))))))));
           },
 
@@ -86,7 +86,6 @@ namespace rego
                  T(Expr)[Val])) >>
           [](Match& _) {
             Location value = _.fresh({"value"});
-            Location key = _.fresh({"key"});
             Node body = _(Body);
             if (body->type() == Empty)
             {
@@ -98,7 +97,6 @@ namespace rego
               << _(Var) << Empty
               << (UnifyBody
                   << (Local << (Var ^ value) << Undefined)
-                  << (Local << (Var ^ key) << Undefined)
                   << (Literal
                       << (Expr << (RefTerm << (Var ^ value)) << Unify
                                << (Expr
@@ -112,7 +110,12 @@ namespace rego
           [](Match& _) {
             Location out = _.fresh({"out"});
             Location compr = _.fresh({"compr"});
-            _(UnifyBody)
+            Node tail = _(UnifyBody);
+            while (tail->back()->type() == LiteralEnum)
+            {
+              tail = tail->back() / UnifyBody;
+            }
+            tail
               << (Literal
                   << (Expr << (RefTerm << (Var ^ out)) << Unify << _(Expr)));
             _(UnifyBody)->push_front(Local << (Var ^ out) << Undefined);
@@ -125,8 +128,13 @@ namespace rego
           [](Match& _) {
             Location out = _.fresh({"out"});
             Location compr = _.fresh({"compr"});
+            Node tail = _(UnifyBody);
+            while (tail->back()->type() == LiteralEnum)
+            {
+              tail = tail->back() / UnifyBody;
+            }
 
-            _(UnifyBody)
+            tail
               << (Literal
                   << (Expr << (RefTerm << (Var ^ out)) << Unify
                            << (Expr << (Term << (Array << _(Key) << _(Val))))));

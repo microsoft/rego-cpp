@@ -15,7 +15,6 @@ namespace
       (Binding <<= Var * Term)
     | (ObjectItem <<= Key * (Val >>= Term))
     | (DataItem <<= Key * (Val >>= DataTerm))
-    | (RefObjectItem <<= (Key >>= RefTerm) * (Val >>= Expr))
     | (Term <<= Scalar | Array | Object | Set | Undefined)
     | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
     ;
@@ -39,6 +38,7 @@ namespace rego
       {"elses", elses(), &wf_pass_elses},
       {"rules", rules(), &wf_pass_rules},
       {"build_calls", build_calls(), &wf_pass_build_calls},
+      {"membership", membership(), &wf_pass_membership},
       {"build_refs", build_refs(), &wf_pass_build_refs},
       {"structure", structure(), &wf_pass_structure},
       {"strings", strings(), &wf_pass_strings},
@@ -88,6 +88,7 @@ namespace rego
         {"elses", elses(), wf_pass_elses},
         {"rules", rules(), wf_pass_rules},
         {"build_calls", build_calls(), wf_pass_build_calls},
+        {"membership", membership(), wf_pass_membership},
         {"build_refs", build_refs(), wf_pass_build_refs},
         {"structure", structure(), wf_pass_structure},
         {"strings", strings(), wf_pass_strings},
@@ -367,21 +368,7 @@ namespace rego
 
     if (node->type() == Object)
     {
-      for (auto& item : *node)
-      {
-        if (item->type() == RefObjectItem)
-        {
-          return false;
-        }
-
-        Node val = item / Val;
-        if (!is_constant(val->front()))
-        {
-          return false;
-        }
-      }
-
-      return true;
+      return false;
     }
 
     return false;

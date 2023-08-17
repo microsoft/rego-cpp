@@ -1,19 +1,5 @@
 #include "passes.h"
 
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-      (ObjectItem <<= Key * Term)
-    | (Data <<= ObjectItemSeq)
-    | (DataItem <<= Key * Term)
-    ;
-  // clang-format on
-}
-
 namespace rego
 {
   // Merges all the Data nodes in DataSeq into a single Data node.
@@ -32,7 +18,7 @@ namespace rego
 
       (In(DataItemSeq) / In(DataObject)) *
           (T(ObjectItem)
-           << ((T(ObjectItemHead) << T(Scalar)[Scalar]) *
+           << ((T(Expr) << (T(Term) << T(Scalar)[Scalar])) *
                (T(Expr) << T(Term)[Term]))) >>
         [](Match& _) {
           std::string key = strip_quotes(to_json(_(Scalar)));

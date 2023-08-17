@@ -20,8 +20,8 @@ namespace
 
 namespace rego
 {
-  Variable::Variable(const Node& local) :
-    m_local(local), m_initialized(false), m_dependency_score(1)
+  Variable::Variable(const Node& local, std::size_t id) :
+    m_local(local), m_initialized(false), m_id(id)
   {
     Location name = (wfi / local / Var)->location();
     m_unify = is_unify(name.view());
@@ -94,23 +94,7 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
-    return os << (wfi / variable.m_local / Var)->location().view() << "("
-              << variable.m_dependency_score << ") = " << variable.m_values;
-  }
-
-  std::ostream& operator<<(
-    std::ostream& os, const std::map<Location, Variable>& variables)
-  {
-    os << "{";
-    std::string sep = "";
-    for (const auto& [loc, var] : variables)
-    {
-      os << sep << loc.view() << "(" << var.m_dependency_score << ") -> "
-         << var.m_dependencies;
-      sep = ", ";
-    }
-    os << "}";
-    return os;
+    return os << (wfi / variable.m_local / Var)->location().view() << " = " << variable.m_values;
   }
 
   void Variable::mark_valid_values()
@@ -173,28 +157,6 @@ namespace rego
     return m_user_var;
   }
 
-  std::size_t Variable::dependency_score() const
-  {
-    return m_dependency_score;
-  }
-
-  Variable& Variable::dependency_score(std::size_t score)
-  {
-    m_dependency_score = score;
-    return *this;
-  }
-
-  const std::set<Location>& Variable::dependencies() const
-  {
-    return m_dependencies;
-  }
-
-  std::size_t Variable::increase_dependency_score(std::size_t amount)
-  {
-    m_dependency_score += amount;
-    return m_dependency_score;
-  }
-
   Values Variable::valid_values() const
   {
     return m_values.valid_values();
@@ -251,56 +213,8 @@ namespace rego
     return (wfi / m_local / Var)->location();
   }
 
-  bool Variable::has_cycle(const std::map<Location, Variable>& variables) const
+  std::size_t Variable::id() const
   {
-    std::set<Location> visited;
-
-    std::vector<Location> stack(m_dependencies.begin(), m_dependencies.end());
-    while (!stack.empty())
-    {
-      Location loc = stack.back();
-      stack.pop_back();
-
-      if (loc == name())
-      {
-        return true;
-      }
-
-      if (visited.contains(loc))
-      {
-        continue;
-      }
-
-      visited.insert(loc);
-
-      if (!variables.contains(loc))
-      {
-        // This is a variable from an outer scope and thus
-        // cannot cause a cycle.
-        continue;
-      }
-
-      const Variable& variable = variables.at(loc);
-      for (const auto& dep : variable.dependencies())
-      {
-        stack.push_back(dep);
-      }
-    }
-
-    return false;
-  }
-
-  std::size_t Variable::detect_cycles(std::map<Location, Variable>& variables)
-  {
-    std::size_t cycles = 0;
-    for (auto& [_, variable] : variables)
-    {
-      if (variable.has_cycle(variables))
-      {
-        ++cycles;
-      }
-    }
-
-    return cycles;
+    return m_id;
   }
 }

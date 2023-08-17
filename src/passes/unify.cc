@@ -45,10 +45,6 @@ namespace rego
           [](Match& _) { return Object << *_[DataObject]; },
         In(Object) * T(DataItem)[DataItem] >>
           [](Match& _) { return ObjectItem << *_[DataItem]; },
-
-        // errors
-        T(Query)[Query] << End >>
-          [](Match& _) { return err(_(Query), "no values in query"); },
       }};
 
     unify.pre(Rego, [builtins](Node node) {

@@ -47,8 +47,11 @@ int main(int argc, char** argv)
   app.add_flag(
     "-f,--fail-first", fail_first, "Stop after first test case failure");
 
-  std::string note;
-  app.add_option("-n,--note", note, "Note of specific test to run");
+  std::string note_match;
+  app.add_option(
+    "-n,--note",
+    note_match,
+    "Note (or note substring) of specific test to run");
 
   try
   {
@@ -88,10 +91,14 @@ int main(int argc, char** argv)
     std::cout << White << category << std::endl;
     for (auto& testcase : cat_cases)
     {
-      if (!note.empty() && testcase.note().find(note) == std::string::npos)
+      if (
+        !note_match.empty() &&
+        testcase.note().find(note_match) == std::string::npos)
       {
         continue;
       }
+
+      std::string note = testcase.note().substr(category.size() + 1);
 
       try
       {
@@ -102,18 +109,18 @@ int main(int argc, char** argv)
 
         if (result.passed)
         {
-          std::cout << Green << "  PASS: " << Reset << testcase.note()
-                    << std::fixed << std::setw(62 - testcase.note().length())
-                    << std::internal << std::setprecision(2) << elapsed.count()
-                    << " sec" << std::endl;
+          std::cout << Green << "  PASS: " << Reset << note << std::fixed
+                    << std::setw(62 - note.length()) << std::internal
+                    << std::setprecision(2) << elapsed.count() << " sec"
+                    << std::endl;
         }
         else
         {
           failures++;
-          std::cout << Red << "  FAIL: " << Reset << testcase.note()
-                    << std::fixed << std::setw(62 - testcase.note().length())
-                    << std::internal << std::setprecision(2) << elapsed.count()
-                    << " sec" << std::endl;
+          std::cout << Red << "  FAIL: " << Reset << note << std::fixed
+                    << std::setw(62 - note.length()) << std::internal
+                    << std::setprecision(2) << elapsed.count() << " sec"
+                    << std::endl;
           std::cout << "  " << result.error << std::endl;
           std::cout << "(from " << testcase.filename() << ")" << std::endl;
           if (fail_first)
@@ -125,7 +132,7 @@ int main(int argc, char** argv)
       catch (const std::exception& e)
       {
         failures++;
-        std::cout << Red << "  FAIL: " << Reset << testcase.note() << std::endl;
+        std::cout << Red << "  FAIL: " << Reset << note << std::endl;
         std::cout << "  " << e.what() << std::endl;
         std::cout << "(from " << testcase.filename() << ")" << std::endl;
         if (fail_first)

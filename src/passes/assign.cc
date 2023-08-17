@@ -65,7 +65,7 @@ namespace rego
 {
   const inline auto AssignInfixArg = T(RefTerm) / T(NumTerm) / T(UnaryExpr) /
     T(ArithInfix) / T(BinInfix) / T(Term) / T(BoolInfix) / T(ExprCall) /
-    T(Enumerate);
+    T(Enumerate) / T(Membership);
 
   // Transforms unification expressions into AssignInfix nodes.
   PassDef assign(const BuiltIns& builtins)
