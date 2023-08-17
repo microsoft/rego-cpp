@@ -88,7 +88,7 @@ namespace rego_test
         // Double quote string
         "\"" >>
           [quote](auto& m) {
-            if (m.previous(Colon) || m.previous(Hyphen))
+            if (m.previous(Colon) || m.in(Block) || m.in(Square) || m.in(Brace))
             {
               m.push(DoubleQuoteString, 1);
               m.mode("multiline-string");
@@ -103,7 +103,7 @@ namespace rego_test
         // Single quote string
         "'" >>
           [quote](auto& m) {
-            if (m.previous(Colon) || m.previous(Hyphen))
+            if (m.previous(Colon) || m.in(Square) || m.in(Brace) || m.in(Block))
             {
               m.push(SingleQuoteString, 1);
               m.mode("multiline-string");

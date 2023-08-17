@@ -263,20 +263,6 @@ namespace rego
     execute_statements(m_statements.begin(), m_statements.end());
   }
 
-  void UnifierDef::mark_invalid_values()
-  {
-    for (auto& [_, var] : m_variables)
-    {
-      if (!var.is_unify())
-      {
-        // only unification statements can mark values as invalid
-        continue;
-      }
-
-      var.mark_invalid_values();
-    }
-  }
-
   void UnifierDef::remove_invalid_values()
   {
     std::for_each(m_variables.begin(), m_variables.end(), [](auto& pair) {
@@ -300,9 +286,9 @@ namespace rego
 
         Node node = var.bind();
 
-        if (node->type() == Error || node->type() == Undefined)
+        if (node->type() == Error)
         {
-          LOG("> ", var.name().view(), ": Undefined or Error");
+          LOG("> ", var.name().view(), ": Error");
           return node;
         }
 
@@ -327,7 +313,12 @@ namespace rego
             return JSONTrue ^ "true";
           }
         }
-        else if (result->type() == Undefined)
+        else if (var.is_unify() && Resolver::is_falsy(node))
+        {
+          LOG("> ", var.name().view(), ": false => false");
+          return JSONFalse ^ "false";
+        }
+        else if (node->type() == Term && result->type() == Undefined)
         {
           LOG("> ", var.name().view(), ": Term => true");
           return JSONTrue ^ "true";
@@ -357,7 +348,7 @@ namespace rego
     {
       LOG_HEADER("Pass " + std::to_string(pass_index), "=====");
       pass();
-      mark_invalid_values();
+      // mark_invalid_values();
       remove_invalid_values();
     }
 
@@ -1174,7 +1165,8 @@ namespace rego
     }
 
     assert(rulecomp->type() == RuleComp);
-    if(rulecomp->type() != RuleComp){
+    if (rulecomp->type() != RuleComp)
+    {
       return std::nullopt;
     }
 
@@ -1249,7 +1241,8 @@ namespace rego
     const Node& rulefunc, const Nodes& args)
   {
     assert(rulefunc->type() == RuleFunc);
-    if(rulefunc->type() != RuleFunc){
+    if (rulefunc->type() != RuleFunc)
+    {
       return std::nullopt;
     }
 
@@ -1335,7 +1328,8 @@ namespace rego
     for (const auto& rule : ruleset)
     {
       assert(rule->type() == RuleSet);
-      if(rule->type() != RuleSet){
+      if (rule->type() != RuleSet)
+      {
         return std::nullopt;
       }
 
@@ -1424,7 +1418,8 @@ namespace rego
         return rule;
       }
       assert(rule->type() == RuleObj);
-      if(rule->type() != RuleObj){
+      if (rule->type() != RuleObj)
+      {
         return std::nullopt;
       }
 

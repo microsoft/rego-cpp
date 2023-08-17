@@ -1068,6 +1068,11 @@ namespace rego
 
   bool Resolver::is_falsy(const Node& node)
   {
+    if (node->type() == Undefined)
+    {
+      return true;
+    }
+
     if (node->type() != Term)
     {
       return false;

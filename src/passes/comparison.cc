@@ -15,30 +15,26 @@ namespace rego
       In(UnifyBody) * (T(Literal) << (T(Expr) << (T(Not) * Any++[Expr]))) >>
         [](Match& _) { return LiteralNot << (Expr << _[Expr]); },
 
-      In(Literal) *
-          (T(Expr)
-           << (BoolInfixArg[Lhs](
-                 [](auto& n) { return is_in(*n.first, {UnifyBody}); }) *
-               T(Equals) * BoolInfixArg[Rhs])) >>
-        [](Match& _) {
-          Location unify0 = _.fresh({"unify"});
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ unify0) << Undefined))
-                     << (Lift << UnifyBody
-                              << (Literal
-                                  << (Expr << (RefTerm << (Var ^ unify0))
-                                           << Unify << _(Lhs))))
-                     << (Expr << (RefTerm << (Var ^ unify0)) << Unify
-                              << _(Rhs));
-        },
-
       In(Expr) * (T(Expr) << (BoolInfixArg[Arg] * End)) >>
         [](Match& _) { return _(Arg); },
 
       In(Expr) * (BoolInfixArg[Lhs] * BoolToken[Op] * BoolInfixArg[Rhs]) >>
         [](Match& _) {
-          return BoolInfix << (BoolArg << _(Lhs)) << _(Op)
-                           << (BoolArg << _(Rhs));
+          std::set<Token> set_types = {Set, SetCompr};
+          Node lhs = _(Lhs);
+          if(set_types.contains(lhs->type()))
+          {
+            lhs = Term << lhs;
+          }
+
+          Node rhs = _(Rhs);
+          if(set_types.contains(rhs->type()))
+          {
+            rhs = Term << rhs;
+          }
+
+          return BoolInfix << (BoolArg << lhs) << _(Op)
+                           << (BoolArg << rhs);
         },
 
       In(Expr) *

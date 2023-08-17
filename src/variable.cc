@@ -113,11 +113,6 @@ namespace rego
     return os;
   }
 
-  void Variable::mark_invalid_values()
-  {
-    //m_values.mark_invalid_values();
-  }
-
   void Variable::mark_valid_values()
   {
     // `false` and `undefined` are value values for everything
@@ -139,6 +134,7 @@ namespace rego
       return nodes[0];
     }
 
+    std::set<std::string> values;
     Node term_set = NodeDef::create(TermSet);
     for (const auto& node : nodes)
     {
@@ -152,7 +148,11 @@ namespace rego
         continue;
       }
 
-      term_set->push_back(node);
+      std::string json = to_json(node);
+      if(!values.contains(json)){
+        values.insert(json);
+        term_set->push_back(node);
+      }
     }
 
     if (term_set->size() == 1)
@@ -235,15 +235,14 @@ namespace rego
       return term;
     }
 
-    if (Resolver::is_truthy(term) || m_user_var)
-    {
-      m_local->back() = term;
-    }
-    else
-    {
-      return Undefined;
+    if(term->type() == TermSet && term->size() == 0){
+      if(term->size() == 0){
+        m_local->back() = Undefined;
+        return Undefined;
+      }
     }
 
+    m_local->back() = term;
     return term;
   }
 

@@ -5,11 +5,71 @@ namespace
 {
   using namespace rego;
 
+  const std::uint8_t MaskX = 0xC0; // 0x11000000
+  const std::uint8_t Mask1 = 0x80; // 0x10000000
+  const std::uint8_t Mask2 = 0xE0; // 0x11100000
+  const std::uint8_t Mask3 = 0xF0; // 0x11110000
+  const std::uint8_t Mask4 = 0xF8; // 0x11111000
+  const std::uint8_t MarkX = 0x80; // 0x10xxxxxx
+  const std::uint8_t Mark1 = 0x00; // 0x0xxxxxxx
+  const std::uint8_t Mark2 = 0xC0; // 0x110xxxxx
+  const std::uint8_t Mark3 = 0xE0; // 0x1110xxxx
+  const std::uint8_t Mark4 = 0xF0; // 0x11110xxx
+
+  std::size_t utf_char_length(const char* pos, const char* end)
+  {
+    std::uint8_t c0 = static_cast<std::uint8_t>(pos[0]);
+    std::size_t remaining = std::distance(pos, end);
+    if ((c0 & Mask1) == Mark1)
+    {
+      return 1;
+    }
+
+    if ((c0 & Mask2) == Mark2 && remaining >= 2)
+    {
+      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
+      if ((c1 & MaskX) == MarkX)
+      {
+        return 2;
+      }
+    }
+    else if ((c0 & Mask3) == Mark3 && remaining >= 3)
+    {
+      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
+      std::uint8_t c2 = static_cast<std::uint8_t>(pos[2]);
+      if ((c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX)
+      {
+        return 3;
+      }
+    }
+    else if ((c0 & Mask4) == Mark4 && remaining >= 4)
+    {
+      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
+      std::uint8_t c2 = static_cast<std::uint8_t>(pos[2]);
+      std::uint8_t c3 = static_cast<std::uint8_t>(pos[3]);
+      if (
+        (c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX && (c3 & MaskX) == MarkX)
+      {
+        return 4;
+      }
+    }
+
+    // bad
+    return 1;
+  }
+
   std::size_t utf_string_length(const std::string_view& utf8)
   {
-    // OPA rego bases counts on UTF-8 21-bit encoded strings, so we
-    // need to count very carefully.
-    return utf8.size();
+    std::size_t count = 0;
+    auto it = utf8.begin();
+    while (it != utf8.end())
+    {
+      auto length = utf_char_length(it, utf8.end());
+      it += length;
+      count += 1;
+    }
+
+    return count;
   }
 
   Node count(const Nodes& args)

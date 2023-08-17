@@ -77,7 +77,6 @@ namespace rego
     std::size_t scan_vars(const Node& expr, std::vector<Location>& locals);
     void pass();
     void execute_statements(Nodes::iterator begin, Nodes::iterator end);
-    void mark_invalid_values();
     void remove_invalid_values();
     Variable& get_variable(const Location& name);
     bool is_variable(const Location& name) const;

@@ -41,7 +41,6 @@ namespace rego_test
   inline const auto Blank = TokenDef("yaml-blank");
   inline const auto Brace = TokenDef("yaml-brace");
   inline const auto Square = TokenDef("yaml-square");
-  inline const auto Empty = TokenDef("yaml-empty");
 
   inline const auto wf_parse_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | LiteralString | FoldedString | SingleQuoteString |
@@ -64,7 +63,7 @@ namespace rego_test
 
   inline const auto wf_entry_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | Entry | LiteralString | FoldedString |
-    SingleQuoteString | DoubleQuoteString | Empty;
+    SingleQuoteString | DoubleQuoteString;
 
   // clang-format off
   inline const auto wf_pass_entry =
