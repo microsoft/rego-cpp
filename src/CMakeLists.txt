@@ -1,6 +1,7 @@
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
 
 set( SOURCES
+bigint.cc
 interpreter.cc
 lang.cc
 parse.cc
@@ -34,8 +35,7 @@ passes/compr.cc
 passes/absolute_refs.cc
 passes/merge_modules.cc
 passes/skips.cc
-passes/multiply_divide.cc
-passes/add_subtract.cc
+passes/arithmetic.cc
 passes/comparison.cc
 passes/assign.cc
 passes/skip_refs.cc
@@ -46,6 +46,8 @@ passes/lift_to_rule.cc
 passes/functions.cc
 passes/unify.cc
 passes/query.cc
+builtins/numbers.cc
+builtins/sets.cc
 )
 
 add_library(rego STATIC ${SOURCES})

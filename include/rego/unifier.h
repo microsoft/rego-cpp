@@ -8,7 +8,6 @@
 #include <map>
 #include <set>
 #include <string>
-#include <trieste/driver.h>
 #include <vector>
 
 namespace rego

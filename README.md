@@ -28,7 +28,7 @@ Create a build directory and initialize the cmake project:
 
     mkdir build
     cd build
-    cmake .. --DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
+    cmake .. -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
 
 You can then build and run the tests using:
 
@@ -154,19 +154,26 @@ LF     Line Feed
 At the moment only support a few builtins, but are actively working on adding
 all the standard builtins. The following builtins are currently supported:
 
-- `print`
-- `startswith`
-- `endswith`
-- `count`
-- `to_number`
-- `intersection`
-- `union`
+- `numbers`
+- `sets`
+- miscellaneous
+    - `print`
+    - `startswith`
+    - `endswith`
+    - `count`
+    - `to_number`
 
 ### Compatibility with the OPA Rego Go implementation
 
 Our goal is to achieve and maintain full compatibility with the reference Go
-implementation. We are working on a test driver which will run the same tests
-and validate that we produce the same outputs.
+implementation. We have developed a test driver which runs the same tests
+and validates that we produce the same outputs. We currently pass the following
+test case suites:
+
+- `arithmetic`
+- `numbersrange`
+- `rand`
+- `sets`
     
 ## Contributing
 

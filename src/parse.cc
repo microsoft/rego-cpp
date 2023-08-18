@@ -85,6 +85,9 @@ namespace rego
         // And
         "&" >> [](auto& m) { m.add(And); },
 
+        // OPA local variable.
+        R"(__[[:alnum:]]+__\b)" >> [](auto& m) { m.add(Var); },
+
         // Placeholder
         "_" >> [](auto& m) { m.add(Placeholder); },
 

@@ -31,9 +31,9 @@ namespace
     ;
   // clang-format on
 
-  std::int64_t get_int(const Node& node)
+  BigInt get_int(const Node& node)
   {
-    return std::stoll(to_json(node));
+    return BigInt(node->location());
   }
 
   double get_double(const Node& node)
@@ -41,9 +41,9 @@ namespace
     return std::stod(to_json(node));
   }
 
-  Node do_arith(const Node& op, std::int64_t lhs, std::int64_t rhs)
+  Node do_arith(const Node& op, BigInt lhs, BigInt rhs)
   {
-    std::int64_t value;
+    BigInt value;
     if (op->type() == Add)
     {
       value = lhs + rhs;
@@ -58,15 +58,24 @@ namespace
     }
     else if (op->type() == Divide)
     {
-      if (rhs == 0)
+      return err(op, "unsupported math operation");
+      /*
+      In case we need integer division in the future.
+      if (rhs.is_zero())
       {
-        return err(op, "divide by zero");
+        return err(op, "divide by zero", "eval_builtin_error");
       }
 
       value = lhs / rhs;
+      */
     }
     else if (op->type() == Modulo)
     {
+      if (rhs.is_zero())
+      {
+        return err(op, "modulo by zero", "eval_builtin_error");
+      }
+
       value = lhs % rhs;
     }
     else
@@ -74,7 +83,7 @@ namespace
       return err(op, "unsupported math operation");
     }
 
-    return JSONInt ^ std::to_string(value);
+    return JSONInt ^ value.loc();
   }
 
   Node do_arith(const Node& op, double lhs, double rhs)
@@ -96,15 +105,14 @@ namespace
     {
       if (rhs == 0.0)
       {
-        return err(op, "divide by zero");
+        return err(op, "divide by zero", "eval_builtin_error");
       }
 
       value = lhs / rhs;
     }
     else if (op->type() == Modulo)
     {
-      // current behavior of OPA interpreter is to return undefined
-      return Undefined;
+      return err(op, "modulo on floating-point number", "eval_builtin_error");
     }
     else
     {
@@ -112,11 +120,12 @@ namespace
     }
 
     std::ostringstream oss;
-    oss << std::setprecision(8) << std::noshowpoint << value;
+    oss << std::setprecision(std::numeric_limits<double>::max_digits10 - 1)
+        << std::noshowpoint << value;
     return JSONFloat ^ oss.str();
   }
 
-  Node do_bool(const Node& op, std::int64_t lhs, std::int64_t rhs)
+  Node do_bool(const Node& op, BigInt lhs, BigInt rhs)
   {
     bool value;
     if (op->type() == Equals)
@@ -245,15 +254,15 @@ namespace
 
 namespace rego
 {
-  std::int64_t Resolver::get_int(const Node& node)
+  BigInt Resolver::get_int(const Node& node)
   {
     assert(node->type() == JSONInt);
     return ::get_int(node);
   }
 
-  Node Resolver::scalar(std::int64_t value)
+  Node Resolver::scalar(BigInt value)
   {
-    return JSONInt ^ std::to_string(value);
+    return JSONInt ^ value.loc();
   }
 
   double Resolver::get_double(const Node& node)
@@ -265,7 +274,8 @@ namespace rego
   Node Resolver::scalar(double value)
   {
     std::ostringstream oss;
-    oss << std::setprecision(8) << std::noshowpoint << value;
+    oss << std::setprecision(std::numeric_limits<double>::max_digits10 - 1)
+        << std::noshowpoint << value;
     return JSONFloat ^ oss.str();
   }
 
@@ -302,9 +312,8 @@ namespace rego
   {
     if (node->type() == JSONInt)
     {
-      std::int64_t value = get_int(node);
-      value *= -1;
-      return JSONInt ^ std::to_string(value);
+      BigInt value = get_int(node);
+      return JSONInt ^ value.negate().loc();
     }
     else if (node->type() == JSONFloat)
     {
@@ -342,7 +351,9 @@ namespace rego
     {
       Node lhs_number = maybe_lhs_number.value();
       Node rhs_number = maybe_rhs_number.value();
-      if (lhs_number->type() == JSONInt && rhs_number->type() == JSONInt)
+      if (
+        lhs_number->type() == JSONInt && rhs_number->type() == JSONInt &&
+        op->type() != Divide)
       {
         return do_arith(op, get_int(lhs_number), get_int(rhs_number));
       }
@@ -358,6 +369,12 @@ namespace rego
       if (maybe_lhs_set.has_value() && maybe_rhs_set.has_value())
       {
         return bininfix(op, maybe_lhs_set.value(), maybe_rhs_set.value());
+      }
+
+      if (maybe_lhs_number.has_value() && maybe_rhs_set.has_value())
+      {
+        return err(
+          rhs, "operand 2 must be number but got set", "eval_type_error");
       }
 
       return err(
@@ -533,6 +550,11 @@ namespace rego
   std::optional<Nodes> Resolver::apply_access(
     const Node& container, const Node& arg)
   {
+    if (is_undefined(container))
+    {
+      return std::nullopt;
+    }
+
     if (container->type() == Array)
     {
       Node index = arg;
@@ -548,8 +570,8 @@ namespace rego
 
       if (index->type() == JSONInt)
       {
-        auto i = get_int(index);
-        if (i >= 0 && static_cast<std::size_t>(i) < container->size())
+        auto i = get_int(index).to_size();
+        if (i < container->size())
         {
           Node value = container->at(i);
           if (value->type() == Expr)
@@ -690,9 +712,14 @@ namespace rego
 
   Node Resolver::set_intersection(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set || rhs->type() != Set)
+    if (lhs->type() != Set)
     {
-      return err("intersection: both arguments must be sets");
+      return err(lhs, "intersection: both arguments must be sets");
+    }
+
+    if (rhs->type() != Set)
+    {
+      return err(rhs, "intersection: both arguments must be sets");
     }
 
     Node set = NodeDef::create(Set);
@@ -715,9 +742,14 @@ namespace rego
 
   Node Resolver::set_union(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set || rhs->type() != Set)
+    if (lhs->type() != Set)
     {
-      return err("intersection: both arguments must be sets");
+      return err(lhs, "union: both arguments must be sets");
+    }
+
+    if (rhs->type() != Set)
+    {
+      return err(rhs, "union: both arguments must be sets");
     }
 
     std::map<std::string, Node> members;
@@ -746,9 +778,14 @@ namespace rego
 
   Node Resolver::set_difference(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set || rhs->type() != Set)
+    if (lhs->type() != Set)
     {
-      return err("intersection: both arguments must be sets");
+      return err(lhs, "difference: both arguments must be sets");
+    }
+
+    if (rhs->type() != Set)
+    {
+      return err(rhs, "difference: both arguments must be sets");
     }
 
     Node set = NodeDef::create(Set);
@@ -1011,6 +1048,24 @@ namespace rego
     return false;
   }
 
+  bool Resolver::is_undefined(const Node& node)
+  {
+    if (node->type() == Undefined)
+    {
+      return true;
+    }
+
+    for (auto& child : *node)
+    {
+      if (is_undefined(child))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   bool Resolver::is_falsy(const Node& node)
   {
     if (node->type() != Term)
@@ -1024,7 +1079,7 @@ namespace rego
       value = value->front();
       return value->type() == JSONFalse;
     }
-    else if (value->type() == Undefined)
+    else if (is_undefined(value))
     {
       return true;
     }
@@ -1101,7 +1156,7 @@ namespace rego
     return results;
   }
 
-  Node Resolver::resolve_query(const Node& query)
+  Node Resolver::resolve_query(const Node& query, const BuiltIns& builtins)
   {
     Nodes defs = resolve_varseq(query->front());
     if (defs.size() != 1)
@@ -1116,7 +1171,7 @@ namespace rego
         rulebody,
         std::make_shared<std::vector<Location>>(),
         std::make_shared<std::vector<ValuesLookup>>(),
-        BuiltIns().register_standard_builtins(),
+        builtins,
         std::make_shared<NodeMap<Unifier>>());
       unifier->unify();
     }

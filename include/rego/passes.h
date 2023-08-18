@@ -45,11 +45,12 @@ namespace rego
   PassDef compr();
   PassDef absolute_refs();
   PassDef merge_modules();
-  PassDef skips();
+  PassDef skips(const BuiltIns& builtins);
+  PassDef unary();
   PassDef multiply_divide();
   PassDef add_subtract();
   PassDef comparison();
-  PassDef assign();
+  PassDef assign(const BuiltIns& builtins);
   PassDef skip_refs();
   PassDef simple_refs();
   PassDef implicit_enums();
@@ -57,6 +58,6 @@ namespace rego
   PassDef rulebody();
   PassDef lift_to_rule();
   PassDef functions();
-  PassDef unify();
+  PassDef unify(const BuiltIns& builtins);
   PassDef query();
 }

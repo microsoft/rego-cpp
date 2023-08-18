@@ -30,9 +30,8 @@ namespace
     }
   }
 
-  bool can_grab(Node local)
+  bool can_grab(Node local, Node unifybody)
   {
-    Node unifybody = local->parent()->shared_from_this();
     Nodes refs;
     all_refs(local->scope(), (local / Var)->location(), refs);
     for (auto& ref : refs)
@@ -42,7 +41,7 @@ namespace
         continue;
       }
 
-      Node common_parent = local->common_parent(ref);
+      Node common_parent = unifybody->common_parent(ref);
       if (common_parent != unifybody)
       {
         return false;
@@ -50,6 +49,22 @@ namespace
     }
 
     return true;
+  }
+
+  Node next_enum(Node local)
+  {
+    Node unifybody = local->parent()->shared_from_this();
+    auto it = unifybody->find(local) + 1;
+    while (it != unifybody->end())
+    {
+      Node node = *it;
+      if (node->type() == LiteralEnum)
+      {
+        return node;
+      }
+      ++it;
+    }
+    return {};
   }
 }
 
@@ -138,7 +153,29 @@ namespace rego
         },
 
       In(UnifyBody) * T(Local)[Local]([](auto& n) {
-        return is_in(*n.first, {LiteralEnum}) && !can_grab(*n.first);
+        Node local = *n.first;
+        if ((local / Var)->location().view().starts_with("out$"))
+        {
+          return false;
+        }
+
+        Node literalenum = next_enum(local);
+        if (literalenum == nullptr)
+        {
+          return false;
+        }
+
+        return can_grab(local, literalenum / UnifyBody);
+      }) >>
+        [](Match& _) {
+          Node unifybody = next_enum(_(Local)) / UnifyBody;
+          unifybody->push_front(_(Local));
+          return Node{};
+        },
+
+      In(UnifyBody) * T(Local)[Local]([](auto& n) {
+        Node unifybody = (*n.first)->parent()->shared_from_this();
+        return is_in(*n.first, {LiteralEnum}) && !can_grab(*n.first, unifybody);
       }) >>
         [](Match& _) { return Lift << LiteralEnum << _(Local); },
 

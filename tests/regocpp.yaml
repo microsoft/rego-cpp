@@ -11,7 +11,7 @@ cases:
   note       : regocpp/scalars
   query      : data.scalars.greeting = x
   want_result:
-    x: Hello
+    - x: Hello
 - data:
     one:
       bar: Foo
@@ -55,15 +55,17 @@ cases:
     }
     f := e["dev"]
   note : regocpp/input_data
-  query: "[data.one, input.b, data.objects.sites[1]] = x"
+  query: "[data.one,
+    input.b, 
+    data.objects.sites[1]] = x"
   want_result:
-    x:
-    - bar: Foo
-      baz: 5
-      be: true
-      bop: 23.4
-    - "20"
-    - name: smoke1
+    - x:
+      - bar: Foo
+        baz: 5
+        be: true
+        bop: 23.4
+      - "20"
+      - name: smoke1
 - modules:
   - |
     package objects
@@ -88,12 +90,13 @@ cases:
   note : regocpp/objects
   query: data.objects.sites[1].name = x
   want_result:
-    x: smoke1
+    - x: smoke1
 - note: regocpp/query_math
-  query: x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4
+  query: 'x=5;
+    y=x + (2 - 4 * 0.25) * -3 + 7.4'
   want_result:
-    x: 5
-    y: 9.4
+    - x: 5
+    - y: 9.4
 - note: regocpp/expressions
   modules:
   - |
@@ -112,7 +115,7 @@ cases:
     k := a - (b + -c) * (-d / 2) + 3.7
   query: data.expressions.k > 27 = x
   want_result:
-    x: true
+    - x: true
 - note: regocpp/bodies
   modules:
   - |
@@ -159,9 +162,9 @@ cases:
     d: true
   query: data.bodies.e = x
   want_result:
-    x:
-      one: 15
-      two: 15
+    - x:
+        one: 15
+        two: 15
 - note: regocpp/bodies_undef
   modules:
   - |
@@ -247,10 +250,10 @@ cases:
     }
   query: data.sets.string_set = x
   want_result:
-    x:
-      four: null
-      one: null
-      two: null
+    - x:
+        four: null
+        one: null
+        two: null
 - note: regocpp/sets_membership
   modules:
   - |
@@ -290,7 +293,7 @@ cases:
     }
   query: data.sets.m = x
   want_result:
-    x: true
+    - x: true
 - note: regocpp/var_keys
   modules:
   - |
@@ -315,7 +318,7 @@ cases:
     f := e["dev"]
   query: data.objects.f = x
   want_result:
-    x: false
+    - x: false
 - note: regocpp/multi/0
   input:
     a: 10
@@ -342,7 +345,7 @@ cases:
     }
   query: data.multi.a = x
   want_result:
-    x: 1
+    - x: 1
 - note: regocpp/multi/1
   input:
     a: 4
@@ -369,7 +372,7 @@ cases:
     }
   query: data.multi.a = x
   want_result:
-    x: 41
+    - x: 41
 - note: regocpp/multi/2
   input:
     a: 7
@@ -396,7 +399,7 @@ cases:
     }
   query: data.multi.a = x
   want_result:
-    x: 70
+    - x: 70
 - note: regocpp/functions/sum
   input:
     key: sum
@@ -436,9 +439,9 @@ cases:
     }
   query: "[data.functions.f(1, 2, 3), data.functions.f(1, -1, 3)] = x"
   want_result:
-    x:
-    - 6
-    - 4
+    - x:
+      - 6
+      - 4
 - note: regocpp/functions/prod
   input:
     key: prod
@@ -478,9 +481,9 @@ cases:
     }
   query: "[data.functions.f(1, 2, 3), data.functions.f(1, -1, 3)] = x"
   want_result:
-    x:
-    - 6
-    - -3
+    - x:
+      - 6
+      - -3
 - note: regocpp/functions/ref
   modules:
   - |
@@ -518,9 +521,9 @@ cases:
     }
   query: "[data.functions.h(1, 2).a, data.functions.h(3, 4).b] = x"
   want_result:
-    x:
-    - 1
-    - 4
+    - x:
+      - 1
+      - 4
 - note: regocpp/unify
   modules:
   - |
@@ -532,61 +535,61 @@ cases:
 
     a := {
       "foo": 1,
-        "bar": 2,
+      "bar": 2,
     }
 
     b := x + y {
-        some x, y
-        [1, x] = tuples[i]
-        {"foo": y, "bar": 2} = a
-        i != 0
+      some x, y
+      [1, x] = tuples[i]
+      {"foo": y, "bar": 2} = a
+      i != 0
     }
 
     c {
-        i != 0
-        x = tuples[i]
-        i = x[1] - 1
+      i != 0
+      x = tuples[i]
+      i = x[1] - 1
     }
 
     d {
       tuple := tuples[i]
-        tuple[0] >= 3
-        tuple[1] >= 5
+      tuple[0] >= 3
+      tuple[1] >= 5
     }
 
     e := key {
-        target = 2
-        some key
+      target = 2
+      some key
       a[key] = target
     }
 
     f := x + y {
-        letters[["a", x]]
-        letters[["c", y]]
+      letters[["a", x]]
+      letters[["c", y]]
     }
 
     g := j {
       x = mixed[i]
-        x[j] = 6
+      x[j] = 6
     }
 
     h := j {
       x = mixed[i]
-        x[j] = 7
+      x[j] = 7
     }
 
     output := [a, b, c, d, e, f, g, h]
   query: data.unify.output = x
   want_result:
-    x:
-    - {"bar": 2, "foo": 1}
-    - 3
-    - true
-    - true
-    - bar
-    - 4
-    - 3
-    - foo
+    - x:
+      - {"bar": 2, "foo": 1}
+      - 3
+      - true
+      - true
+      - bar
+      - 4
+      - 3
+      - foo
 - note: regocpp/compare
   modules:
   - |
@@ -604,7 +607,7 @@ cases:
     output := [a < b, c < d, e < f, g < h]
   query: data.compare.output = x
   want_result:
-    x: [true, false, false, true]
+    - x: [true, false, false, true]
 - note: regocpp/keywords
   data:
     sites:
@@ -644,6 +647,7 @@ cases:
     b: "20"
     c: 30.0
     d: true
+    key: none
   modules:
   - |
     package keywords
@@ -687,7 +691,7 @@ cases:
 
     f["a"] := a
     f["b"] := b
-    f["c"] if c
+    f["c"] := true if c
     f["sum"] := sum {
         sum := a + b
     }
@@ -704,12 +708,12 @@ cases:
     output := [c, d, e, f, app_to_hostnames_obj["mongodb"] == ["oxygen"]]
   query: data.keywords.output = x
   want_result:
-    x:
-    - 4
-    - "found"
-    - ["0", "a"]
-    - {"a": 3, "b": 5, "c": true, "sum": 8}
-    - true
+    - x:
+      - 4
+      - "found"
+      - ["0", "a"]
+      - {"a": 3, "b": 5, "c": true, "sum": 8}
+      - true
 - note: regocpp/imports
   modules:
   - |
@@ -748,10 +752,10 @@ cases:
     ]
   query: data.scalars.output = x
   want_result:
-    x:
-    - 305
-    - true
-    - 469
+    - x:
+      - 305
+      - true
+      - 469
 - note: regocpp/with
   modules:
   - |
@@ -835,12 +839,12 @@ cases:
     output := [d_sum, d_diff, outer, use_count, use_mock]
   query: data.bodies.output = x
   want_result:
-    x:
-    - 8
-    - 2
-    - [[100, 300], {"bar": 300, "foo": 200}]
-    - 3
-    - 0
+    - x:
+      - 8
+      - 2
+      - [[100, 300], {"bar": 300, "foo": 200}]
+      - 3
+      - 0
 - note: regocpp/every
   data:
     sites:
@@ -931,7 +935,7 @@ cases:
     }
   query: data.every.output = x
   want_result:
-    x: true
+    - x: true
 - note: regocpp/compr
   data:
     sites:
@@ -1000,7 +1004,7 @@ cases:
     }
   query: data.compr.output = x
   want_result:
-    x: true
+    - x: true
 - note: regocpp/setops
   modules:
   - |
@@ -1038,7 +1042,7 @@ cases:
     }
   query: data.setops.output = x
   want_result:
-    x: true
+    - x: true
 - note: regocpp/enumerate
   modules:
   - |
@@ -1058,6 +1062,6 @@ cases:
     }
   query: data.enumerate.a = x
   want_result:
-    x:
+    - x:
       - 3
       - "3"

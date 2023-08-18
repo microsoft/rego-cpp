@@ -27,7 +27,7 @@ namespace rego
   bool Logger::enabled = false;
   std::string Logger::indent = "";
 
-  std::vector<PassCheck> passes()
+  std::vector<PassCheck> passes(const BuiltIns& builtins)
   {
     return {
       {"input_data", input_data(), &wf_pass_input_data},
@@ -53,11 +53,12 @@ namespace rego
       {"compr", compr(), &wf_pass_compr},
       {"absolute_refs", absolute_refs(), &wf_pass_absolute_refs},
       {"merge_modules", merge_modules(), &wf_pass_merge_modules},
-      {"skips", skips(), &wf_pass_skips},
+      {"skips", skips(builtins), &wf_pass_skips},
+      {"unary", unary(), &wf_pass_unary},
       {"multiply_divide", multiply_divide(), &wf_pass_multiply_divide},
       {"add_subtract", add_subtract(), &wf_pass_add_subtract},
       {"comparison", comparison(), &wf_pass_comparison},
-      {"assign", assign(), &wf_pass_assign},
+      {"assign", assign(builtins), &wf_pass_assign},
       {"skip_refs", skip_refs(), &wf_pass_skip_refs},
       {"simple_refs", simple_refs(), &wf_pass_simple_refs},
       {"implicit_enums", implicit_enums(), &wf_pass_implicit_enums},
@@ -65,12 +66,12 @@ namespace rego
       {"rulebody", rulebody(), &wf_pass_rulebody},
       {"lift_to_rule", lift_to_rule(), &wf_pass_lift_to_rule},
       {"functions", functions(), &wf_pass_functions},
-      {"unify", unify(), &wf_pass_unify},
+      {"unify", unify(builtins), &wf_pass_unify},
       {"query", query(), &wf_pass_query},
     };
   }
 
-  Driver& driver()
+  Driver& driver(const BuiltIns& builtins)
   {
     static Driver d(
       "rego",
@@ -101,11 +102,12 @@ namespace rego
         {"compr", compr(), wf_pass_compr},
         {"absolute_refs", absolute_refs(), wf_pass_absolute_refs},
         {"merge_modules", merge_modules(), wf_pass_merge_modules},
-        {"skips", skips(), wf_pass_skips},
+        {"skips", skips(builtins), wf_pass_skips},
+        {"unary", unary(), wf_pass_unary},
         {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
         {"add_subtract", add_subtract(), wf_pass_add_subtract},
         {"comparison", comparison(), wf_pass_comparison},
-        {"assign", assign(), wf_pass_assign},
+        {"assign", assign(builtins), wf_pass_assign},
         {"skip_refs", skip_refs(), wf_pass_skip_refs},
         {"simple_refs", simple_refs(), wf_pass_simple_refs},
         {"implicit_enums", implicit_enums(), wf_pass_implicit_enums},
@@ -113,13 +115,13 @@ namespace rego
         {"rulebody", rulebody(), wf_pass_rulebody},
         {"lift_to_rule", lift_to_rule(), wf_pass_lift_to_rule},
         {"functions", functions(), wf_pass_functions},
-        {"unify", unify(), wf_pass_unify},
+        {"unify", unify(builtins), wf_pass_unify},
         {"query", query(), wf_pass_query},
       });
     return d;
   }
 
-  std::string to_json(const Node& node)
+  std::string to_json(const Node& node, bool sort)
   {
     std::ostringstream buf;
     if (node->type() == JSONInt)
@@ -164,11 +166,21 @@ namespace rego
     }
     else if (node->type() == Array || node->type() == DataArray)
     {
-      buf << "[";
-      std::string sep = "";
+      std::vector<std::string> items;
       for (const auto& child : *node)
       {
-        buf << sep << to_json(child);
+        items.push_back(to_json(child, sort));
+      }
+
+      if (sort)
+      {
+        std::sort(items.begin(), items.end());
+      }
+      buf << "[";
+      std::string sep = "";
+      for (const auto& item : items)
+      {
+        buf << sep << item;
         sep = ", ";
       }
       buf << "]";
@@ -178,7 +190,7 @@ namespace rego
       std::set<std::string> items;
       for (const auto& child : *node)
       {
-        items.insert(to_json(child));
+        items.insert(to_json(child, sort));
       }
 
       buf << "[";
@@ -198,7 +210,7 @@ namespace rego
       {
         auto key = wfi / child / Key;
         auto value = wfi / child / Val;
-        items[to_json(key)] = to_json(value);
+        items[to_json(key, sort)] = to_json(value, sort);
       }
 
       buf << "{";
@@ -215,12 +227,12 @@ namespace rego
       node->type() == Scalar || node->type() == Term ||
       node->type() == DataTerm)
     {
-      return to_json(node->front());
+      return to_json(node->front(), sort);
     }
     else if (node->type() == Binding)
     {
       buf << (wfi / node / Var)->location().view() << " = "
-          << to_json(wfi / node / Term);
+          << to_json(wfi / node / Term, sort);
     }
     else if (node->type() == TermSet)
     {
@@ -228,7 +240,7 @@ namespace rego
       std::string sep = "";
       for (const auto& child : *node)
       {
-        buf << sep << to_json(child);
+        buf << sep << to_json(child, sort);
         sep = ", ";
       }
       buf << "}";
@@ -425,5 +437,16 @@ namespace rego
     }
 
     return in_query(node->parent()->shared_from_this());
+  }
+
+  Node err(NodeRange& r, const std::string& msg, const std::string& code)
+  {
+    return Error << (ErrorMsg ^ msg) << (ErrorAst << r) << (ErrorCode ^ code);
+  }
+
+  Node err(Node node, const std::string& msg, const std::string& code)
+  {
+    return Error << (ErrorMsg ^ msg) << (ErrorAst << node->clone())
+                 << (ErrorCode ^ code);
   }
 }

@@ -160,18 +160,14 @@ namespace rego
           return seq;
         },
 
-      In(UnifyExpr) * (T(NotExpr) << T(Expr)[Expr]) >>
+      In(UnifyBody) * (T(UnifyExprNot) << (T(Var)[Lhs] * T(Expr)[Rhs])) >>
         [](Match& _) {
-          Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"expr"});
-          seq->push_back(
-            Lift << UnifyBody << (Local << (Var ^ temp) << Undefined));
-          seq->push_back(
-            Lift << UnifyBody << (UnifyExpr << (Var ^ temp) << _(Expr)));
-          seq->push_back(
-            Function << (JSONString ^ "not") << (ArgSeq << (Var ^ temp)));
-
-          return seq;
+          return Seq << (Local << (Var ^ temp) << Undefined)
+                     << (UnifyExpr << (Var ^ temp) << _(Rhs))
+                     << (UnifyExpr << _(Lhs)
+                                   << (Function << (JSONString ^ "not")
+                                                << (ArgSeq << (Var ^ temp))));
         },
 
       In(UnifyExpr) *
