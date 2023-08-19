@@ -1,5 +1,6 @@
 #include "register.h"
 #include "resolver.h"
+#include "errors.h"
 
 namespace
 {
@@ -7,19 +8,15 @@ namespace
 
   Node concat(const Nodes& args)
   {
-    auto maybe_x = Resolver::maybe_unwrap_array(args[0]);
-    if(!maybe_x.has_value()){
-      std::string x_type = std::string(args[0]->front()->type().str());
-      return err(args[1], "array.concat: operand 1 must be array but got " + x_type, "eval_type_error");
+    Node x = Resolver::unwrap(args[0], Array, "array.concat: operand 1 ", EvalTypeError);
+    if(x->type() == Error){
+      return x;
     }
-    Node x = *maybe_x;
 
-    auto maybe_y = Resolver::maybe_unwrap_array(args[1]);
-    if(!maybe_y.has_value()){
-      std::string y_type = std::string(args[1]->front()->type().str());
-      return err(args[1], "array.concat: operand 2 must be array but got " + y_type, "eval_type_error");
+    Node y = Resolver::unwrap(args[1], Array, "array.concat: operand 2 ", EvalTypeError);
+    if(y->type() == Error){
+      return y;
     }
-    Node y = *maybe_y;
 
     Node z = x->clone();
     y = y->clone();
@@ -29,13 +26,11 @@ namespace
 
   Node reverse(const Nodes& args)
   {
-    auto maybe_arr = Resolver::maybe_unwrap_array(args[0]);
-    if(!maybe_arr.has_value()){
-      std::string arr_type = std::string(args[0]->front()->type().str());
-      return err(args[0], "array.reverse: operand 1 must be array but got " + arr_type, "eval_type_error");
+    Node arr = Resolver::unwrap(args[0], Array, "array.reverse: operand 1 ", EvalTypeError);
+    if(arr->type() == Error){
+      return arr;
     }
 
-    Node arr = *maybe_arr;
     Node rev = NodeDef::create(Array);
     if(arr->size() == 0){
       return rev;
@@ -51,32 +46,9 @@ namespace
 
   Node slice(const Nodes& args)
   {
-    Node arr = args[0];
-    auto maybe_start_number = Resolver::maybe_unwrap_number(args[1]);
-    auto maybe_end_number = Resolver::maybe_unwrap_number(args[2]);
-
-    if (!maybe_start_number.has_value())
-    {
-      return err(args[1], "start index must be a number");
-    }
-
-    if (!maybe_end_number.has_value())
-    {
-      return err(args[2], "end index must be a number");
-    }
-
-    Node start_number = maybe_start_number.value();
-    Node end_number = maybe_end_number.value();
-
-    if (start_number->type() != JSONInt)
-    {
-      return err(args[1], "start index must be an integer");
-    }
-
-    if (end_number->type() != JSONInt)
-    {
-      return err(args[2], "end index must be an integer");
-    }
+    Node arr = Resolver::unwrap(args[0], Array, "array.slice: operand 1 ", EvalTypeError);
+    Node start_number = Resolver::unwrap(args[1], JSONInt, "array.slice: operand 2 ", EvalTypeError);
+    Node end_number = Resolver::unwrap(args[2], JSONInt, "array.slice: operand 3 ", EvalTypeError);
 
     std::int64_t raw_start = BigInt(start_number->location()).to_int();
     std::int64_t raw_end = BigInt(end_number->location()).to_int();

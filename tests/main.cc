@@ -92,7 +92,6 @@ int main(int argc, char** argv)
     std::cout << White << category << std::endl;
     for (auto& testcase : cat_cases)
     {
-      total++;
       if (
         !note_match.empty() &&
         testcase.note().find(note_match) == std::string::npos)
@@ -100,6 +99,7 @@ int main(int argc, char** argv)
         continue;
       }
 
+      total++;
       std::string note = testcase.note().substr(category.size() + 1);
 
       try

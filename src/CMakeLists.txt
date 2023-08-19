@@ -52,6 +52,7 @@ builtins/arrays.cc
 builtins/encoding.cc
 builtins/numbers.cc
 builtins/sets.cc
+builtins/strings.cc
 # third-party
 builtins/base64/base64.cpp
 )

@@ -8,34 +8,6 @@ namespace
 {
   using namespace rego;
 
-  Node startswith(const Nodes& args)
-  {
-    auto maybe_search = Resolver::maybe_unwrap_string(args[0]);
-    auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
-    if (!maybe_search.has_value() || !maybe_base.has_value())
-    {
-      return err(args[0], "startswith: expected string arguments");
-    }
-
-    std::string search = Resolver::get_string(*maybe_search);
-    std::string base = Resolver::get_string(*maybe_base);
-    return Resolver::scalar(search.starts_with(base));
-  }
-
-  Node endswith(const Nodes& args)
-  {
-    auto maybe_search = Resolver::maybe_unwrap_string(args[0]);
-    auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
-    if (!maybe_search.has_value() || !maybe_base.has_value())
-    {
-      return err(args[0], "endswith: expected string arguments");
-    }
-
-    std::string search = Resolver::get_string(*maybe_search);
-    std::string base = Resolver::get_string(*maybe_base);
-    return Resolver::scalar(search.ends_with(base));
-  }
-
   Node to_number(const Nodes& args)
   {
     auto maybe_number = Resolver::maybe_unwrap_string(args[0]);
@@ -107,17 +79,15 @@ namespace rego
 
   BuiltIns& BuiltIns::register_standard_builtins()
   {
-    register_builtin(
-      BuiltInDef::create(Location("startswith"), 2, ::startswith));
-    register_builtin(BuiltInDef::create(Location("endswith"), 2, ::endswith));
     register_builtin(BuiltInDef::create(Location("to_number"), 1, ::to_number));
     register_builtin(BuiltInDef::create(Location("print"), AnyArity, ::print));
 
     register_builtins(builtins::aggregates());
     register_builtins(builtins::arrays());
     register_builtins(builtins::encoding());
-    register_builtins(builtins::sets());
     register_builtins(builtins::numbers());
+    register_builtins(builtins::sets());
+    register_builtins(builtins::strings());
 
     return *this;
   }

@@ -1,5 +1,6 @@
 #include "register.h"
 #include "resolver.h"
+#include "errors.h"
 
 namespace
 {
@@ -109,7 +110,7 @@ namespace
       args[0],
       "operand 1 must be one of {array, object, set, string} but got " +
         collection_type,
-      "eval_type_error");
+      EvalTypeError);
   }
 
   Node max(const Nodes& args)

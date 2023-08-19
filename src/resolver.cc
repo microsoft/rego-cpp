@@ -1,5 +1,6 @@
 #include "resolver.h"
 
+#include "errors.h"
 #include "lang.h"
 #include "unifier.h"
 
@@ -63,7 +64,7 @@ namespace
       In case we need integer division in the future.
       if (rhs.is_zero())
       {
-        return err(op, "divide by zero", "eval_builtin_error");
+        return err(op, "divide by zero", EvalBuiltInError);
       }
 
       value = lhs / rhs;
@@ -73,7 +74,7 @@ namespace
     {
       if (rhs.is_zero())
       {
-        return err(op, "modulo by zero", "eval_builtin_error");
+        return err(op, "modulo by zero", EvalBuiltInError);
       }
 
       value = lhs % rhs;
@@ -105,14 +106,14 @@ namespace
     {
       if (rhs == 0.0)
       {
-        return err(op, "divide by zero", "eval_builtin_error");
+        return err(op, "divide by zero", EvalBuiltInError);
       }
 
       value = lhs / rhs;
     }
     else if (op->type() == Modulo)
     {
-      return err(op, "modulo on floating-point number", "eval_builtin_error");
+      return err(op, "modulo on floating-point number", EvalBuiltInError);
     }
     else
     {
@@ -374,7 +375,7 @@ namespace rego
       if (maybe_lhs_number.has_value() && maybe_rhs_set.has_value())
       {
         return err(
-          rhs, "operand 2 must be number but got set", "eval_type_error");
+          rhs, "operand 2 must be number but got set", EvalTypeError);
       }
 
       return err(
@@ -1261,7 +1262,8 @@ namespace rego
     const Node& index, const Node& item, const Node& itemseq)
   {
     Node items = itemseq;
-    if(items->type() == Term){
+    if (items->type() == Term)
+    {
       items = items->front();
     }
 
@@ -1294,10 +1296,11 @@ namespace rego
   Node Resolver::membership(const Node& item, const Node& itemseq)
   {
     Node items = itemseq;
-    if(items->type() == Term){
+    if (items->type() == Term)
+    {
       items = items->front();
     }
-    
+
     std::vector<std::string> indices;
     if (items->type() == Array || items->type() == Set)
     {
@@ -1356,5 +1359,81 @@ namespace rego
     std::ostringstream buf;
     buf << *this;
     return buf.str();
+  }
+
+  Node Resolver::unwrap(
+    const Node& node, const Token& type, const std::string& error_prefix, const std::string& error_code)
+  {
+    Node value;
+    if (node->type() == Term || node->type() == DataTerm)
+    {
+      value = node->front();
+    }
+    else
+    {
+      value = node;
+    }
+
+    if (value->type() == type)
+    {
+      return value;
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+      if (value->type() == type)
+      {
+        return value;
+      }
+    }
+
+    std::ostringstream error;
+    error << error_prefix << "must be " << type_name(type) << " but got "
+          << type_name(value->type());
+    return err(node, error.str(), error_code);
+  }
+
+  std::optional<Node> Resolver::maybe_unwrap(
+    const Node& node, const std::set<Token>& types)
+  {
+    Node value;
+    if (node->type() == Term || node->type() == DataTerm)
+    {
+      value = node->front();
+    }
+    else
+    {
+      value = node;
+    }
+
+    if (types.contains(value->type()))
+    {
+      return value;
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+      if (types.contains(value->type()))
+      {
+        return value;
+      }
+    }
+
+    return std::nullopt;
+  }
+
+  std::string Resolver::type_name(const Token& type)
+  {
+    if(type == JSONInt){
+      return "integer number";
+    }
+
+    if(type == JSONFloat){
+      return "floating-point number";
+    }
+
+    return std::string(type.str());
   }
 }

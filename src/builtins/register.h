@@ -11,5 +11,6 @@ namespace rego
     std::vector<BuiltIn> encoding();
     std::vector<BuiltIn> numbers();
     std::vector<BuiltIn> sets();
+    std::vector<BuiltIn> strings();
   }
 }

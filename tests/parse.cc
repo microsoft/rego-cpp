@@ -143,7 +143,7 @@ namespace rego_test
         "null\\b" >> [](auto& m) { m.add(Null); },
 
         // String
-        "[[:alpha:]_]" >>
+        "[[:alpha:]_/]" >>
           [](auto& m) {
             m.extend(String);
             m.mode("string");
