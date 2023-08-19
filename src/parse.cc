@@ -147,6 +147,10 @@ namespace rego
         // Int.
         R"([[:digit:]]+\b)" >> [](auto& m) { m.add(JSONInt); },
 
+        // Float with exponent but no decimal.
+        R"([[:digit:]]+(?:e[+-]?[[:digit:]]+)?\b)" >>
+          [](auto& m) { m.add(JSONFloat); },
+
         // True.
         "true\\b" >> [](auto& m) { m.add(JSONTrue); },
 

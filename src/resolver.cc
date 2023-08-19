@@ -282,8 +282,12 @@ namespace rego
 
   std::string Resolver::get_string(const Node& node)
   {
-    assert(node->type() == JSONString);
-    return strip_quotes(std::string(node->location().view()));
+    if(node->type() == JSONString)
+    {
+      return strip_quotes(std::string(node->location().view()));
+    }
+    
+    return std::string(node->location().view());
   }
 
   Node Resolver::scalar(const std::string& value)
@@ -1432,6 +1436,10 @@ namespace rego
 
     if(type == JSONFloat){
       return "floating-point number";
+    }
+
+    if(type == JSONString){
+      return "string";
     }
 
     return std::string(type.str());

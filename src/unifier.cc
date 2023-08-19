@@ -470,8 +470,19 @@ namespace rego
   Values UnifierDef::evaluate_function(
     const Location& var, const std::string& func_name, const Args& args)
   {
-    LOG("> calling ", func_name, " with ", args);
     Values values;
+    if(args.size() == 0){
+      LOG("> calling ", func_name, " with no args");
+      if(func_name == "array"){
+        values.push_back(ValueDef::create(NodeDef::create(Array)));
+      }
+      if(func_name == "object"){
+        values.push_back(ValueDef::create(NodeDef::create(Object)));
+      }
+      return values;
+    }
+
+    LOG("> calling ", func_name, " with ", args);
     std::set<Value> valid_args;
     for (std::size_t i = 0; i < args.size(); ++i)
     {

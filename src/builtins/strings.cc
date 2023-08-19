@@ -165,7 +165,7 @@ namespace
     runestring haystack_runes = utf8_to_runes(Resolver::get_string(haystack));
     runestring needle_runes = utf8_to_runes(Resolver::get_string(needle));
     auto pos = haystack_runes.find(needle_runes);
-    if(pos == haystack_runes.npos)
+    if (pos == haystack_runes.npos)
     {
       return JSONInt ^ "-1";
     }
@@ -193,7 +193,7 @@ namespace
     runestring needle_runes = utf8_to_runes(Resolver::get_string(needle));
     Node array = NodeDef::create(Array);
     auto pos = haystack_runes.find(needle_runes);
-    while(pos != haystack_runes.npos)
+    while (pos != haystack_runes.npos)
     {
       array->push_back(JSONInt ^ std::to_string(pos));
       pos = haystack_runes.find(needle_runes, pos + 1);
@@ -204,31 +204,29 @@ namespace
 
   Node lower(const Nodes& args)
   {
-    Node x = Resolver::unwrap(
-      args[0], JSONString, "lower: operand 1 ", EvalTypeError);
+    Node x =
+      Resolver::unwrap(args[0], JSONString, "lower: operand 1 ", EvalTypeError);
     if (x->type() == Error)
     {
       return x;
     }
 
     std::string x_str = Resolver::get_string(x);
-    std::transform(
-      x_str.begin(), x_str.end(), x_str.begin(), ::tolower);
+    std::transform(x_str.begin(), x_str.end(), x_str.begin(), ::tolower);
     return Resolver::scalar(x_str);
   }
 
   Node upper(const Nodes& args)
   {
-    Node x = Resolver::unwrap(
-      args[0], JSONString, "upper: operand 1 ", EvalTypeError);
+    Node x =
+      Resolver::unwrap(args[0], JSONString, "upper: operand 1 ", EvalTypeError);
     if (x->type() == Error)
     {
       return x;
     }
 
     std::string x_str = Resolver::get_string(x);
-    std::transform(
-      x_str.begin(), x_str.end(), x_str.begin(), ::toupper);
+    std::transform(x_str.begin(), x_str.end(), x_str.begin(), ::toupper);
     return Resolver::scalar(x_str);
   }
 
@@ -236,21 +234,21 @@ namespace
   {
     Node x = Resolver::unwrap(
       args[0], JSONString, "replace: operand 1 ", EvalTypeError);
-    if(x->type() == Error)
+    if (x->type() == Error)
     {
       return x;
     }
 
     Node old = Resolver::unwrap(
       args[1], JSONString, "replace: operand 2 ", EvalTypeError);
-    if(old->type() == Error)
+    if (old->type() == Error)
     {
       return old;
     }
 
     Node new_ = Resolver::unwrap(
       args[2], JSONString, "replace: operand 3 ", EvalTypeError);
-    if(new_->type() == Error)
+    if (new_->type() == Error)
     {
       return new_;
     }
@@ -259,7 +257,7 @@ namespace
     std::string old_str = Resolver::get_string(old);
     std::string new_str = Resolver::get_string(new_);
     auto pos = x_str.find(old_str);
-    while(pos != x_str.npos)
+    while (pos != x_str.npos)
     {
       x_str.replace(pos, old_str.size(), new_str);
       pos = x_str.find(old_str, pos + new_str.size());
@@ -270,16 +268,16 @@ namespace
 
   Node split(const Nodes& args)
   {
-    Node x = Resolver::unwrap(
-      args[0], JSONString, "split: operand 1 ", EvalTypeError);
-    if(x->type() == Error)
+    Node x =
+      Resolver::unwrap(args[0], JSONString, "split: operand 1 ", EvalTypeError);
+    if (x->type() == Error)
     {
       return x;
     }
 
-    Node delimiter = Resolver::unwrap(
-      args[1], JSONString, "split: operand 2 ", EvalTypeError);
-    if(delimiter->type() == Error)
+    Node delimiter =
+      Resolver::unwrap(args[1], JSONString, "split: operand 2 ", EvalTypeError);
+    if (delimiter->type() == Error)
     {
       return delimiter;
     }
@@ -289,15 +287,203 @@ namespace
     Node array = NodeDef::create(Array);
     auto start = 0;
     auto pos = x_str.find(delimiter_str);
-    while(pos != x_str.npos)
+    while (pos != x_str.npos)
     {
       array->push_back(JSONString ^ x_str.substr(start, pos - start));
       start = pos + delimiter_str.size();
       pos = x_str.find(delimiter_str, start);
     }
-    
+
     array->push_back(JSONString ^ x_str.substr(start));
     return array;
+  }
+
+  enum class PrintVerbType
+  {
+    Literal,
+    Value,
+    Boolean,
+    Binary,
+    Integer,
+    Double,
+    String,
+  };
+
+  struct PrintVerb
+  {
+    PrintVerbType type;
+    std::string format;
+  };
+
+  std::vector<PrintVerb> parse_format(const std::string& format)
+  {
+    std::vector<PrintVerb> verbs;
+    std::size_t start = 0;
+    std::size_t pos = format.find('%');
+    while (pos < format.size())
+    {
+      verbs.push_back(
+        {PrintVerbType::Literal, format.substr(start, pos - start)});
+      std::size_t verb_start = pos;
+      bool in_verb = true;
+      while (pos < format.size() && in_verb)
+      {
+        ++pos;
+        in_verb = false;
+        switch (format[pos])
+        {
+          case 't':
+            verbs.push_back(
+              {PrintVerbType::Boolean,
+               format.substr(verb_start, pos - verb_start + 1)});
+            break;
+
+          case 'b':
+            verbs.push_back(
+              {PrintVerbType::Binary,
+               format.substr(verb_start, pos - verb_start + 1)});
+            break;
+
+          case 'd':
+          case 'x':
+          case 'X':
+          case 'o':
+          case 'O':
+            verbs.push_back(
+              {PrintVerbType::Integer,
+               format.substr(verb_start, pos - verb_start + 1)});
+            break;
+
+          case 'e':
+          case 'E':
+          case 'f':
+          case 'F':
+          case 'g':
+          case 'G':
+            verbs.push_back(
+              {PrintVerbType::Double,
+               format.substr(verb_start, pos - verb_start + 1)});
+            break;
+
+          case 's':
+            verbs.push_back(
+              {PrintVerbType::String,
+               format.substr(verb_start, pos - verb_start + 1)});
+            break;
+
+          case '%':
+            verbs.push_back({PrintVerbType::Literal, "%"});
+            break;
+
+          case 'v':
+            verbs.push_back(
+              {PrintVerbType::Value,
+               format.substr(verb_start, pos - verb_start + 1)});
+            break;
+          
+          default:
+            in_verb = true;
+        }
+      }
+      start = pos + 1;
+      pos = format.find('%', start);
+    }
+
+    if(start < format.size()){
+      verbs.push_back({PrintVerbType::Literal, format.substr(start)});
+    }
+
+    return verbs;
+  }
+
+  Node sprintf(const Nodes& args)
+  {
+    Node format = Resolver::unwrap(
+      args[0], JSONString, "sprintf: operand 1 ", EvalTypeError);
+    if (format->type() == Error)
+    {
+      return format;
+    }
+
+    Node values =
+      Resolver::unwrap(args[1], Array, "sprintf: operand 2 ", EvalTypeError);
+    if (values->type() == Error)
+    {
+      return values;
+    }
+
+    std::string format_str = Resolver::get_string(format);
+    std::vector<PrintVerb> verbs = parse_format(format_str);
+    std::ostringstream result;
+    auto it = values->begin();
+    for (auto& verb : verbs)
+    {
+      if (verb.type == PrintVerbType::Literal)
+      {
+        result << verb.format;
+        continue;
+      }
+
+      if (it == values->end())
+      {
+        return err(args[1], "sprintf: not enough arguments", EvalTypeError);
+      }
+
+      char buf[1024];
+      Node node = *it;
+      Node error;
+      ++it;
+      switch (verb.type)
+      {
+        case PrintVerbType::Value:
+          result << to_json(node);
+          break;
+
+        case PrintVerbType::Boolean:
+          result << std::boolalpha << Resolver::is_truthy(node);
+          break;
+
+        case PrintVerbType::Binary:
+          result << std::bitset<8>(Resolver::get_int(values).to_int());
+          break;
+
+        case PrintVerbType::Integer:
+          node = Resolver::unwrap(
+            node, JSONInt, "sprintf: integer argument ", EvalTypeError);
+          if (node->type() == Error)
+          {
+            return node;
+          }
+          std::sprintf(
+            buf, verb.format.c_str(), Resolver::get_int(node).to_int());
+          result << buf;
+          break;
+
+        case PrintVerbType::Double:
+          node = Resolver::unwrap(
+            node,
+            JSONFloat,
+            "sprintf: floating-point argument ",
+            EvalTypeError);
+          if (node->type() == Error)
+          {
+            return node;
+          }
+          std::sprintf(buf, verb.format.c_str(), Resolver::get_double(node));
+          result << buf;
+          break;
+
+        case PrintVerbType::String:
+          result << Resolver::get_string(node->front());
+          break;
+
+        case PrintVerbType::Literal:
+          // Should never happen
+          break;
+      }
+    }
+
+    return JSONString ^ result.str();
   }
 }
 
@@ -319,6 +505,7 @@ namespace rego
         BuiltInDef::create(Location("upper"), 1, upper),
         BuiltInDef::create(Location("replace"), 3, replace),
         BuiltInDef::create(Location("split"), 2, split),
+        BuiltInDef::create(Location("sprintf"), 2, sprintf),
       };
     }
   }
