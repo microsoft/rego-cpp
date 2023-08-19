@@ -68,7 +68,18 @@ namespace rego
 
   Node BuiltIns::call(const Location& name, const Nodes& args) const
   {
-    return m_builtins.at(name)->behavior(args);
+    if(!is_builtin(name))
+    {
+      return err(args[0], "unknown builtin");
+    }
+
+    auto& builtin = m_builtins.at(name);
+    if (builtin->arity != AnyArity && builtin->arity != args.size())
+    {
+      return err(args[0], "wrong number of arguments");
+    }
+
+    return builtin->behavior(args);
   }
 
   BuiltIns& BuiltIns::register_builtin(const BuiltIn& built_in)

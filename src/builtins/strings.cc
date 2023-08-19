@@ -231,6 +231,74 @@ namespace
       x_str.begin(), x_str.end(), x_str.begin(), ::toupper);
     return Resolver::scalar(x_str);
   }
+
+  Node replace(const Nodes& args)
+  {
+    Node x = Resolver::unwrap(
+      args[0], JSONString, "replace: operand 1 ", EvalTypeError);
+    if(x->type() == Error)
+    {
+      return x;
+    }
+
+    Node old = Resolver::unwrap(
+      args[1], JSONString, "replace: operand 2 ", EvalTypeError);
+    if(old->type() == Error)
+    {
+      return old;
+    }
+
+    Node new_ = Resolver::unwrap(
+      args[2], JSONString, "replace: operand 3 ", EvalTypeError);
+    if(new_->type() == Error)
+    {
+      return new_;
+    }
+
+    std::string x_str = Resolver::get_string(x);
+    std::string old_str = Resolver::get_string(old);
+    std::string new_str = Resolver::get_string(new_);
+    auto pos = x_str.find(old_str);
+    while(pos != x_str.npos)
+    {
+      x_str.replace(pos, old_str.size(), new_str);
+      pos = x_str.find(old_str, pos + new_str.size());
+    }
+
+    return Resolver::scalar(x_str);
+  }
+
+  Node split(const Nodes& args)
+  {
+    Node x = Resolver::unwrap(
+      args[0], JSONString, "split: operand 1 ", EvalTypeError);
+    if(x->type() == Error)
+    {
+      return x;
+    }
+
+    Node delimiter = Resolver::unwrap(
+      args[1], JSONString, "split: operand 2 ", EvalTypeError);
+    if(delimiter->type() == Error)
+    {
+      return delimiter;
+    }
+
+    std::string x_str = Resolver::get_string(x);
+    std::string delimiter_str = Resolver::get_string(delimiter);
+    Node array = NodeDef::create(Array);
+    auto start = 0;
+    auto pos = x_str.find(delimiter_str);
+    while(pos != x_str.npos)
+    {
+      array->push_back(JSONString ^ x_str.substr(start, pos - start));
+      start = pos + delimiter_str.size();
+      pos = x_str.find(delimiter_str, start);
+    }
+    
+    array->push_back(JSONString ^ x_str.substr(start));
+    return array;
+  }
 }
 
 namespace rego
@@ -249,6 +317,8 @@ namespace rego
         BuiltInDef::create(Location("indexof_n"), 2, indexof_n),
         BuiltInDef::create(Location("lower"), 1, lower),
         BuiltInDef::create(Location("upper"), 1, upper),
+        BuiltInDef::create(Location("replace"), 3, replace),
+        BuiltInDef::create(Location("split"), 2, split),
       };
     }
   }
