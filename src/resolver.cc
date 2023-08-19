@@ -1240,14 +1240,19 @@ namespace rego
   Node Resolver::membership(
     const Node& index, const Node& item, const Node& itemseq)
   {
-    std::vector<std::string> indices;
-    if (itemseq->type() == Array || itemseq->type() == Set)
-    {
-      indices = array_find(itemseq, to_json(item));
+    Node items = itemseq;
+    if(items->type() == Term){
+      items = items->front();
     }
-    else if (itemseq->type() == Object)
+
+    std::vector<std::string> indices;
+    if (items->type() == Array || items->type() == Set)
     {
-      indices = object_find(itemseq, to_json(item));
+      indices = array_find(items, to_json(item));
+    }
+    else if (items->type() == Object)
+    {
+      indices = object_find(items, to_json(item));
     }
     else
     {
@@ -1268,14 +1273,19 @@ namespace rego
 
   Node Resolver::membership(const Node& item, const Node& itemseq)
   {
-    std::vector<std::string> indices;
-    if (itemseq->type() == Array || itemseq->type() == Set)
-    {
-      indices = array_find(itemseq, to_json(item));
+    Node items = itemseq;
+    if(items->type() == Term){
+      items = items->front();
     }
-    else if (itemseq->type() == Object)
+    
+    std::vector<std::string> indices;
+    if (items->type() == Array || items->type() == Set)
     {
-      indices = object_find(itemseq, to_json(item));
+      indices = array_find(items, to_json(item));
+    }
+    else if (items->type() == Object)
+    {
+      indices = object_find(items, to_json(item));
     }
     else
     {

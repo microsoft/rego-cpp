@@ -60,10 +60,12 @@ namespace rego
           return Seq << _(Var) << If << (UnifyBody << *_[Brace]);
         },
 
-      In(Policy) * (T(Group) << (T(Var)[Var] * T(Brace)[Head] * T(Brace)++[Tail])) >>
+      In(Policy) *
+          (T(Group) << (T(Var)[Var] * T(Brace)[Head] * T(Brace)++[Tail])) >>
         [](Match& _) {
           Node group = Group << _(Var) << (UnifyBody << *_[Head]);
-          for(auto it=_[Tail].first; it!=_[Tail].second; ++it) {
+          for (auto it = _[Tail].first; it != _[Tail].second; ++it)
+          {
             Node unifybody = NodeDef::create(UnifyBody);
             Node brace = *it;
             unifybody->insert(unifybody->end(), brace->begin(), brace->end());
@@ -77,8 +79,10 @@ namespace rego
            << (T(Var)[Var] * (T(Assign) / T(Unify))[Assign] * ExprToken[Head] *
                ExprToken++[Tail] * T(Brace)[Head1] * T(Brace)++[Tail1])) >>
         [](Match& _) {
-          Node group = Group << _(Var) << _(Assign) << _(Head) << _[Tail] << (UnifyBody << *_[Head1]);
-          for(auto it=_[Tail1].first; it!=_[Tail1].second; ++it) {
+          Node group = Group << _(Var) << _(Assign) << _(Head) << _[Tail]
+                             << (UnifyBody << *_[Head1]);
+          for (auto it = _[Tail1].first; it != _[Tail1].second; ++it)
+          {
             Node unifybody = NodeDef::create(UnifyBody);
             Node brace = *it;
             unifybody->insert(unifybody->end(), brace->begin(), brace->end());
@@ -86,8 +90,6 @@ namespace rego
           }
           return group;
         },
-
-      In(UnifyBody) * T(List)[List] >> [](Match& _) { return Seq << *_[List]; },
 
       In(Group) *
           ((T(Square) / T(Brace))[Compr] << (T(Group)[Group](
@@ -201,6 +203,58 @@ namespace rego
 
       In(Group) * (T(Brace) << (T(List)[List] * End)) >>
         [](Match& _) { return Set << *_[List]; },
+
+      T(List)
+          << ((T(Group)
+               << (MembershipToken++[Lhs] * (T(Assign) / T(Unify))[Assign] *
+                   MembershipToken++[Idx] * End)) *
+              (T(Group) << (MembershipToken++[Item] * T(IsIn) *
+                            MembershipToken++[ItemSeq] * T(IsIn) *
+                            MembershipToken++[ItemSeq1]) *
+                 End)) >>
+        [](Match& _) {
+          return Group << _[Lhs] << _(Assign)
+                       << (Paren
+                           << (Group << _[Idx] << Comma << _[Item] << IsIn
+                                     << _[ItemSeq]))
+                       << IsIn << _[ItemSeq1];
+        },
+
+      T(List)
+          << ((T(Group) << (MembershipToken++[Idx] * End)) *
+              (T(Group) << (MembershipToken++[Item] * T(IsIn) *
+                            MembershipToken++[ItemSeq] * T(IsIn) *
+                            MembershipToken++[ItemSeq1]) *
+                 End)) >>
+        [](Match& _) {
+          return Group << (Paren
+                           << (Group << _[Idx] << Comma << _[Item] << IsIn
+                                     << _[ItemSeq]))
+                       << IsIn << _[ItemSeq1];
+        },
+
+      T(List)
+          << ((T(Group)
+               << (MembershipToken++[Lhs] * (T(Assign) / T(Unify))[Assign] *
+                   MembershipToken++[Idx] * End)) *
+              (T(Group)
+               << (MembershipToken++[Item] * T(IsIn)[IsIn] *
+                   MembershipToken++[ItemSeq] * End))) >>
+        [](Match& _) {
+          return Group << _[Lhs] << _(Assign) << _[Idx] << Comma << _[Item]
+                       << IsIn << _[ItemSeq];
+        },
+
+      T(List)
+          << ((T(Group) << (MembershipToken++[Idx] * End)) *
+              (T(Group)
+               << (MembershipToken++[Item] * T(IsIn)[IsIn] *
+                   MembershipToken++[ItemSeq] * End))) >>
+        [](Match& _) {
+          return Group << _[Idx] << Comma << _[Item] << IsIn << _[ItemSeq];
+        },
+
+      In(UnifyBody) * T(List)[List] >> [](Match& _) { return Seq << *_[List]; },
 
       In(Group) * (T(Some) << (T(List)[List] * End)) >>
         [](Match& _) {

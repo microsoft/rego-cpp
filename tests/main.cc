@@ -85,12 +85,14 @@ int main(int argc, char** argv)
     }
   }
 
+  int total = 0;
   int failures = 0;
   for (auto& [category, cat_cases] : all_testcases)
   {
     std::cout << White << category << std::endl;
     for (auto& testcase : cat_cases)
     {
+      total++;
       if (
         !note_match.empty() &&
         testcase.note().find(note_match) == std::string::npos)
@@ -132,7 +134,7 @@ int main(int argc, char** argv)
       catch (const std::exception& e)
       {
         failures++;
-        std::cout << Red << "  FAIL: " << Reset << note << std::endl;
+        std::cout << Red << "  EXCEPTION: " << Reset << note << std::endl;
         std::cout << "  " << e.what() << std::endl;
         std::cout << "(from " << testcase.filename() << ")" << std::endl;
         if (fail_first)
@@ -145,6 +147,10 @@ int main(int argc, char** argv)
     {
       break;
     }
+
+    std::cout << std::endl;
+    std::cout << (total - failures) << " / " << total
+              << " passed" << std::endl;
 
     std::cout << std::endl;
   }

@@ -21,6 +21,9 @@ namespace rego
   const inline auto ExprToken = T(Term) / ArithToken / BoolToken / StringToken /
     T(Expr) / ScalarToken / TermToken / T(JSONString) / T(Array) / T(Set) /
     T(Object) / T(Paren) / T(Not) / T(Dot) / T(And) / T(Or);
+  const auto inline MembershipToken = ScalarToken / T(JSONString) /
+    T(RawString) / T(Var) / T(Object) / T(Array) / T(Set) / T(Dot) / T(Paren) /
+    ArithToken / BoolToken / T(And) / T(Or);
 
   PassDef input_data();
   PassDef modules();

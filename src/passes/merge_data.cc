@@ -16,13 +16,21 @@ namespace rego
           (T(DataItemSeq)[Lhs] * (T(Data) << T(ObjectItemSeq)[Rhs])) >>
         [](Match& _) { return DataItemSeq << *_[Lhs] << *_[Rhs]; },
 
-      (In(DataItemSeq) / In(DataObject)) *
+      In(DataItemSeq) *
           (T(ObjectItem)
            << ((T(Expr) << (T(Term) << T(Scalar)[Scalar])) *
                (T(Expr) << T(Term)[Term]))) >>
         [](Match& _) {
           std::string key = strip_quotes(to_json(_(Scalar)));
           return DataItem << (Key ^ key) << (DataTerm << _(Term)->front());
+        },
+
+      In(DataObject) *
+          (T(ObjectItem)
+           << ((T(Expr) << T(Term)[Key]) *
+               (T(Expr) << T(Term)[Val]))) >>
+        [](Match& _) {
+          return DataObjectItem << (DataTerm << _(Key)->front()) << (DataTerm << _(Val)->front());
         },
 
       In(DataTerm) * T(Array)[Array] >>

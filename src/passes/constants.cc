@@ -56,16 +56,31 @@ namespace rego
         [](Match& _) { return DataTerm << (Scalar << _(NumTerm)->front()); },
 
       In(DataObject) *
-          (T(ObjectItem) << (T(Key)[Key] * (T(Expr) << T(Term)[Term]))) >>
+          (T(ObjectItem)
+           << ((T(Expr) << (T(Term) / T(NumTerm))[Key]) *
+               (T(Expr) << (T(Term) / T(NumTerm))[Val]))) >>
         [](Match& _) {
-          return DataItem << _(Key) << (DataTerm << _(Term)->front());
-        },
+          Node key = _(Key);
+          if (key->type() == NumTerm)
+          {
+            key = Scalar << key->front();
+          }
+          else
+          {
+            key = key->front();
+          }
 
-      In(DataObject) *
-          (T(ObjectItem) << (T(Key)[Key] * (T(Expr) << T(NumTerm)[NumTerm]))) >>
-        [](Match& _) {
-          return DataItem << _(Key)
-                          << (DataTerm << (Scalar << _(NumTerm)->front()));
+          Node val = _(Val);
+          if (val->type() == NumTerm)
+          {
+            val = Scalar << val->front();
+          }
+          else
+          {
+            val = val->front();
+          }
+
+          return DataObjectItem << (DataTerm << key) << (DataTerm << val);
         },
 
       // errors

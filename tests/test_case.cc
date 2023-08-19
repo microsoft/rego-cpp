@@ -467,7 +467,7 @@ namespace rego_test
     }
     else if (m_want_result)
     {
-      if (actual->front()->type() != Undefined)
+      if (actual->size() > 0)
       {
         if (actual->type() == Error)
         {
@@ -485,17 +485,41 @@ namespace rego_test
       }
       else
       {
-        pass = false;
-        error << "wanted a result, but was undefined";
+        if (m_want_result->size() == 0)
+        {
+          pass = true;
+        }
+        else
+        {
+          pass = false;
+          error << "wanted a result, but was undefined";
+        }
       }
     }
     else if (m_want_defined)
     {
-      pass = actual->front()->type() != Undefined;
+      if (actual->size() > 0)
+      {
+        pass = true;
+      }
+      else
+      {
+        pass = false;
+        error << "wanted a defined result, but was undefined";
+      }
     }
     else
     {
-      pass = actual->front()->type() == Undefined;
+      if (actual->size() == 0)
+      {
+        pass = true;
+      }
+      else
+      {
+        std::cout << actual << std::endl;
+        pass = false;
+        error << "wanted an undefined result, but was defined";
+      }
     }
 
     return {pass, error.str()};

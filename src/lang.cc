@@ -13,7 +13,7 @@ namespace
   // clang-format off
   inline const auto wfi =
       (Binding <<= Var * Term)
-    | (ObjectItem <<= Key * (Val >>= Term))
+    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
     | (DataItem <<= Key * (Val >>= DataTerm))
     | (Term <<= Scalar | Array | Object | Set | Undefined)
     | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
@@ -368,7 +368,22 @@ namespace rego
 
     if (node->type() == Object)
     {
-      return false;
+      for (auto& item : *node)
+      {
+        Node key = item / Key;
+        if (!is_constant(key->front()))
+        {
+          return false;
+        }
+
+        Node val = item / Val;
+        if (!is_constant(val->front()))
+        {
+          return false;
+        }
+      }
+
+      return true;
     }
 
     return false;

@@ -55,23 +55,27 @@ namespace rego
       In(ArgSeq) * T(Set)[Set] >> [](Match& _) { return Term << _(Set); },
 
       (In(UnifyExpr) / In(ArgSeq)) * T(ObjectItem)[ObjectItem] >>
-        [](Match& _) {
-          return Seq << *_[ObjectItem];
-        },
+        [](Match& _) { return Seq << *_[ObjectItem]; },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(Enumerate) << T(Expr)[Expr]) >>
         [](Match& _) {
           return Function << (JSONString ^ "enumerate") << (ArgSeq << _(Expr));
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Membership) << (T(Expr)[Idx] * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
-        [](Match& _){
-          return Function << (JSONString ^ "membership-tuple") << (ArgSeq << _(Idx) << _(Item) << _(ItemSeq));
+      (In(UnifyExpr) / In(ArgSeq)) *
+          (T(Membership)
+           << (T(Expr)[Idx] * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
+        [](Match& _) {
+          return Function << (JSONString ^ "membership-tuple")
+                          << (ArgSeq << _(Idx) << _(Item) << _(ItemSeq));
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Membership) << (T(Undefined) * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
-        [](Match& _){
-          return Function << (JSONString ^ "membership-single") << (ArgSeq << _(Item) << _(ItemSeq));
+      (In(UnifyExpr) / In(ArgSeq)) *
+          (T(Membership)
+           << (T(Undefined) * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
+        [](Match& _) {
+          return Function << (JSONString ^ "membership-single")
+                          << (ArgSeq << _(Item) << _(ItemSeq));
         },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(Term) << T(Array)[Array]) >>
@@ -263,11 +267,8 @@ namespace rego
       In(Term) * T(DataObject)[DataObject] >>
         [](Match& _) { return Object << *_[DataObject]; },
 
-      (In(Object) / In(ObjectItemSeq)) * T(DataItem)[DataItem] >>
-        [](Match& _) { return ObjectItem << *_[DataItem]; },
-      
-      In(ObjectItem) * T(Key)[Key] >>
-        [](Match& _) { return Term << (Scalar << (JSONString ^ _(Key))); },
+      In(Object) * T(DataObjectItem)[DataObjectItem] >>
+        [](Match& _) { return ObjectItem << *_[DataObjectItem]; },
 
       (In(ObjectItem) / In(Array) / In(Set)) * T(DataTerm)[DataTerm] >>
         [](Match& _) { return Term << *_[DataTerm]; },

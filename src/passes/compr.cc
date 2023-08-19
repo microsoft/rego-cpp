@@ -73,11 +73,10 @@ namespace rego
              << (T(Var)[Var] * (T(UnifyBody) / T(Empty))[Body] *
                  (T(DataTerm)[Key]) * T(DataTerm)[Val])) >>
           [](Match& _) {
-            std::string key = strip_quotes(to_json(_(Key)));
             return RuleObj << _(Var) << _(Body)
                            << (DataTerm
                                << (DataObject
-                                   << (DataItem << (Key ^ key) << _(Val))));
+                                   << (DataObjectItem << _(Key) << _(Val))));
           },
 
         In(Policy) *

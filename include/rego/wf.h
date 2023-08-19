@@ -105,7 +105,7 @@ namespace rego
   inline const auto wf_lists_tokens = wf_json | wf_arith_op | wf_bool_op | wf_bin_op |
     Paren | Var | Set | UnifyBody | ObjectItemSeq | Array | Dot | Assign |
     Unify | Object | RawString | Default | SomeDecl | Else | With |
-    IsIn | Contains | ExprEvery | ObjectCompr | SetCompr | ArrayCompr | Membership | Undefined;
+    IsIn | Contains | ExprEvery | ObjectCompr | SetCompr | ArrayCompr | Comma | Undefined;
 
   // clang-format off
   inline const auto wf_pass_lists =
@@ -147,7 +147,7 @@ namespace rego
   inline const auto wf_rules_tokens = wf_json | wf_arith_op | wf_bool_op |
     wf_bin_op | Paren | Var | Set | UnifyBody | ObjectItemSeq | Array | Dot |
     Assign | Unify | Object | RawString | SomeDecl | With | IsIn | Contains |
-    ExprEvery | ObjectCompr | SetCompr | ArrayCompr | Membership | Undefined;
+    ExprEvery | ObjectCompr | SetCompr | ArrayCompr | Comma | Undefined;
 
   // clang-format off
   inline const auto wf_pass_rules =
@@ -179,7 +179,11 @@ namespace rego
     ;
   // clang-format on
 
-  inline const auto wf_membership_tokens = wf_call_tokens | Membership;
+  inline const auto wf_membership_tokens = wf_json | wf_arith_op | wf_bool_op |
+    wf_bin_op | Paren | Var | Set | UnifyBody | ObjectItemSeq | Array | Dot |
+    Assign | Unify | Object | RawString | SomeDecl | With | IsIn | Contains |
+    ExprEvery | ObjectCompr | SetCompr | ArrayCompr | ExprCall | Membership |
+    Undefined;
 
   // clang-format off
   inline const auto wf_pass_membership =
@@ -189,7 +193,7 @@ namespace rego
     ;
   // clang-format off
 
-  inline const auto wf_refs_tokens = wf_call_tokens | Ref;
+  inline const auto wf_refs_tokens = wf_membership_tokens | Ref;
 
   // clang-format off
   inline const auto wf_pass_build_refs =
@@ -257,7 +261,7 @@ namespace rego
     | (Array <<= Expr++)
     | (Set <<= Expr++)
     | (Object <<= ObjectItem++)
-    | (ObjectItem <<= Expr * Expr)
+    | (ObjectItem <<= (Key >>= Expr) * (Val >>= Expr))
     | (ObjectCompr <<= Expr * Expr * (Body >>= UnifyBody))
     | (ArrayCompr <<= Expr * (Body >>= UnifyBody))
     | (SetCompr <<= Expr * (Body >>= UnifyBody))
@@ -283,7 +287,8 @@ namespace rego
     | (DataTerm <<= Scalar | DataArray | DataObject | DataSet)
     | (DataArray <<= DataTerm++)
     | (DataSet <<= DataTerm++)
-    | (DataObject <<= DataItem++)
+    | (DataObject <<= DataObjectItem++)
+    | (DataObjectItem <<= (Key >>= DataTerm) * (Val >>= DataTerm))
     ;
   // clang-format on
 

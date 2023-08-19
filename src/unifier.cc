@@ -1039,12 +1039,12 @@ namespace rego
         if (key == key_str)
         {
           LOG("Found key: ", key_str, " in with stack");
-          Values values = it->at(key_str);
+          result = val;
           if (m_parent_type == RuleFunc && m_builtins.is_builtin(key_str))
           {
             if (
               std::find_if(
-                values.begin(), values.end(), [&](const Value& value) {
+                result.begin(), result.end(), [&](const Value& value) {
                   Node node = value->node();
                   if (node->type() == RuleFunc)
                   {
@@ -1052,14 +1052,14 @@ namespace rego
                   }
 
                   return false;
-                }) != values.end())
+                }) != result.end())
             {
               LOG("Recursion detected in rule-func: ", key_str);
               return {};
             }
           }
 
-          return result;
+          break;
         }
         else if (key.starts_with(key_str) && !partials.contains(key))
         {
@@ -1074,7 +1074,15 @@ namespace rego
       return result;
     }
 
-    Node object = NodeDef::create(Object);
+    std::map<std::string, Node> object_map;
+    if(result.size() > 0){
+      Node base = result.front()->node();
+      for(auto& item : *base){
+        std::string key = strip_quotes(std::string((item / Key)->location().view()));
+        object_map[key] = item / Val;
+      }
+    }
+
     for (auto& [key, val] : partials)
     {
       if (val.size() == 0)
@@ -1082,9 +1090,14 @@ namespace rego
         continue;
       }
 
-      Node key_node = Term << (Scalar << (JSONString ^ key));
-      Node value_node = val.front()->node();
-      object->push_back(ObjectItem << key_node << value_node);
+      object_map[key] = val.front()->node();
+    }
+
+    Node object = NodeDef::create(Object);
+    for (auto& [loc, val] : object_map)
+    {
+      Node key = Term << (Scalar << (JSONString ^ loc));
+      object->push_back(ObjectItem << key << val);
     }
 
     return {ValueDef::create(object)};
@@ -1292,7 +1305,6 @@ namespace rego
   std::optional<RankedNode> UnifierDef::resolve_rulefunc(
     const Node& rulefunc, const Nodes& args)
   {
-    assert(rulefunc->type() == RuleFunc);
     if (rulefunc->type() != RuleFunc)
     {
       return std::nullopt;
