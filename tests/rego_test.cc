@@ -36,6 +36,9 @@ namespace rego_test
       In(Group) * (T(Hyphen) * (T(Block) / T(Group))[Entry]) >>
         [](Match& _) { return Entry << _(Entry); },
 
+      In(DoubleQuoteString) * (T(Group) << (T(NewLine) * ~T(String)[String])) >>
+        [](Match& _){ return Seq << (String ^ "\n") << _(String);},
+
       (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
        In(DoubleQuoteString)) *
           (T(Group) << T(String)[String]) >>

@@ -296,7 +296,11 @@ namespace rego_test
             m.mode("indent");
           },
 
-        ":" >> [](auto& m) { m.add(Colon); m.mode("start"); },
+        ":" >>
+          [](auto& m) {
+            m.add(Colon);
+            m.mode("start");
+          },
 
         // Character
         "." >> [](auto& m) { m.extend(String); },
@@ -320,6 +324,19 @@ namespace rego_test
          },
 
        R"(\\")" >> [](auto& m) { m.extend(String); },
+
+       R"(\\n)" >>
+         [quote](auto& m) {
+           if (*quote == Quote::Double)
+           {
+            m.term();
+             m.add(NewLine);
+           }
+           else if (*quote == Quote::None)
+           {
+             m.extend(String);
+           }
+         },
 
        "\"" >>
          [string_indent, quote](auto& m) {

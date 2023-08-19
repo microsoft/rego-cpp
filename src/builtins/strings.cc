@@ -2,6 +2,8 @@
 #include "register.h"
 #include "resolver.h"
 
+#include <bitset>
+
 namespace
 {
   using namespace rego;
@@ -73,21 +75,74 @@ namespace
 
   Node contains(const Nodes& args)
   {
-    Node haystack = Resolver::unwrap(args[0], JSONString, "contains: operand 1 ",
-                                     EvalTypeError);
-    if(haystack->type() == Error){
+    Node haystack = Resolver::unwrap(
+      args[0], JSONString, "contains: operand 1 ", EvalTypeError);
+    if (haystack->type() == Error)
+    {
       return haystack;
     }
 
-    Node needle = Resolver::unwrap(args[1], JSONString, "contains: operand 2 ",
-                                   EvalTypeError);
-    if(needle->type() == Error){
+    Node needle = Resolver::unwrap(
+      args[1], JSONString, "contains: operand 2 ", EvalTypeError);
+    if (needle->type() == Error)
+    {
       return needle;
     }
 
     std::string haystack_str = Resolver::get_string(haystack);
     std::string needle_str = Resolver::get_string(needle);
     return Resolver::scalar(haystack_str.find(needle_str) != std::string::npos);
+  }
+
+  Node format_int(const Nodes& args)
+  {
+    auto maybe_number = Resolver::maybe_unwrap_number(args[0]);
+    if (!maybe_number.has_value())
+    {
+      return err(args[0], "format_int: expected number argument");
+    }
+
+    auto base = Resolver::unwrap(
+      args[1], JSONInt, "format_int: operand 2 ", EvalTypeError);
+    if (base->type() == Error)
+    {
+      return base;
+    }
+
+    Node number = *maybe_number;
+    std::int64_t value;
+    if (number->type() == JSONFloat)
+    {
+      value =
+        static_cast<std::int64_t>(std::floor(Resolver::get_double(number)));
+    }
+    else
+    {
+      value = Resolver::get_int(number).to_int();
+    }
+
+    std::ostringstream result;
+    std::size_t base_size = Resolver::get_int(base).to_size();
+    switch (base_size)
+    {
+      case 2:
+        result << std::bitset<2>(value);
+        break;
+      case 8:
+        result << std::oct << value;
+        break;
+      case 10:
+        result << value;
+        break;
+      case 16:
+        result << std::hex << value;
+        break;
+      default:
+        return err(
+          args[1], "operand 2 must be one of {2, 8, 10, 16}", EvalTypeError);
+    }
+
+    return Resolver::scalar(result.str());
   }
 }
 
@@ -102,6 +157,7 @@ namespace rego
         BuiltInDef::create(Location("startswith"), 2, startswith),
         BuiltInDef::create(Location("endswith"), 2, endswith),
         BuiltInDef::create(Location("contains"), 2, contains),
+        BuiltInDef::create(Location("format_int"), 2, format_int),
       };
     }
   }

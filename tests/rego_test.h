@@ -41,10 +41,11 @@ namespace rego_test
   inline const auto Blank = TokenDef("yaml-blank");
   inline const auto Brace = TokenDef("yaml-brace");
   inline const auto Square = TokenDef("yaml-square");
+  inline const auto NewLine = TokenDef("yaml-newline");
 
   inline const auto wf_parse_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | LiteralString | FoldedString | SingleQuoteString |
-    DoubleQuoteString | Hyphen | Blank | Brace | Square;
+    DoubleQuoteString | Hyphen | Blank | Brace | Square | NewLine;
 
   // clang-format off
   inline const auto wf_parser =
