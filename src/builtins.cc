@@ -114,6 +114,7 @@ namespace rego
     register_builtin(BuiltInDef::create(Location("print"), AnyArity, ::print));
 
     register_builtins(builtins::aggregates());
+    register_builtins(builtins::arrays());
     register_builtins(builtins::encoding());
     register_builtins(builtins::sets());
     register_builtins(builtins::numbers());

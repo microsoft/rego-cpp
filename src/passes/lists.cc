@@ -327,6 +327,8 @@ namespace rego
 
       In(Group) * T(EmptySet) >> ([](Match&) -> Node { return Set; }),
 
+      In(Group) * (T(Square) << End) >> [](Match&) -> Node { return Array; },
+
       // errors
 
       (In(Input) / In(Data)) * T(Brace)[Brace] >>

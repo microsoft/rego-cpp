@@ -547,6 +547,26 @@ namespace rego
     return std::nullopt;
   }
 
+  std::optional<Node> Resolver::maybe_unwrap_array(const Node& node)
+  {
+    Node value;
+    if (node->type() == Term || node->type() == DataTerm)
+    {
+      value = node->front();
+    }
+    else
+    {
+      value = node;
+    }
+
+    if (value->type() == Array)
+    {
+      return value;
+    }
+
+    return std::nullopt;
+  }
+
   std::optional<Nodes> Resolver::apply_access(
     const Node& container, const Node& arg)
   {

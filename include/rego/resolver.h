@@ -58,6 +58,7 @@ namespace rego
     static std::optional<Node> maybe_unwrap_number(const Node& term);
     static std::optional<Node> maybe_unwrap_string(const Node& term);
     static std::optional<Node> maybe_unwrap_bool(const Node& term);
+    static std::optional<Node> maybe_unwrap_array(const Node& term);
     static std::optional<Node> maybe_unwrap_set(const Node& term);
     static bool is_falsy(const Node& node);
     static bool is_truthy(const Node& node);

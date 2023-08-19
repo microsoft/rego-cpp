@@ -48,6 +48,7 @@ passes/functions.cc
 passes/unify.cc
 passes/query.cc
 builtins/aggregates.cc
+builtins/arrays.cc
 builtins/encoding.cc
 builtins/numbers.cc
 builtins/sets.cc
