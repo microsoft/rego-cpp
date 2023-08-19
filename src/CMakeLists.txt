@@ -53,6 +53,7 @@ builtins/encoding.cc
 builtins/numbers.cc
 builtins/sets.cc
 builtins/strings.cc
+builtins/utf8.cc
 # third-party
 builtins/base64/base64.cpp
 )

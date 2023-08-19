@@ -1,6 +1,7 @@
 #include "errors.h"
 #include "register.h"
 #include "resolver.h"
+#include "utf8.h"
 
 #include <bitset>
 
@@ -144,6 +145,62 @@ namespace
 
     return Resolver::scalar(result.str());
   }
+
+  Node indexof(const Nodes& args)
+  {
+    Node haystack = Resolver::unwrap(
+      args[0], JSONString, "indexof: operand 1 ", EvalTypeError);
+    if (haystack->type() == Error)
+    {
+      return haystack;
+    }
+
+    Node needle = Resolver::unwrap(
+      args[1], JSONString, "indexof: operand 2 ", EvalTypeError);
+    if (needle->type() == Error)
+    {
+      return needle;
+    }
+
+    runestring haystack_runes = utf8_to_runes(Resolver::get_string(haystack));
+    runestring needle_runes = utf8_to_runes(Resolver::get_string(needle));
+    auto pos = haystack_runes.find(needle_runes);
+    if(pos == haystack_runes.npos)
+    {
+      return JSONInt ^ "-1";
+    }
+
+    return JSONInt ^ std::to_string(pos);
+  }
+
+  Node indexof_n(const Nodes& args)
+  {
+    Node haystack = Resolver::unwrap(
+      args[0], JSONString, "indexof: operand 1 ", EvalTypeError);
+    if (haystack->type() == Error)
+    {
+      return haystack;
+    }
+
+    Node needle = Resolver::unwrap(
+      args[1], JSONString, "indexof: operand 2 ", EvalTypeError);
+    if (needle->type() == Error)
+    {
+      return needle;
+    }
+
+    runestring haystack_runes = utf8_to_runes(Resolver::get_string(haystack));
+    runestring needle_runes = utf8_to_runes(Resolver::get_string(needle));
+    Node array = NodeDef::create(Array);
+    auto pos = haystack_runes.find(needle_runes);
+    while(pos != haystack_runes.npos)
+    {
+      array->push_back(JSONInt ^ std::to_string(pos));
+      pos = haystack_runes.find(needle_runes, pos + 1);
+    }
+
+    return array;
+  }
 }
 
 namespace rego
@@ -158,6 +215,8 @@ namespace rego
         BuiltInDef::create(Location("endswith"), 2, endswith),
         BuiltInDef::create(Location("contains"), 2, contains),
         BuiltInDef::create(Location("format_int"), 2, format_int),
+        BuiltInDef::create(Location("indexof"), 2, indexof),
+        BuiltInDef::create(Location("indexof_n"), 2, indexof_n),
       };
     }
   }
