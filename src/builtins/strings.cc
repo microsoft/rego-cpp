@@ -201,6 +201,36 @@ namespace
 
     return array;
   }
+
+  Node lower(const Nodes& args)
+  {
+    Node x = Resolver::unwrap(
+      args[0], JSONString, "lower: operand 1 ", EvalTypeError);
+    if (x->type() == Error)
+    {
+      return x;
+    }
+
+    std::string x_str = Resolver::get_string(x);
+    std::transform(
+      x_str.begin(), x_str.end(), x_str.begin(), ::tolower);
+    return Resolver::scalar(x_str);
+  }
+
+  Node upper(const Nodes& args)
+  {
+    Node x = Resolver::unwrap(
+      args[0], JSONString, "upper: operand 1 ", EvalTypeError);
+    if (x->type() == Error)
+    {
+      return x;
+    }
+
+    std::string x_str = Resolver::get_string(x);
+    std::transform(
+      x_str.begin(), x_str.end(), x_str.begin(), ::toupper);
+    return Resolver::scalar(x_str);
+  }
 }
 
 namespace rego
@@ -217,6 +247,8 @@ namespace rego
         BuiltInDef::create(Location("format_int"), 2, format_int),
         BuiltInDef::create(Location("indexof"), 2, indexof),
         BuiltInDef::create(Location("indexof_n"), 2, indexof_n),
+        BuiltInDef::create(Location("lower"), 1, lower),
+        BuiltInDef::create(Location("upper"), 1, upper),
       };
     }
   }
