@@ -1677,7 +1677,7 @@ namespace rego
       Node item_node = item_value->node();
       if (item_node->type() == Undefined)
       {
-        return JSONFalse;
+        return JSONFalse ^ "false";
       }
 
       if (item_node->type() == Term)
@@ -1697,7 +1697,7 @@ namespace rego
       Node result = rule_unifier(name, body)->unify();
       if (result->type() == JSONFalse)
       {
-        return JSONFalse;
+        return JSONFalse ^ "false";
       }
 
       if (result->type() == Error)
@@ -1706,7 +1706,7 @@ namespace rego
       }
     }
 
-    return JSONTrue;
+    return JSONTrue ^ "true";
   }
 
   bool UnifierDef::is_variable(const Location& name) const

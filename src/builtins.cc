@@ -61,6 +61,21 @@ namespace rego
     return std::make_shared<BuiltInDef>(BuiltInDef{name, arity, behavior});
   }
 
+  BuiltIns::BuiltIns() noexcept : m_strict_errors(false)
+  {
+  }
+
+  bool BuiltIns::strict_errors() const
+  {
+    return m_strict_errors;
+  }
+
+  BuiltIns& BuiltIns::strict_errors(bool strict_errors)
+  {
+    m_strict_errors = strict_errors;
+    return *this;
+  }
+
   bool BuiltIns::is_builtin(const Location& name) const
   {
     return m_builtins.contains(name);
@@ -79,7 +94,16 @@ namespace rego
       return err(args[0], "wrong number of arguments");
     }
 
-    return builtin->behavior(args);
+    Node result = builtin->behavior(args);
+    if(result->type() == Error){
+      if(m_strict_errors){
+        return result;
+      } else {
+        return Undefined;
+      }
+    }
+
+    return result;
   }
 
   BuiltIns& BuiltIns::register_builtin(const BuiltIn& built_in)

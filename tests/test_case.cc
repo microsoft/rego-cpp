@@ -19,12 +19,13 @@ namespace rego_test
     std::filesystem::path output;
     if (index < 10)
     {
-      output =
-        debug_path / ("0" + std::to_string(index) + "_" + pass + ".trieste");
+      output = debug_path /
+        ("0" + std::to_string(index) + "_yaml_" + pass + ".trieste");
     }
     else
     {
-      output = debug_path / (std::to_string(index) + "_" + pass + ".trieste");
+      output =
+        debug_path / (std::to_string(index) + "_yaml_" + pass + ".trieste");
     }
     std::ofstream f(output, std::ios::binary | std::ios::out);
 
@@ -189,11 +190,17 @@ namespace rego_test
   }
 
   void TestCase::diff(
-    const std::string& actual, const std::string& wanted, std::ostream& os)
+    const std::string& actual, const std::string& wanted_raw, std::ostream& os)
   {
     std::set<std::size_t> errors;
     std::size_t index = 0;
-    std::size_t length = std::min(actual.size(), wanted.size());
+    std::size_t length = std::min(actual.size(), wanted_raw.size());
+    std::string_view wanted = wanted_raw;
+    if (wanted.size() > length)
+    {
+      wanted = wanted.substr(wanted.size() - length);
+    }
+
     for (; index < length; ++index)
     {
       if (actual[index] != wanted[index])
@@ -202,7 +209,7 @@ namespace rego_test
       }
     }
 
-    length = std::max(actual.size(), wanted.size());
+    length = actual.size();
     for (; index < length; ++index)
     {
       errors.insert(index);
@@ -222,6 +229,7 @@ namespace rego_test
         os << " ";
       }
     }
+    os << std::endl;
   }
 
   bool TestCase::compare(
@@ -252,7 +260,8 @@ namespace rego_test
     const std::string& wanted,
     std::ostream& os) const
   {
-    if (actual == wanted)
+    // some rego tests cases add a non-standard prefix to the expected error
+    if (wanted.ends_with(actual))
     {
       return true;
     }
@@ -390,6 +399,7 @@ namespace rego_test
   {
     rego::Interpreter interpreter;
     interpreter.executable(executable_path);
+    interpreter.builtins().strict_errors(m_strict_error);
     if (!debug_path.empty())
     {
       interpreter.debug_enabled(true);
@@ -455,7 +465,11 @@ namespace rego_test
         std::string actual_code =
           std::string((actual / ErrorCode)->location().view());
         bool pass_error = compare(actual_error, m_want_error, error);
-        bool pass_code = compare(actual_code, m_want_error_code, error);
+        bool pass_code = true;
+        if (m_want_error_code.length() > 0)
+        {
+          pass_code = compare(actual_code, m_want_error_code, error);
+        }
         pass = pass_error && pass_code;
       }
     }

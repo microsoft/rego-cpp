@@ -9,6 +9,21 @@ namespace
 {
   using namespace rego;
 
+  Node unwrap_strings(const Node& collection, std::vector<std::string>& items)
+  {
+    for (auto term : *collection)
+    {
+      auto maybe_item = Resolver::maybe_unwrap_string(term);
+      if (!maybe_item.has_value())
+      {
+        return term;
+      }
+      items.push_back(Resolver::get_string(*maybe_item));
+    }
+
+    return {};
+  }
+
   Node concat(const Nodes& args)
   {
     Node delimiter = Resolver::unwrap(
@@ -27,19 +42,21 @@ namespace
     Node collection = *maybe_collection;
 
     auto delim_str = Resolver::get_string(delimiter);
+    std::vector<std::string> items;
+    Node bad_term = unwrap_strings(collection, items);
+    if (bad_term)
+    {
+      return err(
+        bad_term,
+        "concat: operand 2 must be array of strings but got array containing " +
+          Resolver::type_name(bad_term), EvalTypeError);
+    }
+
     std::ostringstream result_str;
     std::string sep = "";
-    for (auto node : *collection)
+    for (auto& item : items)
     {
-      auto maybe_item = Resolver::maybe_unwrap_string(node);
-      if (!maybe_item.has_value())
-      {
-        return err(node, "concat: invalid argument(s)", RegoTypeError);
-      }
-
-      Node item = *maybe_item;
-      std::string item_str = Resolver::get_string(*maybe_item);
-      result_str << sep << item_str;
+      result_str << sep << item;
       sep = delim_str;
     }
 
@@ -52,7 +69,7 @@ namespace
     auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
     if (!maybe_search.has_value() || !maybe_base.has_value())
     {
-      return err(args[0], "startswith: expected string arguments");
+      return err(args[0], "startswith: expected string arguments", EvalTypeError);
     }
 
     std::string search = Resolver::get_string(*maybe_search);
@@ -66,7 +83,7 @@ namespace
     auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
     if (!maybe_search.has_value() || !maybe_base.has_value())
     {
-      return err(args[0], "endswith: expected string arguments");
+      return err(args[0], "endswith: expected string arguments", EvalTypeError);
     }
 
     std::string search = Resolver::get_string(*maybe_search);
@@ -100,7 +117,7 @@ namespace
     auto maybe_number = Resolver::maybe_unwrap_number(args[0]);
     if (!maybe_number.has_value())
     {
-      return err(args[0], "format_int: expected number argument");
+      return err(args[0], "format_int: expected number argument", EvalTypeError);
     }
 
     auto base = Resolver::unwrap(
@@ -380,7 +397,7 @@ namespace
               {PrintVerbType::Value,
                format.substr(verb_start, pos - verb_start + 1)});
             break;
-          
+
           default:
             in_verb = true;
         }
@@ -389,7 +406,8 @@ namespace
       pos = format.find('%', start);
     }
 
-    if(start < format.size()){
+    if (start < format.size())
+    {
       verbs.push_back({PrintVerbType::Literal, format.substr(start)});
     }
 
@@ -485,6 +503,153 @@ namespace
 
     return JSONString ^ result.str();
   }
+
+  Node any_prefix_match(const Nodes& args)
+  {
+    auto maybe_search =
+      Resolver::maybe_unwrap(args[0], {JSONString, Array, Set});
+    if (!maybe_search.has_value())
+    {
+      std::string type_name = Resolver::type_name(args[0], false);
+      return err(
+        args[0],
+        "strings.any_prefix_match: operand 1 must be one of {string, set, array} but got " + type_name, EvalTypeError);
+    }
+
+    auto maybe_base = Resolver::maybe_unwrap(args[1], {JSONString, Array, Set});
+    if (!maybe_base.has_value())
+    {
+      std::string type_name = Resolver::type_name(args[1], false);
+      return err(
+        args[1],
+        "strings.any_prefix_match: operand 2 must be one of {string, set, array} but got " + type_name, EvalTypeError);
+    }
+
+    Node search = *maybe_search;
+    std::vector<std::string> search_strings;
+    if (search->type() == JSONString)
+    {
+      search_strings.push_back(Resolver::get_string(search));
+    }
+    else
+    {
+      Node bad_term = unwrap_strings(search, search_strings);
+      if (bad_term)
+      {
+        return err(
+          bad_term,
+          "strings.any_prefix_match: operand 1 must be array of strings but "
+          "got array containing " +
+            Resolver::type_name(bad_term, false), EvalTypeError);
+      }
+    }
+
+    Node base = *maybe_base;
+    std::vector<std::string> base_strings;
+    if (base->type() == JSONString)
+    {
+      base_strings.push_back(Resolver::get_string(base));
+    }
+    else
+    {
+      Node bad_term = unwrap_strings(base, base_strings);
+      if (bad_term)
+      {
+        return err(
+          bad_term,
+          "strings.any_prefix_match: operand 2 must be array of strings but "
+          "got array containing " +
+            Resolver::type_name(bad_term, false), EvalTypeError);
+      }
+    }
+
+    for (auto& search_str : search_strings)
+    {
+      for (auto& base_str : base_strings)
+      {
+        if (search_str.starts_with(base_str))
+        {
+          return JSONTrue ^ "true";
+        }
+      }
+    }
+
+    return JSONFalse ^ "false";
+  }
+
+  Node any_suffix_match(const Nodes& args)
+  {
+    auto maybe_search =
+      Resolver::maybe_unwrap(args[0], {JSONString, Array, Set});
+    if (!maybe_search.has_value())
+    {
+      std::string type_name = Resolver::type_name(args[0], false);
+      return err(
+        args[0],
+        "strings.any_suffix_match: operand 1 must be one of {string, set, array} but got " + type_name, EvalTypeError);
+    }
+
+    auto maybe_base = Resolver::maybe_unwrap(args[1], {JSONString, Array, Set});
+    if (!maybe_base.has_value())
+    {
+      std::string type_name = Resolver::type_name(args[1], false);
+      return err(
+        args[1],
+        "strings.any_suffix_match: operand 2 must be one of {string, set, array} but got " + type_name, EvalTypeError);
+    }
+
+    Node search = *maybe_search;
+    std::vector<std::string> search_strings;
+    if (search->type() == JSONString)
+    {
+      search_strings.push_back(Resolver::get_string(search));
+    }
+    else
+    {
+      Node bad_term = unwrap_strings(search, search_strings);
+      if (bad_term)
+      {
+        return err(
+          bad_term,
+          "strings.any_suffix_match: operand 1 must be array of strings but "
+          "got array containing " +
+            Resolver::type_name(bad_term, false), EvalTypeError);
+      }
+    }
+
+    Node base = *maybe_base;
+    std::vector<std::string> base_strings;
+    if (base->type() == JSONString)
+    {
+      base_strings.push_back(Resolver::get_string(base));
+    }
+    else
+    {
+      Node bad_term = unwrap_strings(base, base_strings);
+      if (bad_term)
+      {
+        return err(
+          bad_term,
+          "strings.any_suffix_match: operand 2 must be array of strings but "
+          "got array containing " +
+            Resolver::type_name(bad_term, false), EvalTypeError);
+      }
+    }
+
+    for (auto& search_str : search_strings)
+    {
+      for (auto& base_str : base_strings)
+      {
+        if (search_str.ends_with(base_str))
+        {
+          return JSONTrue ^ "true";
+        }
+      }
+    }
+
+    return JSONFalse ^ "false";
+  }
+
 }
 
 namespace rego
@@ -506,6 +671,10 @@ namespace rego
         BuiltInDef::create(Location("replace"), 3, replace),
         BuiltInDef::create(Location("split"), 2, split),
         BuiltInDef::create(Location("sprintf"), 2, sprintf),
+        BuiltInDef::create(
+          Location("strings.any_prefix_match"), 2, any_prefix_match),
+        BuiltInDef::create(
+          Location("strings.any_suffix_match"), 2, any_suffix_match),
       };
     }
   }

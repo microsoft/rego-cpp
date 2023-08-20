@@ -71,7 +71,8 @@ namespace rego
     static Node membership(const Node& item, const Node& itemseq);
     static std::vector<std::string> array_find(const Node& array, const std::string& search);
     static std::vector<std::string> object_find(const Node& object, const std::string& search);
-    static std::string type_name(const Token& type);
+    static std::string type_name(const Token& type, bool specify_number=true);
+    static std::string type_name(const Node& node, bool specify_number=true);
   };
 
   std::ostream& operator<<(

@@ -25,6 +25,11 @@ namespace rego_test
 
       In(Group) * T(Square)[Square] >>
         [](Match& _) {
+          if (_(Square)->size() == 0)
+          {
+            return EmptySequence ^ _(Square);
+          }
+
           Node seq = NodeDef::create(Seq);
           for (auto group : *_(Square))
           {
@@ -37,7 +42,7 @@ namespace rego_test
         [](Match& _) { return Entry << _(Entry); },
 
       In(DoubleQuoteString) * (T(Group) << (T(NewLine) * ~T(String)[String])) >>
-        [](Match& _){ return Seq << (String ^ "\n") << _(String);},
+        [](Match& _) { return Seq << (String ^ "\n") << _(String); },
 
       (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
        In(DoubleQuoteString)) *
@@ -88,6 +93,9 @@ namespace rego_test
   PassDef sequence()
   {
     return {
+      In(Group) * T(EmptySequence)[EmptySequence] >>
+        [](Match& _) { return Sequence ^ _(EmptySequence); },
+
       In(Group) * (T(Entry)[Head] * T(Entry)++[Tail] * End) >>
         [](Match& _) { return Sequence << _(Head) << _[Tail]; },
 

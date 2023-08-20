@@ -24,10 +24,13 @@ namespace rego
   class BuiltIns
   {
   public:
+    BuiltIns() noexcept;
     bool is_builtin(const Location& name) const;
     Node call(const Location& name, const Nodes& args) const;
     BuiltIns& register_builtin(const BuiltIn& built_in);
     const BuiltIn& at(const Location& name) const;
+    bool strict_errors() const;
+    BuiltIns& strict_errors(bool strict_errors);
 
     template <typename T>
     BuiltIns& register_builtins(const T& built_ins)
@@ -46,5 +49,6 @@ namespace rego
 
   private:
     std::map<Location, BuiltIn> m_builtins;
+    bool m_strict_errors;
   };
 }

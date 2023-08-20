@@ -336,7 +336,7 @@ namespace rego
   {
     if (lhs->type() == Undefined || rhs->type() == Undefined)
     {
-      return JSONFalse;
+      return JSONFalse ^ "false";
     }
 
     if (lhs->type() == Error)
@@ -422,7 +422,7 @@ namespace rego
   {
     if (lhs->type() == Undefined || rhs->type() == Undefined)
     {
-      return JSONFalse;
+      return JSONFalse ^ "false";
     }
 
     if (lhs->type() == Error)
@@ -1428,14 +1428,20 @@ namespace rego
     return std::nullopt;
   }
 
-  std::string Resolver::type_name(const Token& type)
+  std::string Resolver::type_name(const Token& type, bool specify_number)
   {
     if(type == JSONInt){
+      if(specify_number){
       return "integer number";
+      }
+      return "number";
     }
 
     if(type == JSONFloat){
+      if(specify_number){
       return "floating-point number";
+      }
+      return "number";
     }
 
     if(type == JSONString){
@@ -1443,5 +1449,19 @@ namespace rego
     }
 
     return std::string(type.str());
+  }
+
+  std::string Resolver::type_name(const Node& node, bool specify_number)
+  {
+    Node value = node;
+    if(value->type() == Term){
+      value = value->front();
+    }
+
+    if(value->type() == Scalar){
+      value = value->front();
+    }
+
+    return type_name(value->type(), specify_number);
   }
 }
