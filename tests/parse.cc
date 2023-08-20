@@ -143,7 +143,7 @@ namespace rego_test
         "null\\b" >> [](auto& m) { m.add(Null); },
 
         // String
-        "[[:alpha:]_/]" >>
+        R"([^[:digit:]\-[:blank:]\r\n])" >>
           [](auto& m) {
             m.extend(String);
             m.mode("string");
@@ -162,6 +162,8 @@ namespace rego_test
 
     p("indent",
       {// end of file terminates
+       R"(\\ )" >> [](auto&) {},
+
        "\r*\n$" >>
          [indents](auto& m) {
            while (!indents->empty())
@@ -296,8 +298,6 @@ namespace rego_test
             m.mode("indent");
           },
 
-
-
         ":" >>
           [](auto& m) {
             m.add(Colon);
@@ -309,7 +309,7 @@ namespace rego_test
       });
 
     p("multiline-string",
-      {"\r*\n$" >>
+      {R"(\\?\r*\n$)" >>
          [indents](auto& m) {
            while (!indents->empty())
            {
@@ -318,7 +318,7 @@ namespace rego_test
            }
          },
 
-       "\r*\n" >>
+       R"(\\?\r*\n)" >>
          [indent](auto& m) {
            *indent = 0;
            m.term();
@@ -327,16 +327,13 @@ namespace rego_test
 
        R"(\\("))" >> [](auto& m) { m.add(String, 1); },
 
-       R"(\\ )" >> [](auto&) {
-        // TODO figure out this parsing bug
-        std::cout << "does this even match?" << std::endl;
-       },
+       R"(\\ )" >> [](auto&) {},
 
        R"(\\n)" >>
          [quote](auto& m) {
            if (*quote == Quote::Double)
            {
-            m.term();
+             m.term();
              m.add(NewLine);
            }
            else if (*quote == Quote::None)

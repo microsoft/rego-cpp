@@ -780,6 +780,135 @@ namespace
 
     return JSONString ^ output.str();
   }
+
+  std::string trim(const std::string& value, const std::string& cutset, bool left, bool right)
+  {
+    runestring value_runes = utf8_to_runestring(value);
+    runestring cutset_runes = utf8_to_runestring(cutset);
+
+    std::size_t start, end;
+    if(left){
+      start = value_runes.find_first_not_of(cutset_runes);
+    }else{
+      start = 0;
+    }
+
+    if(right){
+      end = value_runes.find_last_not_of(cutset_runes);
+    }else{
+      end = value_runes.size();
+    }
+    
+    if(start == value_runes.npos){
+      return "";
+    }
+
+    runestring output_runes = value_runes.substr(start, end - start + 1);
+    return runestring_to_utf8(output_runes);
+  }
+
+  Node trim(const Nodes& args)
+  {
+    Node value = Resolver::unwrap(
+      args[0], JSONString, "trim: operand 1 ", EvalTypeError);
+    if(value->type() == Error){
+      return value;
+    }
+    Node cutset = Resolver::unwrap(
+      args[1], JSONString, "trim: operand 2 ", EvalTypeError);
+    if(cutset->type() == Error){
+      return cutset;
+    }
+
+    return JSONString ^ trim(Resolver::get_string(value), Resolver::get_string(cutset), true, true);
+  }
+
+  Node trim_left(const Nodes& args)
+  {
+    Node value = Resolver::unwrap(
+      args[0], JSONString, "trim_left: operand 1 ", EvalTypeError);
+    if(value->type() == Error){
+      return value;
+    }
+    Node cutset = Resolver::unwrap(
+      args[1], JSONString, "trim_left: operand 2 ", EvalTypeError);
+    if(cutset->type() == Error){
+      return cutset;
+    }
+
+    return JSONString ^ trim(Resolver::get_string(value), Resolver::get_string(cutset), true, false);
+  }
+
+  Node trim_right(const Nodes& args)
+  {
+    Node value = Resolver::unwrap(
+      args[0], JSONString, "trim_right: operand 1 ", EvalTypeError);
+    if(value->type() == Error){
+      return value;
+    }
+    Node cutset = Resolver::unwrap(
+      args[1], JSONString, "trim_right: operand 2 ", EvalTypeError);
+    if(cutset->type() == Error){
+      return cutset;
+    }
+
+    return JSONString ^ trim(Resolver::get_string(value), Resolver::get_string(cutset), false, true);
+  }
+
+  Node trim_space(const Nodes& args)
+  {
+    Node value = Resolver::unwrap(
+      args[0], JSONString, "trim_space: operand 1 ", EvalTypeError);
+    if(value->type() == Error){
+      return value;
+    }
+
+    return JSONString ^ trim(Resolver::get_string(value), " \t\n\r\v\f", true, true);
+  }
+
+  Node trim_prefix(const Nodes& args)
+  {
+    Node value = Resolver::unwrap(
+      args[0], JSONString, "trim_prefix: operand 1 ", EvalTypeError);
+    if(value->type() == Error){
+      return value;
+    }
+    Node prefix = Resolver::unwrap(
+      args[1], JSONString, "trim_prefix: operand 2 ", EvalTypeError);
+    if(prefix->type() == Error){
+      return prefix;
+    }
+
+    std::string value_str = Resolver::get_string(value);
+    std::string prefix_str = Resolver::get_string(prefix);
+    if(value_str.starts_with(prefix_str)){
+      return JSONString ^ value_str.substr(prefix_str.size());
+    }
+
+    return value;
+  }
+
+  Node trim_suffix(const Nodes& args)
+  {
+    Node value = Resolver::unwrap(
+      args[0], JSONString, "trim_suffix: operand 1 ", EvalTypeError);
+    if(value->type() == Error){
+      return value;
+    }
+    Node suffix = Resolver::unwrap(
+      args[1], JSONString, "trim_suffix: operand 2 ", EvalTypeError);
+    if(suffix->type() == Error){
+      return suffix;
+    }
+
+    std::string value_str = Resolver::get_string(value);
+    std::string suffix_str = Resolver::get_string(suffix);
+    if(value_str.ends_with(suffix_str)){
+      return JSONString ^ value_str.substr(0, value_str.size() - suffix_str.size());
+    }
+
+    return value;
+  }
 }
 
 namespace rego
@@ -807,7 +936,13 @@ namespace rego
           Location("strings.any_suffix_match"), 2, any_suffix_match),
         BuiltInDef::create(Location("strings.replace_n"), 2, replace_n),
         BuiltInDef::create(Location("strings.reverse"), 1, reverse),
-        BuiltInDef::create(Location("substring"), 3, substring)
+        BuiltInDef::create(Location("substring"), 3, substring),
+        BuiltInDef::create(Location("trim"), 2, trim),
+        BuiltInDef::create(Location("trim_left"), 2, trim_left),
+        BuiltInDef::create(Location("trim_right"), 2, trim_right),
+        BuiltInDef::create(Location("trim_space"), 1, trim_space),
+        BuiltInDef::create(Location("trim_prefix"), 2, trim_prefix),
+        BuiltInDef::create(Location("trim_suffix"), 2, trim_suffix),
       };
     }
   }

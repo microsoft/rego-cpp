@@ -26,9 +26,6 @@ namespace
   const std::uint32_t Max4 = 0x10FFFF;
 
   const std::size_t ShiftX = 6;
-  const std::size_t Shift2 = 5;
-  const std::size_t Shift3 = 4;
-  const std::size_t Shift4 = 3;
 
   const std::uint32_t Bad = 0xFFFD;
 
@@ -36,11 +33,49 @@ namespace
   {
     if (value <= Max1)
     {
-      utf8.push_back(static_cast<char>(value));
+      switch (value)
+      {
+        case '\f':
+          utf8.push_back('\\');
+          utf8.push_back('f');
+          break;
+        case '\n':
+          utf8.push_back('\\');
+          utf8.push_back('n');
+          break;
+        case '\r':
+          utf8.push_back('\\');
+          utf8.push_back('r');
+          break;
+        case '\t':
+          utf8.push_back('\\');
+          utf8.push_back('t');
+          break;
+        case '\v':
+          utf8.push_back('\\');
+          utf8.push_back('v');
+          break;
+        case '\\':
+          utf8.push_back('\\');
+          utf8.push_back('\\');
+          break;
+        case '\'':
+          utf8.push_back('\\');
+          utf8.push_back('\'');
+          break;
+        case '\"':
+          utf8.push_back('\\');
+          utf8.push_back('\"');
+          break;
+        default:
+          char c0 = static_cast<char>(Mark1 | value);
+          utf8.push_back(c0);
+          break;
+      }
     }
     else if (value <= Max2)
     {
-      char c1 = static_cast<char>(value & ValueX);
+      char c1 = static_cast<char>((value & ValueX) | MarkX);
       value >>= ShiftX;
       char c0 = static_cast<char>(Mark2 | value);
       utf8.push_back(c0);
@@ -48,9 +83,9 @@ namespace
     }
     else if (value <= Max3)
     {
-      char c2 = static_cast<char>(value & ValueX);
+      char c2 = static_cast<char>((value & ValueX) | MarkX);
       value >>= ShiftX;
-      char c1 = static_cast<char>(value & ValueX);
+      char c1 = static_cast<char>((value & ValueX) | MarkX);
       value >>= ShiftX;
       char c0 = static_cast<char>(Mark3 | value);
       utf8.push_back(c0);
@@ -59,11 +94,11 @@ namespace
     }
     else if (value <= Max4)
     {
-      char c3 = static_cast<char>(value & ValueX);
+      char c3 = static_cast<char>((value & ValueX) | MarkX);
       value >>= ShiftX;
-      char c2 = static_cast<char>(value & ValueX);
+      char c2 = static_cast<char>((value & ValueX) | MarkX);
       value >>= ShiftX;
-      char c1 = static_cast<char>(value & ValueX);
+      char c1 = static_cast<char>((value & ValueX) | MarkX);
       value >>= ShiftX;
       char c0 = static_cast<char>(Mark4 | value);
       utf8.push_back(c0);
@@ -85,21 +120,47 @@ namespace rego
   {
     std::uint8_t c0 = static_cast<std::uint8_t>(pos[0]);
     std::size_t remaining = std::distance(pos, end);
-    if(c0 == '\\'){
-      if(remaining >= 3 && pos[1] == 'x'){
-          std::string hex = std::string(pos + 2, pos + 4);
-          std::uint32_t value = std::stoul(hex, nullptr, 16);
-          return {value, std::string_view(pos, pos + 4)};
+    if (c0 == '\\')
+    {
+      if (remaining >= 1)
+      {
+        switch (pos[1])
+        {
+          case 'f':
+            return {'\f', std::string_view(pos, pos + 2)};
+          case 'n':
+            return {'\n', std::string_view(pos, pos + 2)};
+          case 'r':
+            return {'\r', std::string_view(pos, pos + 2)};
+          case 't':
+            return {'\t', std::string_view(pos, pos + 2)};
+          case 'v':
+            return {'\v', std::string_view(pos, pos + 2)};
+          case '\\':
+            return {'\\', std::string_view(pos, pos + 2)};
+          case '\'':
+            return {'\'', std::string_view(pos, pos + 2)};
+          case '\"':
+            return {'\"', std::string_view(pos, pos + 2)};
+        }
       }
-      if(remaining >= 5 && pos[1] == 'u'){
-          std::string hex = std::string(pos + 2, pos + 6);
-          std::uint32_t value = std::stoul(hex, nullptr, 16);
-          return {value, std::string_view(pos, pos + 6)};          
+      if (remaining >= 3 && pos[1] == 'x')
+      {
+        std::string hex = std::string(pos + 2, pos + 4);
+        std::uint32_t value = std::stoul(hex, nullptr, 16);
+        return {value, std::string_view(pos, pos + 4)};
       }
-      if(remaining >= 9 && pos[1] == 'U'){
-          std::string hex = std::string(pos + 2, pos + 10);
-          std::uint32_t value = std::stoul(hex, nullptr, 16);
-          return {value, std::string_view(pos, pos + 10)};
+      if (remaining >= 5 && pos[1] == 'u')
+      {
+        std::string hex = std::string(pos + 2, pos + 6);
+        std::uint32_t value = std::stoul(hex, nullptr, 16);
+        return {value, std::string_view(pos, pos + 6)};
+      }
+      if (remaining >= 9 && pos[1] == 'U')
+      {
+        std::string hex = std::string(pos + 2, pos + 10);
+        std::uint32_t value = std::stoul(hex, nullptr, 16);
+        return {value, std::string_view(pos, pos + 10)};
       }
     }
 
@@ -115,7 +176,7 @@ namespace rego
       if ((c1 & MaskX) == MarkX)
       {
         std::uint32_t value = c0 & Value2;
-        value = (value << Shift2) | (c1 & ValueX);
+        value = (value << ShiftX) | (c1 & ValueX);
         return {value, std::string_view(pos, pos + 2)};
       }
     }
@@ -126,7 +187,7 @@ namespace rego
       if ((c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX)
       {
         std::uint32_t value = c0 & Value3;
-        value = (value << Shift3) | (c1 & ValueX);
+        value = (value << ShiftX) | (c1 & ValueX);
         value = (value << ShiftX) | (c2 & ValueX);
         return {value, std::string_view(pos, pos + 3)};
       }
@@ -140,7 +201,7 @@ namespace rego
         (c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX && (c3 & MaskX) == MarkX)
       {
         std::uint32_t value = c0 & Value4;
-        value = (value << Shift4) | (c1 & ValueX);
+        value = (value << ShiftX) | (c1 & ValueX);
         value = (value << ShiftX) | (c2 & ValueX);
         value = (value << ShiftX) | (c3 & ValueX);
         return {value, std::string_view(pos, pos + 4)};

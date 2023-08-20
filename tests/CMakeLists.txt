@@ -33,6 +33,12 @@ if(REGOCPP_OPA_TESTS)
   replacen
   sets
   strings
+  trim
+  trimleft
+  trimprefix
+  trimright
+  trimspace
+  trimsuffix
   union
   )
 

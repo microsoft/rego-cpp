@@ -100,12 +100,12 @@ namespace
 
   Node numbers_range(const Nodes& args)
   {
-    Node lhs_number = Resolver::unwrap(args[0], JSONInt, "numbers.range: operand 1 ", EvalTypeError);
+    Node lhs_number = Resolver::unwrap(args[0], JSONInt, "numbers.range: operand 1 ", EvalTypeError, true);
     if(lhs_number->type() == Error){
       return lhs_number;
     }
 
-    Node rhs_number = Resolver::unwrap(args[1], JSONInt, "numbers.range: operand 2 ", EvalTypeError);
+    Node rhs_number = Resolver::unwrap(args[1], JSONInt, "numbers.range: operand 2 ", EvalTypeError, true);
     if(rhs_number->type() == Error){
       return rhs_number;
     }
