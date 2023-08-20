@@ -680,10 +680,18 @@ namespace rego
   Node Resolver::object(const Node& object_items)
   {
     Node object = NodeDef::create(Object);
+    std::map<std::string, Node> items;
     for (std::size_t i = 0; i < object_items->size(); i += 2)
     {
-      object->push_back(
-        ObjectItem << object_items->at(i) << object_items->at(i + 1));
+      std::string key = to_json(object_items->at(i));
+      Node item = ObjectItem << object_items->at(i) << object_items->at(i + 1);
+      items[key] = item;
+    }
+
+    // objects need to be created with sorted keys
+    for (auto [_, item] : items)
+    {
+      object->push_back(item);
     }
 
     return object;
@@ -1366,7 +1374,7 @@ namespace rego
   }
 
   Node Resolver::unwrap(
-    const Node& node, const Token& type, const std::string& error_prefix, const std::string& error_code)
+    const Node& node, const Token& type, const std::string& error_prefix, const std::string& error_code, bool specify_number)
   {
     Node value;
     if (node->type() == Term || node->type() == DataTerm)
@@ -1393,8 +1401,8 @@ namespace rego
     }
 
     std::ostringstream error;
-    error << error_prefix << "must be " << type_name(type) << " but got "
-          << type_name(value->type());
+    error << error_prefix << "must be " << type_name(type, specify_number) << " but got "
+          << type_name(value->type(), specify_number);
     return err(node, error.str(), error_code);
   }
 

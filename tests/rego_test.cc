@@ -286,6 +286,16 @@ namespace rego_test
       In(Mapping) *
           (T(KeyValue)
            << ((T(Key)[Key]([](auto& n) {
+                 return name_equals(*n.first, {"data", "input"});
+               })) *
+               (T(Scalar) << T(Null)))) >>
+        [](Match&) {
+          return Node{};
+        },
+
+      In(Mapping) *
+          (T(KeyValue)
+           << ((T(Key)[Key]([](auto& n) {
                  return name_equals(*n.first, {"want_result"});
                })) *
                T(Sequence)[Sequence])) >>

@@ -340,6 +340,12 @@ namespace rego
                 << (Expr << (RefTerm << (Var ^ value)) << Unify << *_[Expr]));
         },
 
+      (In(ObjectCompr) / In(SetCompr) / In(ArrayCompr)) * T(UnifyBody)[UnifyBody] >>
+        [](Match& _){
+          Location compr = _.fresh({"compr"});
+          return NestedBody << (Key ^ compr) << _(UnifyBody);
+        },
+
       // errors
 
       In(UnifyBody) * (T(RuleHead)[RuleHead] << (T(Var) * T(RuleHeadFunc))) >>

@@ -311,6 +311,9 @@ namespace rego
     | (ArgVal <<= Scalar | Array | Object | Set)
     | (DefaultRule <<= Var * (Val >>= Term))[Var]
     | (Term <<= Scalar | Array | Object | Set | ArrayCompr | SetCompr | ObjectCompr)
+    | (ObjectCompr <<= Expr * Expr * (Body >>= NestedBody))
+    | (ArrayCompr <<= Expr * (Body >>= NestedBody))
+    | (SetCompr <<= Expr * (Body >>= NestedBody))
     | (RefTerm <<= Ref | Var)
     | (NumTerm <<= JSONInt | JSONFloat)
     | (RefArgBrack <<= RefTerm | Scalar | Object | Array | Set)
