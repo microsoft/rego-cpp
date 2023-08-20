@@ -32,64 +32,6 @@ namespace
 
   const std::uint32_t Bad = 0xFFFD;
 
-  struct rune
-  {
-    std::uint32_t value;
-    std::size_t length;
-  };
-
-  rune to_rune(const char* pos, const char* end)
-  {
-    std::uint8_t c0 = static_cast<std::uint8_t>(pos[0]);
-    std::size_t remaining = std::distance(pos, end);
-    if ((c0 & Mask1) == Mark1)
-    {
-      std::uint32_t value = c0 & Value1;
-      return {value, 1};
-    }
-
-    if ((c0 & Mask2) == Mark2 && remaining >= 2)
-    {
-      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
-      if ((c1 & MaskX) == MarkX)
-      {
-        std::uint32_t value = c0 & Value2;
-        value = (value << Shift2) | (c1 & ValueX);
-        return {value, 2};
-      }
-    }
-    else if ((c0 & Mask3) == Mark3 && remaining >= 3)
-    {
-      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
-      std::uint8_t c2 = static_cast<std::uint8_t>(pos[2]);
-      if ((c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX)
-      {
-        std::uint32_t value = c0 & Value3;
-        value = (value << Shift3) | (c1 & ValueX);
-        value = (value << ShiftX) | (c2 & ValueX);
-        return {value, 3};
-      }
-    }
-    else if ((c0 & Mask4) == Mark4 && remaining >= 4)
-    {
-      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
-      std::uint8_t c2 = static_cast<std::uint8_t>(pos[2]);
-      std::uint8_t c3 = static_cast<std::uint8_t>(pos[3]);
-      if (
-        (c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX && (c3 & MaskX) == MarkX)
-      {
-        std::uint32_t value = c0 & Value4;
-        value = (value << Shift4) | (c1 & ValueX);
-        value = (value << ShiftX) | (c2 & ValueX);
-        value = (value << ShiftX) | (c3 & ValueX);
-        return {value, 4};
-      }
-    }
-
-    // bad
-    return {Bad, 1};
-  }
-
   void to_utf8(std::uint32_t value, std::string& utf8)
   {
     if (value <= Max1)
@@ -139,7 +81,93 @@ namespace
 
 namespace rego
 {
-  runestring utf8_to_runes(const std::string_view& utf8)
+  rune utf8_to_rune(const char* pos, const char* end)
+  {
+    std::uint8_t c0 = static_cast<std::uint8_t>(pos[0]);
+    std::size_t remaining = std::distance(pos, end);
+    if(c0 == '\\'){
+      if(remaining >= 3 && pos[1] == 'x'){
+          std::string hex = std::string(pos + 2, pos + 4);
+          std::uint32_t value = std::stoul(hex, nullptr, 16);
+          return {value, std::string_view(pos, pos + 4)};
+      }
+      if(remaining >= 5 && pos[1] == 'u'){
+          std::string hex = std::string(pos + 2, pos + 6);
+          std::uint32_t value = std::stoul(hex, nullptr, 16);
+          return {value, std::string_view(pos, pos + 6)};          
+      }
+      if(remaining >= 9 && pos[1] == 'U'){
+          std::string hex = std::string(pos + 2, pos + 10);
+          std::uint32_t value = std::stoul(hex, nullptr, 16);
+          return {value, std::string_view(pos, pos + 10)};
+      }
+    }
+
+    if ((c0 & Mask1) == Mark1)
+    {
+      std::uint32_t value = c0 & Value1;
+      return {value, std::string_view(pos, pos + 1)};
+    }
+
+    if ((c0 & Mask2) == Mark2 && remaining >= 2)
+    {
+      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
+      if ((c1 & MaskX) == MarkX)
+      {
+        std::uint32_t value = c0 & Value2;
+        value = (value << Shift2) | (c1 & ValueX);
+        return {value, std::string_view(pos, pos + 2)};
+      }
+    }
+    else if ((c0 & Mask3) == Mark3 && remaining >= 3)
+    {
+      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
+      std::uint8_t c2 = static_cast<std::uint8_t>(pos[2]);
+      if ((c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX)
+      {
+        std::uint32_t value = c0 & Value3;
+        value = (value << Shift3) | (c1 & ValueX);
+        value = (value << ShiftX) | (c2 & ValueX);
+        return {value, std::string_view(pos, pos + 3)};
+      }
+    }
+    else if ((c0 & Mask4) == Mark4 && remaining >= 4)
+    {
+      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
+      std::uint8_t c2 = static_cast<std::uint8_t>(pos[2]);
+      std::uint8_t c3 = static_cast<std::uint8_t>(pos[3]);
+      if (
+        (c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX && (c3 & MaskX) == MarkX)
+      {
+        std::uint32_t value = c0 & Value4;
+        value = (value << Shift4) | (c1 & ValueX);
+        value = (value << ShiftX) | (c2 & ValueX);
+        value = (value << ShiftX) | (c3 & ValueX);
+        return {value, std::string_view(pos, pos + 4)};
+      }
+    }
+
+    // bad
+    return {Bad, std::string_view(pos, pos + 1)};
+  }
+
+  std::vector<rune> utf8_to_runes(const std::string_view& utf8)
+  {
+    std::vector<rune> runes;
+    runes.reserve(utf8.size());
+    const char* pos = utf8.begin();
+    const char* end = utf8.end();
+    while (pos < end)
+    {
+      rune r = utf8_to_rune(pos, end);
+      runes.push_back(r);
+      pos = r.source.end();
+    }
+
+    return runes;
+  }
+
+  runestring utf8_to_runestring(const std::string_view& utf8)
   {
     runestring runes;
     runes.reserve(utf8.size());
@@ -147,14 +175,14 @@ namespace rego
     const char* end = utf8.end();
     while (pos < end)
     {
-      rune r = to_rune(pos, end);
+      rune r = utf8_to_rune(pos, end);
       runes.push_back(r.value);
-      pos += r.length;
+      pos = r.source.end();
     }
     return runes;
   }
 
-  std::string runes_to_utf8(const runestring_view& runes)
+  std::string runestring_to_utf8(const runestring_view& runes)
   {
     std::string utf8;
     utf8.reserve(runes.size());

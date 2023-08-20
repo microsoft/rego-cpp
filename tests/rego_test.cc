@@ -41,8 +41,16 @@ namespace rego_test
       In(Group) * (T(Hyphen) * (T(Block) / T(Group))[Entry]) >>
         [](Match& _) { return Entry << _(Entry); },
 
-      In(DoubleQuoteString) * (T(Group) << (T(NewLine) * ~T(String)[String])) >>
-        [](Match& _) { return Seq << (String ^ "\n") << _(String); },
+      In(DoubleQuoteString) * (T(Group) << (T(NewLine) * ~T(String)++[String])) >>
+        [](Match& _) { 
+          std::ostringstream buf;
+          buf << "\n";
+          for(auto it = _[String].first; it != _[String].second; ++it) {
+            Node str = *it;
+            buf << str->location().view();
+          }
+          return String ^ buf.str();
+        },
 
       (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
        In(DoubleQuoteString)) *

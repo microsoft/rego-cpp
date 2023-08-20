@@ -25,10 +25,15 @@ add_custom_command(TARGET rego_test POST_BUILD
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS
   aggregates
+  array
   arithmetic
+  intersection
   numbersrange
   rand
+  replacen
   sets
+  strings
+  union
   )
 
   set( OPA_TEST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/../opa/test/cases/testdata )

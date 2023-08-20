@@ -182,8 +182,8 @@ namespace
       return needle;
     }
 
-    runestring haystack_runes = utf8_to_runes(Resolver::get_string(haystack));
-    runestring needle_runes = utf8_to_runes(Resolver::get_string(needle));
+    runestring haystack_runes = utf8_to_runestring(Resolver::get_string(haystack));
+    runestring needle_runes = utf8_to_runestring(Resolver::get_string(needle));
     auto pos = haystack_runes.find(needle_runes);
     if (pos == haystack_runes.npos)
     {
@@ -209,8 +209,8 @@ namespace
       return needle;
     }
 
-    runestring haystack_runes = utf8_to_runes(Resolver::get_string(haystack));
-    runestring needle_runes = utf8_to_runes(Resolver::get_string(needle));
+    runestring haystack_runes = utf8_to_runestring(Resolver::get_string(haystack));
+    runestring needle_runes = utf8_to_runestring(Resolver::get_string(needle));
     Node array = NodeDef::create(Array);
     auto pos = haystack_runes.find(needle_runes);
     while (pos != haystack_runes.npos)
@@ -709,6 +709,77 @@ namespace
 
     return JSONString ^ value_str;
   }
+
+  Node reverse(const Nodes& args)
+  {
+    Node x = Resolver::unwrap(
+      args[0], JSONString, "reverse: operand 1 ", EvalTypeError);
+    if (x->type() == Error)
+    {
+      return x;
+    }
+
+    std::string x_str = Resolver::get_string(x);
+    std::vector<rune> x_runes = utf8_to_runes(x_str);
+    std::reverse(x_runes.begin(), x_runes.end());
+    std::ostringstream y;
+    for (auto& rune : x_runes)
+    {
+      y << rune.source;
+    }
+    return JSONString ^ y.str();
+  }
+
+  Node substring(const Nodes& args)
+  {
+    Node value = Resolver::unwrap(
+      args[0], JSONString, "substring: operand 1 ", EvalTypeError);
+    if(value->type() == Error){
+      return value;
+    }
+    Node offset = Resolver::unwrap(
+      args[1], JSONInt, "substring: operand 2 ", EvalTypeError);
+    if(offset->type() == Error){
+      return offset;
+    }
+    Node length = Resolver::unwrap(
+      args[2], JSONInt, "substring: operand 3 ", EvalTypeError);
+    if(length->type() == Error){
+      return length;
+    }
+    
+    std::string value_str = Resolver::get_string(value);
+    std::vector<rune> value_runes = utf8_to_runes(value_str);
+    std::int64_t offset_int = Resolver::get_int(offset).to_int();
+    if(offset_int < 0){
+      return err(args[1], "negative offset", EvalBuiltInError);
+    }
+
+    std::size_t offset_size = static_cast<std::size_t>(offset_int);
+    if(offset_size >= value_runes.size()){
+      return JSONString ^ "";
+    }
+
+    std::int64_t length_int = Resolver::get_int(length).to_int();
+    std::size_t length_size;
+    if(length_int < 0){
+      length_size = value_runes.size() - offset_size;
+    }else{
+      length_size = static_cast<std::size_t>(length_int);
+    }
+
+    if(length_size > value_runes.size() - offset_size){
+      length_size = value_runes.size() - offset_size;
+    }
+    
+    std::vector<rune> output_runes(value_runes.begin() + offset_size, value_runes.begin() + offset_size + length_size);
+    std::ostringstream output;
+    for(auto& rune : output_runes){
+      output << rune.source;
+    }
+
+    return JSONString ^ output.str();
+  }
 }
 
 namespace rego
@@ -735,6 +806,8 @@ namespace rego
         BuiltInDef::create(
           Location("strings.any_suffix_match"), 2, any_suffix_match),
         BuiltInDef::create(Location("strings.replace_n"), 2, replace_n),
+        BuiltInDef::create(Location("strings.reverse"), 1, reverse),
+        BuiltInDef::create(Location("substring"), 3, substring)
       };
     }
   }

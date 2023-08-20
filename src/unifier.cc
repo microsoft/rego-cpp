@@ -476,8 +476,11 @@ namespace rego
       if(func_name == "array"){
         values.push_back(ValueDef::create(NodeDef::create(Array)));
       }
-      if(func_name == "object"){
+      else if(func_name == "object"){
         values.push_back(ValueDef::create(NodeDef::create(Object)));
+      }
+      else if(func_name == "set"){
+        values.push_back(ValueDef::create(NodeDef::create(Set)));
       }
       return values;
     }

@@ -296,6 +296,8 @@ namespace rego_test
             m.mode("indent");
           },
 
+
+
         ":" >>
           [](auto& m) {
             m.add(Colon);
@@ -323,7 +325,12 @@ namespace rego_test
            m.mode("indent");
          },
 
-       R"(\\")" >> [](auto& m) { m.extend(String); },
+       R"(\\("))" >> [](auto& m) { m.add(String, 1); },
+
+       R"(\\ )" >> [](auto&) {
+        // TODO figure out this parsing bug
+        std::cout << "does this even match?" << std::endl;
+       },
 
        R"(\\n)" >>
          [quote](auto& m) {

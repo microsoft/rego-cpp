@@ -138,7 +138,7 @@ namespace rego
           [](auto& m) { m.add(JSONFloat); },
 
         // String.
-        R"("(?:\\(?:["\\\/bfnrt]|u[a-fA-F0-9]{4})|[^"\\\0-\x1F\x7F]+)*")" >>
+        R"("(?:\\(?:["\\\/bfnrtx]|u[a-fA-F0-9]{4})|[^"\\\0-\x1F\x7F]+)*")" >>
           [](auto& m) { m.add(JSONString); },
 
         // Raw string.

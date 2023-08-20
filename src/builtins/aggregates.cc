@@ -31,7 +31,7 @@ namespace
     {
       std::string collection_str =
         strip_quotes(std::string(collection->location().view()));
-      runestring collection_runes = utf8_to_runes(collection_str);
+      runestring collection_runes = utf8_to_runestring(collection_str);
       return Resolver::scalar(BigInt(collection_runes.size()));
     }
 
