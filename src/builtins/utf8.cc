@@ -115,7 +115,8 @@ namespace
     }
   }
 
-  rego::rune utf8_to_rune(std::string_view::const_iterator pos, std::string_view::const_iterator end)
+  rego::rune utf8_to_rune(
+    std::string_view::const_iterator pos, std::string_view::const_iterator end)
   {
     std::uint8_t c0 = static_cast<std::uint8_t>(pos[0]);
     std::size_t remaining = std::distance(pos, end);

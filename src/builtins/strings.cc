@@ -234,9 +234,10 @@ namespace
     }
 
     std::string x_str = Resolver::get_string(x);
-    std::transform(x_str.begin(), x_str.end(), x_str.begin(), [](const char& c){
-      return static_cast<char>(std::tolower(c));
-    });
+    std::transform(
+      x_str.begin(), x_str.end(), x_str.begin(), [](const char& c) {
+        return static_cast<char>(std::tolower(c));
+      });
     return Resolver::scalar(x_str);
   }
 
@@ -250,9 +251,10 @@ namespace
     }
 
     std::string x_str = Resolver::get_string(x);
-    std::transform(x_str.begin(), x_str.end(), x_str.begin(), [](const char& c){
-      return static_cast<char>(std::toupper(c));
-    });
+    std::transform(
+      x_str.begin(), x_str.end(), x_str.begin(), [](const char& c) {
+        return static_cast<char>(std::toupper(c));
+      });
     return Resolver::scalar(x_str);
   }
 
@@ -488,7 +490,10 @@ namespace
             return node;
           }
           std::snprintf(
-            buf, buf_size, verb.format.c_str(), Resolver::get_int(node).to_int());
+            buf,
+            buf_size,
+            verb.format.c_str(),
+            Resolver::get_int(node).to_int());
           result << buf;
           break;
 
@@ -502,7 +507,8 @@ namespace
           {
             return node;
           }
-          std::snprintf(buf, buf_size, verb.format.c_str(), Resolver::get_double(node));
+          std::snprintf(
+            buf, buf_size, verb.format.c_str(), Resolver::get_double(node));
           result << buf;
           break;
 
