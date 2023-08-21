@@ -11,11 +11,11 @@ jobs:
     strategy:
       matrix:
         path: 
-          - check: src
+          - check-path: src
+            exclude: (/base64/)
+          - check-path: test
             exclude: ''
-          - check: test
-            exclude: ''
-          - check: tools
+          - check-path: tools
             exclude: ''
     steps:
       - name: Checkout
