@@ -1,0 +1,105 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "debug-clang",
+      "displayName": "Debug Build using clang",
+      "description": "Sets up a debug build that uses Clang++",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "debug-clang-opa",
+      "displayName": "Debug Build using clang + OPA Tests",
+      "description": "Sets up a debug build that uses Clang++ and includes the OPA tests",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON",
+        "REGOCPP_OPA_TESTS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug Build",
+      "description": "Sets up a debug build that uses the default compiler and generator",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "debug-opa",
+      "displayName": "Debug Build + OPA Tests",
+      "description": "Sets up a debug build that uses the default compiler and generator and includes the OPA tests",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON",
+        "REGOCPP_OPA_TESTS": "ON"
+      }
+    },
+    {
+      "name": "release-clang",
+      "displayName": "Release Build using clang",
+      "description": "Sets up a release build that uses Clang++",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "release-clang-opa",
+      "displayName": "Release Build using clang + OPA Tests",
+      "description": "Sets up a release build that uses Clang++ and includes the OPA tests",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON",
+        "REGOCPP_OPA_TESTS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release Build",
+      "description": "Sets up a release build that uses the default compiler and generator",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "release-opa",
+      "displayName": "Release Build + OPA Tests",
+      "description": "Sets up a release build that uses the default compiler and generator and includes the OPA tests",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON",
+        "REGOCPP_OPA_TESTS": "ON"
+      }
+    }
+  ]
+}
