@@ -73,6 +73,11 @@ target_precompile_headers(rego
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/wf.h
 )
 
+
+if (MSVC)
+  target_compile_options(rego PUBLIC "/Zc:__cplusplus")    
+endif()
+
 target_include_directories( rego
   PUBLIC
     $<INSTALL_INTERFACE:include>
