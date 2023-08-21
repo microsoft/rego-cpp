@@ -54,6 +54,12 @@ namespace rego
 
           return Seq << newargs << body;
         },
+
+      // errors
+      In(Literal) * T(SomeExpr)[SomeExpr] >>
+        [](Match& _) {
+          return err(_(SomeExpr), "Invalid some expression");
+        },
     };
   }
 }

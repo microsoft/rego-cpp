@@ -53,13 +53,13 @@ namespace rego
       {"compr", compr(), &wf_pass_compr},
       {"absolute_refs", absolute_refs(), &wf_pass_absolute_refs},
       {"merge_modules", merge_modules(), &wf_pass_merge_modules},
-      {"skips", skips(builtins), &wf_pass_skips},
+      {"skips", skips(), &wf_pass_skips},
       {"unary", unary(), &wf_pass_unary},
       {"multiply_divide", multiply_divide(), &wf_pass_multiply_divide},
       {"add_subtract", add_subtract(), &wf_pass_add_subtract},
       {"comparison", comparison(), &wf_pass_comparison},
       {"assign", assign(builtins), &wf_pass_assign},
-      {"skip_refs", skip_refs(), &wf_pass_skip_refs},
+      {"skip_refs", skip_refs(builtins), &wf_pass_skip_refs},
       {"simple_refs", simple_refs(), &wf_pass_simple_refs},
       {"implicit_enums", implicit_enums(), &wf_pass_implicit_enums},
       {"init", init(), &wf_pass_init},
@@ -103,13 +103,13 @@ namespace rego
         {"compr", compr(), wf_pass_compr},
         {"absolute_refs", absolute_refs(), wf_pass_absolute_refs},
         {"merge_modules", merge_modules(), wf_pass_merge_modules},
-        {"skips", skips(builtins), wf_pass_skips},
+        {"skips", skips(), wf_pass_skips},
         {"unary", unary(), wf_pass_unary},
         {"multiply_divide", multiply_divide(), wf_pass_multiply_divide},
         {"add_subtract", add_subtract(), wf_pass_add_subtract},
         {"comparison", comparison(), wf_pass_comparison},
         {"assign", assign(builtins), wf_pass_assign},
-        {"skip_refs", skip_refs(), wf_pass_skip_refs},
+        {"skip_refs", skip_refs(builtins), wf_pass_skip_refs},
         {"simple_refs", simple_refs(), wf_pass_simple_refs},
         {"implicit_enums", implicit_enums(), wf_pass_implicit_enums},
         {"init", init(), wf_pass_init},
@@ -131,7 +131,16 @@ namespace rego
     }
     else if (node->type() == JSONFloat)
     {
-      buf << node->location().view();
+      try
+      {
+        double value = std::stod(std::string(node->location().view()));
+        buf << std::setprecision(std::numeric_limits<double>::max_digits10 - 1)
+            << std::noshowpoint << value;
+      }
+      catch (...)
+      {
+        buf << node->location().view();
+      }
     }
     else if (node->type() == JSONString)
     {

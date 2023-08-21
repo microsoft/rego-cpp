@@ -15,6 +15,16 @@ namespace rego_test
       In(Block) * (T(Group) << (T(String) * T(Colon) * (T(Brace) << End))) >>
         [](Match&) { return Node(); },
 
+      In(Group) * (T(Colon) * T(Integer)[Integer] * T(String)[String]) >>
+        [](Match& _) { 
+            Location int_loc = _(Integer)->location();
+            Location str_loc = _(String)->location();
+            std::size_t end = str_loc.pos + str_loc.len;
+            Location loc = int_loc;
+            loc.len = end - loc.pos;
+            return Seq << Colon << (String ^ loc);
+         },
+
       In(Block) *
           ((T(Group) << (T(String) * T(Colon) * End)) *
            (T(Group)[Group] << (T(String) * T(Colon)))) >>
@@ -95,6 +105,8 @@ namespace rego_test
           return err(_(Group), "Invalid double-quoted string element");
         },
 
+      In(Group) * T(NewLine)[NewLine] >>
+        [](Match& _) { return err(_(NewLine), "Invalid newline"); },
     };
   }
 

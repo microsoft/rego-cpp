@@ -161,9 +161,14 @@ namespace rego_test
       });
 
     p("indent",
-      {// end of file terminates
+      {// Line comment.
+       "#[^\n]*\n" >> [indent](auto&) {
+        *indent = 0;
+       },
+
        R"(\\ )" >> [](auto&) {},
 
+       // end of file terminates
        "\r*\n$" >>
          [indents](auto& m) {
            while (!indents->empty())

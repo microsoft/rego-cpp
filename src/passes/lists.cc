@@ -387,6 +387,12 @@ namespace rego
       (In(ArrayCompr) / In(SetCompr) / In(ObjectCompr)) *
           (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Invalid comprehension"); },
+
+      In(UnifyBody) * T(ObjectItem)[ObjectItem] >>
+        [](Match& _) { return err(_(ObjectItem), "Invalid key/value pair"); },
+
+      T(Group)[Group] << End >>
+        [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
     };
   }
 }

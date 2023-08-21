@@ -189,7 +189,7 @@ namespace rego
   inline const auto wf_pass_membership =
     wf_pass_build_calls
     | (Membership <<= (Idx >>= Group | Undefined) * (Item >>= Group) * Group)
-    | (Group <<= (wf_membership_tokens)++[1])
+    | (Group <<= wf_membership_tokens++[1])
     ;
   // clang-format off
 
@@ -328,6 +328,7 @@ namespace rego
   inline const auto wf_pass_replace_argvals =
     wf_pass_symbols
     | (RuleArgs <<= ArgVar++[1])
+    | (Literal <<= Expr)
     ;
   //
 
@@ -352,7 +353,6 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_explicit_enums = 
     wf_pass_constants
-    | (Literal <<= Expr)
     | (LiteralEnum <<= (Item >>= Var) * (ItemSeq >>= Var) * UnifyBody);
   // clang-format on
 

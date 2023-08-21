@@ -497,6 +497,26 @@ namespace rego
         [](Match& _) {
           return err(_(ObjectCompr), "Invalid object comprehension");
         },
+
+      In(UnifyBody) * T(LiteralInit)[LiteralInit] >>
+        [](Match& _) {
+          return err(_(LiteralInit), "Invalid assignment");
+        },
+
+      In(ObjectItem) * (T(Expr)[Expr] << T(AssignInfix)) >>
+        [](Match& _){
+          return err(_(Expr), "Invalid object item");
+        },
+
+      In(Expr) * T(AssignInfix)[AssignInfix] >>
+        [](Match& _) {
+          return err(_(AssignInfix), "Invalid assignment");
+        },
+
+      In(UnifyBody) * T(AssignInfix)[AssignInfix] >>
+        [](Match& _) {
+          return err(_(AssignInfix), "Invalid assignment");
+        },
     };
   }
 }

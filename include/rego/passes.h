@@ -49,13 +49,13 @@ namespace rego
   PassDef compr();
   PassDef absolute_refs();
   PassDef merge_modules();
-  PassDef skips(const BuiltIns& builtins);
+  PassDef skips();
   PassDef unary();
   PassDef multiply_divide();
   PassDef add_subtract();
   PassDef comparison();
   PassDef assign(const BuiltIns& builtins);
-  PassDef skip_refs();
+  PassDef skip_refs(const BuiltIns& builtins);
   PassDef simple_refs();
   PassDef implicit_enums();
   PassDef init();

@@ -73,6 +73,17 @@ namespace rego
           return Membership << Undefined << (Group << _(Item))
                             << (Group << _[ItemSeq]);
         },
+
+      // errors
+      In(Group) * T(Comma)[Comma] >>
+        [](Match& _){
+          return err(_(Comma), "invalid membership statement");
+        },
+
+      T(Group)[Group] << End >>
+        [](Match& _){
+          return err(_(Group), "Syntax error: empty group.");
+        },
     };
   }
 }
