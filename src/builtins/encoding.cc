@@ -14,8 +14,9 @@ namespace
       return err(args[0], "Not a string");
     }
 
-    std::string encoded =
-      ::base64_encode(maybe_x_string.value()->location().view());
+    std::string x_string =
+      std::string(maybe_x_string.value()->location().view());
+    std::string encoded = ::base64_encode(x_string);
     return JSONString ^ encoded;
   }
 

@@ -13,7 +13,7 @@ jobs:
         path: 
           - check-path: src
             exclude: (/base64/)
-          - check-path: test
+          - check-path: tests
             exclude: ''
           - check-path: tools
             exclude: ''
