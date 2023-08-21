@@ -45,14 +45,6 @@ namespace
       return false;
     }
 
-    Node last = argseq->back();
-    Nodes defs = last->lookup();
-    if (defs.size() != 1 || defs[0]->type() != Local)
-    {
-      cache->insert({varseq, false});
-      return false;
-    }
-
     auto builtin = builtins.at(path);
     bool result = builtin->arity == argseq->size() - 1;
 
@@ -65,7 +57,7 @@ namespace rego
 {
   const inline auto AssignInfixArg = T(RefTerm) / T(NumTerm) / T(UnaryExpr) /
     T(ArithInfix) / T(BinInfix) / T(Term) / T(BoolInfix) / T(ExprCall) /
-    T(Enumerate);
+    T(Enumerate) / T(Membership);
 
   // Transforms unification expressions into AssignInfix nodes.
   PassDef assign(const BuiltIns& builtins)

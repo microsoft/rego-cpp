@@ -12,8 +12,8 @@ jobs:
       matrix:
         path: 
           - check: src
-            exclude: ''
-          - check: test
+            exclude: (/base64/)
+          - check: tests
             exclude: ''
           - check: tools
             exclude: ''

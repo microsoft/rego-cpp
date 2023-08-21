@@ -116,19 +116,13 @@ namespace
 namespace rego
 {
   // Discovers skip paths in the AST to constant DataTerm nodes.
-  PassDef skips(const BuiltIns& builtins)
+  PassDef skips()
   {
     SkipMap skip_links = std::make_shared<std::map<std::string, Node>>();
 
     PassDef skips = {
       dir::topdown | dir::once,
     };
-
-    for (auto [location, _] : builtins)
-    {
-      std::string name = std::string(location.view());
-      skip_links->insert({name, BuiltInHook ^ location});
-    }
 
     skips.pre(Rego, [skip_links](Node node) {
       find_skips(skip_links, "data", VarSeq << (Var ^ "data"), node / Data);

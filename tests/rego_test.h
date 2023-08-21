@@ -41,10 +41,12 @@ namespace rego_test
   inline const auto Blank = TokenDef("yaml-blank");
   inline const auto Brace = TokenDef("yaml-brace");
   inline const auto Square = TokenDef("yaml-square");
+  inline const auto NewLine = TokenDef("yaml-newline");
+  inline const auto EmptySequence = TokenDef("yaml-empty-sequence");
 
   inline const auto wf_parse_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | LiteralString | FoldedString | SingleQuoteString |
-    DoubleQuoteString | Hyphen | Blank | Brace | Square;
+    DoubleQuoteString | Hyphen | Blank | Brace | Square | NewLine;
 
   // clang-format off
   inline const auto wf_parser =
@@ -53,8 +55,8 @@ namespace rego_test
     | (Block <<= Group++[1])
     | (LiteralString <<= Group++[1])
     | (FoldedString <<= Group++[1])
-    | (SingleQuoteString <<= Group++[1])
-    | (DoubleQuoteString <<= Group++[1])
+    | (SingleQuoteString <<= Group++)
+    | (DoubleQuoteString <<= Group++)
     | (Brace <<= Group++)
     | (Square <<= Group++)
     | (Group <<= wf_parse_tokens++[1])
@@ -63,7 +65,7 @@ namespace rego_test
 
   inline const auto wf_entry_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | Entry | LiteralString | FoldedString |
-    SingleQuoteString | DoubleQuoteString;
+    SingleQuoteString | DoubleQuoteString | EmptySequence;
 
   // clang-format off
   inline const auto wf_pass_entry =
@@ -71,8 +73,8 @@ namespace rego_test
     | (Top <<= Block)
     | (LiteralString <<= String++[1])
     | (FoldedString <<= String++[1])
-    | (SingleQuoteString <<= String++[1])
-    | (DoubleQuoteString <<= String++[1])
+    | (SingleQuoteString <<= String++)
+    | (DoubleQuoteString <<= String++)
     | (Entry <<= Block | Group)
     | (Group <<= wf_entry_tokens++[1])
     ;
@@ -84,7 +86,7 @@ namespace rego_test
   // clang-format off
   inline const auto wf_pass_sequence =
     wf_pass_entry
-    | (Sequence <<= Entry++[1])
+    | (Sequence <<= Entry++)
     | (Group <<= wf_sequence_tokens++[1])
     ;
   // clang-format on   
@@ -109,7 +111,7 @@ namespace rego_test
   // clang-format off
   inline const auto wf_pass_mapping =
     wf_pass_keyvalue
-    | (Mapping <<= KeyValue++[1])
+    | (Mapping <<= KeyValue++)
     | (Entry <<= Group)
     | (Group <<= Mapping | Scalar | Sequence)
     ;
@@ -119,8 +121,8 @@ namespace rego_test
     (Top <<= Document)
     | (Document <<= KeyValue)
     | (KeyValue <<= Key * (Val >>= Scalar | Sequence | Mapping))[Key]
-    | (Sequence <<= Entry++[1])
-    | (Mapping <<= KeyValue++[1])
+    | (Sequence <<= Entry++)
+    | (Mapping <<= KeyValue++)
     | (Entry <<= Scalar | Sequence | Mapping)
     | (Scalar <<= String | Integer | Float | True | False | Null)
     ;
@@ -140,7 +142,7 @@ namespace rego_test
     | (rego::Square <<= rego::List)
     | (rego::List <<= Group++)
     | (Group <<= rego::wf_parse_tokens++[1])
-    | (WantResult <<= rego::Binding++[1])
+    | (WantResult <<= rego::Binding++)
     | (rego::Binding <<= rego::Var * rego::Term)
     | (rego::Term <<= wf_rego_term_tokens)
     | (rego::Object <<= rego::ObjectItem++[1])

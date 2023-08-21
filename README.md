@@ -154,14 +154,16 @@ LF     Line Feed
 At the moment only support a few builtins, but are actively working on adding
 all the standard builtins. The following builtins are currently supported:
 
+- `aggregates`
+- `arrays`
 - `numbers`
 - `sets`
+- `strings`
 - miscellaneous
     - `print`
-    - `startswith`
-    - `endswith`
-    - `count`
     - `to_number`
+    - `base64_encode`
+    - `base64_decode`
 
 ### Compatibility with the OPA Rego Go implementation
 
@@ -170,11 +172,28 @@ implementation. We have developed a test driver which runs the same tests
 and validates that we produce the same outputs. We currently pass the following
 test case suites:
 
+- `aggregates`
 - `arithmetic`
+- `array`
+- `comparisonexpr`
+- `compositebasedereference`
+- `helloworld`
+- `indexing`
+- `intersection`
 - `numbersrange`
 - `rand`
+- `replacen`
 - `sets`
-    
+- `sprintf`
+- `strings`
+- `trim`
+- `trimleft`
+- `trimprefix`
+- `trimright`
+- `trimspace`
+- `trimsuffix`
+- `union` 
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a

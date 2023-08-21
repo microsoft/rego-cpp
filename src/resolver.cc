@@ -1,5 +1,6 @@
 #include "resolver.h"
 
+#include "errors.h"
 #include "lang.h"
 #include "unifier.h"
 
@@ -21,7 +22,7 @@ namespace
     | (Term <<= Scalar | Array | Object | Set)
     | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
     | (ArgVal <<= Scalar | Array | Object | Set)
-    | (ObjectItem <<= Key * Term)
+    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
     | (ArgVar <<= Var * (Val >>= Term | Undefined))
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
     | (Function <<= JSONString * ArgSeq)
@@ -63,7 +64,7 @@ namespace
       In case we need integer division in the future.
       if (rhs.is_zero())
       {
-        return err(op, "divide by zero", "eval_builtin_error");
+        return err(op, "divide by zero", EvalBuiltInError);
       }
 
       value = lhs / rhs;
@@ -73,7 +74,7 @@ namespace
     {
       if (rhs.is_zero())
       {
-        return err(op, "modulo by zero", "eval_builtin_error");
+        return err(op, "modulo by zero", EvalBuiltInError);
       }
 
       value = lhs % rhs;
@@ -105,14 +106,14 @@ namespace
     {
       if (rhs == 0.0)
       {
-        return err(op, "divide by zero", "eval_builtin_error");
+        return err(op, "divide by zero", EvalBuiltInError);
       }
 
       value = lhs / rhs;
     }
     else if (op->type() == Modulo)
     {
-      return err(op, "modulo on floating-point number", "eval_builtin_error");
+      return err(op, "modulo on floating-point number", EvalBuiltInError);
     }
     else
     {
@@ -281,8 +282,12 @@ namespace rego
 
   std::string Resolver::get_string(const Node& node)
   {
-    assert(node->type() == JSONString);
-    return strip_quotes(std::string(node->location().view()));
+    if (node->type() == JSONString)
+    {
+      return strip_quotes(std::string(node->location().view()));
+    }
+
+    return std::string(node->location().view());
   }
 
   Node Resolver::scalar(const std::string& value)
@@ -331,7 +336,7 @@ namespace rego
   {
     if (lhs->type() == Undefined || rhs->type() == Undefined)
     {
-      return JSONFalse;
+      return JSONFalse ^ "false";
     }
 
     if (lhs->type() == Error)
@@ -373,8 +378,7 @@ namespace rego
 
       if (maybe_lhs_number.has_value() && maybe_rhs_set.has_value())
       {
-        return err(
-          rhs, "operand 2 must be number but got set", "eval_type_error");
+        return err(rhs, "operand 2 must be number but got set", EvalTypeError);
       }
 
       return err(
@@ -417,7 +421,7 @@ namespace rego
   {
     if (lhs->type() == Undefined || rhs->type() == Undefined)
     {
-      return JSONFalse;
+      return JSONFalse ^ "false";
     }
 
     if (lhs->type() == Error)
@@ -547,6 +551,26 @@ namespace rego
     return std::nullopt;
   }
 
+  std::optional<Node> Resolver::maybe_unwrap_array(const Node& node)
+  {
+    Node value;
+    if (node->type() == Term || node->type() == DataTerm)
+    {
+      value = node->front();
+    }
+    else
+    {
+      value = node;
+    }
+
+    if (value->type() == Array)
+    {
+      return value;
+    }
+
+    return std::nullopt;
+  }
+
   std::optional<Nodes> Resolver::apply_access(
     const Node& container, const Node& arg)
   {
@@ -618,7 +642,7 @@ namespace rego
         }
         else if (def->type() == ObjectItem)
         {
-          nodes.push_back(wfi / def / Term);
+          nodes.push_back(wfi / def / Val);
         }
         else if (def->type() == Submodule)
         {
@@ -655,11 +679,18 @@ namespace rego
   Node Resolver::object(const Node& object_items)
   {
     Node object = NodeDef::create(Object);
+    std::map<std::string, Node> items;
     for (std::size_t i = 0; i < object_items->size(); i += 2)
     {
-      std::string key_str = strip_quotes(to_json(object_items->at(i)));
-      object->push_back(
-        ObjectItem << (Key ^ key_str) << object_items->at(i + 1));
+      std::string key = to_json(object_items->at(i));
+      Node item = ObjectItem << object_items->at(i) << object_items->at(i + 1);
+      items[key] = item;
+    }
+
+    // objects need to be created with sorted keys
+    for (auto [_, item] : items)
+    {
+      object->push_back(item);
     }
 
     return object;
@@ -1068,6 +1099,11 @@ namespace rego
 
   bool Resolver::is_falsy(const Node& node)
   {
+    if (node->type() == Undefined)
+    {
+      return true;
+    }
+
     if (node->type() != Term)
     {
       return false;
@@ -1098,7 +1134,7 @@ namespace rego
         defs.begin(),
         defs.end(),
         std::back_inserter(terms),
-        [](const Node& def) { return wfi / def / Term; });
+        [](const Node& def) { return wfi / def / Val; });
       return terms;
     }
 
@@ -1115,7 +1151,7 @@ namespace rego
 
       if (key_str == query_str)
       {
-        terms.push_back(wfi / object_item / Term);
+        terms.push_back(wfi / object_item / Val);
       }
     }
 
@@ -1230,11 +1266,220 @@ namespace rego
       }
     }
 
-    if (result->size() == 0)
+    return result;
+  }
+
+  Node Resolver::membership(
+    const Node& index, const Node& item, const Node& itemseq)
+  {
+    Node items = itemseq;
+    if (items->type() == Term)
     {
-      result->push_back(Undefined);
+      items = items->front();
     }
 
-    return result;
+    std::vector<std::string> indices;
+    if (items->type() == Array || items->type() == Set)
+    {
+      indices = array_find(items, to_json(item));
+    }
+    else if (items->type() == Object)
+    {
+      indices = object_find(items, to_json(item));
+    }
+    else
+    {
+      return JSONFalse ^ "false";
+    }
+
+    std::string index_str = to_json(index);
+    for (auto& i : indices)
+    {
+      if (i == index_str)
+      {
+        return JSONTrue ^ "true";
+      }
+    }
+
+    return JSONFalse ^ "false";
+  }
+
+  Node Resolver::membership(const Node& item, const Node& itemseq)
+  {
+    Node items = itemseq;
+    if (items->type() == Term)
+    {
+      items = items->front();
+    }
+
+    std::vector<std::string> indices;
+    if (items->type() == Array || items->type() == Set)
+    {
+      indices = array_find(items, to_json(item));
+    }
+    else if (items->type() == Object)
+    {
+      indices = object_find(items, to_json(item));
+    }
+    else
+    {
+      return JSONFalse ^ "false";
+    }
+
+    if (indices.size() > 0)
+    {
+      return JSONTrue ^ "True";
+    }
+
+    return JSONFalse ^ "false";
+  }
+
+  std::vector<std::string> Resolver::array_find(
+    const Node& array, const std::string& search)
+  {
+    std::vector<std::string> indices;
+    for (std::size_t i = 0; i < array->size(); ++i)
+    {
+      Node item = array->at(i);
+      if (to_json(item) == search)
+      {
+        indices.push_back(std::to_string(i));
+      }
+    }
+
+    return indices;
+  }
+
+  std::vector<std::string> Resolver::object_find(
+    const Node& object, const std::string& search)
+  {
+    std::vector<std::string> indices;
+    for (auto& objectitem : *object)
+    {
+      if (to_json(objectitem / Val) == search)
+      {
+        indices.push_back(to_json(objectitem / Key));
+      }
+    }
+
+    return indices;
+  }
+
+  std::string Resolver::NodePrinter::str() const
+  {
+    std::ostringstream buf;
+    buf << *this;
+    return buf.str();
+  }
+
+  Node Resolver::unwrap(
+    const Node& node,
+    const Token& type,
+    const std::string& error_prefix,
+    const std::string& error_code,
+    bool specify_number)
+  {
+    Node value;
+    if (node->type() == Term || node->type() == DataTerm)
+    {
+      value = node->front();
+    }
+    else
+    {
+      value = node;
+    }
+
+    if (value->type() == type)
+    {
+      return value;
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+      if (value->type() == type)
+      {
+        return value;
+      }
+    }
+
+    std::ostringstream error;
+    error << error_prefix << "must be " << type_name(type, specify_number)
+          << " but got " << type_name(value->type(), specify_number);
+    return err(node, error.str(), error_code);
+  }
+
+  std::optional<Node> Resolver::maybe_unwrap(
+    const Node& node, const std::set<Token>& types)
+  {
+    Node value;
+    if (node->type() == Term || node->type() == DataTerm)
+    {
+      value = node->front();
+    }
+    else
+    {
+      value = node;
+    }
+
+    if (types.contains(value->type()))
+    {
+      return value;
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+      if (types.contains(value->type()))
+      {
+        return value;
+      }
+    }
+
+    return std::nullopt;
+  }
+
+  std::string Resolver::type_name(const Token& type, bool specify_number)
+  {
+    if (type == JSONInt)
+    {
+      if (specify_number)
+      {
+        return "integer number";
+      }
+      return "number";
+    }
+
+    if (type == JSONFloat)
+    {
+      if (specify_number)
+      {
+        return "floating-point number";
+      }
+      return "number";
+    }
+
+    if (type == JSONString)
+    {
+      return "string";
+    }
+
+    return std::string(type.str());
+  }
+
+  std::string Resolver::type_name(const Node& node, bool specify_number)
+  {
+    Node value = node;
+    if (value->type() == Term)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    return type_name(value->type(), specify_number);
   }
 }

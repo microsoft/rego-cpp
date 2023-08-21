@@ -36,13 +36,15 @@ namespace rego
             << (T(Var)[Var] * T(UnifyBody)[Body] * T(Expr)[Val]) >>
           [](Match& _) {
             Location value = _.fresh({"value"});
+            Location compr = _.fresh({"compr"});
+            Node body = NestedBody << (Key ^ compr) << _(Body);
             return RuleSet
               << _(Var) << Empty
               << (UnifyBody
                   << (Local << (Var ^ value) << Undefined)
                   << (Literal
                       << (Expr << (RefTerm << (Var ^ value)) << Unify
-                               << (Term << (SetCompr << _(Val) << _(Body))))));
+                               << (Term << (SetCompr << _(Val) << body)))));
           },
 
         In(Policy) *
@@ -59,13 +61,14 @@ namespace rego
                   << (Literal
                       << (Expr << (RefTerm << (Var ^ key)) << Unify << _(Key)))
                   << (Literal
-                      << (Expr << (RefTerm << (Var ^ value)) << Unify
-                               << (Expr
-                                   << (Term
-                                       << (Object
-                                           << (RefObjectItem
-                                               << (RefTerm << (Var ^ key))
-                                               << _(Val))))))));
+                      << (Expr
+                          << (RefTerm << (Var ^ value)) << Unify
+                          << (Expr
+                              << (Term
+                                  << (Object
+                                      << (ObjectItem
+                                          << (Expr << (RefTerm << (Var ^ key)))
+                                          << _(Val))))))));
           },
 
         In(Policy) *
@@ -73,11 +76,10 @@ namespace rego
              << (T(Var)[Var] * (T(UnifyBody) / T(Empty))[Body] *
                  (T(DataTerm)[Key]) * T(DataTerm)[Val])) >>
           [](Match& _) {
-            std::string key = strip_quotes(to_json(_(Key)));
             return RuleObj << _(Var) << _(Body)
                            << (DataTerm
                                << (DataObject
-                                   << (DataItem << (Key ^ key) << _(Val))));
+                                   << (DataObjectItem << _(Key) << _(Val))));
           },
 
         In(Policy) *
@@ -86,7 +88,7 @@ namespace rego
                  T(Expr)[Val])) >>
           [](Match& _) {
             Location value = _.fresh({"value"});
-            Location key = _.fresh({"key"});
+            Location compr = _.fresh({"compr"});
             Node body = _(Body);
             if (body->type() == Empty)
             {
@@ -94,11 +96,12 @@ namespace rego
                 << (Literal << (Expr << (Term << (Scalar << (JSONTrue)))));
             }
 
+            body = NestedBody << (Key ^ compr) << body;
+
             return RuleObj
               << _(Var) << Empty
               << (UnifyBody
                   << (Local << (Var ^ value) << Undefined)
-                  << (Local << (Var ^ key) << Undefined)
                   << (Literal
                       << (Expr << (RefTerm << (Var ^ value)) << Unify
                                << (Expr
@@ -108,32 +111,40 @@ namespace rego
           },
 
         (In(ArrayCompr) / In(SetCompr)) *
-            (T(Expr)[Expr] * T(UnifyBody)[UnifyBody]) >>
+            (T(Expr)[Expr] * T(NestedBody)[NestedBody]) >>
           [](Match& _) {
             Location out = _.fresh({"out"});
-            Location compr = _.fresh({"compr"});
-            _(UnifyBody)
+            Node tail = _(NestedBody) / Val;
+            while (tail->back()->type() == LiteralEnum)
+            {
+              tail = tail->back() / UnifyBody;
+            }
+            tail
               << (Literal
                   << (Expr << (RefTerm << (Var ^ out)) << Unify << _(Expr)));
-            _(UnifyBody)->push_front(Local << (Var ^ out) << Undefined);
-            return Seq << (Var ^ out)
-                       << (NestedBody << (Key ^ compr) << _(UnifyBody));
+            (_(NestedBody) / Val)
+              ->push_front(Local << (Var ^ out) << Undefined);
+            return Seq << (Var ^ out) << _(NestedBody);
           },
 
         In(ObjectCompr) *
-            (T(Expr)[Key] * T(Expr)[Val] * T(UnifyBody)[UnifyBody]) >>
+            (T(Expr)[Key] * T(Expr)[Val] * T(NestedBody)[NestedBody]) >>
           [](Match& _) {
             Location out = _.fresh({"out"});
-            Location compr = _.fresh({"compr"});
+            Node tail = _(NestedBody) / Val;
+            while (tail->back()->type() == LiteralEnum)
+            {
+              tail = tail->back() / UnifyBody;
+            }
 
-            _(UnifyBody)
+            tail
               << (Literal
                   << (Expr << (RefTerm << (Var ^ out)) << Unify
                            << (Expr << (Term << (Array << _(Key) << _(Val))))));
-            _(UnifyBody)->push_front(Local << (Var ^ out) << Undefined);
+            (_(NestedBody) / Val)
+              ->push_front(Local << (Var ^ out) << Undefined);
 
-            return Seq << (Var ^ out)
-                       << (NestedBody << (Key ^ compr) << _(UnifyBody));
+            return Seq << (Var ^ out) << _(NestedBody);
           },
 
         // errors

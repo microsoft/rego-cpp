@@ -27,7 +27,7 @@ namespace
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))
     | (Function <<= JSONString * ArgSeq)
-    | (ObjectItem <<= Key * Term)
+    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
     | (Term <<= Scalar | Array | Object | Set)
     | (ArgVar <<= Var * Term)
     | (Binding <<= Var * Term)
@@ -39,34 +39,6 @@ namespace
 namespace rego
 {
   using namespace wf::ops;
-
-  std::ostream& operator<<(std::ostream& os, const Unifier& unifier)
-  {
-    for (const auto& [first, second] : unifier->m_variables)
-    {
-      os << first.view() << "(" << second.dependency_score() << ") -> {";
-      std::string sep = "";
-      for (const auto& dep : second.dependencies())
-      {
-        os << sep << dep.view();
-        sep = ", ";
-      }
-      os << "}" << std::endl;
-    }
-    os << std::endl;
-    for (const auto& unifyexpr : unifier->m_statements)
-    {
-      if (unifyexpr->type() == UnifyExprWith)
-      {
-        os << Resolver::with_str(unifyexpr) << std::endl;
-      }
-      else
-      {
-        os << Resolver::expr_str(unifyexpr) << std::endl;
-      }
-    }
-    return os;
-  }
 
   UnifierDef::UnifierDef(
     const Location& rule,
@@ -82,44 +54,135 @@ namespace rego
     m_parent_type(rulebody->parent()->type()),
     m_cache(cache)
   {
-    init_from_body(rulebody, m_statements);
+    LOG_HEADER("ASSEMBLING UNIFICATION", "---");
+    m_dependency_graph.push_back({"start", {}, 0});
+    init_from_body(rulebody, m_statements, 0);
     compute_dependency_scores();
-    m_retries = Variable::detect_cycles(m_variables);
+    m_retries = detect_cycles();
     if (m_retries > 0)
     {
       LOG("Detected ", m_retries, " cycles in dependency graph");
     }
+
+    LOG("Dependency graph:");
+    LOG_INDENT();
+    for (auto& dep : m_dependency_graph)
+    {
+      std::ostringstream os;
+      os << "[" << dep.name << "](" << dep.score << ") -> {";
+      std::string sep = "";
+      for (auto id : dep.dependencies)
+      {
+        os << sep << m_dependency_graph[id].name;
+        sep = ", ";
+      }
+      os << "}";
+      LOG(os.str());
+    }
+    LOG_UNINDENT();
+    LOG_HEADER("ASSEMBLY COMPLETE", "---");
+  }
+
+  std::size_t UnifierDef::detect_cycles() const
+  {
+    std::size_t cycles = 0;
+    for (std::size_t id = 0; id < m_dependency_graph.size(); ++id)
+    {
+      if (has_cycle(id))
+      {
+        ++cycles;
+      }
+    }
+
+    return cycles;
+  }
+
+  bool UnifierDef::has_cycle(std::size_t id) const
+  {
+    std::set<std::size_t> visited;
+
+    auto deps = m_dependency_graph[id].dependencies;
+    std::vector<std::size_t> stack(deps.begin(), deps.end());
+    while (!stack.empty())
+    {
+      auto current = stack.back();
+      stack.pop_back();
+
+      if (current == id)
+      {
+        return true;
+      }
+
+      if (visited.contains(current))
+      {
+        continue;
+      }
+
+      visited.insert(current);
+
+      for (const auto& dep : m_dependency_graph[current].dependencies)
+      {
+        stack.push_back(dep);
+      }
+    }
+
+    return false;
   }
 
   void UnifierDef::init_from_body(
-    const Node& rulebody, std::vector<Node>& statements)
+    const Node& rulebody, std::vector<Node>& statements, std::size_t root)
   {
     std::for_each(rulebody->begin(), rulebody->end(), [&](const auto& stmt) {
       if (stmt->type() == Local)
       {
-        add_variable(stmt);
+        std::size_t id = add_variable(stmt);
+        m_dependency_graph[id].dependencies.insert(root);
       }
       else if (stmt->type() == UnifyExpr)
       {
         statements.push_back(stmt);
-        add_unifyexpr(stmt);
+        std::size_t id = add_unifyexpr(stmt);
+        m_dependency_graph[id].dependencies.insert(root);
       }
       else if (stmt->type() == UnifyExprWith)
       {
         statements.push_back(stmt);
+        std::size_t id = m_dependency_graph.size();
+        std::string name = "with" + std::to_string(id);
+        m_dependency_graph.push_back({name, {root}, 0});
+        m_expr_ids[stmt] = id;
         m_nested_statements[stmt] = {};
-        init_from_body(stmt / UnifyBody, m_nested_statements[stmt]);
+        init_from_body(stmt / UnifyBody, m_nested_statements[stmt], id);
+
+        Node withseq = stmt / WithSeq;
+        std::vector<std::size_t> dep_ids;
+        for (auto& with : *withseq)
+        {
+          std::vector<Location> deps;
+          scan_vars(wfi / with / Var, deps);
+          std::transform(
+            deps.begin(),
+            deps.end(),
+            std::back_inserter(dep_ids),
+            [this](auto& dep) { return m_variables.at(dep).id(); });
+        }
+
+        m_dependency_graph[id].dependencies.insert(
+          dep_ids.begin(), dep_ids.end());
       }
     });
   }
 
-  void UnifierDef::add_variable(const Node& local)
+  std::size_t UnifierDef::add_variable(const Node& local)
   {
     auto name = (wfi / local / Var)->location();
-    m_variables.insert({name, Variable(local)});
+    std::size_t id = m_dependency_graph.size();
+    m_variables.insert({name, Variable(local, id)});
+    m_dependency_graph.push_back({std::string(name.view()), {}, 0});
+    return id;
   }
 
-  void UnifierDef::add_unifyexpr(const Node& unifyexpr)
+  std::size_t UnifierDef::add_unifyexpr(const Node& unifyexpr)
   {
     Node lhs = wfi / unifyexpr / Var;
     Node rhs = wfi / unifyexpr / Val;
@@ -132,22 +195,51 @@ namespace rego
 
     Variable& var = get_variable(lhs->location());
     std::vector<Location> deps;
-    std::size_t num_vars = scan_vars(rhs, deps);
-    var.increase_dependency_score(num_vars - deps.size());
-    var.insert_dependencies(deps.begin(), deps.end());
+    scan_vars(rhs, deps);
+    std::vector<std::size_t> dep_ids;
+    std::transform(
+      deps.begin(), deps.end(), std::back_inserter(dep_ids), [this](auto& dep) {
+        return m_variables.at(dep).id();
+      });
+    std::size_t expr_id = m_dependency_graph.size();
+    m_expr_ids[unifyexpr] = expr_id;
+    std::string name = Resolver::expr_str(unifyexpr).str();
+    m_dependency_graph.push_back(
+      {name, std::set(dep_ids.begin(), dep_ids.end()), 0});
+    m_dependency_graph[var.id()].dependencies.insert(expr_id);
+    return expr_id;
+  }
+
+  std::size_t UnifierDef::compute_dependency_score(
+    std::size_t id, std::set<std::size_t>& visited)
+  {
+    if (visited.contains(id))
+    {
+      return m_dependency_graph[id].score;
+    }
+
+    visited.insert(id);
+    std::size_t score = 1;
+    for (auto dep_id : m_dependency_graph[id].dependencies)
+    {
+      score += compute_dependency_score(dep_id, visited);
+    }
+
+    m_dependency_graph[id].score = score;
+    return score;
   }
 
   void UnifierDef::compute_dependency_scores()
   {
-    std::set<Location> visited;
-    for (auto& [_, variable] : m_variables)
+    std::set<std::size_t> visited;
+    for (std::size_t id = 0; id < m_dependency_graph.size(); ++id)
     {
-      variable.dependency_score(compute_dependency_score(variable, visited));
+      compute_dependency_score(id, visited);
     }
 
     std::sort(
       m_statements.begin(), m_statements.end(), [this](auto& lhs, auto& rhs) {
-        return compute_dependency_score(lhs) < compute_dependency_score(rhs);
+        return dependency_score(lhs) < dependency_score(rhs);
       });
 
     for (auto& [_, nested_statements] : m_nested_statements)
@@ -156,31 +248,19 @@ namespace rego
         nested_statements.begin(),
         nested_statements.end(),
         [this](auto& lhs, auto& rhs) {
-          return compute_dependency_score(lhs) < compute_dependency_score(rhs);
+          return dependency_score(lhs) < dependency_score(rhs);
         });
     }
   }
 
-  std::size_t UnifierDef::compute_dependency_score(
-    Variable& variable, std::set<Location>& visited)
+  std::size_t UnifierDef::dependency_score(const Node& expr) const
   {
-    if (visited.contains(variable.name()))
-    {
-      return get_variable(variable.name()).dependency_score();
-    }
+    return m_dependency_graph[m_expr_ids.at(expr)].score;
+  }
 
-    visited.insert(variable.name());
-    std::size_t score = std::transform_reduce(
-      variable.dependencies().cbegin(),
-      variable.dependencies().cend(),
-      variable.dependency_score(),
-      std::plus{},
-      [&](auto& dep) {
-        return compute_dependency_score(get_variable(dep), visited);
-      });
-    variable.dependency_score(score);
-
-    return score;
+  std::size_t UnifierDef::dependency_score(const Variable& var) const
+  {
+    return m_dependency_graph[var.id()].score;
   }
 
   bool UnifierDef::is_local(const Node& var)
@@ -263,20 +343,6 @@ namespace rego
     execute_statements(m_statements.begin(), m_statements.end());
   }
 
-  void UnifierDef::mark_invalid_values()
-  {
-    for (auto& [_, var] : m_variables)
-    {
-      if (!var.is_unify())
-      {
-        // only unification statements can mark values as invalid
-        continue;
-      }
-
-      var.mark_invalid_values();
-    }
-  }
-
   void UnifierDef::remove_invalid_values()
   {
     std::for_each(m_variables.begin(), m_variables.end(), [](auto& pair) {
@@ -300,9 +366,9 @@ namespace rego
 
         Node node = var.bind();
 
-        if (node->type() == Error || node->type() == Undefined)
+        if (node->type() == Error)
         {
-          LOG("> ", var.name().view(), ": Undefined or Error");
+          LOG("> ", var.name().view(), ": Error");
           return node;
         }
 
@@ -327,7 +393,12 @@ namespace rego
             return JSONTrue ^ "true";
           }
         }
-        else if (result->type() == Undefined)
+        else if (var.is_unify() && Resolver::is_falsy(node))
+        {
+          LOG("> ", var.name().view(), ": false => false");
+          return JSONFalse ^ "false";
+        }
+        else if (node->type() == Term && result->type() == Undefined)
         {
           LOG("> ", var.name().view(), ": Term => true");
           return JSONTrue ^ "true";
@@ -357,7 +428,7 @@ namespace rego
     {
       LOG_HEADER("Pass " + std::to_string(pass_index), "=====");
       pass();
-      mark_invalid_values();
+      // mark_invalid_values();
       remove_invalid_values();
     }
 
@@ -399,8 +470,26 @@ namespace rego
   Values UnifierDef::evaluate_function(
     const Location& var, const std::string& func_name, const Args& args)
   {
-    LOG("> calling ", func_name, " with ", args);
     Values values;
+    if (args.size() == 0)
+    {
+      LOG("> calling ", func_name, " with no args");
+      if (func_name == "array")
+      {
+        values.push_back(ValueDef::create(NodeDef::create(Array)));
+      }
+      else if (func_name == "object")
+      {
+        values.push_back(ValueDef::create(NodeDef::create(Object)));
+      }
+      else if (func_name == "set")
+      {
+        values.push_back(ValueDef::create(NodeDef::create(Set)));
+      }
+      return values;
+    }
+
+    LOG("> calling ", func_name, " with ", args);
     std::set<Value> valid_args;
     for (std::size_t i = 0; i < args.size(); ++i)
     {
@@ -705,6 +794,17 @@ namespace rego
         values.push_back(ValueDef::create(var, JSONTrue, sources));
       }
     }
+    else if (func_name == "membership-tuple")
+    {
+      Node result =
+        Resolver::membership(args[0]->node(), args[1]->node(), args[2]->node());
+      values.push_back(ValueDef::create(var, result, sources));
+    }
+    else if (func_name == "membership-single")
+    {
+      Node result = Resolver::membership(args[0]->node(), args[1]->node());
+      values.push_back(ValueDef::create(var, result, sources));
+    }
     else if (func_name == "apply_access")
     {
       Node container = args[0]->node();
@@ -880,11 +980,8 @@ namespace rego
       {
         for (const Node& object_item : *container)
         {
-          std::string key =
-            std::string((wfi / object_item / Key)->location().view());
-          Node key_str = (Scalar << (JSONString ^ key));
-          Node tuple = Term << (Array << key_str << wfi / object_item / Term);
-
+          Node tuple = Term
+            << (Array << wfi / object_item / Key << wfi / object_item / Val);
           items.push_back(ValueDef::create(var, tuple));
         }
       }
@@ -893,8 +990,6 @@ namespace rego
       {
         for (const Node& value : *container)
         {
-          std::string key = to_json(value);
-          Node key_str = (Scalar << (JSONString ^ key));
           Node tuple = Term << (Array << value << value);
           items.push_back(ValueDef::create(var, tuple));
         }
@@ -914,70 +1009,6 @@ namespace rego
     std::ostringstream buf;
     buf << this;
     return buf.str();
-  }
-
-  std::string UnifierDef::dependency_str() const
-  {
-    std::ostringstream buf;
-    for (auto& [name, var] : m_variables)
-    {
-      buf << name.view() << "(" << var.dependency_score() << ") -> {";
-      std::string sep = "";
-      for (const auto& dep : var.dependencies())
-      {
-        buf << sep << dep.view();
-        sep = ", ";
-      }
-      buf << "}" << std::endl;
-    }
-
-    return buf.str();
-  }
-
-  std::size_t UnifierDef::compute_dependency_score(const Node& unifyexpr)
-  {
-    if (unifyexpr->type() == Local)
-    {
-      return 0;
-    }
-
-    std::size_t score = 0;
-
-    if (unifyexpr->type() == UnifyExprWith)
-    {
-      Node body = unifyexpr / UnifyBody;
-      for (auto& child : *body)
-      {
-        if (child->type() != Local)
-        {
-          score += compute_dependency_score(child);
-        }
-      }
-      Node withseq = unifyexpr / WithSeq;
-      for (auto& with : *withseq)
-      {
-        std::vector<Location> deps;
-        std::size_t num_vars = scan_vars(wfi / with / Var, deps);
-        score += num_vars - deps.size();
-        for (auto& dep : deps)
-        {
-          score += get_variable(dep).dependency_score();
-        }
-      }
-    }
-    else
-    {
-      std::vector<Location> deps;
-      std::size_t num_vars = scan_vars(wfi / unifyexpr / Val, deps);
-      score += num_vars - deps.size();
-
-      for (auto& dep : deps)
-      {
-        score += get_variable(dep).dependency_score();
-      }
-    }
-
-    return score;
   }
 
   bool UnifierDef::push_rule(const Location& rule)
@@ -1016,35 +1047,81 @@ namespace rego
   Values UnifierDef::check_with(const Node& var)
   {
     std::string key_str = std::string(var->location().view());
+
+    Values result;
+    std::map<std::string, Values> partials;
     for (auto it = m_with_stack->rbegin(); it != m_with_stack->rend(); ++it)
     {
-      if (it->contains(key_str))
+      for (auto& [key, val] : *it)
       {
-        LOG("Found key: ", key_str, " in with stack");
-        Values values = it->at(key_str);
-        if (m_parent_type == RuleFunc && m_builtins.is_builtin(key_str))
+        if (key == key_str)
         {
-          if (
-            std::find_if(values.begin(), values.end(), [&](const Value& value) {
-              Node node = value->node();
-              if (node->type() == RuleFunc)
-              {
-                return (node / Var)->location() == m_rule;
-              }
-
-              return false;
-            }) != values.end())
+          LOG("Found key: ", key_str, " in with stack");
+          result = val;
+          if (m_parent_type == RuleFunc && m_builtins.is_builtin(key_str))
           {
-            LOG("Recursion detected in rule-func: ", key_str);
-            return {};
-          }
-        }
+            if (
+              std::find_if(
+                result.begin(), result.end(), [&](const Value& value) {
+                  Node node = value->node();
+                  if (node->type() == RuleFunc)
+                  {
+                    return (node / Var)->location() == m_rule;
+                  }
 
-        return values;
+                  return false;
+                }) != result.end())
+            {
+              LOG("Recursion detected in rule-func: ", key_str);
+              return {};
+            }
+          }
+
+          break;
+        }
+        else if (key.starts_with(key_str) && !partials.contains(key))
+        {
+          LOG("Found prefix match: ", key_str, " in with stack");
+          partials[key.substr(key_str.size() + 1)] = val;
+        }
       }
     }
 
-    return {};
+    if (partials.size() == 0)
+    {
+      return result;
+    }
+
+    std::map<std::string, Node> object_map;
+    if (result.size() > 0)
+    {
+      Node base = result.front()->node();
+      for (auto& item : *base)
+      {
+        std::string key =
+          strip_quotes(std::string((item / Key)->location().view()));
+        object_map[key] = item / Val;
+      }
+    }
+
+    for (auto& [key, val] : partials)
+    {
+      if (val.size() == 0)
+      {
+        continue;
+      }
+
+      object_map[key] = val.front()->node();
+    }
+
+    Node object = NodeDef::create(Object);
+    for (auto& [loc, val] : object_map)
+    {
+      Node key = Term << (Scalar << (JSONString ^ loc));
+      object->push_back(ObjectItem << key << val);
+    }
+
+    return {ValueDef::create(object)};
   }
 
   Values UnifierDef::resolve_skip(const Node& skip)
@@ -1174,6 +1251,10 @@ namespace rego
     }
 
     assert(rulecomp->type() == RuleComp);
+    if (rulecomp->type() != RuleComp)
+    {
+      return std::nullopt;
+    }
 
     Location rulename = (wfi / rulecomp / Var)->location();
     Node rulebody = wfi / rulecomp / Body;
@@ -1245,7 +1326,10 @@ namespace rego
   std::optional<RankedNode> UnifierDef::resolve_rulefunc(
     const Node& rulefunc, const Nodes& args)
   {
-    assert(rulefunc->type() == RuleFunc);
+    if (rulefunc->type() != RuleFunc)
+    {
+      return std::nullopt;
+    }
 
     rank_t index = ValueDef::get_rank(wfi / rulefunc / Idx);
     Node rule = Resolver::inject_args(rulefunc, args);
@@ -1329,6 +1413,11 @@ namespace rego
     for (const auto& rule : ruleset)
     {
       assert(rule->type() == RuleSet);
+      if (rule->type() != RuleSet)
+      {
+        return std::nullopt;
+      }
+
       Location rulename = (wfi / rule / Var)->location();
       Node rulebody = wfi / rule / Body;
       Node value = wfi / rule / Val;
@@ -1414,6 +1503,11 @@ namespace rego
         return rule;
       }
       assert(rule->type() == RuleObj);
+      if (rule->type() != RuleObj)
+      {
+        return std::nullopt;
+      }
+
       Location rulename = (wfi / rule / Var)->location();
       Node rulebody = wfi / rule / Body;
       Node value = wfi / rule / Val;
@@ -1593,7 +1687,7 @@ namespace rego
       Node item_node = item_value->node();
       if (item_node->type() == Undefined)
       {
-        return JSONFalse;
+        return JSONFalse ^ "false";
       }
 
       if (item_node->type() == Term)
@@ -1613,7 +1707,7 @@ namespace rego
       Node result = rule_unifier(name, body)->unify();
       if (result->type() == JSONFalse)
       {
-        return JSONFalse;
+        return JSONFalse ^ "false";
       }
 
       if (result->type() == Error)
@@ -1622,7 +1716,7 @@ namespace rego
       }
     }
 
-    return JSONTrue;
+    return JSONTrue ^ "true";
   }
 
   bool UnifierDef::is_variable(const Location& name) const

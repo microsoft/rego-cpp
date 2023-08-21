@@ -1,3 +1,4 @@
+#include "errors.h"
 #include "passes.h"
 
 namespace rego
@@ -63,13 +64,13 @@ namespace rego
       In(Expr) * (ArithInfixArg * T(Subtract) * BinInfixArg[Rhs]) >>
         [](Match& _) {
           return err(
-            _(Rhs), "operand 2 must be number but got set", "eval_type_error");
+            _(Rhs), "operand 2 must be number but got set", EvalTypeError);
         },
 
       In(Expr) * (BinInfixArg * T(Subtract) * ArithInfixArg[Rhs]) >>
         [](Match& _) {
           return err(
-            _(Rhs), "operand 2 must be set but got number", "eval_type_error");
+            _(Rhs), "operand 2 must be set but got number", EvalTypeError);
         },
 
       In(Expr) * (T(Subtract) * ArithInfixArg[Val] * End) >>

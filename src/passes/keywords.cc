@@ -35,12 +35,12 @@ namespace rego
           auto name = _(Var)->location().view();
           if (name == "if")
           {
-            return IfTruthy ^ _(Var)->location();
+            return If ^ _(Var)->location();
           }
 
           if (name == "in")
           {
-            return InSome ^ _(Var)->location();
+            return IsIn ^ _(Var)->location();
           }
 
           if (name == "contains")

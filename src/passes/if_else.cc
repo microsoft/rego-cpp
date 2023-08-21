@@ -4,7 +4,7 @@ namespace
 {
   using namespace rego;
 
-  const inline auto ExprTailToken = ExprToken / T(InSome);
+  const inline auto ExprTailToken = ExprToken / T(IsIn);
 }
 
 namespace rego
@@ -13,16 +13,16 @@ namespace rego
   PassDef ifs()
   {
     return {
-      In(Group) * (T(IfTruthy) * ExprToken[Head] * ExprTailToken++[Tail]) >>
+      In(Group) * (T(If) * ExprToken[Head] * ExprTailToken++[Tail]) >>
         [](Match& _) { return UnifyBody << (Group << _(Head) << _[Tail]); },
 
-      In(Group) * (T(IfTruthy) * T(UnifyBody)[UnifyBody]) >>
+      In(Group) * (T(If) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) { return _(UnifyBody); },
 
       // errors
 
-      In(Group) * T(IfTruthy)[IfTruthy] >>
-        [](Match& _) { return err(_(IfTruthy), "Invalid if statement"); },
+      In(Group) * T(If)[If] >>
+        [](Match& _) { return err(_(If), "Invalid if statement"); },
     };
   }
 

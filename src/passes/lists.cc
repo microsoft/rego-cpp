@@ -55,9 +55,40 @@ namespace rego
       (In(Input) / In(Data)) * (T(Brace) << End) >>
         ([](Match&) -> Node { return ObjectItemSeq; }),
 
-      In(Group) * (T(Var)[Var] * T(IfTruthy) * T(Brace)[Brace]) >>
+      In(Group) * (T(Var)[Var] * T(If) * T(Brace)[Brace]) >>
         [](Match& _) {
-          return Seq << _(Var) << IfTruthy << (UnifyBody << *_[Brace]);
+          return Seq << _(Var) << If << (UnifyBody << *_[Brace]);
+        },
+
+      In(Policy) *
+          (T(Group) << (T(Var)[Var] * T(Brace)[Head] * T(Brace)++[Tail])) >>
+        [](Match& _) {
+          Node group = Group << _(Var) << (UnifyBody << *_[Head]);
+          for (auto it = _[Tail].first; it != _[Tail].second; ++it)
+          {
+            Node unifybody = NodeDef::create(UnifyBody);
+            Node brace = *it;
+            unifybody->insert(unifybody->end(), brace->begin(), brace->end());
+            group << unifybody;
+          }
+          return group;
+        },
+
+      In(Policy) *
+          (T(Group)
+           << (T(Var)[Var] * (T(Assign) / T(Unify))[Assign] * ExprToken[Head] *
+               ExprToken++[Tail] * T(Brace)[Head1] * T(Brace)++[Tail1])) >>
+        [](Match& _) {
+          Node group = Group << _(Var) << _(Assign) << _(Head) << _[Tail]
+                             << (UnifyBody << *_[Head1]);
+          for (auto it = _[Tail1].first; it != _[Tail1].second; ++it)
+          {
+            Node unifybody = NodeDef::create(UnifyBody);
+            Node brace = *it;
+            unifybody->insert(unifybody->end(), brace->begin(), brace->end());
+            group << unifybody;
+          }
+          return group;
         },
 
       In(Group) *
@@ -173,6 +204,58 @@ namespace rego
       In(Group) * (T(Brace) << (T(List)[List] * End)) >>
         [](Match& _) { return Set << *_[List]; },
 
+      T(List)
+          << ((T(Group)
+               << (MembershipToken++[Lhs] * (T(Assign) / T(Unify))[Assign] *
+                   MembershipToken++[Idx] * End)) *
+              (T(Group) << (MembershipToken++[Item] * T(IsIn) *
+                            MembershipToken++[ItemSeq] * T(IsIn) *
+                            MembershipToken++[ItemSeq1]) *
+                 End)) >>
+        [](Match& _) {
+          return Group << _[Lhs] << _(Assign)
+                       << (Paren
+                           << (Group << _[Idx] << Comma << _[Item] << IsIn
+                                     << _[ItemSeq]))
+                       << IsIn << _[ItemSeq1];
+        },
+
+      T(List)
+          << ((T(Group) << (MembershipToken++[Idx] * End)) *
+              (T(Group) << (MembershipToken++[Item] * T(IsIn) *
+                            MembershipToken++[ItemSeq] * T(IsIn) *
+                            MembershipToken++[ItemSeq1]) *
+                 End)) >>
+        [](Match& _) {
+          return Group << (Paren
+                           << (Group << _[Idx] << Comma << _[Item] << IsIn
+                                     << _[ItemSeq]))
+                       << IsIn << _[ItemSeq1];
+        },
+
+      T(List)
+          << ((T(Group)
+               << (MembershipToken++[Lhs] * (T(Assign) / T(Unify))[Assign] *
+                   MembershipToken++[Idx] * End)) *
+              (T(Group)
+               << (MembershipToken++[Item] * T(IsIn)[IsIn] *
+                   MembershipToken++[ItemSeq] * End))) >>
+        [](Match& _) {
+          return Group << _[Lhs] << _(Assign) << _[Idx] << Comma << _[Item]
+                       << IsIn << _[ItemSeq];
+        },
+
+      T(List)
+          << ((T(Group) << (MembershipToken++[Idx] * End)) *
+              (T(Group)
+               << (MembershipToken++[Item] * T(IsIn)[IsIn] *
+                   MembershipToken++[ItemSeq] * End))) >>
+        [](Match& _) {
+          return Group << _[Idx] << Comma << _[Item] << IsIn << _[ItemSeq];
+        },
+
+      In(UnifyBody) * T(List)[List] >> [](Match& _) { return Seq << *_[List]; },
+
       In(Group) * (T(Some) << (T(List)[List] * End)) >>
         [](Match& _) {
           Node list = _(List);
@@ -181,41 +264,70 @@ namespace rego
             return err(list, "some must contain at least one variable");
           }
 
-          Node last_group = list->back();
-          if (last_group->size() > 1)
+          Node back = list->back();
+          auto in_pos = back->begin();
+          for (; in_pos != back->end(); ++in_pos)
           {
-            Node insome_group = NodeDef::create(Group);
-            insome_group->insert(
-              insome_group->end(), last_group->begin() + 1, last_group->end());
-            list->back() = Group << last_group->front();
-            Node varseq = NodeDef::create(VarSeq);
-            varseq->insert(varseq->end(), list->begin(), list->end());
-            return SomeDecl << varseq << insome_group;
+            Node n = *in_pos;
+            if (n->type() == IsIn)
+            {
+              break;
+            }
           }
-          else
+
+          if (in_pos != back->end())
           {
-            return SomeDecl << (VarSeq << *_[List]) << (Group << Undefined);
+            Node item = NodeDef::create(Group);
+            item->insert(item->end(), back->begin(), in_pos);
+            Node itemseq = NodeDef::create(Group);
+            itemseq->insert(itemseq->end(), in_pos, back->end());
+            if (list->size() == 2)
+            {
+              // some i, x in c
+              return SomeDecl << (VarSeq << list->front() << item) << itemseq;
+            }
+            else
+            {
+              // some x in c
+              return SomeDecl << (VarSeq << item) << itemseq;
+            }
           }
+
+          // some x, y, z, ...
+          return SomeDecl << (VarSeq << *_[List]) << (Group << Undefined);
         },
 
       In(Group) * (T(Some) << T(Group)[Group]) >>
         [](Match& _) {
           Node group = _(Group);
-          if (group->size() > 1)
+
+          auto in_pos = group->begin();
+          for (; in_pos != group->end(); ++in_pos)
           {
-            Node insome_group = NodeDef::create(Group);
-            insome_group->insert(
-              insome_group->end(), group->begin() + 1, group->end());
-            return SomeDecl << (VarSeq << (Group << group->front()))
-                            << insome_group;
+            Node n = *in_pos;
+            if (n->type() == IsIn)
+            {
+              break;
+            }
           }
-          else
+
+          if (in_pos != group->end())
           {
-            return SomeDecl << (VarSeq << _(Group)) << (Group << Undefined);
+            Node item = NodeDef::create(Group);
+            item->insert(item->end(), group->begin(), in_pos);
+            Node itemseq = NodeDef::create(Group);
+            itemseq->insert(itemseq->end(), in_pos, group->end());
+            // some x in c
+            return SomeDecl << (VarSeq << item) << itemseq;
           }
+
+          // some x
+          return SomeDecl << (VarSeq << group) << (Group << Undefined);
         },
 
       In(Group) * T(EmptySet) >> ([](Match&) -> Node { return Set; }),
+
+      In(Group) * (T(Square) << End) >> [](Match&) -> Node { return Array; },
 
       // errors
 
@@ -275,6 +387,12 @@ namespace rego
       (In(ArrayCompr) / In(SetCompr) / In(ObjectCompr)) *
           (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Invalid comprehension"); },
+
+      In(UnifyBody) * T(ObjectItem)[ObjectItem] >>
+        [](Match& _) { return err(_(ObjectItem), "Invalid key/value pair"); },
+
+      T(Group)[Group] << End >>
+        [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
     };
   }
 }

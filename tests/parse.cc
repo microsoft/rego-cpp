@@ -88,17 +88,31 @@ namespace rego_test
         // Double quote string
         "\"" >>
           [quote](auto& m) {
-            m.push(DoubleQuoteString, 1);
-            m.mode("multiline-string");
-            *quote = Quote::Double;
+            if (m.previous(Colon) || m.in(Block) || m.in(Square) || m.in(Brace))
+            {
+              m.push(DoubleQuoteString, 1);
+              m.mode("multiline-string");
+              *quote = Quote::Double;
+            }
+            else
+            {
+              m.extend(String);
+            }
           },
 
         // Single quote string
         "'" >>
           [quote](auto& m) {
-            m.push(SingleQuoteString, 1);
-            m.mode("multiline-string");
-            *quote = Quote::Single;
+            if (m.previous(Colon) || m.in(Square) || m.in(Brace) || m.in(Block))
+            {
+              m.push(SingleQuoteString, 1);
+              m.mode("multiline-string");
+              *quote = Quote::Single;
+            }
+            else
+            {
+              m.extend(String);
+            }
           },
 
         // KeyValue.
@@ -111,7 +125,13 @@ namespace rego_test
         ">" >> [](auto& m) { m.push(FoldedString); },
 
         // Entry.
-        "-[ ]*" >> [](auto& m) { m.add(Hyphen); },
+        "-[ \n][\r\n]*" >>
+          [indent, indents](auto& m) {
+            *indent += 2;
+            m.add(Hyphen);
+            m.push(Block);
+            indents->push_back(*indent);
+          },
 
         // True.
         "true\\b" >> [](auto& m) { m.add(True); },
@@ -123,22 +143,30 @@ namespace rego_test
         "null\\b" >> [](auto& m) { m.add(Null); },
 
         // String
-        R"([a-zA-Z_][a-zA-Z0-9_!\/ \.=\+\-\*\[\]\(\);><\|]*)" >>
-          [](auto& m) { m.extend(String); },
+        R"([^[:digit:]\-[:blank:]\r\n])" >>
+          [](auto& m) {
+            m.extend(String);
+            m.mode("string");
+          },
 
         // Float.
-        R"([[:digit:]]+\.[[:digit:]]+(?:e[+-]?[[:digit:]]+)?\b)" >>
+        R"(\-?[[:digit:]]+\.[[:digit:]]+(?:e[+-]?[[:digit:]]+)?\b)" >>
           [](auto& m) { m.add(Float); },
 
         // Int.
-        R"([[:digit:]]+\b)" >> [](auto& m) { m.add(Integer); },
+        R"(\-?[[:digit:]]+\b)" >> [](auto& m) { m.add(Integer); },
 
         // Space.
         " " >> [](auto&) {},
       });
 
     p("indent",
-      {// end of file terminates
+      {// Line comment.
+       "#[^\n]*\n" >> [indent](auto&) { *indent = 0; },
+
+       R"(\\ )" >> [](auto&) {},
+
+       // end of file terminates
        "\r*\n$" >>
          [indents](auto& m) {
            while (!indents->empty())
@@ -173,7 +201,7 @@ namespace rego_test
          },
 
        // Hyphen
-       "-[ ]*" >>
+       "-[ \n][\r\n]*" >>
          [indent, string_indent, indents](auto& m) {
            m.mode("start");
            if (m.in(LiteralString) || m.in(FoldedString))
@@ -204,7 +232,7 @@ namespace rego_test
        // Character
        "." >>
          [indent, string_indent, indents](auto& m) {
-           std::string mode = "start";
+           std::string mode = "string";
            if (m.in(LiteralString) || m.in(FoldedString))
            {
              mode = "multiline-string";
@@ -214,7 +242,7 @@ namespace rego_test
              }
              else if (*indent < *string_indent)
              {
-               mode = "start";
+               mode = "string";
                *string_indent = 0;
                if (m.in(LiteralString))
                {
@@ -255,9 +283,36 @@ namespace rego_test
            m.add(String);
          }});
 
+    p("string",
+      {
+        "\r*\n$" >>
+          [indents](auto& m) {
+            while (!indents->empty())
+            {
+              m.term({Block});
+              indents->pop_back();
+            }
+          },
+
+        "\r*\n" >>
+          [indent](auto& m) {
+            *indent = 0;
+            m.term();
+            m.mode("indent");
+          },
+
+        ":" >>
+          [](auto& m) {
+            m.add(Colon);
+            m.mode("start");
+          },
+
+        // Character
+        "." >> [](auto& m) { m.extend(String); },
+      });
+
     p("multiline-string",
-      {// end of file terminates
-       "\r*\n$" >>
+      {R"(\\?\r*\n$)" >>
          [indents](auto& m) {
            while (!indents->empty())
            {
@@ -266,14 +321,29 @@ namespace rego_test
            }
          },
 
-       "\r*\n" >>
+       R"(\\?\r*\n)" >>
          [indent](auto& m) {
            *indent = 0;
            m.term();
            m.mode("indent");
          },
 
-       R"(\\")" >> [](auto& m) { m.extend(String); },
+       R"(\\("))" >> [](auto& m) { m.add(String, 1); },
+
+       R"(\\ )" >> [](auto&) {},
+
+       R"(\\n)" >>
+         [quote](auto& m) {
+           if (*quote == Quote::Double)
+           {
+             m.term();
+             m.add(NewLine);
+           }
+           else if (*quote == Quote::None)
+           {
+             m.extend(String);
+           }
+         },
 
        "\"" >>
          [string_indent, quote](auto& m) {

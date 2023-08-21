@@ -18,6 +18,7 @@ passes/modules.cc
 passes/lists.cc
 passes/imports.cc
 passes/keywords.cc
+passes/membership.cc
 passes/if_else.cc
 passes/rules.cc
 passes/build_calls.cc
@@ -46,8 +47,15 @@ passes/lift_to_rule.cc
 passes/functions.cc
 passes/unify.cc
 passes/query.cc
+builtins/aggregates.cc
+builtins/arrays.cc
+builtins/encoding.cc
 builtins/numbers.cc
 builtins/sets.cc
+builtins/strings.cc
+builtins/utf8.cc
+# third-party
+builtins/base64/base64.cpp
 )
 
 add_library(rego STATIC ${SOURCES})
@@ -64,6 +72,11 @@ target_precompile_headers(rego
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/lang.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/wf.h
 )
+
+
+if (MSVC)
+  target_compile_options(rego PUBLIC "/Zc:__cplusplus")    
+endif()
 
 target_include_directories( rego
   PUBLIC

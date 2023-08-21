@@ -41,8 +41,7 @@ namespace rego
   inline const auto Object = TokenDef("object", flag::symtab);
   inline const auto Set = TokenDef("set");
   inline const auto EmptySet = TokenDef("empty-set");
-  inline const auto ObjectItem = TokenDef("object-item", flag::lookdown);
-  inline const auto RefObjectItem = TokenDef("ref-object-item");
+  inline const auto ObjectItem = TokenDef("object-item");
   inline const auto RawString = TokenDef("raw-string", flag::print);
   inline const auto JSONString = TokenDef("STRING", flag::print);
   inline const auto JSONInt = TokenDef("INT", flag::print);
@@ -68,9 +67,9 @@ namespace rego
   inline const auto Default = TokenDef("default");
   inline const auto Some = TokenDef("some");
   inline const auto SomeDecl = TokenDef("some-decl");
-  inline const auto IfTruthy = TokenDef("if");
-  inline const auto InSome = TokenDef("in-some");
-  inline const auto MemberOf = TokenDef("member-of");
+  inline const auto SomeExpr = TokenDef("some-expr");
+  inline const auto If = TokenDef("if");
+  inline const auto IsIn = TokenDef("in");
   inline const auto Contains = TokenDef("contains");
   inline const auto Else = TokenDef("else");
   inline const auto As = TokenDef("as");
@@ -79,6 +78,7 @@ namespace rego
   inline const auto ArrayCompr = TokenDef("array-compr");
   inline const auto ObjectCompr = TokenDef("object-compr");
   inline const auto SetCompr = TokenDef("set-compr");
+  inline const auto Membership = TokenDef("membership");
 
   // intermediate tokens
   inline const auto UnifyBody = TokenDef("unify-body");
@@ -89,11 +89,12 @@ namespace rego
   inline const auto DataItemSeq = TokenDef("data-item-seq");
   inline const auto DataItem = TokenDef("data-item", flag::lookdown);
   inline const auto DataObject = TokenDef("data-object", flag::symtab);
+  inline const auto DataObjectItem =
+    TokenDef("data-object-item", flag::lookdown);
   inline const auto DataArray = TokenDef("data-array");
   inline const auto DataSet = TokenDef("data-set");
   inline const auto Submodule = TokenDef("submodule", flag::lookdown);
   inline const auto DataTerm = TokenDef("data-term");
-  inline const auto ObjectItemHead = TokenDef("object-item-head");
   inline const auto ObjectItemSeq = TokenDef("object-item-seq");
   inline const auto ImportSeq = TokenDef("import-seq");
   inline const auto VarSeq = TokenDef("var-seq");
@@ -101,6 +102,7 @@ namespace rego
   inline const auto WithSeq = TokenDef("with-seq");
   inline const auto SkipSeq = TokenDef("skip-seq");
   inline const auto ItemSeq = TokenDef("item-seq");
+  inline const auto ItemSeq1 = TokenDef("item-seq-1");
 
   // data and input
   inline const auto Input = TokenDef("input", flag::symtab | flag::lookup);
@@ -146,6 +148,10 @@ namespace rego
   inline const auto Id = TokenDef("id");
   inline const auto Head = TokenDef("head");
   inline const auto Tail = TokenDef("tail");
+  inline const auto Head1 = TokenDef("head-1");
+  inline const auto Tail1 = TokenDef("tail-1");
+  inline const auto Head2 = TokenDef("head-2");
+  inline const auto Tail2 = TokenDef("tail-2");
   inline const auto Lhs = TokenDef("lhs");
   inline const auto Rhs = TokenDef("rhs");
   inline const auto Key = TokenDef("key", flag::print);
@@ -172,11 +178,13 @@ namespace rego
   inline const auto Keyword =
     TokenDef("keyword", flag::lookdown | flag::lookup);
   inline const auto Idx = TokenDef("idx");
+  inline const auto Idx1 = TokenDef("idx-1");
   inline const auto Skip = TokenDef("skip", flag::lookup);
   inline const auto NestedBody = TokenDef("nested-body", flag::symtab);
   inline const auto BuiltInHook = TokenDef("builtin-hook", flag::lookup);
   inline const auto RuleRef = TokenDef("rule-ref");
   inline const auto Item = TokenDef("item");
+  inline const auto Item1 = TokenDef("item-1");
   inline const auto Enumerate = TokenDef("enumerate");
   inline const auto Compr = TokenDef("compr");
   inline const auto Merge = TokenDef("merge");
@@ -198,6 +206,7 @@ namespace rego
   inline const auto Square = TokenDef("square");
   inline const auto Paren = TokenDef("paren");
   inline const auto Not = TokenDef("not");
+  inline const auto Comma = TokenDef("comma");
   inline const auto Placeholder = TokenDef("_");
 
   inline const std::set<std::string> Keywords(

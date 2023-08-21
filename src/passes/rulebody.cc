@@ -17,8 +17,7 @@ namespace
   inline const auto wfi =
       (Expr <<= (Val >>= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix | AssignInfix))
     | (AssignArg <<= (Val >>= RefTerm | NumTerm | UnaryExpr | ArithInfix | Term | BoolInfix))
-    | (ObjectItem <<= Key * Expr)
-    | (RefObjectItem <<= RefTerm * Expr)
+    | (ObjectItem <<= (Key >>= Expr) * (Val >>= Expr))
     | (ObjectCompr <<= Var * NestedBody)
     | (ArrayCompr <<= Var * NestedBody)
     | (SetCompr <<= Var * NestedBody)
@@ -269,11 +268,35 @@ namespace rego
           return seq;
         },
 
-      // <array> = <ref>
+      // <array> = <ref>|<expr-call>
       (In(UnifyBody) / In(LiteralInit)) *
           (T(AssignInfix)
            << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
-               (T(AssignArg) << T(RefTerm)[RefTerm]))) >>
+               (T(AssignArg) << (T(RefTerm) / T(ExprCall))[RefTerm]))) >>
+        [](Match& _) {
+          LOG("<array> = <ref>");
+          Node seq = NodeDef::create(Seq);
+          Location temp = _.fresh({"ref"});
+          seq->push_back(Local << (Var ^ temp) << Undefined);
+          seq->push_back(UnifyExpr << (Var ^ temp) << (Expr << _(RefTerm)));
+          for (std::size_t i = 0; i < _(Lhs)->size(); i++)
+          {
+            Node index = Scalar << (JSONInt ^ std::to_string(i));
+            Node ref = SimpleRef << (Var ^ temp) << (RefArgBrack << index);
+            seq->push_back(
+              AssignInfix << (AssignArg << wfi / _(Lhs)->at(i) / Val)
+                          << (AssignArg << (RefTerm << ref)));
+          }
+
+          return seq;
+        },
+
+      // <array> = <ref>|<expr-call>
+      In(UnifyBody) *
+          (T(LiteralInit)
+           << (T(AssignInfix)
+               << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
+                   (T(AssignArg) << (T(RefTerm) / T(ExprCall))[RefTerm])))) >>
         [](Match& _) {
           LOG("<array> = <ref>");
           Node seq = NodeDef::create(Seq);
@@ -304,50 +327,8 @@ namespace rego
           return AssignInfix << _(Rhs) << _(Lhs);
         },
 
-      // <object> = <var>
-      (In(UnifyBody) / In(LiteralInit)) *
-          (T(AssignInfix)
-           << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
-               (T(AssignArg) << (T(RefTerm) << T(Var)[Rhs])))) >>
-        [](Match& _) {
-          LOG("<object> = <var>");
-          Node seq = NodeDef::create(Seq);
-          for (const auto& item : *_(Lhs))
-          {
-            if (item->type() == ObjectItem)
-            {
-              Node index;
-              if (item->type() == RefObjectItem)
-              {
-                Location key = _.fresh({"key"});
-                seq->push_back(Local << (Var ^ key) << Undefined);
-                seq->push_back(
-                  AssignInfix << (AssignArg << (RefTerm << (Var ^ key)))
-                              << (AssignArg << wfi / item / RefTerm));
-                index = RefTerm << (Var ^ key);
-              }
-              else
-              {
-                std::string key =
-                  std::string((wfi / item / Key)->location().view());
-                index = Scalar << (JSONString ^ key);
-              }
-              Node ref = SimpleRef << _(Rhs)->clone() << (RefArgBrack << index);
-              seq->push_back(
-                AssignInfix << (AssignArg << wfi / item / Expr / Val)
-                            << (AssignArg << (RefTerm << ref)));
-            }
-            else
-            {
-              seq->push_back(err(item, "Expected non-ref object item"));
-            }
-          }
-
-          return seq;
-        },
-
       // <object> = <ref>
-      (In(UnifyBody) / In(LiteralInit)) *
+      In(UnifyBody) *
           (T(AssignInfix)
            << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
                (T(AssignArg) << T(RefTerm)[RefTerm]))) >>
@@ -355,31 +336,49 @@ namespace rego
           LOG("<object> = <ref>");
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"ref"});
-          seq->push_back(Local << (Var ^ temp) << Undefined);
-          seq->push_back(UnifyExpr << (Var ^ temp) << (Expr << _(RefTerm)));
+          seq << (Local << (Var ^ temp) << Undefined)
+              << (UnifyExpr << (Var ^ temp) << (Expr << _(RefTerm)));
           for (const auto& item : *_(Lhs))
           {
             Node index;
-            if (item->type() == RefObjectItem)
-            {
-              Location key = _.fresh({"key"});
-              seq->push_back(Local << (Var ^ key) << Undefined);
-              seq->push_back(
-                AssignInfix << (AssignArg << (RefTerm << (Var ^ key)))
-                            << (AssignArg << wfi / item / RefTerm));
-              index = RefTerm << (Var ^ key);
-            }
-            else
-            {
-              std::string key =
-                std::string((wfi / item / Key)->location().view());
-              index = Scalar << (JSONString ^ key);
-            }
+            Location key = _.fresh({"key"});
+            seq << (Local << (Var ^ key) << Undefined)
+                << (UnifyExpr << (Var ^ key) << (wfi / item / Key));
+            index = RefTerm << (Var ^ key);
 
             Node ref = SimpleRef << (Var ^ temp) << (RefArgBrack << index);
-            seq->push_back(
-              AssignInfix << (AssignArg << wfi / item / Expr / Val)
-                          << (AssignArg << (RefTerm << ref)));
+            seq
+              << (AssignInfix << (AssignArg << (wfi / item / Val)->front())
+                              << (AssignArg << (RefTerm << ref)));
+          }
+
+          return seq;
+        },
+
+      // <object> = <ref>
+      In(UnifyBody) *
+          (T(LiteralInit)
+           << (T(AssignInfix)
+               << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
+                   (T(AssignArg) << T(RefTerm)[RefTerm])))) >>
+        [](Match& _) {
+          LOG("<object> = <ref>");
+          Node seq = NodeDef::create(Seq);
+          Location temp = _.fresh({"ref"});
+          seq << (Local << (Var ^ temp) << Undefined)
+              << (UnifyExpr << (Var ^ temp) << (Expr << _(RefTerm)));
+          for (const auto& item : *_(Lhs))
+          {
+            Node index;
+            Location key = _.fresh({"key"});
+            seq << (Local << (Var ^ key) << Undefined)
+                << (UnifyExpr << (Var ^ key) << (wfi / item / Key));
+            index = RefTerm << (Var ^ key);
+
+            Node ref = SimpleRef << (Var ^ temp) << (RefArgBrack << index);
+            seq
+              << (AssignInfix << (AssignArg << (wfi / item / Val)->front())
+                              << (AssignArg << (RefTerm << ref)));
           }
 
           return seq;
@@ -486,12 +485,6 @@ namespace rego
           return err(_(BoolInfix), "Invalid boolean expression");
         },
 
-      (In(UnifyBody) / In(Expr)) * T(AssignInfix)[AssignInfix] >>
-        [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
-
-      In(UnifyBody) * (T(LiteralInit) << T(AssignInfix)[AssignInfix]) >>
-        [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
-
       (In(Term) / In(BinArg)) * T(SetCompr)[SetCompr] >>
         [](Match& _) { return err(_(SetCompr), "Invalid set comprehension"); },
 
@@ -504,6 +497,18 @@ namespace rego
         [](Match& _) {
           return err(_(ObjectCompr), "Invalid object comprehension");
         },
+
+      In(UnifyBody) * T(LiteralInit)[LiteralInit] >>
+        [](Match& _) { return err(_(LiteralInit), "Invalid assignment"); },
+
+      In(ObjectItem) * (T(Expr)[Expr] << T(AssignInfix)) >>
+        [](Match& _) { return err(_(Expr), "Invalid object item"); },
+
+      In(Expr) * T(AssignInfix)[AssignInfix] >>
+        [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
+
+      In(UnifyBody) * T(AssignInfix)[AssignInfix] >>
+        [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
     };
   }
 }

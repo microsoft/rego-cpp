@@ -18,7 +18,32 @@ namespace rego
           }
           else
           {
-            argseq->push_back(paren->front());
+            // check if this was marked as a potential membership statement
+            // As calls have precedence, we may have to split up the group.
+            Node group = paren->front();
+            auto comma = group->begin();
+            for (; comma != group->end(); ++comma)
+            {
+              Node node = *comma;
+              if (node->type() == Comma)
+              {
+                break;
+              }
+            }
+
+            if (comma != group->end())
+            {
+              // split the group into two groups
+              Node head = NodeDef::create(Group);
+              Node tail = NodeDef::create(Group);
+              head->insert(head->end(), group->begin(), comma);
+              tail->insert(tail->end(), comma + 1, group->end());
+              argseq << head << tail;
+            }
+            else
+            {
+              argseq << group;
+            }
           }
 
           return ExprCall << (VarSeq << (Group << _(Var))) << argseq;

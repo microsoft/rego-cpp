@@ -5,8 +5,8 @@ namespace
 {
   using namespace rego;
 
-  const inline auto KeyToken =
-    T(Var) / T(Square) / T(Dot) / ScalarToken / T(RawString) / T(JSONString);
+  const inline auto KeyToken = T(Var) / T(Square) / T(Dot) / ScalarToken /
+    T(RawString) / T(JSONString) / T(Brace);
   const inline auto RefToken =
     T(Var) / T(Dot) / T(Square) / T(RawString) / T(JSONString);
   const inline auto ImportToken = T(Var) / T(Dot) / T(Square) / T(As);

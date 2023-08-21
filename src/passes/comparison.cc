@@ -15,60 +15,25 @@ namespace rego
       In(UnifyBody) * (T(Literal) << (T(Expr) << (T(Not) * Any++[Expr]))) >>
         [](Match& _) { return LiteralNot << (Expr << _[Expr]); },
 
-      In(Literal) *
-          (T(Expr)
-           << (BoolInfixArg[Lhs](
-                 [](auto& n) { return is_in(*n.first, {UnifyBody}); }) *
-               T(Equals) * BoolInfixArg[Rhs])) >>
-        [](Match& _) {
-          Location unify0 = _.fresh({"unify"});
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ unify0) << Undefined))
-                     << (Lift << UnifyBody
-                              << (Literal
-                                  << (Expr << (RefTerm << (Var ^ unify0))
-                                           << Unify << _(Lhs))))
-                     << (Expr << (RefTerm << (Var ^ unify0)) << Unify
-                              << _(Rhs));
-        },
-
       In(Expr) * (T(Expr) << (BoolInfixArg[Arg] * End)) >>
         [](Match& _) { return _(Arg); },
 
       In(Expr) * (BoolInfixArg[Lhs] * BoolToken[Op] * BoolInfixArg[Rhs]) >>
         [](Match& _) {
-          return BoolInfix << (BoolArg << _(Lhs)) << _(Op)
-                           << (BoolArg << _(Rhs));
-        },
+          std::set<Token> set_types = {Set, SetCompr};
+          Node lhs = _(Lhs);
+          if (set_types.contains(lhs->type()))
+          {
+            lhs = Term << lhs;
+          }
 
-      In(Expr) *
-          (BoolInfixArg[Lhs](
-             [](auto& n) { return is_in(*n.first, {UnifyBody}); }) *
-           T(MemberOf) * BoolInfixArg[Rhs]) >>
-        [](Match& _) {
-          Location item = _.fresh({"item"});
-          Location unify =
-            _.fresh({is_in(_(Lhs), {LiteralNot}) ? "not" : "unify"});
-          Node seq = Seq
-            << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
-            << (Lift << UnifyBody << (Local << (Var ^ unify) << Undefined))
-            << (Lift << UnifyBody
-                     << (Literal
-                         << (Expr << (RefTerm << (Var ^ item)) << Unify
-                                  << (Enumerate << (Expr << _(Rhs))))))
-            << (Lift << UnifyBody
-                     << (Literal
-                         << (Expr
-                             << (RefTerm << (Var ^ unify)) << Unify
-                             << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (JSONInt ^ "1")))))))))
-            << (RefTerm << (Var ^ unify)) << Unify << _(Lhs);
+          Node rhs = _(Rhs);
+          if (set_types.contains(rhs->type()))
+          {
+            rhs = Term << rhs;
+          }
 
-          return seq;
+          return BoolInfix << (BoolArg << lhs) << _(Op) << (BoolArg << rhs);
         },
 
       In(Expr) * (T(Set) / T(SetCompr))[Set] >>
@@ -90,9 +55,6 @@ namespace rego
 
       In(Expr) * T(Not)[Not] >>
         [](Match& _) { return err(_(Not), "Invalid not"); },
-
-      In(Expr) * T(MemberOf)[MemberOf] >>
-        [](Match& _) { return err(_(MemberOf), "Invalid in statement"); },
 
       In(BoolArg) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid boolean argument"); },

@@ -8,64 +8,6 @@ namespace
 {
   using namespace rego;
 
-  Node startswith(const Nodes& args)
-  {
-    auto maybe_search = Resolver::maybe_unwrap_string(args[0]);
-    auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
-    if (!maybe_search.has_value() || !maybe_base.has_value())
-    {
-      return err(args[0], "startswith: expected string arguments");
-    }
-
-    std::string search = Resolver::get_string(*maybe_search);
-    std::string base = Resolver::get_string(*maybe_base);
-    return Resolver::scalar(search.starts_with(base));
-  }
-
-  Node endswith(const Nodes& args)
-  {
-    auto maybe_search = Resolver::maybe_unwrap_string(args[0]);
-    auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
-    if (!maybe_search.has_value() || !maybe_base.has_value())
-    {
-      return err(args[0], "endswith: expected string arguments");
-    }
-
-    std::string search = Resolver::get_string(*maybe_search);
-    std::string base = Resolver::get_string(*maybe_base);
-    return Resolver::scalar(search.ends_with(base));
-  }
-
-  Node count(const Nodes& args)
-  {
-    Node collection = args[0];
-    if (collection->type() == Term)
-    {
-      collection = collection->front();
-    }
-
-    if (
-      collection->type() == Object || collection->type() == Array ||
-      collection->type() == Set)
-    {
-      return Resolver::scalar(BigInt(collection->size()));
-    }
-
-    if (collection->type() == Scalar)
-    {
-      collection = collection->front();
-    }
-
-    if (collection->type() == JSONString)
-    {
-      std::string collection_str =
-        strip_quotes(std::string(collection->location().view()));
-      return Resolver::scalar(BigInt(collection_str.size()));
-    }
-
-    return err(args[0], "count: expected collection");
-  }
-
   Node to_number(const Nodes& args)
   {
     auto maybe_number = Resolver::maybe_unwrap_string(args[0]);
@@ -119,6 +61,19 @@ namespace rego
     return std::make_shared<BuiltInDef>(BuiltInDef{name, arity, behavior});
   }
 
+  BuiltIns::BuiltIns() noexcept : m_strict_errors(false) {}
+
+  bool BuiltIns::strict_errors() const
+  {
+    return m_strict_errors;
+  }
+
+  BuiltIns& BuiltIns::strict_errors(bool strict_errors)
+  {
+    m_strict_errors = strict_errors;
+    return *this;
+  }
+
   bool BuiltIns::is_builtin(const Location& name) const
   {
     return m_builtins.contains(name);
@@ -126,7 +81,31 @@ namespace rego
 
   Node BuiltIns::call(const Location& name, const Nodes& args) const
   {
-    return m_builtins.at(name)->behavior(args);
+    if (!is_builtin(name))
+    {
+      return err(args[0], "unknown builtin");
+    }
+
+    auto& builtin = m_builtins.at(name);
+    if (builtin->arity != AnyArity && builtin->arity != args.size())
+    {
+      return err(args[0], "wrong number of arguments");
+    }
+
+    Node result = builtin->behavior(args);
+    if (result->type() == Error)
+    {
+      if (m_strict_errors)
+      {
+        return result;
+      }
+      else
+      {
+        return Undefined;
+      }
+    }
+
+    return result;
   }
 
   BuiltIns& BuiltIns::register_builtin(const BuiltIn& built_in)
@@ -137,15 +116,15 @@ namespace rego
 
   BuiltIns& BuiltIns::register_standard_builtins()
   {
-    register_builtin(
-      BuiltInDef::create(Location("startswith"), 2, ::startswith));
-    register_builtin(BuiltInDef::create(Location("endswith"), 2, ::endswith));
-    register_builtin(BuiltInDef::create(Location("count"), 1, ::count));
     register_builtin(BuiltInDef::create(Location("to_number"), 1, ::to_number));
     register_builtin(BuiltInDef::create(Location("print"), AnyArity, ::print));
 
-    register_builtins(builtins::sets());
+    register_builtins(builtins::aggregates());
+    register_builtins(builtins::arrays());
+    register_builtins(builtins::encoding());
     register_builtins(builtins::numbers());
+    register_builtins(builtins::sets());
+    register_builtins(builtins::strings());
 
     return *this;
   }

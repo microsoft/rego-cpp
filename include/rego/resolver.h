@@ -19,6 +19,7 @@ namespace rego
     {
       Node node;
       PrintNode printer;
+      std::string str() const;
     };
 
     static BigInt get_int(const Node& node);
@@ -54,15 +55,34 @@ namespace rego
     static Node set_union(const Node& lhs, const Node& rhs);
     static Node set_difference(const Node& lhs, const Node& rhs);
     static Nodes resolve_varseq(const Node& varseq);
+    static Node unwrap(
+      const Node& term,
+      const Token& type,
+      const std::string& error_prefix,
+      const std::string& error_code,
+      bool specify_number = false);
+    static std::optional<Node> maybe_unwrap(
+      const Node& term, const std::set<Token>& types);
     static std::optional<Node> maybe_unwrap_number(const Node& term);
     static std::optional<Node> maybe_unwrap_string(const Node& term);
     static std::optional<Node> maybe_unwrap_bool(const Node& term);
+    static std::optional<Node> maybe_unwrap_array(const Node& term);
     static std::optional<Node> maybe_unwrap_set(const Node& term);
     static bool is_falsy(const Node& node);
     static bool is_truthy(const Node& node);
     static bool is_undefined(const Node& node);
     static Nodes object_lookdown(const Node& object, const Node& query);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
+    static Node membership(
+      const Node& index, const Node& item, const Node& itemseq);
+    static Node membership(const Node& item, const Node& itemseq);
+    static std::vector<std::string> array_find(
+      const Node& array, const std::string& search);
+    static std::vector<std::string> object_find(
+      const Node& object, const std::string& search);
+    static std::string type_name(
+      const Token& type, bool specify_number = false);
+    static std::string type_name(const Node& node, bool specify_number = false);
   };
 
   std::ostream& operator<<(

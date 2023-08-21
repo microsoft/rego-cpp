@@ -15,6 +15,16 @@ namespace rego_test
       In(Block) * (T(Group) << (T(String) * T(Colon) * (T(Brace) << End))) >>
         [](Match&) { return Node(); },
 
+      In(Group) * (T(Colon) * T(Integer)[Integer] * T(String)[String]) >>
+        [](Match& _) {
+          Location int_loc = _(Integer)->location();
+          Location str_loc = _(String)->location();
+          std::size_t end = str_loc.pos + str_loc.len;
+          Location loc = int_loc;
+          loc.len = end - loc.pos;
+          return Seq << Colon << (String ^ loc);
+        },
+
       In(Block) *
           ((T(Group) << (T(String) * T(Colon) * End)) *
            (T(Group)[Group] << (T(String) * T(Colon)))) >>
@@ -25,6 +35,11 @@ namespace rego_test
 
       In(Group) * T(Square)[Square] >>
         [](Match& _) {
+          if (_(Square)->size() == 0)
+          {
+            return EmptySequence ^ _(Square);
+          }
+
           Node seq = NodeDef::create(Seq);
           for (auto group : *_(Square))
           {
@@ -36,20 +51,17 @@ namespace rego_test
       In(Group) * (T(Hyphen) * (T(Block) / T(Group))[Entry]) >>
         [](Match& _) { return Entry << _(Entry); },
 
-      In(Group) * (T(Hyphen)[Hyphen] * T(Integer)[Integer]) >>
+      In(DoubleQuoteString) *
+          (T(Group) << (T(NewLine) * ~T(String)++[String])) >>
         [](Match& _) {
-          Location loc0 = _(Hyphen)->location();
-          Location loc1 = _(Integer)->location();
-          Location loc(loc0.source, loc0.pos, loc1.pos + loc1.len - loc0.pos);
-          return Integer ^ loc;
-        },
-
-      In(Group) * (T(Hyphen)[Hyphen] * T(Float)[Float]) >>
-        [](Match& _) {
-          Location loc0 = _(Hyphen)->location();
-          Location loc1 = _(Float)->location();
-          Location loc(loc0.source, loc0.pos, loc1.pos + loc1.len - loc0.pos);
-          return Float ^ loc;
+          std::ostringstream buf;
+          buf << "\n";
+          for (auto it = _[String].first; it != _[String].second; ++it)
+          {
+            Node str = *it;
+            buf << str->location().view();
+          }
+          return String ^ buf.str();
         },
 
       (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
@@ -95,12 +107,17 @@ namespace rego_test
           return err(_(Group), "Invalid double-quoted string element");
         },
 
+      In(Group) * T(NewLine)[NewLine] >>
+        [](Match& _) { return err(_(NewLine), "Invalid newline"); },
     };
   }
 
   PassDef sequence()
   {
     return {
+      In(Group) * T(EmptySequence)[EmptySequence] >>
+        [](Match& _) { return Sequence ^ _(EmptySequence); },
+
       In(Group) * (T(Entry)[Head] * T(Entry)++[Tail] * End) >>
         [](Match& _) { return Sequence << _(Head) << _[Tail]; },
 
@@ -199,6 +216,20 @@ namespace rego_test
           return KeyValue << (Key ^ key_loc) << (Group << _[Val]);
         },
 
+      (In(Entry) / In(Block)) *
+          ((T(Group) << ((T(Scalar) << T(String))[Key] * T(Colon))) * End) >>
+        [](Match& _) {
+          Location key_loc = _(Key)->location();
+          std::string key = std::string(key_loc.view());
+          std::size_t length = key.find(' ');
+          if (length != std::string::npos)
+          {
+            key_loc.len = length;
+          }
+
+          return KeyValue << (Key ^ key_loc) << (Group << Sequence);
+        },
+
       In(Entry) * T(KeyValue)[KeyValue] >>
         [](Match& _) { return Group << (Block << _(KeyValue)); },
 
@@ -273,6 +304,14 @@ namespace rego_test
                                   << (rego::Brace
                                       << (rego::List << *_[Mapping]))));
         },
+
+      In(Mapping) *
+          (T(KeyValue)
+           << ((T(Key)[Key]([](auto& n) {
+                 return name_equals(*n.first, {"data", "input"});
+               })) *
+               (T(Scalar) << T(Null)))) >>
+        [](Match&) { return Node{}; },
 
       In(Mapping) *
           (T(KeyValue)

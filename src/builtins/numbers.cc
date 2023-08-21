@@ -1,3 +1,4 @@
+#include "errors.h"
 #include "register.h"
 #include "resolver.h"
 
@@ -99,6 +100,19 @@ namespace
 
   Node numbers_range(const Nodes& args)
   {
+    Node lhs_number = Resolver::unwrap(
+      args[0], JSONInt, "numbers.range: operand 1 ", EvalTypeError, true);
+    if (lhs_number->type() == Error)
+    {
+      return lhs_number;
+    }
+
+    Node rhs_number = Resolver::unwrap(
+      args[1], JSONInt, "numbers.range: operand 2 ", EvalTypeError, true);
+    if (rhs_number->type() == Error)
+    {
+      return rhs_number;
+    }
     auto maybe_lhs_number = Resolver::maybe_unwrap_number(args[0]);
     if (!maybe_lhs_number.has_value())
     {
@@ -108,26 +122,6 @@ namespace
     if (!maybe_rhs_number.has_value())
     {
       return err(args[1], "Not a number");
-    }
-
-    Node lhs_number = maybe_lhs_number.value();
-    Node rhs_number = maybe_rhs_number.value();
-    if (lhs_number->type() != JSONInt)
-    {
-      return err(
-        args[0],
-        "numbers.range: operand 1 must be integer number but got "
-        "floating-point number",
-        "eval_type_error");
-    }
-
-    if (rhs_number->type() != JSONInt)
-    {
-      return err(
-        args[1],
-        "numbers.range: operand 2 must be integer number but got "
-        "floating-point number",
-        "eval_type_error");
     }
 
     BigInt lhs = Resolver::get_int(lhs_number);

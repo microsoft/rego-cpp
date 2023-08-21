@@ -20,7 +20,10 @@ namespace rego
   const inline auto StringToken = T(JSONString) / T(RawString);
   const inline auto ExprToken = T(Term) / ArithToken / BoolToken / StringToken /
     T(Expr) / ScalarToken / TermToken / T(JSONString) / T(Array) / T(Set) /
-    T(Object) / T(Paren) / T(Not) / T(Dot) / T(MemberOf) / T(And) / T(Or);
+    T(Object) / T(Paren) / T(Not) / T(Dot) / T(And) / T(Or);
+  const auto inline MembershipToken = ScalarToken / T(JSONString) /
+    T(RawString) / T(Var) / T(Object) / T(Array) / T(Set) / T(Dot) / T(Paren) /
+    ArithToken / BoolToken / T(And) / T(Or);
 
   PassDef input_data();
   PassDef modules();
@@ -31,6 +34,7 @@ namespace rego
   PassDef elses();
   PassDef rules();
   PassDef build_calls();
+  PassDef membership();
   PassDef build_refs();
   PassDef structure();
   PassDef strings();
@@ -45,13 +49,13 @@ namespace rego
   PassDef compr();
   PassDef absolute_refs();
   PassDef merge_modules();
-  PassDef skips(const BuiltIns& builtins);
+  PassDef skips();
   PassDef unary();
   PassDef multiply_divide();
   PassDef add_subtract();
   PassDef comparison();
   PassDef assign(const BuiltIns& builtins);
-  PassDef skip_refs();
+  PassDef skip_refs(const BuiltIns& builtins);
   PassDef simple_refs();
   PassDef implicit_enums();
   PassDef init();

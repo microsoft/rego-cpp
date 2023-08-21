@@ -49,27 +49,20 @@ namespace rego
       In(With) * (T(WithExpr) << T(Group)[Group]) >>
         [](Match& _) { return Expr << *_[Group]; },
 
+      In(Membership) * T(Group)[Group] >>
+        [](Match& _) { return Expr << *_[Group]; },
+
       In(ExprEvery) * (T(EverySeq) << T(Group)[Group]) >>
         [](Match& _) { return _(Group); },
 
       (In(ObjectItemSeq) / In(Object)) *
-          (T(ObjectItem) << T(Group)[ObjectItemHead] * T(Group)[Expr]) >>
+          (T(ObjectItem) << T(Group)[Key] * T(Group)[Val]) >>
         [](Match& _) {
-          return ObjectItem << (ObjectItemHead << _(ObjectItemHead))
-                            << (Expr << *_[Expr]);
+          return ObjectItem << (Expr << *_[Key]) << (Expr << *_[Val]);
         },
 
       (In(ArrayCompr) / In(ObjectCompr) / In(SetCompr)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
-
-      In(ObjectItemHead) * (T(Group) << StringToken[String]) >>
-        [](Match& _) { return Scalar << (String << _(String)); },
-
-      In(ObjectItemHead) * (T(Group) << ScalarToken[Scalar]) >>
-        [](Match& _) { return Scalar << _(Scalar); },
-
-      In(ObjectItemHead) * (T(Group) << (T(Var) / T(Ref))[Ref]) >>
-        [](Match& _) { return _(Ref); },
 
       In(Package) * (T(Group) << (T(Var)[Var] * End)) >>
         [](Match& _) { return Ref << (RefHead << _(Var)) << RefArgSeq; },
@@ -187,8 +180,20 @@ namespace rego
       (In(Array) / In(Set)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
-      In(UnifyBody) * (T(Group) << T(SomeDecl)[SomeDecl]) >>
-        [](Match& _) { return Literal << _(SomeDecl); },
+      In(UnifyBody) *
+          (T(Group)
+           << (T(SomeDecl) << (T(VarSeq)[VarSeq] * T(Group)[Group]))) >>
+        [](Match& _) {
+          Node maybe_with = _(Group)->back();
+          if (maybe_with->type() == With)
+          {
+            _(Group)->pop_back();
+            return LiteralWith
+              << (UnifyBody << (Literal << (SomeDecl << _(VarSeq) << _(Group))))
+              << (WithSeq << maybe_with);
+          }
+          return Literal << (SomeDecl << _(VarSeq) << _(Group));
+        },
 
       In(UnifyBody) * T(Group)[Group] >>
         [](Match& _) {
@@ -242,23 +247,38 @@ namespace rego
           (T(Group) << (T(Subtract) * (T(JSONInt) / T(JSONFloat))[Val])) >>
         [](Match& _) { return Term << (Scalar << Resolver::negate(_(Val))); },
 
-      In(SomeDecl) * (T(Group) << T(Undefined)) >>
-        [](Match&) { return InSome << Undefined; },
-
-      (In(SomeDecl) / In(ExprEvery)) *
-          (T(Group) << (T(InSome) * ExprToken++[Expr] * End)) >>
-        [](Match& _) { return InSome << (Expr << _[Expr]); },
-
-      In(VarSeq) * (T(Group) << (T(Var)[Var] * End)) >>
-        [](Match& _) { return _(Var); },
-
-      In(Expr) * T(InSome)[InSome] >>
-        [](Match& _) { return MemberOf ^ _(InSome)->location(); },
+      In(ExprEvery) * (T(Group) << (T(IsIn) * ExprToken++[Expr] * End)) >>
+        [](Match& _) { return IsIn << (Expr << _[Expr]); },
 
       In(Expr) * (T(UnifyBody) << (T(Group)[Group] * End)) >>
         [](Match& _) { return Set << _(Group); },
 
+      In(VarSeq) * (T(Group) << T(Var)[Var]) >> [](Match& _) { return _(Var); },
+
+      In(SomeDecl) * (T(VarSeq)[VarSeq] * (T(Group) << T(Undefined))) >>
+        [](Match& _) { return _(VarSeq); },
+
+      In(Literal) *
+          (T(SomeDecl)
+           << (T(VarSeq)[VarSeq] *
+               (T(Group) << (T(IsIn) * ExprToken++[Expr] * End)))) >>
+        [](Match& _) {
+          if (_(VarSeq)->size() == 1)
+          {
+            return SomeExpr << Undefined << _(VarSeq)->front()
+                            << (IsIn << (Expr << _[Expr]));
+          }
+
+          return SomeExpr << *_[VarSeq] << (IsIn << (Expr << _[Expr]));
+        },
+
+      In(SomeExpr) * T(Group)[Group] >>
+        [](Match& _) { return Expr << *_[Group]; },
+
       // errors
+
+      In(VarSeq) * T(Group)[Group] >>
+        [](Match& _) { return err(_(Group), "Expected a variable"); },
 
       In(Import) * T(ImportRef)[ImportRef] >>
         [](Match& _) { return err(_(ImportRef), "Invalid import reference"); },
@@ -269,18 +289,9 @@ namespace rego
       In(Package) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid package name"); },
 
-      In(VarSeq) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid variable name"); },
-
       (In(ExprCall) / In(ExprEvery) / In(SomeDecl)) *
           (T(VarSeq)[VarSeq] << End) >>
         [](Match& _) { return err(_(VarSeq), "Missing variables"); },
-
-      In(SomeDecl) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid some declaration"); },
-
-      In(ObjectItemHead) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid object item key"); },
 
       In(DefaultRule) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid default rule"); },
@@ -326,6 +337,12 @@ namespace rego
 
       In(Rego) * (T(Query)[Query] << End) >>
         [](Match& _) { return err(_(Query), "Must provide a query"); },
+
+      In(Expr) * T(IsIn)[IsIn] >>
+        [](Match& _) { return err(_(IsIn), "Invalid expression"); },
+
+      In(SomeDecl) * T(Group)[Group] >>
+        [](Match& _) { return err(_(Group), "Invalid some declaration"); },
     };
   }
 }
