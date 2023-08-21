@@ -35,6 +35,8 @@ if(REGOCPP_OPA_TESTS)
   numbersrange
   rand
   replacen
+  semvercompare
+  semverisvalid
   sets
   sprintf
   strings

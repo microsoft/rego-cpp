@@ -51,6 +51,7 @@ builtins/aggregates.cc
 builtins/arrays.cc
 builtins/encoding.cc
 builtins/numbers.cc
+builtins/semver.cc
 builtins/sets.cc
 builtins/strings.cc
 builtins/utf8.cc
