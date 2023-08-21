@@ -1,6 +1,6 @@
+#include "errors.h"
 #include "register.h"
 #include "resolver.h"
-#include "errors.h"
 
 namespace
 {
@@ -8,13 +8,17 @@ namespace
 
   Node concat(const Nodes& args)
   {
-    Node x = Resolver::unwrap(args[0], Array, "array.concat: operand 1 ", EvalTypeError);
-    if(x->type() == Error){
+    Node x = Resolver::unwrap(
+      args[0], Array, "array.concat: operand 1 ", EvalTypeError);
+    if (x->type() == Error)
+    {
       return x;
     }
 
-    Node y = Resolver::unwrap(args[1], Array, "array.concat: operand 2 ", EvalTypeError);
-    if(y->type() == Error){
+    Node y = Resolver::unwrap(
+      args[1], Array, "array.concat: operand 2 ", EvalTypeError);
+    if (y->type() == Error)
+    {
       return y;
     }
 
@@ -26,29 +30,36 @@ namespace
 
   Node reverse(const Nodes& args)
   {
-    Node arr = Resolver::unwrap(args[0], Array, "array.reverse: operand 1 ", EvalTypeError);
-    if(arr->type() == Error){
+    Node arr = Resolver::unwrap(
+      args[0], Array, "array.reverse: operand 1 ", EvalTypeError);
+    if (arr->type() == Error)
+    {
       return arr;
     }
 
     Node rev = NodeDef::create(Array);
-    if(arr->size() == 0){
+    if (arr->size() == 0)
+    {
       return rev;
     }
 
-    for(auto it = arr->rbegin(); it != arr->rend(); ++it){
+    for (auto it = arr->rbegin(); it != arr->rend(); ++it)
+    {
       Node node = *it;
       rev->push_back(node->clone());
     }
-    
+
     return rev;
   }
 
   Node slice(const Nodes& args)
   {
-    Node arr = Resolver::unwrap(args[0], Array, "array.slice: operand 1 ", EvalTypeError);
-    Node start_number = Resolver::unwrap(args[1], JSONInt, "array.slice: operand 2 ", EvalTypeError);
-    Node end_number = Resolver::unwrap(args[2], JSONInt, "array.slice: operand 3 ", EvalTypeError);
+    Node arr = Resolver::unwrap(
+      args[0], Array, "array.slice: operand 1 ", EvalTypeError);
+    Node start_number = Resolver::unwrap(
+      args[1], JSONInt, "array.slice: operand 2 ", EvalTypeError);
+    Node end_number = Resolver::unwrap(
+      args[2], JSONInt, "array.slice: operand 3 ", EvalTypeError);
 
     std::int64_t raw_start = BigInt(start_number->location()).to_int();
     std::int64_t raw_end = BigInt(end_number->location()).to_int();

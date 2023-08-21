@@ -471,15 +471,19 @@ namespace rego
     const Location& var, const std::string& func_name, const Args& args)
   {
     Values values;
-    if(args.size() == 0){
+    if (args.size() == 0)
+    {
       LOG("> calling ", func_name, " with no args");
-      if(func_name == "array"){
+      if (func_name == "array")
+      {
         values.push_back(ValueDef::create(NodeDef::create(Array)));
       }
-      else if(func_name == "object"){
+      else if (func_name == "object")
+      {
         values.push_back(ValueDef::create(NodeDef::create(Object)));
       }
-      else if(func_name == "set"){
+      else if (func_name == "set")
+      {
         values.push_back(ValueDef::create(NodeDef::create(Set)));
       }
       return values;
@@ -1089,10 +1093,13 @@ namespace rego
     }
 
     std::map<std::string, Node> object_map;
-    if(result.size() > 0){
+    if (result.size() > 0)
+    {
       Node base = result.front()->node();
-      for(auto& item : *base){
-        std::string key = strip_quotes(std::string((item / Key)->location().view()));
+      for (auto& item : *base)
+      {
+        std::string key =
+          strip_quotes(std::string((item / Key)->location().view()));
         object_map[key] = item / Val;
       }
     }

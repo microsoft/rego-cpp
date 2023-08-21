@@ -27,10 +27,10 @@ namespace rego
 
       In(DataObject) *
           (T(ObjectItem)
-           << ((T(Expr) << T(Term)[Key]) *
-               (T(Expr) << T(Term)[Val]))) >>
+           << ((T(Expr) << T(Term)[Key]) * (T(Expr) << T(Term)[Val]))) >>
         [](Match& _) {
-          return DataObjectItem << (DataTerm << _(Key)->front()) << (DataTerm << _(Val)->front());
+          return DataObjectItem << (DataTerm << _(Key)->front())
+                                << (DataTerm << _(Val)->front());
         },
 
       In(DataTerm) * T(Array)[Array] >>

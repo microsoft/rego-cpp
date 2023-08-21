@@ -16,14 +16,14 @@ namespace rego_test
         [](Match&) { return Node(); },
 
       In(Group) * (T(Colon) * T(Integer)[Integer] * T(String)[String]) >>
-        [](Match& _) { 
-            Location int_loc = _(Integer)->location();
-            Location str_loc = _(String)->location();
-            std::size_t end = str_loc.pos + str_loc.len;
-            Location loc = int_loc;
-            loc.len = end - loc.pos;
-            return Seq << Colon << (String ^ loc);
-         },
+        [](Match& _) {
+          Location int_loc = _(Integer)->location();
+          Location str_loc = _(String)->location();
+          std::size_t end = str_loc.pos + str_loc.len;
+          Location loc = int_loc;
+          loc.len = end - loc.pos;
+          return Seq << Colon << (String ^ loc);
+        },
 
       In(Block) *
           ((T(Group) << (T(String) * T(Colon) * End)) *
@@ -51,11 +51,13 @@ namespace rego_test
       In(Group) * (T(Hyphen) * (T(Block) / T(Group))[Entry]) >>
         [](Match& _) { return Entry << _(Entry); },
 
-      In(DoubleQuoteString) * (T(Group) << (T(NewLine) * ~T(String)++[String])) >>
-        [](Match& _) { 
+      In(DoubleQuoteString) *
+          (T(Group) << (T(NewLine) * ~T(String)++[String])) >>
+        [](Match& _) {
           std::ostringstream buf;
           buf << "\n";
-          for(auto it = _[String].first; it != _[String].second; ++it) {
+          for (auto it = _[String].first; it != _[String].second; ++it)
+          {
             Node str = *it;
             buf << str->location().view();
           }
@@ -309,9 +311,7 @@ namespace rego_test
                  return name_equals(*n.first, {"data", "input"});
                })) *
                (T(Scalar) << T(Null)))) >>
-        [](Match&) {
-          return Node{};
-        },
+        [](Match&) { return Node{}; },
 
       In(Mapping) *
           (T(KeyValue)

@@ -61,13 +61,14 @@ namespace rego
                   << (Literal
                       << (Expr << (RefTerm << (Var ^ key)) << Unify << _(Key)))
                   << (Literal
-                      << (Expr << (RefTerm << (Var ^ value)) << Unify
-                               << (Expr
-                                   << (Term
-                                       << (Object
-                                           << (ObjectItem
-                                               << (Expr << (RefTerm << (Var ^ key)))
-                                               << _(Val))))))));
+                      << (Expr
+                          << (RefTerm << (Var ^ value)) << Unify
+                          << (Expr
+                              << (Term
+                                  << (Object
+                                      << (ObjectItem
+                                          << (Expr << (RefTerm << (Var ^ key)))
+                                          << _(Val))))))));
           },
 
         In(Policy) *
@@ -121,9 +122,9 @@ namespace rego
             tail
               << (Literal
                   << (Expr << (RefTerm << (Var ^ out)) << Unify << _(Expr)));
-            (_(NestedBody) / Val)->push_front(Local << (Var ^ out) << Undefined);
-            return Seq << (Var ^ out)
-                       << _(NestedBody);
+            (_(NestedBody) / Val)
+              ->push_front(Local << (Var ^ out) << Undefined);
+            return Seq << (Var ^ out) << _(NestedBody);
           },
 
         In(ObjectCompr) *
@@ -140,10 +141,10 @@ namespace rego
               << (Literal
                   << (Expr << (RefTerm << (Var ^ out)) << Unify
                            << (Expr << (Term << (Array << _(Key) << _(Val))))));
-            (_(NestedBody) / Val)->push_front(Local << (Var ^ out) << Undefined);
+            (_(NestedBody) / Val)
+              ->push_front(Local << (Var ^ out) << Undefined);
 
-            return Seq << (Var ^ out)
-                       << _(NestedBody);
+            return Seq << (Var ^ out) << _(NestedBody);
           },
 
         // errors

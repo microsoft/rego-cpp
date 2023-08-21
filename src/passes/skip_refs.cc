@@ -148,7 +148,7 @@ namespace rego
 
     skip_refs.post(Rego, [skips, builtins](Node node) {
       std::set<std::string> used_builtins;
-      find_used_builtins(node, builtins, used_builtins);      
+      find_used_builtins(node, builtins, used_builtins);
       Node skipseq = node / SkipSeq;
       for (auto& builtin : used_builtins)
       {

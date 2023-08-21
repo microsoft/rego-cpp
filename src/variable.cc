@@ -94,7 +94,8 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
-    return os << (wfi / variable.m_local / Var)->location().view() << " = " << variable.m_values;
+    return os << (wfi / variable.m_local / Var)->location().view() << " = "
+              << variable.m_values;
   }
 
   void Variable::mark_valid_values()
@@ -133,7 +134,8 @@ namespace rego
       }
 
       std::string json = to_json(node);
-      if(!values.contains(json)){
+      if (!values.contains(json))
+      {
         values.insert(json);
         term_set->push_back(node);
       }
@@ -197,8 +199,10 @@ namespace rego
       return term;
     }
 
-    if(term->type() == TermSet && term->size() == 0){
-      if(term->size() == 0){
+    if (term->type() == TermSet && term->size() == 0)
+    {
+      if (term->size() == 0)
+      {
         m_local->back() = Undefined;
         return Undefined;
       }

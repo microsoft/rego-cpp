@@ -173,8 +173,9 @@ namespace rego
               for (auto& [var, out_var] : out_map)
               {
                 rulevalue
-                  << (ObjectItem << (Expr << (Term << (Scalar << (JSONString ^ var))))
-                                 << (Expr << (RefTerm << (Var ^ out_var))));
+                  << (ObjectItem
+                      << (Expr << (Term << (Scalar << (JSONString ^ var))))
+                      << (Expr << (RefTerm << (Var ^ out_var))));
               }
               Location value = _.fresh({"value"});
               rulevalue = UnifyBody

@@ -27,9 +27,9 @@ namespace
       return err(args[0], "Not a string");
     }
 
-    std::string x_string = strip_quotes(std::string(maybe_x_string.value()->location().view()));
-    std::string decoded =
-      ::base64_decode(x_string);
+    std::string x_string =
+      strip_quotes(std::string(maybe_x_string.value()->location().view()));
+    std::string decoded = ::base64_decode(x_string);
     return JSONString ^ decoded;
   }
 }
@@ -41,10 +41,8 @@ namespace rego
     std::vector<BuiltIn> encoding()
     {
       return {
-        BuiltInDef::create(
-          Location("base64.encode"), 1, base64_encode_),
-        BuiltInDef::create(
-          Location("base64.decode"), 1, base64_decode_)};
+        BuiltInDef::create(Location("base64.encode"), 1, base64_encode_),
+        BuiltInDef::create(Location("base64.decode"), 1, base64_decode_)};
     }
   }
 }

@@ -61,9 +61,7 @@ namespace rego
     return std::make_shared<BuiltInDef>(BuiltInDef{name, arity, behavior});
   }
 
-  BuiltIns::BuiltIns() noexcept : m_strict_errors(false)
-  {
-  }
+  BuiltIns::BuiltIns() noexcept : m_strict_errors(false) {}
 
   bool BuiltIns::strict_errors() const
   {
@@ -83,7 +81,7 @@ namespace rego
 
   Node BuiltIns::call(const Location& name, const Nodes& args) const
   {
-    if(!is_builtin(name))
+    if (!is_builtin(name))
     {
       return err(args[0], "unknown builtin");
     }
@@ -95,10 +93,14 @@ namespace rego
     }
 
     Node result = builtin->behavior(args);
-    if(result->type() == Error){
-      if(m_strict_errors){
+    if (result->type() == Error)
+    {
+      if (m_strict_errors)
+      {
         return result;
-      } else {
+      }
+      else
+      {
         return Undefined;
       }
     }

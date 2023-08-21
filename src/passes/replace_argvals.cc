@@ -57,9 +57,7 @@ namespace rego
 
       // errors
       In(Literal) * T(SomeExpr)[SomeExpr] >>
-        [](Match& _) {
-          return err(_(SomeExpr), "Invalid some expression");
-        },
+        [](Match& _) { return err(_(SomeExpr), "Invalid some expression"); },
     };
   }
 }

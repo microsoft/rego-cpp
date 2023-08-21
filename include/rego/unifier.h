@@ -45,22 +45,25 @@ namespace rego
       UnifierCache cache);
 
   private:
-    struct Dependency {
+    struct Dependency
+    {
       std::string name;
       std::set<std::size_t> dependencies;
       std::size_t score;
     };
 
     Unifier rule_unifier(const Location& rule, const Node& rulebody);
-    void init_from_body(const Node& rulebody, std::vector<Node>& statements, std::size_t root);
+    void init_from_body(
+      const Node& rulebody, std::vector<Node>& statements, std::size_t root);
     std::size_t add_variable(const Node& local);
     std::size_t add_unifyexpr(const Node& unifyexpr);
     void add_withpush(const Node& withpush);
     void add_withpop(const Node& withpop);
     void reset();
-    
+
     void compute_dependency_scores();
-    std::size_t compute_dependency_score(std::size_t index, std::set<size_t>& visited);
+    std::size_t compute_dependency_score(
+      std::size_t index, std::set<size_t>& visited);
     std::size_t dependency_score(const Variable& var) const;
     std::size_t dependency_score(const Node& expr) const;
     std::size_t detect_cycles() const;

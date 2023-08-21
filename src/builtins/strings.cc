@@ -182,7 +182,8 @@ namespace
       return needle;
     }
 
-    runestring haystack_runes = utf8_to_runestring(Resolver::get_string(haystack));
+    runestring haystack_runes =
+      utf8_to_runestring(Resolver::get_string(haystack));
     runestring needle_runes = utf8_to_runestring(Resolver::get_string(needle));
     auto pos = haystack_runes.find(needle_runes);
     if (pos == haystack_runes.npos)
@@ -209,7 +210,8 @@ namespace
       return needle;
     }
 
-    runestring haystack_runes = utf8_to_runestring(Resolver::get_string(haystack));
+    runestring haystack_runes =
+      utf8_to_runestring(Resolver::get_string(haystack));
     runestring needle_runes = utf8_to_runestring(Resolver::get_string(needle));
     Node array = NodeDef::create(Array);
     auto pos = haystack_runes.find(needle_runes);
@@ -676,8 +678,8 @@ namespace
 
   Node replace_n(const Nodes& args)
   {
-    Node patterns =
-      Resolver::unwrap(args[0], Object, "strings.replace_n: operand 1 ", EvalTypeError);
+    Node patterns = Resolver::unwrap(
+      args[0], Object, "strings.replace_n: operand 1 ", EvalTypeError);
     if (patterns->type() == Error)
     {
       return patterns;
@@ -691,15 +693,25 @@ namespace
     }
 
     std::string value_str = Resolver::get_string(value);
-    for(auto& item : *patterns){
+    for (auto& item : *patterns)
+    {
       auto maybe_old = Resolver::maybe_unwrap_string(item / Key);
-      if(!maybe_old.has_value()){
-        return err(item / Key, "strings.replace_n: operand 1 non-string key found in pattern object", EvalTypeError);
+      if (!maybe_old.has_value())
+      {
+        return err(
+          item / Key,
+          "strings.replace_n: operand 1 non-string key found in pattern object",
+          EvalTypeError);
       }
 
       auto maybe_new = Resolver::maybe_unwrap_string(item / Val);
-      if(!maybe_new.has_value()){
-        return err(item / Val, "strings.replace_n: operand 1 non-string value found in pattern object", EvalTypeError);
+      if (!maybe_new.has_value())
+      {
+        return err(
+          item / Val,
+          "strings.replace_n: operand 1 non-string value found in pattern "
+          "object",
+          EvalTypeError);
       }
 
       std::string old_str = Resolver::get_string(*maybe_old);
@@ -734,72 +746,92 @@ namespace
   {
     Node value = Resolver::unwrap(
       args[0], JSONString, "substring: operand 1 ", EvalTypeError);
-    if(value->type() == Error){
+    if (value->type() == Error)
+    {
       return value;
     }
     Node offset = Resolver::unwrap(
       args[1], JSONInt, "substring: operand 2 ", EvalTypeError);
-    if(offset->type() == Error){
+    if (offset->type() == Error)
+    {
       return offset;
     }
     Node length = Resolver::unwrap(
       args[2], JSONInt, "substring: operand 3 ", EvalTypeError);
-    if(length->type() == Error){
+    if (length->type() == Error)
+    {
       return length;
     }
-    
+
     std::string value_str = Resolver::get_string(value);
     std::vector<rune> value_runes = utf8_to_runes(value_str);
     std::int64_t offset_int = Resolver::get_int(offset).to_int();
-    if(offset_int < 0){
+    if (offset_int < 0)
+    {
       return err(args[1], "negative offset", EvalBuiltInError);
     }
 
     std::size_t offset_size = static_cast<std::size_t>(offset_int);
-    if(offset_size >= value_runes.size()){
+    if (offset_size >= value_runes.size())
+    {
       return JSONString ^ "";
     }
 
     std::int64_t length_int = Resolver::get_int(length).to_int();
     std::size_t length_size;
-    if(length_int < 0){
+    if (length_int < 0)
+    {
       length_size = value_runes.size() - offset_size;
-    }else{
+    }
+    else
+    {
       length_size = static_cast<std::size_t>(length_int);
     }
 
-    if(length_size > value_runes.size() - offset_size){
+    if (length_size > value_runes.size() - offset_size)
+    {
       length_size = value_runes.size() - offset_size;
     }
-    
-    std::vector<rune> output_runes(value_runes.begin() + offset_size, value_runes.begin() + offset_size + length_size);
+
+    std::vector<rune> output_runes(
+      value_runes.begin() + offset_size,
+      value_runes.begin() + offset_size + length_size);
     std::ostringstream output;
-    for(auto& rune : output_runes){
+    for (auto& rune : output_runes)
+    {
       output << rune.source;
     }
 
     return JSONString ^ output.str();
   }
 
-  std::string trim(const std::string& value, const std::string& cutset, bool left, bool right)
+  std::string trim(
+    const std::string& value, const std::string& cutset, bool left, bool right)
   {
     runestring value_runes = utf8_to_runestring(value);
     runestring cutset_runes = utf8_to_runestring(cutset);
 
     std::size_t start, end;
-    if(left){
+    if (left)
+    {
       start = value_runes.find_first_not_of(cutset_runes);
-    }else{
+    }
+    else
+    {
       start = 0;
     }
 
-    if(right){
+    if (right)
+    {
       end = value_runes.find_last_not_of(cutset_runes);
-    }else{
+    }
+    else
+    {
       end = value_runes.size();
     }
-    
-    if(start == value_runes.npos){
+
+    if (start == value_runes.npos)
+    {
       return "";
     }
 
@@ -809,79 +841,102 @@ namespace
 
   Node trim(const Nodes& args)
   {
-    Node value = Resolver::unwrap(
-      args[0], JSONString, "trim: operand 1 ", EvalTypeError);
-    if(value->type() == Error){
+    Node value =
+      Resolver::unwrap(args[0], JSONString, "trim: operand 1 ", EvalTypeError);
+    if (value->type() == Error)
+    {
       return value;
     }
-    Node cutset = Resolver::unwrap(
-      args[1], JSONString, "trim: operand 2 ", EvalTypeError);
-    if(cutset->type() == Error){
+    Node cutset =
+      Resolver::unwrap(args[1], JSONString, "trim: operand 2 ", EvalTypeError);
+    if (cutset->type() == Error)
+    {
       return cutset;
     }
 
-    return JSONString ^ trim(Resolver::get_string(value), Resolver::get_string(cutset), true, true);
+    return JSONString ^
+      trim(Resolver::get_string(value),
+           Resolver::get_string(cutset),
+           true,
+           true);
   }
 
   Node trim_left(const Nodes& args)
   {
     Node value = Resolver::unwrap(
       args[0], JSONString, "trim_left: operand 1 ", EvalTypeError);
-    if(value->type() == Error){
+    if (value->type() == Error)
+    {
       return value;
     }
     Node cutset = Resolver::unwrap(
       args[1], JSONString, "trim_left: operand 2 ", EvalTypeError);
-    if(cutset->type() == Error){
+    if (cutset->type() == Error)
+    {
       return cutset;
     }
 
-    return JSONString ^ trim(Resolver::get_string(value), Resolver::get_string(cutset), true, false);
+    return JSONString ^
+      trim(Resolver::get_string(value),
+           Resolver::get_string(cutset),
+           true,
+           false);
   }
 
   Node trim_right(const Nodes& args)
   {
     Node value = Resolver::unwrap(
       args[0], JSONString, "trim_right: operand 1 ", EvalTypeError);
-    if(value->type() == Error){
+    if (value->type() == Error)
+    {
       return value;
     }
     Node cutset = Resolver::unwrap(
       args[1], JSONString, "trim_right: operand 2 ", EvalTypeError);
-    if(cutset->type() == Error){
+    if (cutset->type() == Error)
+    {
       return cutset;
     }
 
-    return JSONString ^ trim(Resolver::get_string(value), Resolver::get_string(cutset), false, true);
+    return JSONString ^
+      trim(Resolver::get_string(value),
+           Resolver::get_string(cutset),
+           false,
+           true);
   }
 
   Node trim_space(const Nodes& args)
   {
     Node value = Resolver::unwrap(
       args[0], JSONString, "trim_space: operand 1 ", EvalTypeError);
-    if(value->type() == Error){
+    if (value->type() == Error)
+    {
       return value;
     }
 
-    return JSONString ^ trim(Resolver::get_string(value), " \t\n\r\v\f", true, true);
+    return JSONString ^
+      trim(Resolver::get_string(value), " \t\n\r\v\f", true, true);
   }
 
   Node trim_prefix(const Nodes& args)
   {
     Node value = Resolver::unwrap(
       args[0], JSONString, "trim_prefix: operand 1 ", EvalTypeError);
-    if(value->type() == Error){
+    if (value->type() == Error)
+    {
       return value;
     }
     Node prefix = Resolver::unwrap(
       args[1], JSONString, "trim_prefix: operand 2 ", EvalTypeError);
-    if(prefix->type() == Error){
+    if (prefix->type() == Error)
+    {
       return prefix;
     }
 
     std::string value_str = Resolver::get_string(value);
     std::string prefix_str = Resolver::get_string(prefix);
-    if(value_str.starts_with(prefix_str)){
+    if (value_str.starts_with(prefix_str))
+    {
       return JSONString ^ value_str.substr(prefix_str.size());
     }
 
@@ -892,19 +947,23 @@ namespace
   {
     Node value = Resolver::unwrap(
       args[0], JSONString, "trim_suffix: operand 1 ", EvalTypeError);
-    if(value->type() == Error){
+    if (value->type() == Error)
+    {
       return value;
     }
     Node suffix = Resolver::unwrap(
       args[1], JSONString, "trim_suffix: operand 2 ", EvalTypeError);
-    if(suffix->type() == Error){
+    if (suffix->type() == Error)
+    {
       return suffix;
     }
 
     std::string value_str = Resolver::get_string(value);
     std::string suffix_str = Resolver::get_string(suffix);
-    if(value_str.ends_with(suffix_str)){
-      return JSONString ^ value_str.substr(0, value_str.size() - suffix_str.size());
+    if (value_str.ends_with(suffix_str))
+    {
+      return JSONString ^
+        value_str.substr(0, value_str.size() - suffix_str.size());
     }
 
     return value;

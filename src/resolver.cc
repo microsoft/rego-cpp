@@ -282,11 +282,11 @@ namespace rego
 
   std::string Resolver::get_string(const Node& node)
   {
-    if(node->type() == JSONString)
+    if (node->type() == JSONString)
     {
       return strip_quotes(std::string(node->location().view()));
     }
-    
+
     return std::string(node->location().view());
   }
 
@@ -378,8 +378,7 @@ namespace rego
 
       if (maybe_lhs_number.has_value() && maybe_rhs_set.has_value())
       {
-        return err(
-          rhs, "operand 2 must be number but got set", EvalTypeError);
+        return err(rhs, "operand 2 must be number but got set", EvalTypeError);
       }
 
       return err(
@@ -1374,7 +1373,11 @@ namespace rego
   }
 
   Node Resolver::unwrap(
-    const Node& node, const Token& type, const std::string& error_prefix, const std::string& error_code, bool specify_number)
+    const Node& node,
+    const Token& type,
+    const std::string& error_prefix,
+    const std::string& error_code,
+    bool specify_number)
   {
     Node value;
     if (node->type() == Term || node->type() == DataTerm)
@@ -1401,8 +1404,8 @@ namespace rego
     }
 
     std::ostringstream error;
-    error << error_prefix << "must be " << type_name(type, specify_number) << " but got "
-          << type_name(value->type(), specify_number);
+    error << error_prefix << "must be " << type_name(type, specify_number)
+          << " but got " << type_name(value->type(), specify_number);
     return err(node, error.str(), error_code);
   }
 
@@ -1438,21 +1441,26 @@ namespace rego
 
   std::string Resolver::type_name(const Token& type, bool specify_number)
   {
-    if(type == JSONInt){
-      if(specify_number){
-      return "integer number";
+    if (type == JSONInt)
+    {
+      if (specify_number)
+      {
+        return "integer number";
       }
       return "number";
     }
 
-    if(type == JSONFloat){
-      if(specify_number){
-      return "floating-point number";
+    if (type == JSONFloat)
+    {
+      if (specify_number)
+      {
+        return "floating-point number";
       }
       return "number";
     }
 
-    if(type == JSONString){
+    if (type == JSONString)
+    {
       return "string";
     }
 
@@ -1462,11 +1470,13 @@ namespace rego
   std::string Resolver::type_name(const Node& node, bool specify_number)
   {
     Node value = node;
-    if(value->type() == Term){
+    if (value->type() == Term)
+    {
       value = value->front();
     }
 
-    if(value->type() == Scalar){
+    if (value->type() == Scalar)
+    {
       value = value->front();
     }
 

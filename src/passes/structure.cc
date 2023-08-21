@@ -278,7 +278,7 @@ namespace rego
       // errors
 
       In(VarSeq) * T(Group)[Group] >>
-        [](Match &_){return err(_(Group), "Expected a variable");},
+        [](Match& _) { return err(_(Group), "Expected a variable"); },
 
       In(Import) * T(ImportRef)[ImportRef] >>
         [](Match& _) { return err(_(ImportRef), "Invalid import reference"); },
@@ -339,7 +339,7 @@ namespace rego
         [](Match& _) { return err(_(Query), "Must provide a query"); },
 
       In(Expr) * T(IsIn)[IsIn] >>
-        [](Match& _) { return err(_(IsIn), "Invalid expression");},
+        [](Match& _) { return err(_(IsIn), "Invalid expression"); },
 
       In(SomeDecl) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid some declaration"); },

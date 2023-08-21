@@ -89,7 +89,8 @@ namespace rego
   inline const auto DataItemSeq = TokenDef("data-item-seq");
   inline const auto DataItem = TokenDef("data-item", flag::lookdown);
   inline const auto DataObject = TokenDef("data-object", flag::symtab);
-  inline const auto DataObjectItem = TokenDef("data-object-item", flag::lookdown);
+  inline const auto DataObjectItem =
+    TokenDef("data-object-item", flag::lookdown);
   inline const auto DataArray = TokenDef("data-array");
   inline const auto DataSet = TokenDef("data-set");
   inline const auto Submodule = TokenDef("submodule", flag::lookdown);
@@ -147,9 +148,9 @@ namespace rego
   inline const auto Id = TokenDef("id");
   inline const auto Head = TokenDef("head");
   inline const auto Tail = TokenDef("tail");
-    inline const auto Head1 = TokenDef("head-1");
+  inline const auto Head1 = TokenDef("head-1");
   inline const auto Tail1 = TokenDef("tail-1");
-    inline const auto Head2 = TokenDef("head-2");
+  inline const auto Head2 = TokenDef("head-2");
   inline const auto Tail2 = TokenDef("tail-2");
   inline const auto Lhs = TokenDef("lhs");
   inline const auto Rhs = TokenDef("rhs");

@@ -82,7 +82,7 @@ namespace
   void add_locals(
     Node unifybody, std::vector<Scope>& scopes, const BuiltIns& builtins)
   {
-    if(unifybody->type() == NestedBody)
+    if (unifybody->type() == NestedBody)
     {
       unifybody = unifybody / Val;
     }

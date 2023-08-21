@@ -1,6 +1,6 @@
+#include "errors.h"
 #include "register.h"
 #include "resolver.h"
-#include "errors.h"
 
 namespace
 {
@@ -100,13 +100,17 @@ namespace
 
   Node numbers_range(const Nodes& args)
   {
-    Node lhs_number = Resolver::unwrap(args[0], JSONInt, "numbers.range: operand 1 ", EvalTypeError, true);
-    if(lhs_number->type() == Error){
+    Node lhs_number = Resolver::unwrap(
+      args[0], JSONInt, "numbers.range: operand 1 ", EvalTypeError, true);
+    if (lhs_number->type() == Error)
+    {
       return lhs_number;
     }
 
-    Node rhs_number = Resolver::unwrap(args[1], JSONInt, "numbers.range: operand 2 ", EvalTypeError, true);
-    if(rhs_number->type() == Error){
+    Node rhs_number = Resolver::unwrap(
+      args[1], JSONInt, "numbers.range: operand 2 ", EvalTypeError, true);
+    if (rhs_number->type() == Error)
+    {
       return rhs_number;
     }
     auto maybe_lhs_number = Resolver::maybe_unwrap_number(args[0]);

@@ -1,6 +1,6 @@
+#include "errors.h"
 #include "register.h"
 #include "resolver.h"
-#include "errors.h"
 
 namespace
 {
@@ -8,22 +8,33 @@ namespace
 
   Node intersection(const Nodes& args)
   {
-    Node xs = Resolver::unwrap(args[0], Set, "intersection: operand 1 ", EvalTypeError);
-    if(xs->type() == Error){
+    Node xs =
+      Resolver::unwrap(args[0], Set, "intersection: operand 1 ", EvalTypeError);
+    if (xs->type() == Error)
+    {
       return xs;
     }
 
-    if(xs->size() == 0){
+    if (xs->size() == 0)
+    {
       return NodeDef::create(Set);
     }
 
-    Node y = Resolver::unwrap(xs->at(0), Set, "intersection: operand 1 is set of sets ", EvalTypeError);
-    if(y->type() == Error){
+    Node y = Resolver::unwrap(
+      xs->at(0), Set, "intersection: operand 1 is set of sets ", EvalTypeError);
+    if (y->type() == Error)
+    {
       return y;
     }
-    for(std::size_t i = 1; i < xs->size(); i++){
-      Node x = Resolver::unwrap(xs->at(i), Set, "intersection: operand 1 is set of sets ", EvalTypeError);
-      if(x->type() == Error){
+    for (std::size_t i = 1; i < xs->size(); i++)
+    {
+      Node x = Resolver::unwrap(
+        xs->at(i),
+        Set,
+        "intersection: operand 1 is set of sets ",
+        EvalTypeError);
+      if (x->type() == Error)
+      {
         return x;
       }
       y = Resolver::set_intersection(y, x);
@@ -34,15 +45,20 @@ namespace
 
   Node union_(const Nodes& args)
   {
-    Node xs = Resolver::unwrap(args[0], Set, "union: operand 1 ", EvalTypeError);
-    if(xs->type() == Error){
+    Node xs =
+      Resolver::unwrap(args[0], Set, "union: operand 1 ", EvalTypeError);
+    if (xs->type() == Error)
+    {
       return xs;
     }
 
     Node y = NodeDef::create(Set);
-    for(Node x : *xs){
-      x = Resolver::unwrap(x, Set, "union: operand 1 is set of sets ", EvalTypeError);
-      if(x->type() == Error){
+    for (Node x : *xs)
+    {
+      x = Resolver::unwrap(
+        x, Set, "union: operand 1 is set of sets ", EvalTypeError);
+      if (x->type() == Error)
+      {
         return x;
       }
       y = Resolver::set_union(y, x);

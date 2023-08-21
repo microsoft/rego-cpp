@@ -149,8 +149,7 @@ int main(int argc, char** argv)
     }
 
     std::cout << std::endl;
-    std::cout << (total - failures) << " / " << total
-              << " passed" << std::endl;
+    std::cout << (total - failures) << " / " << total << " passed" << std::endl;
 
     std::cout << std::endl;
   }

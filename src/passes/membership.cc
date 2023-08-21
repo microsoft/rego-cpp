@@ -39,8 +39,7 @@ namespace rego
            T(IsIn) * MembershipToken++[ItemSeq] * End) >>
         [](Match& _) {
           return Seq << _[Lhs] << _(Assign)
-                     << (Membership << (Group << _[Idx])
-                                    << (Group << _[Item])
+                     << (Membership << (Group << _[Idx]) << (Group << _[Item])
                                     << (Group << _[ItemSeq]));
         },
 
@@ -76,14 +75,10 @@ namespace rego
 
       // errors
       In(Group) * T(Comma)[Comma] >>
-        [](Match& _){
-          return err(_(Comma), "invalid membership statement");
-        },
+        [](Match& _) { return err(_(Comma), "invalid membership statement"); },
 
       T(Group)[Group] << End >>
-        [](Match& _){
-          return err(_(Group), "Syntax error: empty group.");
-        },
+        [](Match& _) { return err(_(Group), "Syntax error: empty group."); },
     };
   }
 }
