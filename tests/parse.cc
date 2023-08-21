@@ -33,6 +33,13 @@ namespace rego_test
     Double
   };
 
+  enum class Collection
+  {
+    None,
+    Brace,
+    Square
+  };
+
   Parse parser()
   {
     Parse p(depth::file);
@@ -41,6 +48,8 @@ namespace rego_test
     auto indent = std::make_shared<std::size_t>(0);
     auto string_indent = std::make_shared<std::size_t>(0);
     auto quote = std::make_shared<Quote>(Quote::None);
+    auto stack = std::make_shared<std::vector<Collection>>();
+    stack->push_back(Collection::None);
 
     p("start",
       {
@@ -65,25 +74,59 @@ namespace rego_test
           },
 
         // Brace.
-        R"((\{)[[:blank:]]*)" >> [](auto& m) { m.push(Brace, 1); },
+        R"((\{)[[:blank:]]*)" >>
+          [stack](auto& m) {
+            m.push(Brace, 1);
+            stack->push_back(Collection::Brace);
+          },
 
         R"(\})" >>
-          [](auto& m) {
-            m.term();
-            m.pop(Brace);
+          [stack](auto& m) {
+            if (stack->back() == Collection::Brace)
+            {
+              m.term();
+              m.pop(Brace);
+              stack->pop_back();
+            }
+            else
+            {
+              m.extend(String);
+            }
           },
 
         // Square.
-        R"((\[)[[:blank:]]*)" >> [](auto& m) { m.push(Square, 1); },
+        R"((\[)[[:blank:]]*)" >>
+          [stack](auto& m) {
+            m.push(Square, 1);
+            stack->push_back(Collection::Square);
+          },
 
         R"(\])" >>
-          [](auto& m) {
-            m.term();
-            m.pop(Square);
+          [stack](auto& m) {
+            if (stack->back() == Collection::Square)
+            {
+              m.term();
+              m.pop(Square);
+              stack->pop_back();
+            }
+            else
+            {
+              m.extend(String);
+            }
           },
 
         // Comma.
-        ",[[:blank:]]*" >> [](auto& m) { m.term(); },
+        ",[[:blank:]]*" >>
+          [stack](auto& m) {
+            if (stack->back() == Collection::None)
+            {
+              m.extend(String);
+            }
+            else
+            {
+              m.term();
+            }
+          },
 
         // Double quote string
         "\"" >>
@@ -143,7 +186,7 @@ namespace rego_test
         "null\\b" >> [](auto& m) { m.add(Null); },
 
         // String
-        R"([^[:digit:]\-[:blank:]\r\n])" >>
+        R"([^[:digit:],\-\[\]\{\}[:blank:]\r\n])" >>
           [](auto& m) {
             m.extend(String);
             m.mode("string");
@@ -299,6 +342,50 @@ namespace rego_test
             *indent = 0;
             m.term();
             m.mode("indent");
+          },
+
+        R"(\})" >>
+          [stack](auto& m) {
+            if (stack->back() == Collection::Brace)
+            {
+              m.term();
+              m.pop(Brace);
+              stack->pop_back();
+              m.mode("start");
+            }
+            else
+            {
+              m.extend(String);
+            }
+          },
+
+        R"(\])" >>
+          [stack](auto& m) {
+            if (stack->back() == Collection::Square)
+            {
+              m.term();
+              m.pop(Square);
+              stack->pop_back();
+              m.mode("start");
+            }
+            else
+            {
+              m.extend(String);
+            }
+          },
+
+        // Comma.
+        ",[[:blank:]]*" >>
+          [stack](auto& m) {
+            if (stack->back() == Collection::None)
+            {
+              m.extend(String);
+            }
+            else
+            {
+              m.term();
+              m.mode("start");
+            }
           },
 
         ":" >>

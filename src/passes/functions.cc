@@ -258,13 +258,13 @@ namespace rego
           T(DataTerm)[DataTerm] >>
         [](Match& _) { return Term << *_[DataTerm]; },
 
-      In(Term) * T(DataArray)[DataArray] >>
+      (In(Term) / In(Input)) * T(DataArray)[DataArray] >>
         [](Match& _) { return Array << *_[DataArray]; },
 
       In(Term) * T(DataSet)[DataSet] >>
         [](Match& _) { return Set << *_[DataSet]; },
 
-      In(Term) * T(DataObject)[DataObject] >>
+      (In(Term) / In(Input)) * T(DataObject)[DataObject] >>
         [](Match& _) { return Object << *_[DataObject]; },
 
       In(Object) * T(DataObjectItem)[DataObjectItem] >>

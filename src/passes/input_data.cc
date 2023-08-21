@@ -6,11 +6,11 @@ namespace rego
   PassDef input_data()
   {
     return {
-      In(Input) * (T(File) << (T(Group) << T(Brace)[Brace])) >>
-        [](Match& _) { return _(Brace); },
+      In(Input) * (T(File) << (T(Group) << (T(Brace)/T(Square))[Val])) >>
+        [](Match& _) { return _(Val); },
 
-      In(Rego) * (T(Input) << T(Brace)[Brace]) >>
-        [](Match& _) { return Input << (Var ^ "input") << _(Brace); },
+      In(Rego) * (T(Input) << (T(Brace)/T(Square))[Val]) >>
+        [](Match& _) { return Input << (Var ^ "input") << _(Val); },
 
       In(DataSeq) * (T(File) << (T(Group) << T(Brace)[Brace])) >>
         [](Match& _) { return Data << _(Brace); },

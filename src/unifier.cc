@@ -723,9 +723,13 @@ namespace rego
           Values skip_values = resolve_skip(def);
           values.insert(values.end(), skip_values.begin(), skip_values.end());
         }
+        else if(def->type() == Input)
+        {
+          values.push_back(ValueDef::create(def / Val));
+        }
         else if (
           def->type() == Data || def->type() == Module ||
-          def->type() == RuleFunc || def->type() == Input)
+          def->type() == RuleFunc)
         {
           // these will always be an argument to apply_access
           values.push_back(ValueDef::create(def));
@@ -1098,8 +1102,7 @@ namespace rego
       Node base = result.front()->node();
       for (auto& item : *base)
       {
-        std::string key =
-          strip_quotes(std::string((item / Key)->location().view()));
+        std::string key = to_json(item / Key);
         object_map[key] = item / Val;
       }
     }

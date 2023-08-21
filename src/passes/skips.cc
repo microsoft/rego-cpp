@@ -59,7 +59,10 @@ namespace
       }
       else if (node->type() == Input)
       {
-        itemseq = node / DataItemSeq;
+        itemseq = node / Val;
+        if(itemseq->type() == DataArray){
+          return;
+        }
       }
       else if (node->type() == DataObject)
       {

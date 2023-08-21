@@ -64,6 +64,7 @@ namespace rego
     static std::optional<Node> maybe_unwrap(
       const Node& term, const std::set<Token>& types);
     static std::optional<Node> maybe_unwrap_number(const Node& term);
+    static std::optional<Node> maybe_unwrap_int(const Node& term);
     static std::optional<Node> maybe_unwrap_string(const Node& term);
     static std::optional<Node> maybe_unwrap_bool(const Node& term);
     static std::optional<Node> maybe_unwrap_array(const Node& term);
@@ -83,6 +84,7 @@ namespace rego
     static std::string type_name(
       const Token& type, bool specify_number = false);
     static std::string type_name(const Node& node, bool specify_number = false);
+    static Node to_term(const Node& value);
   };
 
   std::ostream& operator<<(

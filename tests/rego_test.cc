@@ -74,10 +74,10 @@ namespace rego_test
           (T(Group) << T(Blank)) >>
         [](Match&) { return String ^ ""; },
 
-      // errors
-      In(Group) * (T(Block)[Block] << End) >>
-        [](Match& _) { return err(_(Block), "Syntax error: empty block"); },
+      T(Group) << (T(Blank) * End) >>
+        [](Match&) { return Node{}; },
 
+      // errors
       (In(Entry) / In(Block)) * (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
 
@@ -85,9 +85,6 @@ namespace rego_test
         [](Match& _) {
           return err(_(Hyphen), "Invalid sequence entry declaration");
         },
-
-      In(Group) * T(Blank)[Blank] >>
-        [](Match& _) { return err(_(Blank), "Invalid blank line"); },
 
       In(LiteralString) * T(Group)[Group] >>
         [](Match& _) {

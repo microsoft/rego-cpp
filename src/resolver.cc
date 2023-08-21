@@ -282,12 +282,23 @@ namespace rego
 
   std::string Resolver::get_string(const Node& node)
   {
-    if (node->type() == JSONString)
+    Node value = node;
+    if (value->type() == Term)
     {
-      return strip_quotes(std::string(node->location().view()));
+      value = value->front();
     }
 
-    return std::string(node->location().view());
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == JSONString)
+    {
+      return strip_quotes(std::string(value->location().view()));
+    }
+
+    return std::string(value->location().view());
   }
 
   Node Resolver::scalar(const std::string& value)
@@ -531,6 +542,31 @@ namespace rego
     return std::nullopt;
   }
 
+  std::optional<Node> Resolver::maybe_unwrap_int(const Node& node)
+  {
+    Node value;
+    if (node->type() == Term || node->type() == DataTerm)
+    {
+      value = node->front();
+    }
+    else
+    {
+      value = node;
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == JSONInt)
+    {
+      return value;
+    }
+
+    return std::nullopt;
+  }
+
   std::optional<Node> Resolver::maybe_unwrap_set(const Node& node)
   {
     Node value;
@@ -614,9 +650,7 @@ namespace rego
       return object_lookdown(container, query);
     }
 
-    if (
-      container->type() == Input || container->type() == Data ||
-      container->type() == Module)
+    if (container->type() == Data || container->type() == Module)
     {
       Node key = arg->front();
       std::string key_str = strip_quotes(to_json(key));
@@ -676,6 +710,31 @@ namespace rego
     return std::nullopt;
   }
 
+  Node Resolver::to_term(const Node& value)
+  {
+    if (value->type() == Term)
+    {
+      return value;
+    }
+
+    if (
+      value->type() == Array || value->type() == Set ||
+      value->type() == Object || value->type() == Scalar)
+    {
+      return Term << value;
+    }
+
+    if (
+      value->type() == JSONInt || value->type() == JSONFloat ||
+      value->type() == JSONString || value->type() == JSONTrue ||
+      value->type() == JSONFalse || value->type() == JSONNull)
+    {
+      return Term << (Scalar << value);
+    }
+
+    return err(value, "not a term");
+  }
+
   Node Resolver::object(const Node& object_items)
   {
     Node object = NodeDef::create(Object);
@@ -683,7 +742,8 @@ namespace rego
     for (std::size_t i = 0; i < object_items->size(); i += 2)
     {
       std::string key = to_json(object_items->at(i));
-      Node item = ObjectItem << object_items->at(i) << object_items->at(i + 1);
+      Node item = ObjectItem << to_term(object_items->at(i))
+                             << to_term(object_items->at(i + 1));
       items[key] = item;
     }
 
@@ -699,7 +759,10 @@ namespace rego
   Node Resolver::array(const Node& array_members)
   {
     Node array = NodeDef::create(Array);
-    array->insert(array->end(), array_members->begin(), array_members->end());
+    for (Node member : *array_members)
+    {
+      array->push_back(to_term(member));
+    }
     return array;
   }
 
@@ -729,7 +792,7 @@ namespace rego
       std::string repr = to_json(member);
       if (!members.contains(repr))
       {
-        members[repr] = member;
+        members[repr] = to_term(member);
       }
     }
 
@@ -1134,7 +1197,7 @@ namespace rego
         defs.begin(),
         defs.end(),
         std::back_inserter(terms),
-        [](const Node& def) { return wfi / def / Val; });
+        [](const Node& def) { return (wfi / def / Val)->clone(); });
       return terms;
     }
 
@@ -1148,10 +1211,9 @@ namespace rego
       }
 
       std::string key_str = to_json(key);
-
       if (key_str == query_str)
       {
-        terms.push_back(wfi / object_item / Val);
+        terms.push_back((wfi / object_item / Val)->clone());
       }
     }
 
@@ -1462,6 +1524,11 @@ namespace rego
     if (type == JSONString)
     {
       return "string";
+    }
+
+    if (type == JSONTrue || type == JSONFalse)
+    {
+      return "boolean";
     }
 
     return std::string(type.str());

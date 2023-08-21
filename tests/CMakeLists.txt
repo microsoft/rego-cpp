@@ -33,6 +33,16 @@ if(REGOCPP_OPA_TESTS)
   indexing
   intersection
   numbersrange
+  objectfilter
+  objectfilteridempotent
+  objectfilternonstringkey
+  objectget
+  objectkeys
+  objectremove
+  objectremoveidempotent
+  objectremovenonstringkey
+  objectunion
+  objectunionn
   rand
   replacen
   semvercompare
@@ -40,6 +50,7 @@ if(REGOCPP_OPA_TESTS)
   sets
   sprintf
   strings
+  subset
   trim
   trimleft
   trimprefix

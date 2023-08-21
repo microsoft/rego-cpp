@@ -52,7 +52,7 @@ namespace rego_test
   inline const auto wf_parser =
     (Top <<= File)
     | (File <<= Group++[1])
-    | (Block <<= Group++[1])
+    | (Block <<= Group++)
     | (LiteralString <<= Group++[1])
     | (FoldedString <<= Group++[1])
     | (SingleQuoteString <<= Group++)
@@ -103,7 +103,7 @@ namespace rego_test
   inline const auto wf_pass_keyvalue =
     wf_pass_scalar
     | (KeyValue <<= Key * Group)
-    | (Block <<= (Group | KeyValue)++[1])
+    | (Block <<= (Group | KeyValue)++)
     | (Group <<= Block | Scalar | Sequence | KeyValue)
     ;
   // clang-format on

@@ -12,7 +12,9 @@ namespace rego
 
       (In(RuleComp) / In(RuleFunc)) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>
-        [](Match& _) { return UnifyBody << (Literal << (Expr << _(Term))); },
+        [](Match& _) { 
+          Location value = _.fresh({"value"});
+          return UnifyBody << (Literal << (Expr << (RefTerm << (Var ^ value)) << Unify << _(Term))); },
 
       In(RuleSet) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>

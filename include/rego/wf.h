@@ -48,7 +48,7 @@ namespace rego
   inline const auto wf_pass_input_data =
     wf_parser
     | (DataSeq <<= Data++)
-    | (Input <<= Var * Brace)[Var]
+    | (Input <<= Var * (Val >>= Brace | Square))[Var]
     | (Data <<= Brace)
     ;
   // clang-format on
@@ -116,7 +116,7 @@ namespace rego
     | (Array <<= Group++)
     | (Set <<= Group++)
     | (UnifyBody <<= (SomeDecl | Group)++)
-    | (Input <<= Var * ObjectItemSeq)[Var]
+    | (Input <<= Var * (Val >>= Array | Object))[Var]
     | (Data <<= ObjectItemSeq)
     | (Group <<= (wf_lists_tokens | If)++[1])
     | (List <<= Group++)
@@ -211,7 +211,7 @@ namespace rego
   inline const auto wf_pass_structure =
       (Top <<= Rego)
     | (Rego <<= Query * Input * DataSeq * ModuleSeq)
-    | (Input <<= Var * ObjectItemSeq)[Var]
+    | (Input <<= Var * (Val >>= Array | Object))[Var]
     | (DataSeq <<= Data++)
     | (Data <<= ObjectItemSeq)
     | (ObjectItemSeq <<= ObjectItem++)
@@ -281,7 +281,7 @@ namespace rego
     wf_pass_strings
     | (Rego <<= Query * Input * Data * ModuleSeq)
     | (Data <<= Var * DataItemSeq)[Var]
-    | (Input <<= Var * DataItemSeq)[Var]
+    | (Input <<= Var * (Val >>= DataArray | DataObject))[Var]
     | (DataItemSeq <<= DataItem++)
     | (DataItem <<= Key * (Val >>= DataTerm))[Key]
     | (DataTerm <<= Scalar | DataArray | DataObject | DataSet)
@@ -510,6 +510,7 @@ namespace rego
     | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
     | (Function <<= JSONString * ArgSeq)
     | (ArgSeq <<= (Scalar | Var | wf_arith_op | wf_bin_op | wf_bool_op | NestedBody | VarSeq)++)
+    | (Input <<= Var * (Val >>= Array | Object))[Var]
     | (Array <<= Term++)
     | (Set <<= Term++)
     | (Object <<= ObjectItem++)

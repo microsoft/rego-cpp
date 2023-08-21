@@ -513,7 +513,7 @@ namespace
           break;
 
         case PrintVerbType::String:
-          result << Resolver::get_string(node->front());
+          result << Resolver::get_string(node);
           break;
 
         case PrintVerbType::Literal:
