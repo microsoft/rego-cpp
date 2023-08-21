@@ -1,5 +1,7 @@
 #include "utf8.h"
 
+#include <vector>
+
 namespace
 {
   const std::uint8_t MaskX = 0b11000000;
@@ -112,11 +114,8 @@ namespace
       to_utf8(Bad, utf8);
     }
   }
-}
 
-namespace rego
-{
-  rune utf8_to_rune(const char* pos, const char* end)
+  rego::rune utf8_to_rune(std::string_view::const_iterator pos, std::string_view::const_iterator end)
   {
     std::uint8_t c0 = static_cast<std::uint8_t>(pos[0]);
     std::size_t remaining = std::distance(pos, end);
@@ -212,12 +211,16 @@ namespace rego
     return {Bad, std::string_view(pos, pos + 1)};
   }
 
+}
+
+namespace rego
+{
   std::vector<rune> utf8_to_runes(const std::string_view& utf8)
   {
     std::vector<rune> runes;
     runes.reserve(utf8.size());
-    const char* pos = utf8.begin();
-    const char* end = utf8.end();
+    auto pos = utf8.begin();
+    auto end = utf8.end();
     while (pos < end)
     {
       rune r = utf8_to_rune(pos, end);
@@ -232,8 +235,8 @@ namespace rego
   {
     runestring runes;
     runes.reserve(utf8.size());
-    const char* pos = utf8.begin();
-    const char* end = utf8.end();
+    auto pos = utf8.begin();
+    auto end = utf8.end();
     while (pos < end)
     {
       rune r = utf8_to_rune(pos, end);

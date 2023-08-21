@@ -234,7 +234,9 @@ namespace
     }
 
     std::string x_str = Resolver::get_string(x);
-    std::transform(x_str.begin(), x_str.end(), x_str.begin(), ::tolower);
+    std::transform(x_str.begin(), x_str.end(), x_str.begin(), [](const char& c){
+      return static_cast<char>(std::tolower(c));
+    });
     return Resolver::scalar(x_str);
   }
 
@@ -248,7 +250,9 @@ namespace
     }
 
     std::string x_str = Resolver::get_string(x);
-    std::transform(x_str.begin(), x_str.end(), x_str.begin(), ::toupper);
+    std::transform(x_str.begin(), x_str.end(), x_str.begin(), [](const char& c){
+      return static_cast<char>(std::toupper(c));
+    });
     return Resolver::scalar(x_str);
   }
 
@@ -312,8 +316,8 @@ namespace
     std::string x_str = Resolver::get_string(x);
     std::string delimiter_str = Resolver::get_string(delimiter);
     Node array = NodeDef::create(Array);
-    auto start = 0;
-    auto pos = x_str.find(delimiter_str);
+    std::size_t start = 0;
+    std::size_t pos = x_str.find(delimiter_str);
     while (pos != x_str.npos)
     {
       array->push_back(JSONString ^ x_str.substr(start, pos - start));
@@ -457,7 +461,8 @@ namespace
         return err(args[1], "sprintf: not enough arguments", EvalTypeError);
       }
 
-      char buf[1024];
+      const int buf_size = 1024;
+      char buf[buf_size];
       Node node = *it;
       Node error;
       ++it;
@@ -482,8 +487,8 @@ namespace
           {
             return node;
           }
-          std::sprintf(
-            buf, verb.format.c_str(), Resolver::get_int(node).to_int());
+          std::snprintf(
+            buf, buf_size, verb.format.c_str(), Resolver::get_int(node).to_int());
           result << buf;
           break;
 
@@ -497,7 +502,7 @@ namespace
           {
             return node;
           }
-          std::sprintf(buf, verb.format.c_str(), Resolver::get_double(node));
+          std::snprintf(buf, buf_size, verb.format.c_str(), Resolver::get_double(node));
           result << buf;
           break;
 
