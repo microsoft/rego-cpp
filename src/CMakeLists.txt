@@ -62,6 +62,10 @@ add_library(rego STATIC ${SOURCES})
 
 add_library(regocpp::rego ALIAS rego)
 
+if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
+  target_compile_options(rego PRIVATE -mllvm -x86-speculative-load-hardening)
+endif()
+
 target_link_libraries(rego
   PUBLIC
     trieste::trieste
