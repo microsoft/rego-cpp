@@ -13,11 +13,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": [
-		"cmake -B build --preset release-clang",
-		"cd build",
-		"ninja install"
-	]
+	"postCreateCommand": "cmake -B build --preset release-clang && cd build && ninja install && cd dist"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
