@@ -28,21 +28,12 @@ Create a build directory and initialize the cmake project:
 
     mkdir build
     cd build
-    cmake .. -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
+    cmake .. --preset release-clang
 
 You can then build and run the tests using:
 
-    make install
-    ctest
-
-If you wish to use Ninja, then be sure to pass `-G Ninja` as well when configuring the project.
-Then:
-
     ninja install
     ctest
-
-Similarly, if you want to use clang you can indicate this by passing `-DCMAKE_CXX_COMPILER=clang++`
-during configuration.
 
 ### Windows
 
@@ -50,7 +41,7 @@ Create a build directory and initialize the cmake project:
 
     mkdir build
     cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX=dist -DREGOCPP_BUILD_TOOLS=1 -DREGOCPP_BUILD_TESTS=1
+    cmake .. --preset release
 
 You can then build and run the tests using:
 
