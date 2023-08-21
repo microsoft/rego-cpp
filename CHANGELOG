@@ -1,6 +1,38 @@
 # Changelog
 
-## [2023-08-12 - Version 0.2.5](https://github.com/microsoft/scenepic/releases/tag/v0.2.5)
+## 2023-08-12 - Version 0.2.6
+Adding the `aggregates`, `arrays`, and `strings` builtins.
+
+**New Features**
+- `aggregates` builtins
+- `arrays` builtins
+- `strings` builtins
+- The library now supports arbitrary precision integers
+
+**New Test Coverage**
+- `aggregates`
+- `array`
+- `comparisonexpr`
+- `compositebasedereference`
+- `helloworld`
+- `indexing`
+- `intersection`
+- `replacen`
+- `sprintf`
+- `strings`
+- `trim`
+- `trimleft`
+- `trimprefix`
+- `trimright`
+- `trimspace`
+- `trimsuffix`
+- `union`
+
+**Bug Fixes**
+- Multiple implementation details exposed by testing
+
+
+## 2023-08-12 - Version 0.2.5
 Adding the `numbers` built-ins.
 
 **New Features**
@@ -17,7 +49,7 @@ Adding the `numbers` built-ins.
 - Multiple implementation details exposed by testing
 
 
-## [2023-08-12 - Version 0.2.4](https://github.com/microsoft/scenepic/releases/tag/v0.2.4)
+## 2023-08-12 - Version 0.2.4
 Adding a test driver that can execute OPA Rego-style YAML test files against the
 `regocpp` interpreter.
 
