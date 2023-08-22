@@ -1,5 +1,5 @@
-#include "lang.h"
 #include "passes.h"
+#include "utils.h"
 
 #include <set>
 
@@ -52,19 +52,26 @@ namespace
       std::string refarg_str;
       if (refarg->type() == RefArgDot)
       {
-        refarg_str = std::string(refarg->front()->location().view());
+        refarg_str = "." + std::string(refarg->front()->location().view());
       }
       else if (refarg->type() == RefArgBrack)
       {
-        refarg_str = to_json(refarg->front());
+        refarg_str = strip_quotes(to_json(refarg->front()));
+        if (!all_alnum(refarg_str))
+        {
+          refarg_str = "[\"" + refarg_str + "\"]";
+        }
+        else
+        {
+          refarg_str = "." + refarg_str;
+        }
       }
       else
       {
         return {0, ""};
       }
 
-      path = path + "." + strip_quotes(refarg_str);
-      Node test = Var ^ path;
+      path = path + refarg_str;
       if (skips->contains(path))
       {
         skip = i + 1;
@@ -140,6 +147,28 @@ namespace rego
       for (Node skip : *skipseq)
       {
         std::string path = std::string((skip / Key)->location().view());
+        skips->insert(path);
+      }
+
+      // get all rule symbols
+      Nodes rules;
+      node->get_symbols(
+        rules, [](Node n) { return RuleTypes.contains(n->type()); });
+      for (auto rule : rules)
+      {
+        std::string path = std::string((rule / Var)->location().view());
+        skips->insert(path);
+      }
+
+      // get all module symbols
+      std::set<Token> module_types = {DataItem, Submodule};
+      Nodes dataitems;
+      node->get_symbols(dataitems, [module_types](Node n) {
+        return module_types.contains(n->type());
+      });
+      for (auto dataitem : dataitems)
+      {
+        std::string path = std::string((dataitem / Key)->location().view());
         skips->insert(path);
       }
 

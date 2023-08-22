@@ -1,4 +1,5 @@
 #include "passes.h"
+#include "errors.h"
 
 namespace rego
 {

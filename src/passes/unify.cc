@@ -1,4 +1,6 @@
 #include "passes.h"
+#include "errors.h"
+#include "utils.h"
 #include "resolver.h"
 
 namespace

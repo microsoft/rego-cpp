@@ -13,6 +13,7 @@ resolver.cc
 variable.cc
 wf.cc
 builtins.cc
+utils.cc
 passes/input_data.cc
 passes/modules.cc
 passes/lists.cc

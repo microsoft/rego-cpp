@@ -1,5 +1,7 @@
-#include "lang.h"
 #include "passes.h"
+#include "errors.h"
+#include "utils.h"
+
 
 namespace
 {
@@ -31,7 +33,7 @@ namespace
 
       return dst;
     }
-    else if (dst->type() == Module && src->type() == Module)
+    else if (dst->type() == DataModule && src->type() == DataModule)
     {
       for (auto& child : *src)
       {
@@ -47,12 +49,12 @@ namespace
         {
           Node dst_submodule = (*target)->back();
           Node src_submodule = child->back();
-          if (dst_submodule->type() != Module)
+          if (dst_submodule->type() != DataModule)
           {
             return err(
               dst_submodule, "Cannot merge into a rule with the same name");
           }
-          if (src_submodule->type() != Module)
+          if (src_submodule->type() != DataModule)
           {
             return err(
               dst_submodule,
@@ -92,14 +94,15 @@ namespace rego
                T(Policy)[Policy])) >>
         [](Match& _) {
           Node args = _(RefArgSeq);
-          Node module = Module << *_[Policy];
+          Node module = DataModule << *_[Policy];
           while (args->size() > 0)
           {
             Node arg = args->back();
             args->pop_back();
             if (arg->type() == RefArgDot)
             {
-              module = Module << (Submodule << (Key ^ arg->front()) << module);
+              module = DataModule
+                << (Submodule << (Key ^ arg->front()) << module);
             }
             else if (arg->type() == RefArgBrack)
             {
@@ -113,10 +116,13 @@ namespace rego
               {
                 return err(idx, "Invalid package ref index");
               }
-              Location loc = idx->location();
-              loc.pos += 1;
-              loc.len -= 2;
-              module = Module << (Submodule << (Key ^ loc) << module);
+
+              std::string key = strip_quotes(idx->location().view());
+              if (!all_alnum(key))
+              {
+                key = "[\"" + key + "\"]";
+              }
+              module = DataModule << (Submodule << (Key ^ key) << module);
             }
             else
             {
@@ -124,7 +130,44 @@ namespace rego
             }
           }
 
-          return Lift << Rego << (DataItem << (Key ^ _(Var)) << module);
+          // now that the module is built, update all the names going
+          // back down the tree.
+          std::ostringstream path;
+          path << "data." << _(Var)->location().view();
+          std::string base = path.str();
+
+          if(module->size() == 0){
+            return Lift << Rego << (DataItem << (Key ^ base) << module);
+          }
+
+          Node submodule = module->front();
+          while (submodule != nullptr)
+          {
+            if(submodule->type() != Submodule){
+              break;
+            }
+            auto key = submodule / Key;
+            auto key_str = key->location().view();
+            if (!key_str.starts_with("["))
+            {
+              path << ".";
+            }
+            path << key_str;
+            submodule->replace(key, Key ^ path.str());
+            if (submodule->size() > 0)
+            {
+              submodule = submodule->back();
+              if(submodule->size() > 0){
+                submodule = submodule->front();
+              }else{
+                break;
+              }
+            }else{
+              break;
+            }
+          }
+
+          return Lift << Rego << (DataItem << (Key ^ base) << module);
         },
 
       In(Rego) * (T(ModuleSeq) << End) >> ([](Match&) -> Node { return {}; }),
@@ -143,6 +186,8 @@ namespace rego
 
       In(Rego) * (T(ModuleSeq)[ModuleSeq] << T(Error)) >>
         [](Match& _) { return _(Error); },
+
+      In(DataModule) * T(Import)[Import] >> [](Match& _) { return err(_(Import), "Invalid import"); }
     };
   }
 }

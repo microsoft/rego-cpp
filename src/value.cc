@@ -1,6 +1,7 @@
 #include "value.h"
 
-#include "lang.h"
+#include "errors.h"
+#include "utils.h"
 #include "resolver.h"
 
 #include <sstream>
@@ -199,7 +200,7 @@ namespace rego
   Node ValueDef::to_term() const
   {
     if (
-      m_node->type() == Term || m_node->type() == DefaultTerm ||
+      m_node->type() == Term ||
       m_node->type() == Error)
     {
       return m_node;

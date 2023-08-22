@@ -1,8 +1,9 @@
 #include "interpreter.h"
 
-#include "lang.h"
 #include "trieste/ast.h"
 #include "wf.h"
+#include "errors.h"
+#include "utils.h"
 
 #include <iostream>
 #include <sstream>

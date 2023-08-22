@@ -1,7 +1,8 @@
 #pragma once
 
 #include "builtins.h"
-#include "lang.h"
+#include <trieste/parse.h>
+#include <trieste/wf.h>
 
 #include <string>
 

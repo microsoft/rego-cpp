@@ -1,6 +1,7 @@
 #include "errors.h"
 #include "register.h"
 #include "resolver.h"
+#include "utils.h"
 
 namespace
 {

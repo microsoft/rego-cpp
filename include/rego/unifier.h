@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <optional>
 
 namespace rego
 {
@@ -39,10 +40,16 @@ namespace rego
     static Unifier create(
       const Location& rule,
       const Node& rulebody,
-      CallStack call_stack,
-      WithStack with_stack,
+      const CallStack& call_stack,
+      const WithStack& with_stack,
       const BuiltIns& builtins,
-      UnifierCache cache);
+      const UnifierCache& cache);
+    std::optional<RankedNode> resolve_rulecomp(const Node& rulecomp) const;
+    std::optional<RankedNode> resolve_rulefunc(
+      const Node& rulefunc, const Nodes& args) const;
+    std::optional<Node> resolve_ruleset(const Nodes& ruleset) const;
+    std::optional<Node> resolve_ruleobj(const Nodes& ruleobj) const;
+    Node resolve_module(const Node& module) const;
 
   private:
     struct Dependency
@@ -52,7 +59,7 @@ namespace rego
       std::size_t score;
     };
 
-    Unifier rule_unifier(const Location& rule, const Node& rulebody);
+    Unifier rule_unifier(const Location& rule, const Node& rulebody) const;
     void init_from_body(
       const Node& rulebody, std::vector<Node>& statements, std::size_t root);
     std::size_t add_variable(const Node& local);
@@ -76,11 +83,6 @@ namespace rego
     Values enumerate(const Location& var, const Node& container);
     Values resolve_skip(const Node& skip);
     Values check_with(const Node& var);
-    std::optional<RankedNode> resolve_rulecomp(const Node& rulecomp);
-    std::optional<RankedNode> resolve_rulefunc(
-      const Node& rulefunc, const Nodes& args);
-    std::optional<Node> resolve_ruleset(const Nodes& ruleset);
-    std::optional<Node> resolve_ruleobj(const Nodes& ruleobj);
     Node resolve_every(const Node& varseq, const Node& nestedbody);
     Values resolve_compr(const Location& var, const Node& compr);
     Values call_function(

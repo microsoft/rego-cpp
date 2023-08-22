@@ -1,7 +1,8 @@
-#include "lang.h"
 #include "passes.h"
+#include "errors.h"
+#include "utils.h"
 #include "resolver.h"
-#include "trieste/token.h"
+
 
 namespace
 {

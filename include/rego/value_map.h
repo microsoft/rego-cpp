@@ -21,7 +21,7 @@ namespace rego
     bool insert(const Value& value);
     bool erase(const std::string& json);
     bool empty() const;
-    Nodes nodes() const;
+    Nodes to_terms() const;
     Values valid_values() const;
     bool remove_invalid_values();
     void mark_valid_values(bool include_falsy);

@@ -1,5 +1,6 @@
 #include "passes.h"
-#include "trieste/pass.h"
+#include "errors.h"
+#include "utils.h"
 
 namespace
 {
@@ -112,7 +113,7 @@ namespace rego
       dir::bottomup,
       {
         In(UnifyBody) *
-            (T(UnifyExprEnum)([](auto& n) { return is_in(*n.first, {Module}); })
+            (T(UnifyExprEnum)([](auto& n) { return is_in(*n.first, {DataModule}); })
              << (T(Var)[Var] * T(Var)[Item] * T(Var)[ItemSeq] *
                  T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
@@ -185,7 +186,7 @@ namespace rego
             }
 
             Node result = Seq
-              << (Lift << Module
+              << (Lift << DataModule
                        << (RuleFunc << rulename << ruleargs << rulebody
                                     << rulevalue << (JSONInt ^ "0")))
               << (UnifyExpr
@@ -211,7 +212,7 @@ namespace rego
 
         In(UnifyBody) *
             (T(UnifyExprCompr)(
-               [](auto& n) { return is_in(*n.first, {Module}); })
+               [](auto& n) { return is_in(*n.first, {DataModule}); })
              << (T(Var)[Var] *
                  (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] *
                  (T(NestedBody) << (T(Key)[Key] * T(UnifyBody)[UnifyBody])))) >>
@@ -229,7 +230,7 @@ namespace rego
                 << (UnifyExpr
                     << (Var ^ value)
                     << (Expr << (_(Compr)->type() << _(Compr) / Var)));
-              return Seq << (Lift << Module
+              return Seq << (Lift << DataModule
                                   << (RuleComp << rulename << rulebody
                                                << rulevalue << (JSONInt ^ "0")))
                          << (UnifyExpr
@@ -255,7 +256,7 @@ namespace rego
 
               Location partial = _.fresh({"partial"});
               return Seq << (Lift
-                             << Module
+                             << DataModule
                              << (RuleFunc << rulename << ruleargs << rulebody
                                           << rulevalue << (JSONInt ^ "0")))
                          << (Local << (Var ^ partial) << Undefined)

@@ -2,7 +2,8 @@
 
 #include <functional>
 #include <string>
-#include <trieste/driver.h>
+#include <trieste/source.h>
+#include <trieste/ast.h>
 
 namespace rego
 {

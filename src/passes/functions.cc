@@ -1,5 +1,6 @@
-#include "lang.h"
 #include "passes.h"
+#include "errors.h"
+#include "utils.h"
 
 namespace
 {
@@ -293,10 +294,10 @@ namespace rego
       In(ArgSeq) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Invalid reference"); },
 
-      In(ObjectItem) * T(Module)[Module] >>
+      In(ObjectItem) * T(DataModule)[DataModule] >>
         [](Match& _) {
           return err(
-            _(Module), "Syntax error: module not allowed as object item value");
+            _(DataModule), "Syntax error: module not allowed as object item value");
         },
 
       In(ArgSeq) * T(ExprEvery)[ExprEvery] >>

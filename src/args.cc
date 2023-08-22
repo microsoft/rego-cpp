@@ -1,6 +1,7 @@
 #include "args.h"
 
 #include "value.h"
+#include "utils.h"
 
 #include <sstream>
 
@@ -71,7 +72,7 @@ namespace rego
     return os;
   }
 
-  void Args::mark_invalid(const std::set<Value>& active) const
+  void Args::mark_invalid_except(const std::set<Value>& active) const
   {
     for (auto& values : m_values)
     {

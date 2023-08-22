@@ -296,7 +296,7 @@ namespace rego
   inline const auto wf_pass_symbols =
     wf_pass_merge_data
     | (Module <<= Package * Policy)
-    | (Policy <<= (Import | DefaultRule | RuleComp | RuleFunc | RuleSet | RuleObj)++)
+    | (Policy <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj)++)
     | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * JSONInt)[Var]
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * JSONInt)[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | Term))[Var]
@@ -309,7 +309,6 @@ namespace rego
     | (Literal <<= Expr | SomeExpr)
     | (ArgVar <<= Var * Undefined)[Var]
     | (ArgVal <<= Scalar | Array | Object | Set)
-    | (DefaultRule <<= Var * (Val >>= Term))[Var]
     | (Term <<= Scalar | Array | Object | Set | ArrayCompr | SetCompr | ObjectCompr)
     | (ObjectCompr <<= Expr * Expr * (Body >>= NestedBody))
     | (ArrayCompr <<= Expr * (Body >>= NestedBody))
@@ -335,7 +334,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_lift_query =
     wf_pass_replace_argvals
-    | (Query <<= VarSeq)
+    | (Query <<= Var)
     ;
   // clang-format on
 
@@ -346,7 +345,6 @@ namespace rego
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * JSONInt)[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | DataTerm))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | DataTerm) * (Val >>= Expr | DataTerm))[Var]
-    | (DefaultRule <<= Var * (Val >>= DataTerm))[Var]
     ;
   // clang-format on
 
@@ -375,9 +373,9 @@ namespace rego
   inline const auto wf_pass_merge_modules =
     wf_pass_absolute_refs
     | (Rego <<= Query * Input * Data)
-    | (Module <<= (Import | RuleComp | DefaultRule | RuleFunc | RuleSet | RuleObj | Submodule)++)
-    | (Submodule <<= Key * (Val >>= Module))[Key]
-    | (DataItem <<= Key * (Val >>= Module | DataTerm))[Key]
+    | (DataModule <<= (RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
+    | (Submodule <<= Key * (Val >>= DataModule))[Key]
+    | (DataItem <<= Key * (Val >>= DataModule | DataTerm))[Key]
     ;
   // clang-format on
 
@@ -386,8 +384,9 @@ namespace rego
     wf_pass_merge_modules
     | (Rego <<= Query * Input * Data * SkipSeq)
     | (SkipSeq <<= Skip++)
-    | (Skip <<= Key * (Val >>= VarSeq | RuleRef | BuiltInHook | Undefined))[Key]
+    | (Skip <<= Key * (Val >>= VarSeq | RuleRef | ModuleRef | BuiltInHook | Undefined))[Key]
     | (RuleRef <<= VarSeq)
+    | (ModuleRef <<= VarSeq)
     ;
   // clang-format on
 
@@ -479,7 +478,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_rulebody =
     wf_pass_init
-    | (Module <<= (Import | RuleComp | DefaultRule | RuleFunc | RuleSet | RuleObj | Submodule)++)
+    | (Module <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
     | (UnifyExpr <<= Var * (Val >>= Expr))
     | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate | Membership)
     | (UnifyBody <<= (Local | UnifyExpr | UnifyExprWith | UnifyExprCompr | UnifyExprEnum | UnifyExprNot)++[1])
@@ -514,8 +513,8 @@ namespace rego
     | (Array <<= Term++)
     | (Set <<= Term++)
     | (Object <<= ObjectItem++)
-    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))[Key]
-    | (DataItem <<= Key * (Val >>= Module | Term))[Key]
+    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
+    | (DataItem <<= Key * (Val >>= DataModule | Term))[Key]
     | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * JSONInt)[Var]
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * JSONInt)[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))[Var]

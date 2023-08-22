@@ -9,7 +9,7 @@ namespace rego
   public:
     Args();
     void push_back(const Values& values);
-    void mark_invalid(const std::set<Value>& active) const;
+    void mark_invalid_except(const std::set<Value>& active) const;
     Values at(std::size_t index) const;
     std::size_t size() const;
     std::string str() const;

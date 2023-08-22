@@ -338,10 +338,14 @@ namespace rego_test
         [](Match& _) { return _(Entry)->front(); },
 
       In(Group) * T(Key)[Key] >>
-        [](Match& _) { return rego::JSONString ^ _(Key); },
+        [](Match& _) {           std::string key_str = "\"" + std::string(_(Key)->location().view()) + "\"";
+          return rego::JSONString ^ key_str; },
 
       (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(String)[String]) >>
-        [](Match& _) { return rego::JSONString ^ _(String); },
+        [](Match& _) { 
+          std::string str = "\"" + std::string(_(String)->location().view()) + "\"";
+          return rego::JSONString ^ str;
+        },
 
       (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(Integer)[Integer]) >>
         [](Match& _) { return rego::JSONInt ^ _(Integer); },

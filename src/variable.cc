@@ -2,6 +2,7 @@
 
 #include "log.h"
 #include "resolver.h"
+#include "utils.h"
 
 namespace
 {
@@ -12,7 +13,6 @@ namespace
   inline const auto wfi =
       (Local <<= Var * (Val >>= Undefined | Term))
     | (Term <<= Scalar | Array | Object | Set | Undefined)
-    | (DefaultTerm <<= Scalar | Array | Object | Set | Undefined)
     | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
     ;
   // clang-format on
@@ -107,15 +107,10 @@ namespace rego
 
   Node Variable::to_term() const
   {
-    Nodes nodes = m_values.nodes();
+    Nodes nodes = m_values.to_terms();
 
     if (nodes.size() == 1)
     {
-      if (nodes[0]->type() == DefaultTerm)
-      {
-        return Term << nodes[0]->front();
-      }
-
       return nodes[0];
     }
 
@@ -128,7 +123,7 @@ namespace rego
         return node;
       }
 
-      if (node->type() == DefaultTerm || node->type() == Undefined)
+      if (node->type() == Undefined)
       {
         continue;
       }

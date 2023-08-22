@@ -1,8 +1,8 @@
 #include "resolver.h"
 
 #include "errors.h"
-#include "lang.h"
 #include "unifier.h"
+#include "utils.h"
 
 namespace
 {
@@ -12,7 +12,7 @@ namespace
   // clang-format off
   inline const auto wfi =
     (DataItemSeq <<= DataItem++)
-    | (DataItem <<= Var * (Val >>= Module | Term))
+    | (DataItem <<= Var * (Val >>= DataModule | Term))
     | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
     | (UnifyExprWith <<= UnifyBody * WithSeq)
     | (UnifyExprCompr <<= Var * (Val >>= ArrayCompr | SetCompr | ObjectCompr) * UnifyBody)
@@ -26,7 +26,7 @@ namespace
     | (ArgVar <<= Var * (Val >>= Term | Undefined))
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
     | (Function <<= JSONString * ArgSeq)
-    | (Submodule <<= Key * Module)
+    | (Submodule <<= Key * DataModule)
     | (With <<= Ref * Var)
     | (Ref <<= RefHead * RefArgSeq)
     ;
@@ -295,7 +295,7 @@ namespace rego
 
     if (value->type() == JSONString)
     {
-      return strip_quotes(std::string(value->location().view()));
+      return strip_quotes(value->location().view());
     }
 
     return std::string(value->location().view());
@@ -650,7 +650,7 @@ namespace rego
       return object_lookdown(container, query);
     }
 
-    if (container->type() == Data || container->type() == Module)
+    if (container->type() == Data || container->type() == DataModule)
     {
       Node key = arg->front();
       std::string key_str = strip_quotes(to_json(key));
@@ -661,7 +661,7 @@ namespace rego
       }
 
       if (
-        defs[0]->type() == RuleComp || defs[0]->type() == DefaultRule ||
+        defs[0]->type() == RuleComp || 
         defs[0]->type() == RuleFunc)
       {
         return defs;
@@ -680,7 +680,7 @@ namespace rego
         }
         else if (def->type() == Submodule)
         {
-          nodes.push_back(wfi / def / Module);
+          nodes.push_back(wfi / def / DataModule);
         }
         else
         {
@@ -1144,6 +1144,10 @@ namespace rego
 
   bool Resolver::is_undefined(const Node& node)
   {
+    if(node->type() == DataModule){
+      return false;
+    }
+
     if (node->type() == Undefined)
     {
       return true;
@@ -1189,18 +1193,6 @@ namespace rego
   Nodes Resolver::object_lookdown(const Node& object, const Node& query)
   {
     Nodes terms;
-    Nodes defs = object->lookdown(query->location());
-
-    if (defs.size() > 0)
-    {
-      std::transform(
-        defs.begin(),
-        defs.end(),
-        std::back_inserter(terms),
-        [](const Node& def) { return (wfi / def / Val)->clone(); });
-      return terms;
-    }
-
     std::string query_str = to_json(query);
     for (auto& object_item : *object)
     {
@@ -1256,25 +1248,26 @@ namespace rego
 
   Node Resolver::resolve_query(const Node& query, const BuiltIns& builtins)
   {
-    Nodes defs = resolve_varseq(query->front());
+    Nodes defs = query->front()->lookup();
     if (defs.size() != 1)
     {
       return err(query, "query not found");
     }
 
     Node rulebody = defs[0] / Val;
-    {
-      auto unifier = UnifierDef::create(
-        {"query"},
-        rulebody,
-        std::make_shared<std::vector<Location>>(),
-        std::make_shared<std::vector<ValuesLookup>>(),
-        builtins,
-        std::make_shared<NodeMap<Unifier>>());
-      unifier->unify();
+    auto unifier = UnifierDef::create(
+      {"query"},
+      rulebody,
+      std::make_shared<std::vector<Location>>(),
+      std::make_shared<std::vector<ValuesLookup>>(),
+      builtins,
+      std::make_shared<NodeMap<Unifier>>());
+    Node result = unifier->unify();
+    if(result->type() == Error){
+      return Query << result;
     }
 
-    Node result = NodeDef::create(Query);
+    result = NodeDef::create(Query);
 
     for (auto& child : *rulebody)
     {

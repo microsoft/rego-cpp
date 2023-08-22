@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lang.h"
+#include <trieste/source.h>
 
 namespace rego
 {

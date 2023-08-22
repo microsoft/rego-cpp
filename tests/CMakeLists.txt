@@ -27,6 +27,7 @@ if(REGOCPP_OPA_TESTS)
   aggregates
   array
   arithmetic
+  assignments
   comparisonexpr
   compositebasedereference
   helloworld

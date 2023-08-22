@@ -2,9 +2,10 @@
 
 #include "CLI/TypeTools.hpp"
 #include "args.h"
-#include "lang.h"
 #include "log.h"
 #include "resolver.h"
+#include "utils.h"
+#include "errors.h"
 
 #include <algorithm>
 #include <iostream>
@@ -21,7 +22,6 @@ namespace
       (Local <<= Var * (Val >>= Term | Undefined))
     | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
     | (UnifyExprWith <<= UnifyBody * WithSeq)
-    | (DefaultRule <<= Var * Term)
     | (RuleComp <<= Var * (Body >>= JSONTrue | JSONFalse | UnifyBody | Empty) * (Val >>= Term | UnifyBody) * (Idx >>= JSONInt))
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= Term | UnifyBody) * (Idx >>= JSONInt))
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))
@@ -508,7 +508,7 @@ namespace rego
       }
     }
 
-    args.mark_invalid(valid_args);
+    args.mark_invalid_except(valid_args);
 
     return values;
   }
@@ -723,23 +723,36 @@ namespace rego
           Values skip_values = resolve_skip(def);
           values.insert(values.end(), skip_values.begin(), skip_values.end());
         }
-        else if(def->type() == Input)
+        else if (def->type() == Input)
         {
           values.push_back(ValueDef::create(def / Val));
         }
-        else if (
-          def->type() == Data || def->type() == Module ||
-          def->type() == RuleFunc)
+        else if (def->type() == Submodule)
+        {
+          values.push_back(ValueDef::create(resolve_module(def)));
+        }
+        else if (def->type() == Data || def->type() == RuleFunc)
         {
           // these will always be an argument to apply_access
           values.push_back(ValueDef::create(def));
         }
-        else if (def->type() == RuleComp || def->type() == DefaultRule)
+        else if (def->type() == RuleComp)
         {
           auto maybe_node = resolve_rulecomp(def);
           if (maybe_node)
           {
             values.push_back(ValueDef::create(maybe_node.value()));
+          }
+        }
+        else if(def->type() == DataItem){
+          Node value = def / Val;
+          if(value->type() == DataModule)
+          {
+            values.push_back(ValueDef::create(resolve_module(def)));
+          }
+          else
+          {
+            values.push_back(ValueDef::create(value));
           }
         }
         else
@@ -842,7 +855,7 @@ namespace rego
               auto maybe_node = resolve_ruleset(defs);
               if (maybe_node)
               {
-                values.push_back(ValueDef::create(*maybe_node));
+                values.push_back(ValueDef::create(var, *maybe_node, sources));
               }
             }
             else if (peek_type == RuleObj)
@@ -850,14 +863,14 @@ namespace rego
               auto maybe_node = resolve_ruleobj(defs);
               if (maybe_node)
               {
-                values.push_back(ValueDef::create(*maybe_node));
+                values.push_back(ValueDef::create(var, *maybe_node, sources));
               }
             }
             else
             {
               for (auto& def : defs)
               {
-                if (def->type() == RuleComp || def->type() == DefaultRule)
+                if (def->type() == RuleComp)
                 {
                   auto maybe_node = resolve_rulecomp(def);
                   if (maybe_node)
@@ -1209,14 +1222,6 @@ namespace rego
               }
             }
           }
-          else if (rule->type() == DefaultRule)
-          {
-            auto maybe_node = resolve_rulecomp(rule);
-            if (maybe_node)
-            {
-              values.push_back(ValueDef::create(maybe_node.value()));
-            }
-          }
           else
           {
             values.push_back(ValueDef::create(rule));
@@ -1244,15 +1249,104 @@ namespace rego
     return values;
   }
 
-  std::optional<RankedNode> UnifierDef::resolve_rulecomp(const Node& rulecomp)
+  Node UnifierDef::resolve_module(const Node& dataitem) const
   {
-    if (rulecomp->type() == DefaultRule)
+    Node module = dataitem / Val;
+    assert(module->type() == DataModule);
+
+    Location prefix = (dataitem / Key)->location();
+    std::size_t prefix_len = prefix.len + 1;
+
+    Node object = NodeDef::create(Object);
+    std::map<Location, Nodes> rule_nodes;
+    for (auto& rule : *module)
     {
-      rank_t index = std::numeric_limits<rank_t>::max();
-      return std::make_pair(
-        index, DefaultTerm << (wfi / rulecomp / Term)->front());
+      Location name;
+      if (rule->type() == Submodule)
+      {
+        name = (rule / Key)->location();
+      }
+      else
+      {
+        name = (rule / Var)->location();
+      }
+
+      if (name.view().find("$") != std::string::npos)
+      {
+        continue;
+      }
+
+      auto pos = prefix_len;
+      auto len = name.view().size() - pos;
+      name.pos = pos;
+      name.len = len;
+
+      if (!rule_nodes.contains(name))
+      {
+        rule_nodes[name] = Nodes();
+      }
+
+      rule_nodes[name].push_back(rule);
     }
 
+    for (auto& [name, rules] : rule_nodes)
+    {
+      Node key = Term << (Scalar << (JSONString ^ name));
+      Node peek = rules.front();
+      if (peek->type() == Submodule)
+      {
+        object->push_back(ObjectItem << key << resolve_module(peek));
+      }
+      else if (peek->type() == RuleObj)
+      {
+        auto maybe_node = resolve_ruleobj(rules);
+        if (maybe_node.has_value())
+        {
+          object->push_back(ObjectItem << key << maybe_node.value());
+        }
+      }
+      else if (peek->type() == RuleSet)
+      {
+        auto maybe_node = resolve_ruleset(rules);
+        if (maybe_node.has_value())
+        {
+          object->push_back(ObjectItem << key << maybe_node.value());
+        }
+      }
+      else if (peek->type() == RuleComp)
+      {
+        Values values;
+        for (auto& rule : rules)
+        {
+          auto maybe_node = resolve_rulecomp(rule);
+          if (maybe_node.has_value())
+          {
+            values.push_back(ValueDef::create(maybe_node.value()));
+            break;
+          }
+        }
+        values = ValueDef::filter_by_rank(values);
+        if (values.size() == 1)
+        {
+          Node node = values.front()->to_term();
+          if (node->front()->type() != Undefined)
+          {
+            object->push_back(ObjectItem << key << values.front()->to_term());
+          }
+        }
+        else if (values.size() > 1)
+        {
+          return err(module, "Ambiguous rule");
+        }
+      }
+    }
+
+    return Term << object;
+  }
+
+  std::optional<RankedNode> UnifierDef::resolve_rulecomp(
+    const Node& rulecomp) const
+  {
     assert(rulecomp->type() == RuleComp);
     if (rulecomp->type() != RuleComp)
     {
@@ -1327,7 +1421,7 @@ namespace rego
   }
 
   std::optional<RankedNode> UnifierDef::resolve_rulefunc(
-    const Node& rulefunc, const Nodes& args)
+    const Node& rulefunc, const Nodes& args) const
   {
     if (rulefunc->type() != RuleFunc)
     {
@@ -1409,7 +1503,7 @@ namespace rego
     return std::make_pair(index, value);
   }
 
-  std::optional<Node> UnifierDef::resolve_ruleset(const Nodes& ruleset)
+  std::optional<Node> UnifierDef::resolve_ruleset(const Nodes& ruleset) const
   {
     Node argseq = NodeDef::create(ArgSeq);
 
@@ -1495,7 +1589,7 @@ namespace rego
     return Resolver::set(argseq);
   }
 
-  std::optional<Node> UnifierDef::resolve_ruleobj(const Nodes& ruleobj)
+  std::optional<Node> UnifierDef::resolve_ruleobj(const Nodes& ruleobj) const
   {
     Node argseq = NodeDef::create(ArgSeq);
 
@@ -1641,10 +1735,10 @@ namespace rego
   Unifier UnifierDef::create(
     const Location& rule,
     const Node& rulebody,
-    CallStack call_stack,
-    WithStack with_stack,
+    const CallStack& call_stack,
+    const WithStack& with_stack,
     const BuiltIns& builtins,
-    UnifierCache cache)
+    const UnifierCache& cache)
   {
     if (cache->contains(rulebody))
     {
@@ -1661,7 +1755,8 @@ namespace rego
     }
   }
 
-  Unifier UnifierDef::rule_unifier(const Location& rule, const Node& rulebody)
+  Unifier UnifierDef::rule_unifier(
+    const Location& rule, const Node& rulebody) const
   {
     return create(
       rule, rulebody, m_call_stack, m_with_stack, m_builtins, m_cache);

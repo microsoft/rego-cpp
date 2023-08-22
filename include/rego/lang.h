@@ -19,7 +19,7 @@ namespace rego
   inline const auto RuleHeadSet = TokenDef("rule-head-set");
   inline const auto RuleHeadObj = TokenDef("rule-head-obj");
   inline const auto RuleArgs = TokenDef("rule-args");
-  inline const auto Query = TokenDef("query", flag::symtab);
+  inline const auto Query = TokenDef("query");
   inline const auto Literal = TokenDef("literal");
   inline const auto Expr = TokenDef("expr");
   inline const auto ExprInfix = TokenDef("expr-infix");
@@ -38,7 +38,7 @@ namespace rego
   inline const auto Scalar = TokenDef("scalar");
   inline const auto String = TokenDef("string");
   inline const auto Array = TokenDef("array");
-  inline const auto Object = TokenDef("object", flag::symtab);
+  inline const auto Object = TokenDef("object");
   inline const auto Set = TokenDef("set");
   inline const auto EmptySet = TokenDef("empty-set");
   inline const auto ObjectItem = TokenDef("object-item");
@@ -84,16 +84,17 @@ namespace rego
   inline const auto UnifyBody = TokenDef("unify-body");
   inline const auto RefHead = TokenDef("ref-head");
   inline const auto RefArgSeq = TokenDef("ref-arg-seq");
-  inline const auto DataSeq = TokenDef("data-seq");
   inline const auto ModuleSeq = TokenDef("module-seq");
+  inline const auto DataSeq = TokenDef("data-seq");
   inline const auto DataItemSeq = TokenDef("data-item-seq");
-  inline const auto DataItem = TokenDef("data-item", flag::lookdown);
-  inline const auto DataObject = TokenDef("data-object", flag::symtab);
-  inline const auto DataObjectItem =
-    TokenDef("data-object-item", flag::lookdown);
+  inline const auto DataItem = TokenDef("data-item", flag::lookup);
+  inline const auto DataObject = TokenDef("data-object");
+  inline const auto DataObjectItem = TokenDef("data-object-item");
   inline const auto DataArray = TokenDef("data-array");
   inline const auto DataSet = TokenDef("data-set");
-  inline const auto Submodule = TokenDef("submodule", flag::lookdown);
+  inline const auto DataModule = TokenDef("data-module", flag::lookup);
+  inline const auto Submodule =
+    TokenDef("submodule", flag::lookdown | flag::lookup);
   inline const auto DataTerm = TokenDef("data-term");
   inline const auto ObjectItemSeq = TokenDef("object-item-seq");
   inline const auto ImportSeq = TokenDef("import-seq");
@@ -105,8 +106,8 @@ namespace rego
   inline const auto ItemSeq1 = TokenDef("item-seq-1");
 
   // data and input
-  inline const auto Input = TokenDef("input", flag::symtab | flag::lookup);
-  inline const auto Data = TokenDef("data", flag::symtab | flag::lookup);
+  inline const auto Input = TokenDef("input", flag::lookup);
+  inline const auto Data = TokenDef("data", flag::lookup);
 
   // fused
   inline const auto RuleComp = TokenDef(
@@ -171,7 +172,6 @@ namespace rego
   inline const auto Empty = TokenDef("empty");
   inline const auto SimpleRef = TokenDef("simple-ref");
   inline const auto Binding = TokenDef("binding");
-  inline const auto DefaultTerm = TokenDef("default-term");
   inline const auto Body = TokenDef("body");
   inline const auto Import =
     TokenDef("import", flag::lookdown | flag::lookup | flag::shadowing);
@@ -183,6 +183,7 @@ namespace rego
   inline const auto NestedBody = TokenDef("nested-body", flag::symtab);
   inline const auto BuiltInHook = TokenDef("builtin-hook", flag::lookup);
   inline const auto RuleRef = TokenDef("rule-ref");
+  inline const auto ModuleRef = TokenDef("module-ref");
   inline const auto Item = TokenDef("item");
   inline const auto Item1 = TokenDef("item-1");
   inline const auto Enumerate = TokenDef("enumerate");
@@ -207,33 +208,10 @@ namespace rego
   inline const auto Paren = TokenDef("paren");
   inline const auto Not = TokenDef("not");
   inline const auto Comma = TokenDef("comma");
-  inline const auto Placeholder = TokenDef("_");
-
-  inline const std::set<std::string> Keywords(
-    {"if", "in", "contains", "every"});
-
-  inline const std::set<Token> RuleTypes(
-    {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
-
-  Node err(
-    NodeRange& r,
-    const std::string& msg,
-    const std::string& code = "runtime_error");
-
-  Node err(
-    Node node,
-    const std::string& msg,
-    const std::string& code = "runtime_error");
+  inline const auto Placeholder = TokenDef("_"); 
 
   Parse parser();
   Driver& driver(const BuiltIns& builtins);
   using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
   std::vector<PassCheck> passes(const BuiltIns& builtins);
-  std::string to_json(const Node& node, bool sort = false);
-  bool contains_local(const Node& node);
-  bool contains_ref(const Node& node);
-  bool is_in(const Node& node, const std::set<Token>& token);
-  bool in_query(const Node& node);
-  bool is_constant(const Node& node);
-  std::string strip_quotes(const std::string& str);
 }

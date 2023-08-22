@@ -2,7 +2,6 @@
 
 #include "bigint.h"
 #include "builtins.h"
-#include "lang.h"
 
 #include <optional>
 #include <string>

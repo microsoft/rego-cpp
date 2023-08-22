@@ -1,7 +1,7 @@
-#include "lang.h"
 #include "passes.h"
+#include "errors.h"
+#include "utils.h"
 #include "resolver.h"
-#include "trieste/rewrite.h"
 
 #include <sstream>
 
@@ -92,6 +92,12 @@ namespace rego
           }
 
           return seq;
+        },
+
+      In(Policy) * (T(DefaultRule) << (T(Var)[Var] * T(Term)[Term])) >>
+        [](Match& _){
+          Node rank = JSONInt ^ std::to_string(std::numeric_limits<std::size_t>::max());
+          return RuleComp << _(Var) << Empty << _(Term) << rank;
         },
 
       In(Policy) *

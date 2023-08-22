@@ -1,6 +1,6 @@
-#include "lang.h"
 #include "passes.h"
-#include "trieste/token.h"
+#include "errors.h"
+#include "utils.h"
 
 namespace
 {
@@ -41,6 +41,11 @@ namespace
 
     return false;
   }
+
+  bool is_top_level(const Node& node)
+  {
+    return node->parent()->parent()->type() == Policy;
+  }
 }
 
 namespace rego
@@ -56,51 +61,32 @@ namespace rego
         ([](Match&) -> Node { return ObjectItemSeq; }),
 
       In(Input) * (T(Square) << T(List)[List]) >>
-        [](Match& _){return Array << *_[List];},
-      
-      In(Input) * (T(Square) << End) >>
-        ([](Match&) -> Node { return Array; }),
+        [](Match& _) { return Array << *_[List]; },
+
+      In(Input) * (T(Square) << End) >> ([](Match&) -> Node { return Array; }),
 
       In(Input) * (T(Brace) << T(List)[List]) >>
-        [](Match& _){return Object << *_[List];},
+        [](Match& _) { return Object << *_[List]; },
 
-      In(Input) * (T(Brace) << End) >>
-        ([](Match&) -> Node { return Object; }),
+      In(Input) * (T(Brace) << End) >> ([](Match&) -> Node { return Object; }),
 
       In(Group) * (T(Var)[Var] * T(If) * T(Brace)[Brace]) >>
         [](Match& _) {
           return Seq << _(Var) << If << (UnifyBody << *_[Brace]);
         },
 
-      In(Policy) *
-          (T(Group) << (T(Var)[Var] * T(Brace)[Head] * T(Brace)++[Tail])) >>
-        [](Match& _) {
-          Node group = Group << _(Var) << (UnifyBody << *_[Head]);
-          for (auto it = _[Tail].first; it != _[Tail].second; ++it)
-          {
-            Node unifybody = NodeDef::create(UnifyBody);
-            Node brace = *it;
-            unifybody->insert(unifybody->end(), brace->begin(), brace->end());
-            group << unifybody;
-          }
-          return group;
-        },
+      In(Group) *
+          (Start * T(Var)[Var]([](auto& n) { return is_top_level(*n.first); }) *
+           T(Brace)[Brace]) >>
+        [](Match& _) { return Seq << _(Var) << (UnifyBody << *_[Brace]); },
 
-      In(Policy) *
-          (T(Group)
-           << (T(Var)[Var] * (T(Assign) / T(Unify))[Assign] * ExprToken[Head] *
-               ExprToken++[Tail] * T(Brace)[Head1] * T(Brace)++[Tail1])) >>
+      In(Group) *
+          (Start * T(Var)[Var]([](auto& n) { return is_top_level(*n.first); }) *
+           (T(Assign) / T(Unify))[Assign] * ExprToken[Head] *
+           ExprToken++[Tail] * T(Brace)[Brace]) >>
         [](Match& _) {
-          Node group = Group << _(Var) << _(Assign) << _(Head) << _[Tail]
-                             << (UnifyBody << *_[Head1]);
-          for (auto it = _[Tail1].first; it != _[Tail1].second; ++it)
-          {
-            Node unifybody = NodeDef::create(UnifyBody);
-            Node brace = *it;
-            unifybody->insert(unifybody->end(), brace->begin(), brace->end());
-            group << unifybody;
-          }
-          return group;
+          return Seq << _(Var) << _(Assign) << _(Head) << _[Tail]
+                     << (UnifyBody << *_[Brace]);
         },
 
       In(Group) *
@@ -177,11 +163,20 @@ namespace rego
           return ObjectCompr << _(Key) << val << unifybody;
         },
 
+      In(Group) * (T(Brace) << End) >> [](Match&) -> Node { return Object; },
+
       In(Group) *
           (T(Brace)
            << (T(List)
                << (T(ObjectItem)[Head] * T(ObjectItem)++[Tail] * End))) >>
         [](Match& _) { return Object << _(Head) << _[Tail]; },
+
+      In(Group) * (T(Brace) << (T(List)[List] * End)) >>
+        [](Match& _) { return Set << *_[List]; },
+
+      In(Group) *
+          T(Brace)[Brace]([](auto& n) { return is_top_level(*n.first); }) >>
+        [](Match& _) { return UnifyBody << *_[Brace]; },
 
       In(Group) * (T(Square) << (T(List)[List] * End)) >>
         [](Match& _) { return Array << *_[List]; },
@@ -212,9 +207,6 @@ namespace rego
 
       In(Group) * (T(Brace) << (T(Group)[Head] * T(Group)++[Tail] * End)) >>
         [](Match& _) { return UnifyBody << _(Head) << _[Tail]; },
-
-      In(Group) * (T(Brace) << (T(List)[List] * End)) >>
-        [](Match& _) { return Set << *_[List]; },
 
       T(List)
           << ((T(Group)
@@ -341,16 +333,13 @@ namespace rego
 
       In(Group) * (T(Square) << End) >> [](Match&) -> Node { return Array; },
 
-      In(Group) * (T(Brace) << End) >> [](Match&) -> Node { return Object; },
-
       // errors
 
       In(Data) * T(Brace)[Brace] >>
         [](Match& _) { return err(_(Brace), "Invalid data body"); },
 
-      In(Input) * (T(Brace)/T(Square))[Val] >> [](Match& _) {
-        return err(_(Val), "Invalid input body");
-      },
+      In(Input) * (T(Brace) / T(Square))[Val] >>
+        [](Match& _) { return err(_(Val), "Invalid input body"); },
 
       In(Group) * T(Brace)[Brace] >>
         [](Match& _) { return err(_(Brace), "Invalid object"); },

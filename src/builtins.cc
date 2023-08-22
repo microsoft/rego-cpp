@@ -1,8 +1,9 @@
 #include "builtins.h"
 
 #include "builtins/register.h"
-#include "lang.h"
 #include "resolver.h"
+#include "errors.h"
+#include "utils.h"
 
 namespace
 {
