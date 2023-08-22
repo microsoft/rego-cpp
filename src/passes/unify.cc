@@ -23,10 +23,10 @@ namespace rego
     PassDef unify = {
       dir::topdown | dir::once,
       {
-        In(Input) * T(DataObject) >>
-          ([](Match&) -> Node { return DataObject; }),
-        In(Input) * T(DataArray) >>
-          ([](Match&) -> Node { return DataArray; }),
+        In(Input) * T(Object) >>
+          ([](Match&) -> Node { return Object; }),
+        In(Input) * T(Array) >>
+          ([](Match&) -> Node { return Array; }),
         In(Data) * T(DataItemSeq) >>
           ([](Match&) -> Node { return DataItemSeq; }),
         In(Rego) * T(SkipSeq) >> ([](Match&) -> Node { return SkipSeq; }),

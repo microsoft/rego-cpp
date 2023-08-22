@@ -348,8 +348,8 @@ namespace rego
       In(Data) * T(Brace)[Brace] >>
         [](Match& _) { return err(_(Brace), "Invalid data body"); },
 
-      In(Input) * (T(Brace)/T(Square)) >> [](Match& _) {
-        return err(_(Brace), "Invalid input body");
+      In(Input) * (T(Brace)/T(Square))[Val] >> [](Match& _) {
+        return err(_(Val), "Invalid input body");
       },
 
       In(Group) * T(Brace)[Brace] >>
