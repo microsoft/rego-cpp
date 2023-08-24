@@ -188,7 +188,6 @@ namespace rego
   inline const auto Enumerate = TokenDef("enumerate");
   inline const auto Compr = TokenDef("compr");
   inline const auto Merge = TokenDef("merge");
-  inline const auto ToValues = TokenDef("to-values");
   inline const auto ImportRef = TokenDef("import-ref");
   inline const auto WithRef = TokenDef("with-ref");
   inline const auto WithExpr = TokenDef("with-expr");

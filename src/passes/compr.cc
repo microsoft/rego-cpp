@@ -1,6 +1,13 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
+
+// TODO
+// Given the current design, there is no reason why the comprehension call
+// shouldn't live in the innermost enum and then be passed up the chain.
+// This will deal with the issue where nested enumerations mangle the output
+// value, i.e. the captured value passed up the lambda chain would already
+// be a valid Term.
 
 namespace rego
 {
@@ -12,6 +19,13 @@ namespace rego
     return {
       dir::topdown | dir::once,
       {
+        In(DataModule) *
+            (T(DataRule) << (T(Key)[Key] * T(DataTerm)[DataTerm])) >>
+          [](Match& _) {
+            return RuleComp << (Var ^ _(Key)) << Empty << _(DataTerm)
+                            << (JSONInt ^ "0");
+          },
+
         In(Policy) *
             (T(RuleSet)
              << (T(Var)[Var] * (T(UnifyBody) / T(Empty))[Body] *

@@ -660,9 +660,7 @@ namespace rego
         return Nodes({err(container, "No definition found for " + key_str)});
       }
 
-      if (
-        defs[0]->type() == RuleComp || 
-        defs[0]->type() == RuleFunc)
+      if (defs[0]->type() == RuleComp || defs[0]->type() == RuleFunc)
       {
         return defs;
       }
@@ -712,7 +710,7 @@ namespace rego
 
   Node Resolver::to_term(const Node& value)
   {
-    if (value->type() == Term)
+    if (value->type() == Term || value->type() == TermSet)
     {
       return value;
     }
@@ -732,7 +730,7 @@ namespace rego
       return Term << (Scalar << value);
     }
 
-    return err(value, "not a term");
+    return err(value, "Not a term");
   }
 
   Node Resolver::object(const Node& object_items)
@@ -741,6 +739,11 @@ namespace rego
     std::map<std::string, Node> items;
     for (std::size_t i = 0; i < object_items->size(); i += 2)
     {
+      if(object_items->at(i)->type() == Error)
+      {
+        return object_items->at(i);
+      }
+
       std::string key = to_json(object_items->at(i));
       Node item = ObjectItem << to_term(object_items->at(i))
                              << to_term(object_items->at(i + 1));
@@ -1144,7 +1147,8 @@ namespace rego
 
   bool Resolver::is_undefined(const Node& node)
   {
-    if(node->type() == DataModule){
+    if (node->type() == DataModule)
+    {
       return false;
     }
 
@@ -1263,7 +1267,8 @@ namespace rego
       builtins,
       std::make_shared<NodeMap<Unifier>>());
     Node result = unifier->unify();
-    if(result->type() == Error){
+    if (result->type() == Error)
+    {
       return Query << result;
     }
 
@@ -1541,5 +1546,154 @@ namespace rego
     }
 
     return type_name(value->type(), specify_number);
+  }
+
+  Resolver::NodePrinter Resolver::body_str(const Node& unifybody)
+  {
+    return {
+      unifybody, [](std::ostream& os, const Node& unifybody) -> std::ostream& {
+        os << "{" << std::endl;
+        for (auto& stmt : *unifybody)
+        {
+          if (stmt->type() == Local)
+          {
+            os << "  local " << (stmt / Var)->location().view() << std::endl;
+          }
+          else
+          {
+            os << "  " << stmt_str(stmt) << std::endl;
+          }
+        }
+        os << "}";
+        return os;
+      }};
+  }
+
+  Resolver::NodePrinter Resolver::rego_str(const Node& rego)
+  {
+    return {
+      rego, [](std::ostream& os, const Node& rego) -> std::ostream& {
+        std::deque<Node> queue;
+        queue.push_back(rego / Data);
+        os << std::endl << std::endl;
+        while (!queue.empty())
+        {
+          Node current = queue.front();
+          queue.pop_front();
+          if (RuleTypes.contains(current->type()))
+          {
+            os << current->type().str() << " ";
+            os << (current / Var)->location().view();
+            if (current->type() == RuleFunc || current->type() == RuleComp)
+            {
+              os << "#" << (current / JSONInt)->location().view();
+            }
+            if (current->type() == RuleFunc)
+            {
+              os << "(";
+              std::string sep = "";
+              for (auto& arg : *(current / RuleArgs))
+              {
+                os << sep << (arg / Var)->location().view();
+                sep = ", ";
+              }
+              os << ")";
+            }
+            os << std::endl;
+            os << "body: ";
+            Node body = current / Body;
+            if (body->type() == Empty)
+            {
+              os << "empty" << std::endl;
+            }
+            else
+            {
+              os << body_str(body) << std::endl;
+            }
+            os << "value: ";
+            Node value = current / Val;
+            if (value->type() == Term)
+            {
+              os << to_json(value) << std::endl;
+            }
+            else
+            {
+              os << body_str(value) << std::endl;
+            }
+            os << std::endl;
+          }
+          else
+          {
+            for (auto& child : *current)
+            {
+              queue.push_back(child);
+            }
+          }
+        }
+        return os;
+      }};
+  }
+
+  void Resolver::flatten_terms_into(const Node& termset, Node& terms)
+  {
+    if(termset->type() == Term){
+      terms->push_back(termset->front());
+      return;
+    }
+    
+
+    if(termset->type() != TermSet){
+      terms->push_back(err(termset, "Not a term"));
+      return;
+    }
+
+    for (auto& term : *termset)
+    {
+      if (term->type() == TermSet)
+      {
+        flatten_terms_into(term, terms);
+      }
+      else if (term->type() == Term)
+      {
+        terms->push_back(term->front());
+      }
+      else
+      {
+        terms->push_back(err(term, "Not a term"));
+      }
+    }
+  }
+
+  void Resolver::flatten_items_into(const Node& termset, Node& items)
+  {
+    if(termset->type() == Term){
+      Node array = termset->front();
+      items->push_back(array->front());
+      items->push_back(array->back());
+      return;
+    }
+
+    if(termset->type() != TermSet){
+      items->push_back(err(termset, "Not a term"));
+      return;
+    }
+
+    for (auto& term : *termset)
+    {
+      if (term->type() == TermSet)
+      {
+        flatten_items_into(term, items);
+      }
+      else if (term->type() == Term)
+      {
+        Node array = term->front();
+        items->push_back(array->front());
+        items->push_back(array->back());
+      }
+      else
+      {
+        items->push_back(err(term, "Not a term"));
+      }
+    }
   }
 }

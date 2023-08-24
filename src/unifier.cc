@@ -539,29 +539,6 @@ namespace rego
         Values arg_values = enumerate(var, args_node->front());
         values.insert(values.end(), arg_values.begin(), arg_values.end());
       }
-      else if (func_name == "to-values")
-      {
-        Values termsets = resolve_var(args_node->front());
-        for (auto termset_value : termsets)
-        {
-          Node termset = termset_value->node();
-          if (termset->type() == Term)
-          {
-            values.push_back(ValueDef::create(var, termset));
-          }
-          else if (termset->type() == TermSet)
-          {
-            for (auto term : *termset)
-            {
-              values.push_back(ValueDef::create(var, term));
-            }
-          }
-          else
-          {
-            throw std::runtime_error("Not a term");
-          }
-        }
-      }
       else if (func_name == "merge")
       {
         Values partials = resolve_var(args_node->front());
@@ -583,19 +560,8 @@ namespace rego
         Node argseq = NodeDef::create(ArgSeq);
         for (auto termset_value : termsets)
         {
-          Node termset = termset_value->node();
-          if (termset->type() == Term)
-          {
-            argseq->push_back(termset);
-          }
-          else if (termset->type() == TermSet)
-          {
-            argseq->insert(argseq->end(), termset->begin(), termset->end());
-          }
-          else
-          {
-            throw std::runtime_error("Not a term");
-          }
+          LOG("flattening ", Resolver::arg_str(termset_value->node()));
+          Resolver::flatten_terms_into(termset_value->node(), argseq);
         }
         values.push_back(ValueDef::create(var, Resolver::array(argseq)));
       }
@@ -605,19 +571,7 @@ namespace rego
         Node argseq = NodeDef::create(ArgSeq);
         for (auto termset_value : termsets)
         {
-          Node termset = termset_value->node();
-          if (termset->type() == Term)
-          {
-            argseq->push_back(termset);
-          }
-          else if (termset->type() == TermSet)
-          {
-            argseq->insert(argseq->end(), termset->begin(), termset->end());
-          }
-          else
-          {
-            throw std::runtime_error("Not a term");
-          }
+          Resolver::flatten_terms_into(termset_value->node(), argseq);
         }
         values.push_back(ValueDef::create(var, Resolver::set(argseq)));
       }
@@ -627,26 +581,8 @@ namespace rego
         Node argseq = NodeDef::create(ArgSeq);
         for (auto termset_value : termsets)
         {
-          Node termset = termset_value->node();
-          if (termset->type() == Term)
-          {
-            Node array = termset->front();
-            argseq->push_back(array->front());
-            argseq->push_back(array->back());
-          }
-          else if (termset->type() == TermSet)
-          {
-            for (auto term : *termset)
-            {
-              Node array = term->front();
-              argseq->push_back(array->front());
-              argseq->push_back(array->back());
-            }
-          }
-          else
-          {
-            throw std::runtime_error("Not a term");
-          }
+          LOG("flattening ", Resolver::arg_str(termset_value->node()));
+          Resolver::flatten_items_into(termset_value->node(), argseq);
         }
         values.push_back(ValueDef::create(var, Resolver::object(argseq)));
       }

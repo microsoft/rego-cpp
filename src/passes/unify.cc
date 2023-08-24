@@ -2,6 +2,7 @@
 #include "errors.h"
 #include "utils.h"
 #include "resolver.h"
+#include "log.h"
 
 namespace
 {
@@ -14,7 +15,6 @@ namespace
     | (Rego <<= Query * Input * Data)
     ;
   // clang-format on
-
 }
 
 namespace rego
@@ -52,6 +52,9 @@ namespace rego
       }};
 
     unify.pre(Rego, [builtins](Node node) {
+      LOG_HEADER(" Program ", "vvvvvvvvvvvvvvv");
+      LOG(Resolver::rego_str(node));
+      LOG_HEADER(" Program ", "^^^^^^^^^^^^^^^");
       Node query = wfi / node / Query;
       try
       {

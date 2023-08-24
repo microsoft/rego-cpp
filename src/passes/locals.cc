@@ -1,6 +1,6 @@
 #include "builtins.h"
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
 
 #include <map>
@@ -110,17 +110,17 @@ namespace
     scopes.pop_back();
   }
 
-  int preprocess_body(Node node)
+  int preprocess_body(Node node, const BuiltIns& builtins)
   {
     std::vector<Scope> scopes;
-    add_locals(node / Body, scopes, BuiltIns().register_standard_builtins());
+    add_locals(node / Body, scopes, builtins);
     return 0;
   }
 
-  int preprocess_value(Node node)
+  int preprocess_value(Node node, const BuiltIns& builtins)
   {
     std::vector<Scope> scopes;
-    add_locals(node / Val, scopes, BuiltIns().register_standard_builtins());
+    add_locals(node / Val, scopes, builtins);
     return 0;
   }
 }
@@ -129,31 +129,42 @@ namespace rego
 {
   // Discovers undeclared local variables from rule bodies and the query and
   // inserts Local nodes for them at the appropriate scope.
-  PassDef body_locals()
+  PassDef body_locals(const BuiltIns& builtins)
   {
     PassDef locals = {dir::topdown | dir::once};
 
-    locals.pre(RuleComp, preprocess_body);
-    locals.pre(RuleFunc, preprocess_body);
-    locals.pre(RuleObj, preprocess_body);
-    locals.pre(RuleSet, preprocess_body);
-    locals.pre(ArrayCompr, preprocess_body);
-    locals.pre(SetCompr, preprocess_body);
-    locals.pre(ObjectCompr, preprocess_body);
+    locals.pre(
+      RuleComp, [builtins](Node n) { return preprocess_body(n, builtins); });
+    locals.pre(
+      RuleFunc, [builtins](Node n) { return preprocess_body(n, builtins); });
+    locals.pre(
+      RuleObj, [builtins](Node n) { return preprocess_body(n, builtins); });
+    locals.pre(
+      RuleSet, [builtins](Node n) { return preprocess_body(n, builtins); });
+    locals.pre(
+      ArrayCompr, [builtins](Node n) { return preprocess_body(n, builtins); });
+    locals.pre(
+      SetCompr, [builtins](Node n) { return preprocess_body(n, builtins); });
+    locals.pre(
+      ObjectCompr, [builtins](Node n) { return preprocess_body(n, builtins); });
 
     return locals;
   }
 
   // Discovers undeclared local variables from rule values and inserts Local
   // nodes for them at the appropriate scope.
-  PassDef value_locals()
+  PassDef value_locals(const BuiltIns& builtins)
   {
     PassDef locals = {dir::topdown | dir::once};
 
-    locals.pre(RuleComp, preprocess_value);
-    locals.pre(RuleFunc, preprocess_value);
-    locals.pre(RuleObj, preprocess_value);
-    locals.pre(RuleSet, preprocess_value);
+    locals.pre(
+      RuleComp, [builtins](Node n) { return preprocess_value(n, builtins); });
+    locals.pre(
+      RuleFunc, [builtins](Node n) { return preprocess_value(n, builtins); });
+    locals.pre(
+      RuleObj, [builtins](Node n) { return preprocess_value(n, builtins); });
+    locals.pre(
+      RuleSet, [builtins](Node n) { return preprocess_value(n, builtins); });
 
     return locals;
   }

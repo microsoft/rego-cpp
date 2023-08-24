@@ -62,6 +62,9 @@ namespace rego
 
       In(ExprCall) * (T(ArgSeq)[ArgSeq] << End) >>
         [](Match& _) { return err(_(ArgSeq), "Missing arguments"); },
+      
+      T(Group)[Group] << End >>
+        [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
     };
   }
 }

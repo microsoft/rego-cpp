@@ -283,7 +283,7 @@ namespace rego
     | (Input <<= Var * (Val >>= DataArray | DataObject))[Var]
     | (Data <<= Var * DataModule)[Var]
     | (DataModule <<= (DataRule | Submodule)++)
-    | (DataRule <<= Key * (Val >>= DataTerm))[Key]
+    | (DataRule <<= Key * (Val >>= DataTerm))
     | (Submodule <<= Key * (Val >>= DataModule))[Key]
     | (DataTerm <<= Scalar | DataArray | DataObject | DataSet)
     | (DataArray <<= DataTerm++)
@@ -321,6 +321,7 @@ namespace rego
     | (Import <<= Var * Ref)[Var]
     | (ExprEvery <<= VarSeq * NestedBody)
     | (NestedBody <<= Key * (Val >>= UnifyBody))
+    | (ExprCall <<= RefTerm * ArgSeq)
     ;
   // clang-format on
 
@@ -342,7 +343,6 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_constants =
     wf_pass_lift_query
-    | (DataModule <<= (RuleComp | Submodule)++)
     | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * JSONInt)[Var]
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * JSONInt)[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | DataTerm))[Var]
@@ -361,6 +361,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_compr =
     wf_pass_locals
+    | (DataModule <<= (RuleComp | Submodule)++)
     | (ObjectCompr <<= Var * NestedBody)
     | (ArrayCompr <<= Var * NestedBody)
     | (SetCompr <<= Var * NestedBody)
@@ -497,9 +498,8 @@ namespace rego
   inline const auto wf_pass_lift_to_rule =
     wf_pass_rulebody
     | (UnifyBody <<= (Local | UnifyExpr | UnifyExprWith | UnifyExprNot)++[1])
-    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate | Membership | ArrayCompr | SetCompr | ObjectCompr | Merge | ToValues)
+    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate | Membership | ArrayCompr | SetCompr | ObjectCompr | Merge)
     | (Merge <<= Var)
-    | (ToValues <<= Expr)
     ;
   // clang-format on
 

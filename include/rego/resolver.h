@@ -40,6 +40,8 @@ namespace rego
     static NodePrinter with_str(const Node& unifyexprwith);
     static NodePrinter compr_str(const Node& unifyexprcompr);
     static NodePrinter ref_str(const Node& ref);
+    static NodePrinter body_str(const Node& rego);
+    static NodePrinter rego_str(const Node& rego);
     static Node negate(const Node& value);
     static Node unary(const Node& value);
     static Node arithinfix(const Node& op, const Node& lhs, const Node& rhs);
@@ -84,6 +86,8 @@ namespace rego
       const Token& type, bool specify_number = false);
     static std::string type_name(const Node& node, bool specify_number = false);
     static Node to_term(const Node& value);
+    static void flatten_terms_into(const Node& termset, Node& terms);
+    static void flatten_items_into(const Node& termset, Node& terms);
   };
 
   std::ostream& operator<<(

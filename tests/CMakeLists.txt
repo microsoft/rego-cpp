@@ -28,6 +28,7 @@ if(REGOCPP_OPA_TESTS)
   array
   arithmetic
   assignments
+  baseandvirtualdocs
   comparisonexpr
   compositebasedereference
   helloworld

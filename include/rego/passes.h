@@ -23,8 +23,8 @@ namespace rego
   PassDef lift_query();
   PassDef constants();
   PassDef explicit_enums();
-  PassDef body_locals();
-  PassDef value_locals();
+  PassDef body_locals(const BuiltIns& builtins);
+  PassDef value_locals(const BuiltIns& builtins);
   PassDef compr();
   PassDef absolute_refs();
   PassDef merge_modules();

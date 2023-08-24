@@ -1,7 +1,6 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
-
 
 #include <sstream>
 
@@ -9,14 +8,29 @@ namespace
 {
   using namespace rego;
 
-  Location concat(const Node& varseq)
+  Location concat(const Node& refterm)
   {
     std::ostringstream path;
-    std::string sep = "";
-    for (Node var : *varseq)
+    if (refterm->front()->type() == Var)
     {
-      path << sep << var->location().view();
-      sep = ".";
+      path << refterm->front()->location().view();
+    }
+    else
+    {
+      Node ref = refterm->front();
+      path << (ref / RefHead)->front()->location().view();
+      Node refargseq = ref / RefArgSeq;
+      for (auto& refarg : *refargseq)
+      {
+        if (refarg->type() == RefArgDot)
+        {
+          path << "." << refarg->front()->location().view();
+        }
+        else if (refarg->type() == RefArgBrack)
+        {
+          path << "[" << strip_quotes(to_json(refarg->front())) << "]";
+        }
+      }
     }
 
     return Location(path.str());
@@ -27,30 +41,30 @@ namespace
     const BuiltIns& builtins,
     const std::shared_ptr<NodeMap<bool>>& cache)
   {
-    Node varseq = n.first[0];
+    Node refterm = n.first[0];
     Node argseq = n.first[1];
-    if (cache->contains(varseq))
+    if (cache->contains(refterm))
     {
-      return cache->at(varseq);
+      return cache->at(refterm);
     }
 
-    if (!is_in(varseq, {UnifyBody}))
+    if (!is_in(refterm, {UnifyBody}))
     {
-      cache->insert({varseq, false});
+      cache->insert({refterm, false});
       return false;
     }
 
-    Location path = concat(varseq);
+    Location path = concat(refterm);
     if (!builtins.is_builtin(path))
     {
-      cache->insert({varseq, false});
+      cache->insert({refterm, false});
       return false;
     }
 
     auto builtin = builtins.at(path);
     bool result = builtin->arity == argseq->size() - 1;
 
-    cache->insert({varseq, result});
+    cache->insert({refterm, result});
     return result;
   }
 }
@@ -104,27 +118,27 @@ namespace rego
 
       In(Literal) *
           (T(Expr)
-           << (T(ExprCall) << (T(VarSeq)[VarSeq] * T(ArgSeq)[ArgSeq])(
+           << (T(ExprCall) << (T(RefTerm)[RefTerm] * T(ArgSeq)[ArgSeq])(
                  [builtins, cache](auto& n) {
                    return needs_rewrite(n, builtins, cache);
                  }))) >>
         [builtins](Match& _) {
-          Node varseq = VarSeq << (Var ^ concat(_(VarSeq)));
+          Node refterm = RefTerm << (Var ^ concat(_(RefTerm)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
           return Expr
             << (AssignInfix << (AssignArg << var->front())
-                            << (AssignArg << (ExprCall << varseq << argseq)));
+                            << (AssignArg << (ExprCall << refterm << argseq)));
         },
 
       In(LiteralNot) *
           (T(Expr)
-           << (T(ExprCall) << (T(VarSeq)[VarSeq] * T(ArgSeq)[ArgSeq])(
+           << (T(ExprCall) << (T(RefTerm)[RefTerm] * T(ArgSeq)[ArgSeq])(
                  [builtins, cache](auto& n) {
                    return needs_rewrite(n, builtins, cache);
                  }))) >>
         [builtins](Match& _) {
-          Node varseq = VarSeq << (Var ^ concat(_(VarSeq)));
+          Node refterm = RefTerm << (Var ^ concat(_(RefTerm)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
           return Seq << (Lift
@@ -134,7 +148,7 @@ namespace rego
                                  << (AssignInfix
                                      << (AssignArg << var->front())
                                      << (AssignArg
-                                         << (ExprCall << varseq << argseq))))))
+                                         << (ExprCall << refterm << argseq))))))
                      << var->clone();
         },
 

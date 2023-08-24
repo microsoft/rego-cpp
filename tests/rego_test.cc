@@ -12,8 +12,10 @@ namespace rego_test
     return {
       In(Top) * T(File)[File] >> [](Match& _) { return Block << *_[File]; },
 
-      In(Block) * (T(Group) << (T(String) * T(Colon) * (T(Brace) << End))) >>
-        [](Match&) { return Node(); },
+      In(Group) * (T(Brace)[Brace] << End) >>
+        [](Match& _){
+          return EmptyMapping ^ _(Brace);
+        },
 
       In(Group) * (T(Colon) * T(Integer)[Integer] * T(String)[String]) >>
         [](Match& _) {
@@ -256,6 +258,9 @@ namespace rego_test
       In(Group) * (T(Block) << (T(KeyValue)++[Mapping] * End)) >>
         [](Match& _) { return Mapping << _[Mapping]; },
 
+      In(Group) * T(EmptyMapping)[EmptyMapping] >>
+        [](Match& _) { return Mapping ^ _(EmptyMapping); },
+
       // errors
       (In(Entry) / In(Group)) * T(Block)[Block] >>
         [](Match& _) { return err(_(Block), "Invalid indented block"); },
@@ -382,7 +387,7 @@ namespace rego_test
 
       In(rego::Term) * T(Mapping)[Mapping] >>
         [](Match& _) {
-          bool is_set = true;
+          bool is_set = _(Mapping)->size() > 0;
           for (auto& keyvalue : *_(Mapping))
           {
             Node val = keyvalue / Val;

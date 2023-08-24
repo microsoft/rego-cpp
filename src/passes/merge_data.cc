@@ -2,11 +2,6 @@
 #include "passes.h"
 #include "utils.h"
 
-// TODO at this point turn all the data nodes into modules.
-// the goal should be that everything is a module. This will
-// make subsequent passes much easier to write and reason over.
-// except the input. That stays weird.
-
 namespace rego
 {
   // Merges all the Data nodes in DataSeq into a single Data node.
@@ -71,7 +66,7 @@ namespace rego
 
       // errors
 
-      In(DataItemSeq) * T(ObjectItem)[ObjectItem] >>
+      In(DataModule) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) {
           return err(_(ObjectItem), "Syntax error: unexpected object item");
         },

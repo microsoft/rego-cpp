@@ -1,7 +1,7 @@
-#include "passes.h"
 #include "errors.h"
-#include "utils.h"
 #include "log.h"
+#include "passes.h"
+#include "utils.h"
 
 namespace rego
 {
@@ -206,38 +206,25 @@ namespace rego
           return seq;
         },
 
-      // expr-call
-      T(ExprCall)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
-          << ((T(VarSeq) << (T(Var)[Head] * T(Var)++[Tail])) *
-              T(ArgSeq)[ArgSeq]) >>
+      In(ExprCall) * (T(RefTerm) << T(Var)[Var]) >>
+        [](Match& _) { return _(Var); },
+
+      In(ExprCall) *
+          (T(RefTerm)[RefTerm](
+             [](auto& n) { return is_in(*n.first, {UnifyBody}); })
+           << T(Ref)) >>
         [](Match& _) {
-          LOG("expr-call");
-          Node seq = NodeDef::create(Seq);
-          Node head = _(Head);
-          NodeRange tail = _[Tail];
-          if (tail.second > tail.first)
-          {
-            for (auto it = tail.first; it != tail.second; ++it)
-            {
-              Node n = *it;
-              Location ref = _.fresh({"ref"});
-              seq->push_back(
-                Lift << UnifyBody << (Local << (Var ^ ref) << Undefined));
-              seq->push_back(
-                Lift << UnifyBody
-                     << (Literal
-                         << (Expr
-                             << (AssignInfix
-                                 << (AssignArg << (RefTerm << (Var ^ ref)))
-                                 << (AssignArg
-                                     << (RefTerm
-                                         << (SimpleRef
-                                             << head << (RefArgDot << n))))))));
-              head = Var ^ ref;
-            }
-          }
-          seq->push_back(ExprCall << head << _(ArgSeq));
-          return seq;
+          Location call_func = _.fresh({"call_func"});
+          return Seq << (Lift << UnifyBody
+                              << (Local << (Var ^ call_func) << Undefined))
+                     << (Lift << UnifyBody
+                              << (Literal
+                                  << (Expr
+                                      << (AssignInfix
+                                          << (AssignArg
+                                              << (RefTerm << (Var ^ call_func)))
+                                          << (AssignArg << _(RefTerm))))))
+                     << (Var ^ call_func);
         },
 
       // errors

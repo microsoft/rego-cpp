@@ -8,12 +8,6 @@ namespace rego
   PassDef constants()
   {
     return {
-      In(DataModule) * (T(DataRule) << (T(Key)[Key] * T(DataTerm)[DataTerm])) >>
-        [](Match& _) {
-          return RuleComp << (Var ^ _(Key)) << Empty << _(DataTerm)
-                          << (JSONInt ^ "0");
-        },
-
       (In(RuleComp) / In(RuleFunc) / In(RuleSet) / In(DefaultRule)) *
           T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) >>
         [](Match& _) { return DataTerm << *_[Term]; },

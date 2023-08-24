@@ -133,12 +133,6 @@ namespace rego
           ;
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * T(ToValues)[ToValues] >>
-        [](Match& _) {
-          return Function << (JSONString ^ "to-values")
-                          << (ArgSeq << *_[ToValues]);
-        },
-
       (In(UnifyExpr) / In(ArgSeq)) * (T(Merge) << T(Var)[Var]) >>
         [](Match& _) {
           return Function << (JSONString ^ "merge") << (ArgSeq << _(Var));

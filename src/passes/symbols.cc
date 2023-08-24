@@ -144,6 +144,22 @@ namespace rego
           return RuleObj << _(Id) << _(Body) << _(Key) << _(Val);
         },
 
+      In(ExprCall) * (T(VarSeq) << (T(Var)[Var] * End)) >>
+        [](Match& _){
+          return RefTerm << _(Var);
+        },
+      
+      In(ExprCall) * T(VarSeq)[VarSeq] >>
+        [](Match& _){
+          Node refhead = RefHead << _(VarSeq)->front();
+          Node refargseq = NodeDef::create(RefArgSeq);
+          for(auto arg = _(VarSeq)->begin() + 1; arg != _(VarSeq)->end(); ++arg){
+            refargseq->push_back(RefArgDot << *arg);
+          }
+
+          return RefTerm << (Ref << refhead << refargseq);
+        },
+
       In(RuleArgs) * (T(Term) << T(Var)[Var]) >>
         [](Match& _) { return ArgVar << _(Var) << Undefined; },
 

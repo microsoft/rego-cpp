@@ -219,7 +219,7 @@ namespace rego
 
     if (term->type() == TermSet)
     {
-      return Term << Resolver::set(term);
+      return term;
     }
 
     return err(term, "Not a term");
