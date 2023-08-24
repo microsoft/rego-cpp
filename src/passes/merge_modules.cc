@@ -1,7 +1,6 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
-
 
 namespace
 {
@@ -9,7 +8,11 @@ namespace
 
   Node merge(Node dst, Node src)
   {
-    if (dst->type() == DataItemSeq && src->type() == DataItem)
+    if(dst->type() == DataModule && RuleTypes.contains(src->type())){
+      dst->push_back(src);
+      return dst;
+    }
+    else if (dst->type() == DataModule && src->type() == Submodule)
     {
       Location key = src->front()->location();
       auto target = std::find_if(dst->begin(), dst->end(), [key](auto& item) {
@@ -37,42 +40,15 @@ namespace
     {
       for (auto& child : *src)
       {
-        Location key = child->front()->location();
-        auto target = std::find_if(dst->begin(), dst->end(), [key](auto& item) {
-          return item->front()->location() == key;
-        });
-        if (target == dst->end())
-        {
-          dst->push_back(child);
-        }
-        else
-        {
-          Node dst_submodule = (*target)->back();
-          Node src_submodule = child->back();
-          if (dst_submodule->type() != DataModule)
-          {
-            return err(
-              dst_submodule, "Cannot merge into a rule with the same name");
-          }
-          if (src_submodule->type() != DataModule)
-          {
-            return err(
-              dst_submodule,
-              "Cannot merge a rule with a submodule of the same name");
-          }
-
-          Node result = merge(dst_submodule, src_submodule);
-          if (result->type() == Error)
-          {
-            return result;
-          }
-        }
+        merge(dst, child);
       }
 
       return dst;
     }
     else
     {
+      std::cout << dst << std::endl;
+      std::cout << src << std::endl;
       return err(src, "Unsupported merge");
     }
   }
@@ -130,53 +106,16 @@ namespace rego
             }
           }
 
-          // now that the module is built, update all the names going
-          // back down the tree.
-          std::ostringstream path;
-          path << "data." << _(Var)->location().view();
-          std::string base = path.str();
-
-          if(module->size() == 0){
-            return Lift << Rego << (DataItem << (Key ^ base) << module);
-          }
-
-          Node submodule = module->front();
-          while (submodule != nullptr)
-          {
-            if(submodule->type() != Submodule){
-              break;
-            }
-            auto key = submodule / Key;
-            auto key_str = key->location().view();
-            if (!key_str.starts_with("["))
-            {
-              path << ".";
-            }
-            path << key_str;
-            submodule->replace(key, Key ^ path.str());
-            if (submodule->size() > 0)
-            {
-              submodule = submodule->back();
-              if(submodule->size() > 0){
-                submodule = submodule->front();
-              }else{
-                break;
-              }
-            }else{
-              break;
-            }
-          }
-
-          return Lift << Rego << (DataItem << (Key ^ base) << module);
+          return Lift << Rego << (Submodule << (Key ^ _(Var)) << module);
         },
 
       In(Rego) * (T(ModuleSeq) << End) >> ([](Match&) -> Node { return {}; }),
 
       In(Rego) *
-          ((T(Data) << (T(Var)[Var] * T(DataItemSeq)[DataItemSeq])) *
-           T(DataItem)[DataItem]) >>
+          ((T(Data) << (T(Var)[Var] * T(DataModule)[DataModule])) *
+           T(Submodule)[Submodule]) >>
         [](Match& _) {
-          return Data << _(Var) << merge(_(DataItemSeq), _(DataItem));
+          return Data << _(Var) << merge(_(DataModule), _(Submodule));
         },
 
       // errors
@@ -187,7 +126,7 @@ namespace rego
       In(Rego) * (T(ModuleSeq)[ModuleSeq] << T(Error)) >>
         [](Match& _) { return _(Error); },
 
-      In(DataModule) * T(Import)[Import] >> [](Match& _) { return err(_(Import), "Invalid import"); }
-    };
+      In(DataModule) * T(Import)[Import] >>
+        [](Match& _) { return err(_(Import), "Invalid import"); }};
   }
 }

@@ -1,7 +1,11 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
 
+// TODO at this point turn all the data nodes into modules.
+// the goal should be that everything is a module. This will
+// make subsequent passes much easier to write and reason over.
+// except the input. That stays weird.
 
 namespace rego
 {
@@ -16,19 +20,28 @@ namespace rego
         [](Match& _) { return DataArray << *_[Array]; },
 
       In(DataSeq) * (T(Data) << T(ObjectItemSeq)[Data]) >>
-        [](Match& _) { return DataItemSeq << *_[Data]; },
+        [](Match& _) { return DataModule << *_[Data]; },
 
       In(DataSeq) *
-          (T(DataItemSeq)[Lhs] * (T(Data) << T(ObjectItemSeq)[Rhs])) >>
-        [](Match& _) { return DataItemSeq << *_[Lhs] << *_[Rhs]; },
+          (T(DataModule)[Lhs] * (T(Data) << T(ObjectItemSeq)[Rhs])) >>
+        [](Match& _) { return DataModule << *_[Lhs] << *_[Rhs]; },
 
-      In(DataItemSeq) *
+      In(DataModule) *
           (T(ObjectItem)
            << ((T(Expr) << (T(Term) << T(Scalar)[Scalar])) *
-               (T(Expr) << T(Term)[Term]))) >>
+               (T(Expr) << (T(Term) << T(Object)[DataModule])))) >>
         [](Match& _) {
           std::string key = strip_quotes(to_json(_(Scalar)));
-          return DataItem << (Key ^ key) << (DataTerm << _(Term)->front());
+          return Submodule << (Key ^ key) << (DataModule << *_[DataModule]);
+        },
+
+      In(DataModule) *
+          (T(ObjectItem)
+           << ((T(Expr) << (T(Term) << T(Scalar)[Scalar])) *
+               (T(Expr) << (T(Term) << (T(Array)/T(Set)/T(Scalar))[Term])))) >>
+        [](Match& _) {
+          std::string key = strip_quotes(to_json(_(Scalar)));
+          return DataRule << (Key ^ key) << (DataTerm << _(Term));
         },
 
       In(DataObject) *
@@ -50,11 +63,11 @@ namespace rego
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return DataTerm << _(Term)->front(); },
 
-      In(Rego) * (T(DataSeq) << (T(DataItemSeq)[DataItemSeq] * End)) >>
-        [](Match& _) { return Data << (Var ^ "data") << _(DataItemSeq); },
+      In(Rego) * (T(DataSeq) << (T(DataModule)[DataModule] * End)) >>
+        [](Match& _) { return Data << (Var ^ "data") << _(DataModule); },
 
       In(Rego) * (T(DataSeq) << End) >>
-        [](Match&) { return Data << (Var ^ "data") << DataItemSeq; },
+        [](Match&) { return Data << (Var ^ "data") << DataModule; },
 
       // errors
 

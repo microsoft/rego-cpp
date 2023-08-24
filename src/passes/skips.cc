@@ -36,6 +36,38 @@ namespace
       }
     }
   }
+
+  std::string concat(const std::string& lhs, const Location& rhs)
+  {
+    if(rhs.view().starts_with(lhs))
+    {
+      return std::string(rhs.view());
+    }
+
+    if(rhs.view()[0] == '['){
+      return lhs + std::string(rhs.view());
+    }
+    
+    return lhs + "." + std::string(rhs.view());
+  }
+
+  void to_absolute_names(const Node& module, const std::string& branch)
+  {
+    for(auto& item : *module)
+    {
+      if(item->type() == Submodule)
+      {
+        Node key = item / Key;
+        std::string stem = concat(branch, key->location());
+        item->replace(key, Key ^ stem);
+        to_absolute_names(item / Val, stem);
+      }else{
+        Node var = item / Var;
+        std::string leaf = concat(branch, var->location());
+        item->replace(var, Var ^ leaf);
+      }
+    }
+  }
 }
 
 namespace rego
@@ -50,6 +82,7 @@ namespace rego
     };
 
     skips.pre(Rego, [skip_links](Node node) {
+      to_absolute_names(node / Data / DataModule, "data");
       find_withs(skip_links, node / Data);
       Node skipseq = NodeDef::create(SkipSeq);
       for (auto [path, ref] : *skip_links)

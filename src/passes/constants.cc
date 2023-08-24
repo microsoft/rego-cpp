@@ -1,5 +1,5 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
 
 namespace rego
@@ -8,15 +8,24 @@ namespace rego
   PassDef constants()
   {
     return {
+      In(DataModule) * (T(DataRule) << (T(Key)[Key] * T(DataTerm)[DataTerm])) >>
+        [](Match& _) {
+          return RuleComp << (Var ^ _(Key)) << Empty << _(DataTerm)
+                          << (JSONInt ^ "0");
+        },
+
       (In(RuleComp) / In(RuleFunc) / In(RuleSet) / In(DefaultRule)) *
           T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) >>
         [](Match& _) { return DataTerm << *_[Term]; },
 
       (In(RuleComp) / In(RuleFunc)) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>
-        [](Match& _) { 
+        [](Match& _) {
           Location value = _.fresh({"value"});
-          return UnifyBody << (Literal << (Expr << (RefTerm << (Var ^ value)) << Unify << _(Term))); },
+          return UnifyBody
+            << (Literal
+                << (Expr << (RefTerm << (Var ^ value)) << Unify << _(Term)));
+        },
 
       In(RuleSet) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>

@@ -88,6 +88,7 @@ namespace rego
   inline const auto DataSeq = TokenDef("data-seq");
   inline const auto DataItemSeq = TokenDef("data-item-seq");
   inline const auto DataItem = TokenDef("data-item", flag::lookup);
+  inline const auto DataRule = TokenDef("data-rule", flag::lookup);
   inline const auto DataObject = TokenDef("data-object");
   inline const auto DataObjectItem = TokenDef("data-object-item");
   inline const auto DataArray = TokenDef("data-array");
@@ -182,8 +183,6 @@ namespace rego
   inline const auto Skip = TokenDef("skip", flag::lookup);
   inline const auto NestedBody = TokenDef("nested-body", flag::symtab);
   inline const auto BuiltInHook = TokenDef("builtin-hook", flag::lookup);
-  inline const auto RuleRef = TokenDef("rule-ref");
-  inline const auto ModuleRef = TokenDef("module-ref");
   inline const auto Item = TokenDef("item");
   inline const auto Item1 = TokenDef("item-1");
   inline const auto Enumerate = TokenDef("enumerate");

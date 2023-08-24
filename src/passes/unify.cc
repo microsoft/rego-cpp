@@ -29,8 +29,8 @@ namespace rego
           ([](Match&) -> Node { return Object; }),
         In(Input) * T(Array) >>
           ([](Match&) -> Node { return Array; }),
-        In(Data) * T(DataItemSeq) >>
-          ([](Match&) -> Node { return DataItemSeq; }),
+        In(Data) * T(DataModule) >>
+          ([](Match&) -> Node { return DataModule; }),
         In(Rego) * T(SkipSeq) >> ([](Match&) -> Node { return SkipSeq; }),
         (In(Query) / In(Array) / In(Set) / In(ObjectItem)) *
             (ScalarToken / T(JSONString))[Scalar] >>

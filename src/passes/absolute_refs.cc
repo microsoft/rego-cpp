@@ -92,13 +92,6 @@ namespace rego
           return rule;
         },
 
-      In(DataItem) *
-          T(Key)[Key]([](auto& n) { return !is_absolute(*n.first); }) >>
-        [](Match& _) {
-          std::string name = "data." + std::string(_(Key)->location().view());
-          return Key ^ name;
-        },
-
       In(RefTerm) * T(Var)[Var]([](auto& n) {
         return is_ref_to_type(*n.first, {Import});
       }) >>
