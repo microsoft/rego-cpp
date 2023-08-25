@@ -32,6 +32,7 @@ if(REGOCPP_OPA_TESTS)
   comparisonexpr
   completedoc
   compositebasedereference
+  compositereferences
   helloworld
   indexing
   intersection

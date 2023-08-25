@@ -114,7 +114,6 @@ namespace rego
       return nodes[0];
     }
 
-    std::set<std::string> values;
     Node term_set = NodeDef::create(TermSet);
     for (const auto& node : nodes)
     {
@@ -128,12 +127,7 @@ namespace rego
         continue;
       }
 
-      std::string json = to_json(node);
-      if (!values.contains(json))
-      {
-        values.insert(json);
-        term_set->push_back(node);
-      }
+      term_set->push_back(node);
     }
 
     if (term_set->size() == 1)

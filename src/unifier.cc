@@ -1281,6 +1281,8 @@ namespace rego
       }
     }
 
+    LOG("Rule comp value result: ", to_json(value));
+
     if (body_result->type() == JSONTrue)
     {
       return std::make_pair(index, value);
