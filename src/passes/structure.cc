@@ -178,6 +178,9 @@ namespace rego
       In(RefArgBrack) * (T(Group) << T(Array)[Array]) >>
         [](Match& _) { return _(Array); },
 
+      In(RefArgBrack) * (T(Group) << T(Set)[Set]) >>
+        [](Match& _) { return _(Set); },
+
       (In(Array) / In(Set)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 

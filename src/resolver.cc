@@ -32,6 +32,21 @@ namespace
     ;
   // clang-format on
 
+  bool contains_multiple_outputs(Node term)
+  {
+    if(term->type() == TermSet){
+      return true;
+    }
+
+    for(auto& child : *term){
+      if(contains_multiple_outputs(child)){
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   BigInt get_int(const Node& node)
   {
     return BigInt(node->location());
@@ -698,11 +713,11 @@ namespace rego
         std::string repr = to_json(member);
         if (repr == query_repr)
         {
-          return Nodes({Term << (Scalar << JSONTrue)});
+          return Nodes({to_term(arg)});
         }
       }
 
-      return Nodes({Term << (Scalar << JSONFalse)});
+      return std::nullopt;
     }
 
     return std::nullopt;
@@ -1302,14 +1317,18 @@ namespace rego
         }
       }
 
-      if (term->type() == Undefined)
-      {
-        continue;
-      }
-
       if (term->type() != Term)
       {
         term = Term << term;
+      }
+
+      if(term->front()->type() == Undefined){
+        continue;
+      }
+
+      if(contains_multiple_outputs(term)){
+        result->push_back(err(term, "complete rules must not produce multiple outputs", EvalConflictError));
+        continue;
       }
 
       std::string name = std::string(var->location().view());

@@ -112,7 +112,7 @@ namespace rego
       std::string sep = "";
       for (const auto& [key, value] : items)
       {
-        buf << sep << key << ": " << value;
+        buf << sep << key << ":" << value;
         sep = ", ";
       }
 

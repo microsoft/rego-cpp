@@ -272,6 +272,32 @@ namespace rego_test
            indents->push_back(*indent);
          },
 
+       // Double quote string
+       "\"" >>
+         [quote, indent, indents](auto& m) {
+           if (*indent > indents->back())
+           {
+             m.push(Block);
+             indents->push_back(*indent);
+           }
+           m.push(DoubleQuoteString, 1);
+           m.mode("multiline-string");
+           *quote = Quote::Double;
+         },
+
+       // Single quote string
+       "'" >>
+         [quote, indent, indents](auto& m) {
+           if (*indent > indents->back())
+           {
+             m.push(Block);
+             indents->push_back(*indent);
+           }
+           m.push(SingleQuoteString, 1);
+           m.mode("multiline-string");
+           *quote = Quote::Single;
+         },
+
        // Character
        "." >>
          [indent, string_indent, indents](auto& m) {

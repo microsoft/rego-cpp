@@ -30,6 +30,7 @@ if(REGOCPP_OPA_TESTS)
   assignments
   baseandvirtualdocs
   comparisonexpr
+  completedoc
   compositebasedereference
   helloworld
   indexing

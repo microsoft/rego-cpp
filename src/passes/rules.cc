@@ -80,6 +80,18 @@ namespace rego
 
       In(Policy) *
           (T(Group)
+           << (T(Var)[Id] * (T(Assign) / T(Unify)) * T(UnifyBody)[UnifyBody])) >>
+        [](Match& _) {
+          // a misclassified single-element set
+          return Rule << (RuleHead
+                          << _(Id)
+                          << (RuleHeadComp << (AssignOperator << Assign)
+                                           << (Group << (Set << *_[UnifyBody]))))
+                      << Empty << ElseSeq;
+        },
+
+      In(Policy) *
+          (T(Group)
            << (T(Var)[Id] * T(Paren)[Paren] * T(UnifyBody)[UnifyBody] *
                (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
