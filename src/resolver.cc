@@ -34,12 +34,15 @@ namespace
 
   bool contains_multiple_outputs(Node term)
   {
-    if(term->type() == TermSet){
+    if (term->type() == TermSet)
+    {
       return true;
     }
 
-    for(auto& child : *term){
-      if(contains_multiple_outputs(child)){
+    for (auto& child : *term)
+    {
+      if (contains_multiple_outputs(child))
+      {
         return true;
       }
     }
@@ -754,12 +757,18 @@ namespace rego
     std::map<std::string, Node> items;
     for (std::size_t i = 0; i < object_items->size(); i += 2)
     {
-      if(object_items->at(i)->type() == Error)
+      if (object_items->at(i)->type() == Error)
       {
         return object_items->at(i);
       }
 
       std::string key = to_json(object_items->at(i));
+      if (items.contains(key))
+      {
+        return err(
+          object_items->at(i), "object keys must be unique", EvalConflictError);
+      }
+
       Node item = ObjectItem << to_term(object_items->at(i))
                              << to_term(object_items->at(i + 1));
       items[key] = item;
@@ -1322,12 +1331,17 @@ namespace rego
         term = Term << term;
       }
 
-      if(term->front()->type() == Undefined){
+      if (term->front()->type() == Undefined)
+      {
         continue;
       }
 
-      if(contains_multiple_outputs(term)){
-        result->push_back(err(term, "complete rules must not produce multiple outputs", EvalConflictError));
+      if (contains_multiple_outputs(term))
+      {
+        result->push_back(err(
+          term,
+          "complete rules must not produce multiple outputs",
+          EvalConflictError));
         continue;
       }
 
@@ -1655,13 +1669,14 @@ namespace rego
 
   void Resolver::flatten_terms_into(const Node& termset, Node& terms)
   {
-    if(termset->type() == Term){
+    if (termset->type() == Term)
+    {
       terms->push_back(termset->front());
       return;
     }
-    
 
-    if(termset->type() != TermSet){
+    if (termset->type() != TermSet)
+    {
       terms->push_back(err(termset, "Not a term"));
       return;
     }
@@ -1685,14 +1700,16 @@ namespace rego
 
   void Resolver::flatten_items_into(const Node& termset, Node& items)
   {
-    if(termset->type() == Term){
+    if (termset->type() == Term)
+    {
       Node array = termset->front();
       items->push_back(array->front());
       items->push_back(array->back());
       return;
     }
 
-    if(termset->type() != TermSet){
+    if (termset->type() != TermSet)
+    {
       items->push_back(err(termset, "Not a term"));
       return;
     }

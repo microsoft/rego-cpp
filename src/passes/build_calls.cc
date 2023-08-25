@@ -6,6 +6,11 @@ namespace rego
   PassDef build_calls()
   {
     return {
+      In(Group) * (T(Contains)[Contains] * T(Paren)[Paren]) >>
+        [](Match& _){
+          return Seq << (Var ^ _(Contains)) << _(Paren);
+        },
+
       In(Group) * (T(Var)[Var] * T(Paren)[Paren]) >>
         [](Match& _) {
           Node argseq = NodeDef::create(ArgSeq);

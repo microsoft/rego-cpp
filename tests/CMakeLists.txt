@@ -33,6 +33,9 @@ if(REGOCPP_OPA_TESTS)
   completedoc
   compositebasedereference
   compositereferences
+  comprehensions
+  containskeyword
+  dataderef
   helloworld
   indexing
   intersection

@@ -1450,6 +1450,10 @@ namespace rego
         Node set = value->front();
         argseq->insert(argseq->end(), set->begin(), set->end());
       }
+
+      if(value->type() == Error){
+        return value;
+      }
     }
 
     if (argseq->size() == 0)
@@ -1543,6 +1547,10 @@ namespace rego
           argseq->push_back(item / Key);
           argseq->push_back(item / Val);
         }
+      }
+
+      if(value->type() == Error){
+        return value;
       }
     }
 
