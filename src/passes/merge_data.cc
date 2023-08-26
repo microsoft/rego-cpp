@@ -17,8 +17,7 @@ namespace rego
       In(DataSeq) * (T(Data) << T(ObjectItemSeq)[Data]) >>
         [](Match& _) { return DataModule << *_[Data]; },
 
-      In(DataSeq) *
-          (T(DataModule)[Lhs] * (T(Data) << T(ObjectItemSeq)[Rhs])) >>
+      In(DataSeq) * (T(DataModule)[Lhs] * (T(Data) << T(ObjectItemSeq)[Rhs])) >>
         [](Match& _) { return DataModule << *_[Lhs] << *_[Rhs]; },
 
       In(DataModule) *
@@ -33,7 +32,8 @@ namespace rego
       In(DataModule) *
           (T(ObjectItem)
            << ((T(Expr) << (T(Term) << T(Scalar)[Scalar])) *
-               (T(Expr) << (T(Term) << (T(Array)/T(Set)/T(Scalar))[Term])))) >>
+               (T(Expr)
+                << (T(Term) << (T(Array) / T(Set) / T(Scalar))[Term])))) >>
         [](Match& _) {
           std::string key = strip_quotes(to_json(_(Scalar)));
           return DataRule << (Key ^ key) << (DataTerm << _(Term));

@@ -88,6 +88,7 @@ namespace rego
     static Node to_term(const Node& value);
     static void flatten_terms_into(const Node& termset, Node& terms);
     static void flatten_items_into(const Node& termset, Node& terms);
+    static Node reduce_termset(const Node& termset);
   };
 
   std::ostream& operator<<(

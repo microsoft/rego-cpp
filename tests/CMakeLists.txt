@@ -36,6 +36,8 @@ if(REGOCPP_OPA_TESTS)
   comprehensions
   containskeyword
   dataderef
+  defaultkeyword
+  disjunction
   helloworld
   indexing
   intersection

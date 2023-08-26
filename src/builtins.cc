@@ -1,8 +1,8 @@
 #include "builtins.h"
 
 #include "builtins/register.h"
-#include "resolver.h"
 #include "errors.h"
+#include "resolver.h"
 #include "utils.h"
 
 namespace
@@ -11,18 +11,19 @@ namespace
 
   Node to_number(const Nodes& args)
   {
-    auto maybe_number = Resolver::maybe_unwrap_string(args[0]);
-    if (!maybe_number.has_value())
+    auto maybe_number_string = Resolver::maybe_unwrap_string(args[0]);
+    if (!maybe_number_string.has_value())
     {
       return err(args[0], "to_number: expected string argument");
     }
 
-    if (BigInt::is_int(args[0]->location()))
+    Node number_string = maybe_number_string.value();
+    if (BigInt::is_int(number_string->location()))
     {
-      return JSONInt ^ args[0]->location();
+      return JSONInt ^ number_string->location();
     }
 
-    std::string number_str = Resolver::get_string(*maybe_number);
+    std::string number_str = Resolver::get_string(number_string);
     try
     {
       double float_value = std::stod(number_str);

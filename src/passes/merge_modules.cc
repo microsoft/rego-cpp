@@ -8,7 +8,8 @@ namespace
 
   Node merge(Node dst, Node src)
   {
-    if(dst->type() == DataModule && RuleTypes.contains(src->type())){
+    if (dst->type() == DataModule && RuleTypes.contains(src->type()))
+    {
       dst->push_back(src);
       return dst;
     }

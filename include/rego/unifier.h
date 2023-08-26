@@ -6,10 +6,11 @@
 #include "variable.h"
 
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
+#include <trieste/ast.h>
 #include <vector>
-#include <optional>
 
 namespace rego
 {
@@ -85,7 +86,9 @@ namespace rego
     Values check_with(const Node& var);
     Node resolve_every(const Node& varseq, const Node& nestedbody);
     Values resolve_compr(const Location& var, const Node& compr);
-    Values call_function(
+    Values apply_access(const Location& var, const Values& args);
+    std::optional<Value> call_function(const Location& var, const Values& args);
+    std::optional<Value> call_named_function(
       const Location& var, const std::string& name, const Values& args);
     bool is_local(const Node& var);
     std::size_t scan_vars(const Node& expr, std::vector<Location>& locals);

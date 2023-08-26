@@ -1274,6 +1274,28 @@ namespace rego
     return results;
   }
 
+  Node Resolver::reduce_termset(const Node& termset)
+  {
+    Node reduce = NodeDef::create(TermSet);
+    std::set<std::string> values;
+    for (Node term : *termset)
+    {
+      std::string repr = to_json(term);
+      if (!values.contains(repr))
+      {
+        values.insert(repr);
+        reduce->push_back(term);
+      }
+    }
+
+    if (reduce->size() == 1)
+    {
+      return reduce->front();
+    }
+
+    return reduce;
+  }
+
   Node Resolver::resolve_query(const Node& query, const BuiltIns& builtins)
   {
     Nodes defs = query->front()->lookup();
@@ -1322,7 +1344,7 @@ namespace rego
         }
         else
         {
-          result->push_back(err(child, "Multiple values for binding"));
+          term = reduce_termset(term);
         }
       }
 

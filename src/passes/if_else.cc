@@ -1,5 +1,5 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
 
 namespace
@@ -46,6 +46,9 @@ namespace rego
           (T(Else) * (T(Assign) / T(Unify)) * T(Group)[Group] *
            T(UnifyBody)[UnifyBody]) >>
         [](Match& _) { return Else << _(Group) << _(UnifyBody); },
+
+      In(Policy) * ((T(Group)[Lhs] << T(Var)) * (T(Group)[Rhs] << T(Else))) >>
+        [](Match& _) { return Group << *_[Lhs] << *_[Rhs]; },
 
       // errors
       In(Group) * (T(Else)[Else] << End) >>

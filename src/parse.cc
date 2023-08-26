@@ -87,7 +87,7 @@ namespace rego
 
         // OPA local variable.
         R"(__[[:alnum:]]+__\b)" >> [](auto& m) { m.add(Var); },
-      
+
         // single underscore variable
         R"(_[[:alnum:]_]+\b)" >> [](auto& m) { m.add(Var); },
 

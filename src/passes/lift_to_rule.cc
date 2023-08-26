@@ -1,5 +1,5 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
 
 namespace
@@ -113,7 +113,8 @@ namespace rego
       dir::bottomup,
       {
         In(UnifyBody) *
-            (T(UnifyExprEnum)([](auto& n) { return is_in(*n.first, {DataModule}); })
+            (T(UnifyExprEnum)(
+               [](auto& n) { return is_in(*n.first, {DataModule}); })
              << (T(Var)[Var] * T(Var)[Item] * T(Var)[ItemSeq] *
                  T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {

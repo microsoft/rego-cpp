@@ -1,7 +1,6 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
-
 
 namespace
 {
@@ -39,36 +38,42 @@ namespace
 
   std::string concat(const std::string& lhs, const Location& rhs)
   {
-    if(rhs.view().starts_with(lhs))
+    if (rhs.view().starts_with(lhs))
     {
       return std::string(rhs.view());
     }
 
-    if(rhs.view()[0] == '['){
+    if (rhs.view()[0] == '[')
+    {
       Location key = rhs;
       key.pos += 2;
       key.len -= 4;
-      if(all_alnum(key.view())){
+      if (all_alnum(key.view()))
+      {
         return lhs + "." + std::string(key.view());
-      }else{
+      }
+      else
+      {
         return lhs + std::string(rhs.view());
       }
     }
-    
+
     return lhs + "." + std::string(rhs.view());
   }
 
   void to_absolute_names(const Node& module, const std::string& branch)
   {
-    for(auto& item : *module)
+    for (auto& item : *module)
     {
-      if(item->type() == Submodule)
+      if (item->type() == Submodule)
       {
         Node key = item / Key;
         std::string stem = concat(branch, key->location());
         item->replace(key, Key ^ stem);
         to_absolute_names(item / Val, stem);
-      }else{
+      }
+      else
+      {
         Node var = item / Var;
         std::string leaf = concat(branch, var->location());
         item->replace(var, Var ^ leaf);

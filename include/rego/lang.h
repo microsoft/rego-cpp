@@ -207,7 +207,7 @@ namespace rego
   inline const auto Paren = TokenDef("paren");
   inline const auto Not = TokenDef("not");
   inline const auto Comma = TokenDef("comma");
-  inline const auto Placeholder = TokenDef("_"); 
+  inline const auto Placeholder = TokenDef("_");
 
   Parse parser();
   Driver& driver(const BuiltIns& builtins);

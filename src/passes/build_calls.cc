@@ -1,6 +1,6 @@
+#include "errors.h"
 #include "passes.h"
 #include "utils.h"
-#include "errors.h"
 
 namespace rego
 {
@@ -8,11 +8,10 @@ namespace rego
   {
     return {
       In(Group) * (T(Contains)[Contains] * T(Paren)[Paren]) >>
-        [](Match& _){
-          return Seq << (Var ^ _(Contains)) << _(Paren);
-        },
+        [](Match& _) { return Seq << (Var ^ _(Contains)) << _(Paren); },
 
-      In(Group) * (RuleRefToken[Head] * RuleRefToken++[Tail] * T(Paren)[Paren]) >>
+      In(Group) *
+          (RuleRefToken[Head] * RuleRefToken++[Tail] * T(Paren)[Paren]) >>
         [](Match& _) {
           Node argseq = NodeDef::create(ArgSeq);
           Node paren = _(Paren);
@@ -60,7 +59,7 @@ namespace rego
 
       In(ExprCall) * (T(ArgSeq)[ArgSeq] << End) >>
         [](Match& _) { return err(_(ArgSeq), "Missing arguments"); },
-      
+
       T(Group)[Group] << End >>
         [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
     };

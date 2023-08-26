@@ -1,5 +1,5 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
 
 namespace rego
@@ -8,10 +8,10 @@ namespace rego
   PassDef input_data()
   {
     return {
-      In(Input) * (T(File) << (T(Group) << (T(Brace)/T(Square))[Val])) >>
+      In(Input) * (T(File) << (T(Group) << (T(Brace) / T(Square))[Val])) >>
         [](Match& _) { return _(Val); },
 
-      In(Rego) * (T(Input) << (T(Brace)/T(Square))[Val]) >>
+      In(Rego) * (T(Input) << (T(Brace) / T(Square))[Val]) >>
         [](Match& _) { return Input << (Var ^ "input") << _(Val); },
 
       In(DataSeq) * (T(File) << (T(Group) << T(Brace)[Brace])) >>

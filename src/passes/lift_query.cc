@@ -1,5 +1,5 @@
-#include "passes.h"
 #include "errors.h"
+#include "passes.h"
 #include "utils.h"
 
 namespace rego

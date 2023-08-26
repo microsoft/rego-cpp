@@ -2,6 +2,9 @@
 
 #include "value.h"
 
+#include <set>
+#include <vector>
+
 namespace rego
 {
   class Args
@@ -13,6 +16,8 @@ namespace rego
     Values at(std::size_t index) const;
     std::size_t size() const;
     std::string str() const;
+    const Values& source_at(std::size_t index) const;
+    Args subargs(std::size_t start) const;
     friend std::ostream& operator<<(std::ostream& os, const Args& args);
 
   private:

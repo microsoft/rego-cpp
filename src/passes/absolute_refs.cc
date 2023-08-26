@@ -1,6 +1,6 @@
+#include "errors.h"
 #include "passes.h"
 #include "utils.h"
-#include "errors.h"
 
 #include <set>
 
@@ -49,10 +49,12 @@ namespace
     {
       (ref / RefArgSeq) << (RefArgDot << (Var ^ (leaf / Key)));
     }
-    else if(RuleTypes.contains(leaf->type()))
+    else if (RuleTypes.contains(leaf->type()))
     {
       (ref / RefArgSeq) << (RefArgDot << (leaf / Var)->clone());
-    }else{
+    }
+    else
+    {
       return err(leaf, "Unable to build ref");
     }
 

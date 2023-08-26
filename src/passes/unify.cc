@@ -1,8 +1,8 @@
-#include "passes.h"
 #include "errors.h"
-#include "utils.h"
-#include "resolver.h"
 #include "log.h"
+#include "passes.h"
+#include "resolver.h"
+#include "utils.h"
 
 namespace
 {
@@ -25,12 +25,9 @@ namespace rego
     PassDef unify = {
       dir::topdown | dir::once,
       {
-        In(Input) * T(Object) >>
-          ([](Match&) -> Node { return Object; }),
-        In(Input) * T(Array) >>
-          ([](Match&) -> Node { return Array; }),
-        In(Data) * T(DataModule) >>
-          ([](Match&) -> Node { return DataModule; }),
+        In(Input) * T(Object) >> ([](Match&) -> Node { return Object; }),
+        In(Input) * T(Array) >> ([](Match&) -> Node { return Array; }),
+        In(Data) * T(DataModule) >> ([](Match&) -> Node { return DataModule; }),
         In(Rego) * T(SkipSeq) >> ([](Match&) -> Node { return SkipSeq; }),
         (In(Query) / In(Array) / In(Set) / In(ObjectItem)) *
             (ScalarToken / T(JSONString))[Scalar] >>

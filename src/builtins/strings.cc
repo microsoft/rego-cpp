@@ -2,7 +2,6 @@
 #include "register.h"
 #include "resolver.h"
 #include "utf8.h"
-#include "errors.h"
 #include "utils.h"
 
 #include <bitset>

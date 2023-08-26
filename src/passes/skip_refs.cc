@@ -75,7 +75,8 @@ namespace
     else if (node->type() == Ref)
     {
       Node refhead = (node / RefHead)->front();
-      if(refhead->type() == Var){
+      if (refhead->type() == Var)
+      {
         std::ostringstream oss;
         oss << refhead->location().view();
         for (auto& refarg : *(node / RefArgSeq))
@@ -95,7 +96,9 @@ namespace
         {
           used_builtins.insert(path);
         }
-      }else{
+      }
+      else
+      {
         find_used_builtins(refhead, builtins, used_builtins);
       }
     }

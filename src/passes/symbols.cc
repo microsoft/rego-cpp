@@ -152,7 +152,8 @@ namespace rego
 
       In(Policy) *
           (T(Rule)
-           << (T(JSONFalse) *(T(RuleHead)
+           << (T(JSONFalse) *
+               (T(RuleHead)
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadSet) << T(Expr)[Expr]))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq))) >>
@@ -160,7 +161,8 @@ namespace rego
 
       In(Policy) *
           (T(Rule)
-           << (T(JSONFalse) *(T(RuleHead)
+           << (T(JSONFalse) *
+               (T(RuleHead)
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadObj)
                      << (T(Expr)[Key] * T(AssignOperator) * T(Expr)[Val])))) *
@@ -354,6 +356,20 @@ namespace rego
         [](Match& _) {
           Node number = Resolver::negate(_(NumTerm)->front());
           return Term << (Scalar << number);
+        },
+
+      (In(RuleComp) / In(RuleFunc)) * (T(Empty) * T(Expr)[Expr]) >>
+        [](Match& _) {
+          Location out = _.fresh({"out"});
+          Location value = _.fresh({"value"});
+          return Seq << (UnifyBody
+                         << (Literal
+                             << (Expr << (RefTerm << (Var ^ out)) << Unify
+                                      << *_[Expr])))
+                     << (UnifyBody
+                         << (Literal
+                             << (Expr << (RefTerm << (Var ^ value)) << Unify
+                                      << (RefTerm << (Var ^ out)))));
         },
 
       (In(RuleComp) / In(RuleFunc)) * T(Expr)[Expr] >>

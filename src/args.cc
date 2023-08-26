@@ -1,7 +1,7 @@
 #include "args.h"
 
-#include "value.h"
 #include "utils.h"
+#include "value.h"
 
 #include <sstream>
 
@@ -84,5 +84,21 @@ namespace rego
         }
       }
     }
+  }
+
+  const Values& Args::source_at(std::size_t index) const
+  {
+    return m_values[index];
+  }
+
+  Args Args::subargs(std::size_t start) const
+  {
+    Args subargs;
+    for (std::size_t i = start; i < m_values.size(); ++i)
+    {
+      subargs.push_back(m_values[i]);
+    }
+
+    return subargs;
   }
 }

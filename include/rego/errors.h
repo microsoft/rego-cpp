@@ -9,6 +9,7 @@ namespace rego
   const std::string RegoTypeError = "rego_type_error";
   const std::string EvalConflictError = "eval_conflict_error";
   const std::string WellFormedError = "wellformed_error";
+  const std::string RuntimeError = "runtime_error";
 
   Node err(
     NodeRange& r,

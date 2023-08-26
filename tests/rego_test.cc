@@ -13,9 +13,7 @@ namespace rego_test
       In(Top) * T(File)[File] >> [](Match& _) { return Block << *_[File]; },
 
       In(Group) * (T(Brace)[Brace] << End) >>
-        [](Match& _){
-          return EmptyMapping ^ _(Brace);
-        },
+        [](Match& _) { return EmptyMapping ^ _(Brace); },
 
       In(Group) * (T(Colon) * T(Integer)[Integer] * T(String)[String]) >>
         [](Match& _) {
@@ -76,8 +74,7 @@ namespace rego_test
           (T(Group) << T(Blank)) >>
         [](Match&) { return String ^ ""; },
 
-      T(Group) << (T(Blank) * End) >>
-        [](Match&) { return Node{}; },
+      T(Group) << (T(Blank) * End) >> [](Match&) { return Node{}; },
 
       // errors
       In(Group) * T(Blank)[Blank] >>
@@ -90,7 +87,7 @@ namespace rego_test
         [](Match& _) {
           return err(_(Hyphen), "Invalid sequence entry declaration");
         },
-      
+
       In(Group) * (T(Entry)[Entry] << End) >>
         [](Match& _) { return err(_(Entry), "Invalid entry declaration"); },
 
@@ -343,12 +340,16 @@ namespace rego_test
         [](Match& _) { return _(Entry)->front(); },
 
       In(Group) * T(Key)[Key] >>
-        [](Match& _) {           std::string key_str = "\"" + std::string(_(Key)->location().view()) + "\"";
-          return rego::JSONString ^ key_str; },
+        [](Match& _) {
+          std::string key_str =
+            "\"" + std::string(_(Key)->location().view()) + "\"";
+          return rego::JSONString ^ key_str;
+        },
 
       (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(String)[String]) >>
-        [](Match& _) { 
-          std::string str = "\"" + std::string(_(String)->location().view()) + "\"";
+        [](Match& _) {
+          std::string str =
+            "\"" + std::string(_(String)->location().view()) + "\"";
           return rego::JSONString ^ str;
         },
 

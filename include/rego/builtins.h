@@ -2,8 +2,8 @@
 
 #include <functional>
 #include <string>
-#include <trieste/source.h>
 #include <trieste/ast.h>
+#include <trieste/source.h>
 
 namespace rego
 {

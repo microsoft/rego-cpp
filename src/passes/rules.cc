@@ -42,8 +42,7 @@ namespace rego
     return {
       In(Policy) *
           (T(Group)
-           << (T(Var)[Id] *
-               (T(Array) << (T(Group)[Item] * End)) *
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
           return Rule << JSONFalse
@@ -54,8 +53,7 @@ namespace rego
 
       In(Policy) *
           (T(Group)
-           << (T(Var)[Id] *
-               (T(Array) << (T(Group)[Item] * End)) * End)) >>
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) * End)) >>
         [](Match& _) {
           return Rule << JSONFalse
                       << (RuleHead << (RuleRef << _(Id))
@@ -65,9 +63,8 @@ namespace rego
 
       In(Policy) *
           (T(Group)
-           << (T(Var)[Id] *
-               (T(Array) << (T(Group)[Key] * End)) * (T(Assign) / T(Unify)) *
-               ExprToken[Head] * ExprToken++[Tail] *
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
+               (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail] *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
           return Rule << JSONFalse
@@ -80,9 +77,8 @@ namespace rego
 
       In(Policy) *
           (T(Group)
-           << (T(Var)[Id] *
-               (T(Array) << (T(Group)[Key] * End)) * (T(Assign) / T(Unify)) *
-               ExprToken[Head] * ExprToken++[Tail])) >>
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
+               (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
           return Rule << JSONFalse
                       << (RuleHead << (RuleRef << _(Id))
@@ -91,7 +87,6 @@ namespace rego
                                        << (Group << _(Head) << _[Tail])))
                       << Empty << ElseSeq;
         },
-
 
       In(Policy) *
           (T(Group)

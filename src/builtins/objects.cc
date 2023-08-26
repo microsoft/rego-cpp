@@ -1,7 +1,6 @@
 #include "errors.h"
 #include "register.h"
 #include "resolver.h"
-#include "errors.h"
 #include "utils.h"
 
 namespace
@@ -52,7 +51,12 @@ namespace
     if (!maybe_keys.has_value())
     {
       std::string name = Resolver::type_name(args[1]);
-      return err(args[1], "object.filter: operand 2 must be one of {object, set, array} but got " + name, EvalTypeError);
+      return err(
+        args[1],
+        "object.filter: operand 2 must be one of {object, set, array} but "
+        "got " +
+          name,
+        EvalTypeError);
     }
 
     auto keys = get_key_set(maybe_keys.value());
@@ -78,7 +82,8 @@ namespace
     }
 
     auto maybe_collection = Resolver::maybe_unwrap(node, {Array, Object});
-    if(!maybe_collection.has_value()){
+    if (!maybe_collection.has_value())
+    {
       return std::nullopt;
     }
 
@@ -98,7 +103,8 @@ namespace
     else if (collection->type() == Array)
     {
       auto maybe_key = Resolver::maybe_unwrap_int(keys->at(index));
-      if(!maybe_key.has_value()){
+      if (!maybe_key.has_value())
+      {
         return std::nullopt;
       }
 
@@ -112,8 +118,8 @@ namespace
 
   Node get(const Nodes& args)
   {
-    Node object =
-      Resolver::unwrap(args[0], Object, "object.get: operand 1 ", EvalTypeError);
+    Node object = Resolver::unwrap(
+      args[0], Object, "object.get: operand 1 ", EvalTypeError);
     if (object->type() == Error)
     {
       return object;
@@ -165,7 +171,12 @@ namespace
     if (!maybe_keys.has_value())
     {
       std::string name = Resolver::type_name(args[1]);
-      return err(args[1], "object.remove: operand 2 must be one of {object, set, array} but got " + name, EvalTypeError);
+      return err(
+        args[1],
+        "object.remove: operand 2 must be one of {object, set, array} but "
+        "got " +
+          name,
+        EvalTypeError);
     }
 
     auto keys = get_key_set(maybe_keys.value());
@@ -247,12 +258,14 @@ namespace
     }
     auto super_keys = get_key_set(super);
     auto sub_keys = get_key_set(sub);
-    for(auto& key : sub_keys){
-      if(!super_keys.contains(key)){
+    for (auto& key : sub_keys)
+    {
+      if (!super_keys.contains(key))
+      {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -267,12 +280,14 @@ namespace
     }
     auto super_keys = get_key_set(super);
     auto sub_keys = get_key_set(sub);
-    for(auto& key : sub_keys){
-      if(!super_keys.contains(key)){
+    for (auto& key : sub_keys)
+    {
+      if (!super_keys.contains(key))
+      {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -280,38 +295,38 @@ namespace
 
   bool is_subset(Node& super, Node& sub)
   {
-      if (sub->type() == Object && super->type() == Object)
-      {
-        return object_subset(super, sub);
-      }
-      
-      if (sub->type() == Array && super->type() == Array)
-      {
-        return array_subset(super, sub);
-      }
-      
-      if (sub->type() == Set)
-      {
-        if (super->type() == Set)
-        {
-          return set_subset(super, sub);
-        }
-        else if (super->type() == Array)
-        {
-          return set_array_subset(super, sub);
-        }
-        else
-        {
-          return false;
-        }
-      }
+    if (sub->type() == Object && super->type() == Object)
+    {
+      return object_subset(super, sub);
+    }
 
-      if (super->type() == sub->type())
-      {
-        return to_json(super) == to_json(sub);
-      }
+    if (sub->type() == Array && super->type() == Array)
+    {
+      return array_subset(super, sub);
+    }
 
-      return false;
+    if (sub->type() == Set)
+    {
+      if (super->type() == Set)
+      {
+        return set_subset(super, sub);
+      }
+      else if (super->type() == Array)
+      {
+        return set_array_subset(super, sub);
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    if (super->type() == sub->type())
+    {
+      return to_json(super) == to_json(sub);
+    }
+
+    return false;
   }
 
   /** Object sub is a subset of object super if and only if every
@@ -353,14 +368,24 @@ namespace
     if (!maybe_super.has_value())
     {
       std::string name = Resolver::type_name(args[0]);
-      return err(args[0], "object.subset: operand 1 must be one of {object, set, array} but got " + name, EvalTypeError);
+      return err(
+        args[0],
+        "object.subset: operand 1 must be one of {object, set, array} but "
+        "got " +
+          name,
+        EvalTypeError);
     }
 
     auto maybe_sub = Resolver::maybe_unwrap(args[1], {Array, Set, Object});
     if (!maybe_sub.has_value())
     {
       std::string name = Resolver::type_name(args[0]);
-      return err(args[1], "object.subset: operand 2 must be one of {object, set, array} but got " + name, EvalTypeError);
+      return err(
+        args[1],
+        "object.subset: operand 2 must be one of {object, set, array} but "
+        "got " +
+          name,
+        EvalTypeError);
     }
 
     Node super = *maybe_super;

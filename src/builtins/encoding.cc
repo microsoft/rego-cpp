@@ -1,7 +1,7 @@
 #include "base64/base64.h"
+#include "errors.h"
 #include "register.h"
 #include "resolver.h"
-#include "errors.h"
 #include "utils.h"
 
 namespace

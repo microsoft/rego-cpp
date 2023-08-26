@@ -2,10 +2,10 @@
 
 #include "CLI/TypeTools.hpp"
 #include "args.h"
+#include "errors.h"
 #include "log.h"
 #include "resolver.h"
 #include "utils.h"
-#include "errors.h"
 
 #include <algorithm>
 #include <iostream>
@@ -381,10 +381,22 @@ namespace rego
               LOG("> ", var.name().view(), ": Empty TermSet => false");
               return JSONFalse ^ "false";
             }
-            if (result->type() == Undefined)
+            Node maybe_term = Resolver::reduce_termset(node);
+            if (maybe_term->type() == Term)
             {
-              LOG("> ", var.name().view(), ": TermSet => true");
-              return JSONTrue ^ "true";
+              if (result->type() == Undefined)
+              {
+                LOG("> ", var.name().view(), ": TermSet => true");
+                return JSONTrue ^ "true";
+              }
+            }
+            else
+            {
+              LOG("> ", var.name().view(), ": TermSet => Error");
+              return err(
+                node,
+                "complete rules must not produce multiple outputs",
+                EvalConflictError);
             }
           }
           else if (node->size() > 0 && result->type() == Undefined)
@@ -491,20 +503,89 @@ namespace rego
 
     LOG("> calling ", func_name, " with ", args);
     std::set<Value> valid_args;
-    for (std::size_t i = 0; i < args.size(); ++i)
+    if (func_name == "apply_access")
     {
-      Values call_args = args.at(i);
-      Values results = call_function(var, func_name, call_args);
-      for (auto& result : results)
+      for (std::size_t i = 0; i < args.size(); ++i)
       {
-        LOG("> result: ", result);
-        values.push_back(result);
-      }
+        Values call_args = args.at(i);
+        Values results = apply_access(var, call_args);
+        for (auto& result : results)
+        {
+          LOG("> result: ", result);
+          values.push_back(result);
+        }
 
-      if (results.size() > 0)
+        if (results.size() > 0)
+        {
+          // these arguments resulted in valid values
+          valid_args.insert(call_args.begin(), call_args.end());
+        }
+      }
+    }
+    else if (func_name == "call")
+    {
+      Values funcs = args.source_at(0);
+      Args func_args = args.subargs(1);
+      for (std::size_t i = 0; i < func_args.size(); ++i)
       {
-        // these arguments resulted in valid values
-        valid_args.insert(call_args.begin(), call_args.end());
+        Value result = nullptr;
+        Values arglist = func_args.at(i);
+        for (Value func : funcs)
+        {
+          Values call_args = {func};
+          call_args.insert(call_args.end(), arglist.begin(), arglist.end());
+          auto maybe_result = call_function(var, call_args);
+          if (maybe_result.has_value())
+          {
+            if (result == nullptr)
+            {
+              result = maybe_result.value();
+              valid_args.insert(call_args.begin(), call_args.end());
+              LOG("> result: ", result);
+            }
+            else
+            {
+              std::string old_str = to_json(result->to_term());
+              std::string new_str = to_json(maybe_result.value()->to_term());
+              if (old_str != new_str)
+              {
+                result = ValueDef::create(
+                  var,
+                  err(
+                    func->node(),
+                    "functions must not produce multiple outputs for same "
+                    "inputs",
+                    EvalConflictError));
+                LOG("> second result => Error");
+                break;
+              }
+            }
+          }
+        }
+
+        if (result != nullptr)
+        {
+          values.push_back(result);
+          if (result->node()->type() == Error)
+          {
+            break;
+          }
+        }
+      }
+    }
+    else
+    {
+      for (std::size_t i = 0; i < args.size(); ++i)
+      {
+        Values call_args = args.at(i);
+        auto maybe_result = call_named_function(var, func_name, call_args);
+        if (maybe_result.has_value())
+        {
+          Value result = maybe_result.value();
+          LOG("> result: ", result);
+          values.push_back(result);
+          valid_args.insert(call_args.begin(), call_args.end());
+        }
       }
     }
 
@@ -680,9 +761,10 @@ namespace rego
             values.push_back(ValueDef::create(maybe_node.value()));
           }
         }
-        else if(def->type() == DataItem){
+        else if (def->type() == DataItem)
+        {
           Node value = def / Val;
-          if(value->type() == DataModule)
+          if (value->type() == DataModule)
           {
             values.push_back(ValueDef::create(resolve_module(def)));
           }
@@ -702,10 +784,87 @@ namespace rego
     return ValueDef::filter_by_rank(values);
   }
 
-  Values UnifierDef::call_function(
-    const Location& var, const std::string& func_name, const Values& args)
+  Values UnifierDef::apply_access(const Location& var, const Values& args)
   {
     Values values;
+    Values sources;
+    std::copy_if(
+      args.begin(), args.end(), std::back_inserter(sources), [this](auto& arg) {
+        return is_variable(arg->var());
+      });
+
+    Node container = args[0]->node();
+
+    if (container->type() == Error)
+    {
+      values.push_back(ValueDef::create(var, container, sources));
+      return values;
+    }
+
+    if (container->type() == Term)
+    {
+      container = container->front();
+    }
+
+    if (container->type() == Undefined)
+    {
+      values.push_back(ValueDef::create(var, container, sources));
+    }
+
+    else
+    {
+      auto maybe_nodes = Resolver::apply_access(container, args[1]->node());
+      if (maybe_nodes)
+      {
+        Nodes defs = maybe_nodes.value();
+        if (!defs.empty())
+        {
+          Token peek_type = defs.front()->type();
+          if (peek_type == RuleSet)
+          {
+            auto maybe_node = resolve_ruleset(defs);
+            if (maybe_node)
+            {
+              values.push_back(ValueDef::create(var, *maybe_node, sources));
+            }
+          }
+          else if (peek_type == RuleObj)
+          {
+            auto maybe_node = resolve_ruleobj(defs);
+            if (maybe_node)
+            {
+              values.push_back(ValueDef::create(var, *maybe_node, sources));
+            }
+          }
+          else
+          {
+            for (auto& def : defs)
+            {
+              if (def->type() == RuleComp)
+              {
+                auto maybe_node = resolve_rulecomp(def);
+                if (maybe_node)
+                {
+                  values.push_back(
+                    ValueDef::create(var, maybe_node.value(), sources));
+                }
+              }
+              else
+              {
+                values.push_back(ValueDef::create(var, def, sources));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return values;
+  }
+
+  std::optional<Value> UnifierDef::call_named_function(
+    const Location& var, const std::string& func_name, const Values& args)
+  {
     Values sources;
     std::copy_if(
       args.begin(), args.end(), std::back_inserter(sources), [this](auto& arg) {
@@ -716,193 +875,139 @@ namespace rego
     {
       Node result =
         Resolver::arithinfix(args[0]->node(), args[1]->node(), args[2]->node());
-      values.push_back(ValueDef::create(var, result, sources));
+      return ValueDef::create(var, result, sources);
     }
-    else if (func_name == "bininfix")
+
+    if (func_name == "bininfix")
     {
       Node result =
         Resolver::bininfix(args[0]->node(), args[1]->node(), args[2]->node());
-      values.push_back(ValueDef::create(var, result, sources));
+      return ValueDef::create(var, result, sources);
     }
-    else if (func_name == "boolinfix")
+
+    if (func_name == "boolinfix")
     {
       Node result =
         Resolver::boolinfix(args[0]->node(), args[1]->node(), args[2]->node());
-      values.push_back(ValueDef::create(var, result, sources));
+      return ValueDef::create(var, result, sources);
     }
-    else if (func_name == "unary")
+
+    if (func_name == "unary")
     {
-      values.push_back(
-        ValueDef::create(var, Resolver::unary(args[0]->node()), sources));
+      return ValueDef::create(var, Resolver::unary(args[0]->node()), sources);
     }
-    else if (func_name == "not")
+
+    if (func_name == "not")
     {
       Node term = args[0]->to_term();
       if (Resolver::is_truthy(term))
       {
-        values.push_back(ValueDef::create(var, JSONFalse, sources));
+        return ValueDef::create(var, JSONFalse ^ "false", sources);
       }
       else
       {
-        values.push_back(ValueDef::create(var, JSONTrue, sources));
+        return ValueDef::create(var, JSONTrue ^ "true", sources);
       }
     }
-    else if (func_name == "membership-tuple")
+
+    if (func_name == "membership-tuple")
     {
       Node result =
         Resolver::membership(args[0]->node(), args[1]->node(), args[2]->node());
-      values.push_back(ValueDef::create(var, result, sources));
+      return ValueDef::create(var, result, sources);
     }
-    else if (func_name == "membership-single")
+
+    if (func_name == "membership-single")
     {
       Node result = Resolver::membership(args[0]->node(), args[1]->node());
-      values.push_back(ValueDef::create(var, result, sources));
+      return ValueDef::create(var, result, sources);
     }
-    else if (func_name == "apply_access")
-    {
-      Node container = args[0]->node();
 
-      if (container->type() == Error)
-      {
-        values.push_back(ValueDef::create(var, container, sources));
-        return values;
-      }
-
-      if (container->type() == Term)
-      {
-        container = container->front();
-      }
-
-      if (container->type() == Undefined)
-      {
-        values.push_back(ValueDef::create(var, container, sources));
-      }
-      else
-      {
-        auto maybe_nodes = Resolver::apply_access(container, args[1]->node());
-        if (maybe_nodes)
-        {
-          Nodes defs = maybe_nodes.value();
-          if (!defs.empty())
-          {
-            Token peek_type = defs.front()->type();
-            if (peek_type == RuleSet)
-            {
-              auto maybe_node = resolve_ruleset(defs);
-              if (maybe_node)
-              {
-                values.push_back(ValueDef::create(var, *maybe_node, sources));
-              }
-            }
-            else if (peek_type == RuleObj)
-            {
-              auto maybe_node = resolve_ruleobj(defs);
-              if (maybe_node)
-              {
-                values.push_back(ValueDef::create(var, *maybe_node, sources));
-              }
-            }
-            else
-            {
-              for (auto& def : defs)
-              {
-                if (def->type() == RuleComp)
-                {
-                  auto maybe_node = resolve_rulecomp(def);
-                  if (maybe_node)
-                  {
-                    values.push_back(
-                      ValueDef::create(var, maybe_node.value(), sources));
-                  }
-                }
-                else
-                {
-                  values.push_back(ValueDef::create(var, def, sources));
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    else if (func_name == "object")
+    if (func_name == "object")
     {
       Node object_items = NodeDef::create(ArgSeq);
       for (auto& arg : args)
       {
         if (arg->node()->type() == Undefined)
         {
-          return values;
+          return std::nullopt;
         }
 
         object_items->push_back(arg->node());
       }
-      values.push_back(
-        ValueDef::create(var, Resolver::object(object_items), sources));
+      return ValueDef::create(var, Resolver::object(object_items), sources);
     }
-    else if (func_name == "array")
+
+    if (func_name == "array")
     {
       Node array_members = NodeDef::create(ArgSeq);
       for (auto& arg : args)
       {
         if (arg->node()->type() == Undefined)
         {
-          return values;
+          return std::nullopt;
         }
 
         array_members->push_back(arg->node());
       }
-      values.push_back(
-        ValueDef::create(var, Resolver::array(array_members), sources));
+      return ValueDef::create(var, Resolver::array(array_members), sources);
     }
-    else if (func_name == "set")
+
+    if (func_name == "set")
     {
       Node set_members = NodeDef::create(ArgSeq);
       for (auto& arg : args)
       {
         if (arg->node()->type() == Undefined)
         {
-          return values;
+          return std::nullopt;
         }
 
         set_members->push_back(arg->node());
       }
-      values.push_back(
-        ValueDef::create(var, Resolver::set(set_members), sources));
+      return ValueDef::create(var, Resolver::set(set_members), sources);
     }
-    else if (func_name == "every")
+
+    if (func_name == "every")
     {
       Node varseq = args[0]->node();
       Node nestedbody = args[1]->node();
-      values.push_back(
-        ValueDef::create(var, resolve_every(varseq, nestedbody), sources));
+      return ValueDef::create(var, resolve_every(varseq, nestedbody), sources);
     }
-    else if (func_name == "call")
+
+    return std::nullopt;
+  }
+
+  std::optional<Value> UnifierDef::call_function(
+    const Location& var, const Values& args)
+  {
+    Values sources;
+    std::copy_if(
+      args.begin(), args.end(), std::back_inserter(sources), [this](auto& arg) {
+        return is_variable(arg->var());
+      });
+
+    Node function = args[0]->node();
+    Nodes function_args;
+    std::transform(
+      args.begin() + 1,
+      args.end(),
+      std::back_inserter(function_args),
+      [](auto& arg) { return arg->node(); });
+
+    if (m_builtins.is_builtin(function->location()))
     {
-      Node function = args[0]->node();
-      Nodes function_args;
-      std::transform(
-        args.begin() + 1,
-        args.end(),
-        std::back_inserter(function_args),
-        [](auto& arg) { return arg->node(); });
-
-      if (m_builtins.is_builtin(function->location()))
-      {
-        Node node = m_builtins.call(function->location(), function_args);
-        values.push_back(ValueDef::create(var, node, sources));
-      }
-      else
-      {
-        auto maybe_node = resolve_rulefunc(function, function_args);
-        if (maybe_node)
-        {
-          values.push_back(ValueDef::create(var, maybe_node.value(), sources));
-        }
-      }
+      Node node = m_builtins.call(function->location(), function_args);
+      return ValueDef::create(var, node, sources);
     }
 
-    return values;
+    auto maybe_node = resolve_rulefunc(function, function_args);
+    if (maybe_node)
+    {
+      return ValueDef::create(var, maybe_node.value(), sources);
+    }
+
+    return std::nullopt;
   }
 
   Values UnifierDef::enumerate(const Location& var, const Node& container_var)
@@ -1151,12 +1256,14 @@ namespace rego
       name.pos = pos;
       name.len = len;
 
-      if(name.view()[0] == '.'){
+      if (name.view()[0] == '.')
+      {
         name.pos += 1;
         name.len -= 1;
       }
 
-      if(name.view()[0] == '['){
+      if (name.view()[0] == '[')
+      {
         name.pos += 2;
         name.len -= 4;
       }
@@ -1462,7 +1569,8 @@ namespace rego
         argseq->insert(argseq->end(), set->begin(), set->end());
       }
 
-      if(value->type() == Error){
+      if (value->type() == Error)
+      {
         return value;
       }
     }
@@ -1560,7 +1668,8 @@ namespace rego
         }
       }
 
-      if(value->type() == Error){
+      if (value->type() == Error)
+      {
         return value;
       }
     }

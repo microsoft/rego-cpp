@@ -4,6 +4,8 @@
 
 namespace rego
 {
+  using namespace trieste;
+
   class ValueDef;
   using rank_t = std::size_t;
   using Value = std::shared_ptr<ValueDef>;

@@ -1,8 +1,7 @@
-#include "passes.h"
 #include "errors.h"
-#include "utils.h"
+#include "passes.h"
 #include "resolver.h"
-
+#include "utils.h"
 
 namespace
 {
@@ -347,7 +346,7 @@ namespace rego
 
       In(SomeDecl) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid some declaration"); },
-      
+
       In(RuleRef) * (Any * Any[Val]) >>
         [](Match& _) { return err(_(Val), "Invalid rule reference"); },
 

@@ -27,7 +27,8 @@ namespace
 
       Node ref = ruleref->front();
       Node full_ref = concat_refs(prefix_ref, ref);
-      if(full_ref->type() == Error){
+      if (full_ref->type() == Error)
+      {
         return;
       }
 
@@ -164,6 +165,21 @@ namespace rego
         collect_refheads(node, refheads);
       }
 
+      return 0;
+    });
+
+    lift_refheads.post(Rule, [refheads](Node node) {
+      Node module = node->parent()->parent()->shared_from_this();
+      Node rulehead = node / RuleHead;
+      Node package_ref = (module / Package)->front();
+      Node prefix_ref = concat_refs(Var ^ "data", package_ref);
+      if (prefix_ref->type() == Error)
+      {
+        return 0;
+      }
+
+      prepend_refs(node / Body, prefix_ref, refheads);
+      prepend_refs(rulehead / RuleHeadType, prefix_ref, refheads);
       return 0;
     });
 
