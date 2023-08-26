@@ -206,33 +206,33 @@ namespace rego
           return seq;
         },
 
-      In(ExprCall) * (T(RefTerm) << T(Var)[Var]) >>
+      In(ExprCall) * (T(RuleRef) << T(Var)[Var]) >>
         [](Match& _) { return _(Var); },
 
       In(ExprCall) *
-          (T(RefTerm)[RefTerm](
+          (T(RuleRef)[RuleRef](
              [](auto& n) { return is_in(*n.first, {UnifyBody}); })
            << T(Ref)) >>
         [](Match& _) {
           Location call_func = _.fresh({"call_func"});
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ call_func) << Undefined))
-                     << (Lift << UnifyBody
-                              << (Literal
-                                  << (Expr
-                                      << (AssignInfix
-                                          << (AssignArg
-                                              << (RefTerm << (Var ^ call_func)))
-                                          << (AssignArg << _(RefTerm))))))
-                     << (Var ^ call_func);
+          return Seq
+            << (Lift << UnifyBody << (Local << (Var ^ call_func) << Undefined))
+            << (Lift << UnifyBody
+                     << (Literal
+                         << (Expr
+                             << (AssignInfix
+                                 << (AssignArg
+                                     << (RefTerm << (Var ^ call_func)))
+                                 << (AssignArg << (RefTerm << *_[RuleRef]))))))
+            << (Var ^ call_func);
         },
 
       // errors
       T(Expr)[Expr] << (Any * Any) >>
         [](Match& _) { return err(_(Expr), "Invalid expression"); },
 
-      In(ExprCall) * T(VarSeq)[VarSeq] >>
-        [](Match& _) { return err(_(VarSeq), "Invalid function call"); },
+      In(ExprCall) * T(RuleRef)[RuleRef] >>
+        [](Match& _) { return err(_(RuleRef), "Invalid function call"); },
 
       In(RefTerm) *
           T(Ref)[Ref]([](auto& n) { return !is_in(*n.first, {UnifyBody}); }) >>

@@ -18,6 +18,7 @@ namespace rego
   PassDef structure();
   PassDef strings();
   PassDef merge_data();
+  PassDef lift_refheads();
   PassDef symbols();
   PassDef replace_argvals();
   PassDef lift_query();

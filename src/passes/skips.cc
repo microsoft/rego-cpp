@@ -45,7 +45,14 @@ namespace
     }
 
     if(rhs.view()[0] == '['){
-      return lhs + std::string(rhs.view());
+      Location key = rhs;
+      key.pos += 2;
+      key.len -= 4;
+      if(all_alnum(key.view())){
+        return lhs + "." + std::string(key.view());
+      }else{
+        return lhs + std::string(rhs.view());
+      }
     }
     
     return lhs + "." + std::string(rhs.view());

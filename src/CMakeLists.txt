@@ -27,6 +27,7 @@ passes/build_refs.cc
 passes/structure.cc
 passes/strings.cc
 passes/merge_data.cc
+passes/lift_refheads.cc
 passes/symbols.cc
 passes/replace_argvals.cc
 passes/lift_query.cc

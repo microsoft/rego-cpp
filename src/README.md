@@ -28,3 +28,4 @@ output {
 }
 ```
 7. Big number support is unclear.
+8. data.refrules.fruit["color.name"](fruit.apple, "green") is a valid expr-call (violates grammar)

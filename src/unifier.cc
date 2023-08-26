@@ -1125,7 +1125,7 @@ namespace rego
     assert(module->type() == DataModule);
 
     Location prefix = (dataitem / Key)->location();
-    std::size_t prefix_len = prefix.len + 1;
+    std::size_t prefix_len = prefix.len;
 
     Node object = NodeDef::create(Object);
     std::map<Location, Nodes> rule_nodes;
@@ -1151,8 +1151,19 @@ namespace rego
       name.pos = pos;
       name.len = len;
 
+      if(name.view()[0] == '.'){
+        name.pos += 1;
+        name.len -= 1;
+      }
+
+      if(name.view()[0] == '['){
+        name.pos += 2;
+        name.len -= 4;
+      }
+
       if (!rule_nodes.contains(name))
       {
+        LOG("adding rule ", name.view());
         rule_nodes[name] = Nodes();
       }
 

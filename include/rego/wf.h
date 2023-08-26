@@ -152,10 +152,10 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_rules =
     wf_pass_elses
-    | (Policy <<= (Rule | DefaultRule)++)
-    | (DefaultRule <<= Var * Group)
-    | (Rule <<= RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
-    | (RuleHead <<= Var * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc | RuleHeadSet | RuleHeadObj))
+    | (Policy <<= Rule++)
+    | (Rule <<= (Default >>= JSONTrue | JSONFalse) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
+    | (RuleHead <<= RuleRef * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc | RuleHeadSet | RuleHeadObj))
+    | (RuleRef <<= (Var | Array | Dot)++[1])
     | (ElseSeq <<= Else++)
     | (Else <<= (Val >>= Group) * UnifyBody)
     | (RuleHeadComp <<= AssignOperator * Group)
@@ -173,7 +173,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_build_calls =
     wf_pass_rules
-    | (ExprCall <<= VarSeq * ArgSeq)
+    | (ExprCall <<= RuleRef * ArgSeq)
     | (ArgSeq <<= Group++[1])
     | (Group <<= wf_call_tokens++[1])
     ;
@@ -203,6 +203,7 @@ namespace rego
     | (RefArgSeq <<= (RefArgDot | RefArgBrack)++)
     | (RefArgDot <<= Var)
     | (RefArgBrack <<= Group)
+    | (RuleRef <<= Var | Ref)
     | (Group <<= wf_refs_tokens++[1])
     ;
   // clang-format on
@@ -224,10 +225,10 @@ namespace rego
     | (Import <<= Ref * As * Var)
     | (Keyword <<= Var)[Var]
     | (Package <<= Ref)
-    | (Policy <<= (Rule | DefaultRule)++)
-    | (DefaultRule <<= Var * Term)
-    | (Rule <<= RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
-    | (RuleHead <<= Var * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc | RuleHeadSet | RuleHeadObj))
+    | (Policy <<= Rule++)
+    | (Rule <<= (Default >>= JSONTrue | JSONFalse) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
+    | (RuleHead <<= RuleRef * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc | RuleHeadSet | RuleHeadObj))
+    | (RuleRef <<= Ref | Var)
     | (ElseSeq <<= Else++)
     | (Else <<= Expr * UnifyBody)
     | (RuleHeadComp <<= AssignOperator * Expr)
@@ -245,7 +246,7 @@ namespace rego
     | (VarSeq <<= Var++)
     | (IsIn <<= Expr | Undefined)
     | (Expr <<= (Term | wf_arith_op | wf_bin_op | wf_bool_op | wf_assign_op | Dot | ExprCall | ExprEvery | Membership | Expr)++[1])
-    | (ExprCall <<= VarSeq * ArgSeq)
+    | (ExprCall <<= RuleRef * ArgSeq)
     | (ExprEvery <<= VarSeq * UnifyBody * IsIn)
     | (VarSeq <<= Var++[1])
     | (ArgSeq <<= Expr++[1])
@@ -290,26 +291,28 @@ namespace rego
     | (DataSet <<= DataTerm++)
     | (DataObject <<= DataObjectItem++)
     | (DataObjectItem <<= (Key >>= DataTerm) * (Val >>= DataTerm))
+    | (RuleArgs <<= (ArgVar | ArgVal)++[1])
+    | (ArgVar <<= Var * Undefined)[Var]
+    | (ArgVal <<= Scalar | Array | Object | Set)
     ;
   // clang-format on
 
+  inline const auto wf_pass_lift_refheads = wf_pass_merge_data;
+
   // clang-format off
   inline const auto wf_pass_symbols =
-    wf_pass_merge_data
+    wf_pass_lift_refheads
     | (Module <<= Package * Policy)
     | (Policy <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj)++)
     | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * JSONInt)[Var]
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * JSONInt)[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | Term))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | Term) * (Val >>= Expr | Term))[Var]
-    | (RuleArgs <<= (ArgVar | ArgVal)++[1])
     | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum)++[1])
     | (LiteralEnum <<= (Item >>= Var) * (ItemSeq >>= Expr))
     | (Query <<= (Body >>= UnifyBody))
     | (Local <<= Var * Undefined)[Var]
     | (Literal <<= Expr | SomeExpr)
-    | (ArgVar <<= Var * Undefined)[Var]
-    | (ArgVal <<= Scalar | Array | Object | Set)
     | (Term <<= Scalar | Array | Object | Set | ArrayCompr | SetCompr | ObjectCompr)
     | (ObjectCompr <<= Expr * Expr * (Body >>= NestedBody))
     | (ArrayCompr <<= Expr * (Body >>= NestedBody))
@@ -321,7 +324,6 @@ namespace rego
     | (Import <<= Var * Ref)[Var]
     | (ExprEvery <<= VarSeq * NestedBody)
     | (NestedBody <<= Key * (Val >>= UnifyBody))
-    | (ExprCall <<= RefTerm * ArgSeq)
     ;
   // clang-format on
 

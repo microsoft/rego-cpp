@@ -1,4 +1,5 @@
 #include "passes.h"
+#include "utils.h"
 #include "errors.h"
 
 namespace rego
@@ -11,7 +12,7 @@ namespace rego
           return Seq << (Var ^ _(Contains)) << _(Paren);
         },
 
-      In(Group) * (T(Var)[Var] * T(Paren)[Paren]) >>
+      In(Group) * (RuleRefToken[Head] * RuleRefToken++[Tail] * T(Paren)[Paren]) >>
         [](Match& _) {
           Node argseq = NodeDef::create(ArgSeq);
           Node paren = _(Paren);
@@ -52,15 +53,7 @@ namespace rego
             }
           }
 
-          return ExprCall << (VarSeq << (Group << _(Var))) << argseq;
-        },
-
-      In(Group) *
-          (T(Var)[Var] * T(Dot) *
-           (T(ExprCall) << (T(VarSeq)[VarSeq] * T(ArgSeq)[ArgSeq]))) >>
-        [](Match& _) {
-          return ExprCall << (VarSeq << (Group << _(Var)) << *_[VarSeq])
-                          << _(ArgSeq);
+          return ExprCall << (RuleRef << _(Head) << _[Tail]) << argseq;
         },
 
       // errors

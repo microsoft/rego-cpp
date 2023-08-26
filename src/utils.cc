@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "errors.h"
 
 namespace rego
 {
@@ -346,7 +347,7 @@ namespace rego
                  << (ErrorCode ^ code);
   }
 
-  bool all_alnum(const std::string& str)
+  bool all_alnum(const std::string_view& str)
   {
     for (char c : str)
     {
@@ -356,5 +357,51 @@ namespace rego
       }
     }
     return true;
+  }
+
+  Node concat_refs(const Node& lhs, const Node& rhs)
+  {
+    Node ref;
+    if(lhs->type() == Var){
+      ref = Ref << (RefHead << lhs->clone()) << RefArgSeq;
+    }else if(lhs->type() == Ref){
+      ref = lhs->clone();
+    }else{
+      return err(lhs, "invalid reference");
+    }
+
+    Node refhead = (rhs / RefHead)->front();
+    Node refargseq = rhs / RefArgSeq;
+    if(refhead->type() != Var){
+      return err(rhs, "cannot concatenate non-var refhead refs");
+    }
+
+    (ref / RefArgSeq) << (RefArgDot << refhead->clone());
+    for(auto& arg : *refargseq){
+      (ref / RefArgSeq) << arg->clone();
+    }
+
+    return ref;
+  }
+
+  std::string flatten_ref(const Node& ref)
+  {
+    std::ostringstream buf;
+    buf << (ref / RefHead)->front()->location().view();
+    for(auto& arg : *(ref / RefArgSeq)){
+      if(arg->type() == RefArgDot){
+        buf << "." << arg->front()->location().view();
+      }else{
+        Location key = arg->front()->location();
+        key.pos += 1;
+        key.len -= 2;
+        if(all_alnum(key.view())){
+          buf << "." << key.view();
+        }else{
+          buf << "[" << arg->front()->location().view() << "]";
+        }
+      }
+    }
+    return buf.str();
   }
 }

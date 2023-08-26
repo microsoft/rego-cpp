@@ -64,6 +64,13 @@ namespace rego
       In(Rego) * (T(DataSeq) << End) >>
         [](Match&) { return Data << (Var ^ "data") << DataModule; },
 
+      In(RuleArgs) * (T(Term) << T(Var)[Var]) >>
+        [](Match& _) { return ArgVar << _(Var) << Undefined; },
+
+      In(RuleArgs) *
+          (T(Term) << (T(Scalar) / T(Array) / T(Object) / T(Set))[Val]) >>
+        [](Match& _) { return ArgVal << _(Val); },
+
       // errors
 
       In(DataModule) * T(ObjectItem)[ObjectItem] >>

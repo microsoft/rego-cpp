@@ -24,6 +24,7 @@ namespace rego
   const auto inline MembershipToken = ScalarToken / T(JSONString) /
     T(RawString) / T(Var) / T(Object) / T(Array) / T(Set) / T(Dot) / T(Paren) /
     ArithToken / BoolToken / T(And) / T(Or);
+  const auto inline RuleRefToken = T(Var) / T(Dot) / T(Array);
 
   inline const std::set<std::string> Keywords(
     {"if", "in", "contains", "every"});
@@ -31,9 +32,11 @@ namespace rego
   inline const std::set<Token> RuleTypes(
     {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
 
-  bool all_alnum(const std::string& str);
+  bool all_alnum(const std::string_view& str);
   bool contains_local(const Node& node);
   bool contains_ref(const Node& node);
+  Node concat_refs(const Node& lhs, const Node& rhs);
+  std::string flatten_ref(const Node& ref);
   bool is_in(const Node& node, const std::set<Token>& token);
   bool in_query(const Node& node);
   bool is_constant(const Node& node);

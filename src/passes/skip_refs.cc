@@ -117,7 +117,7 @@ namespace rego
     SkipSet skips = std::make_shared<std::set<std::string>>();
 
     PassDef skip_refs = {
-      In(RefTerm) * T(Ref)[Ref]([skips](auto& n) {
+      (In(RuleRef) / In(RefTerm)) * T(Ref)[Ref]([skips](auto& n) {
         return skip_prefix_ref(skips, *n.first).length > 0;
       }) >>
         [skips](Match& _) {

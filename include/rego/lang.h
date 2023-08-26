@@ -12,7 +12,7 @@ namespace rego
   inline const auto Module = TokenDef("module", flag::symtab);
   inline const auto Package = TokenDef("package");
   inline const auto Policy = TokenDef("policy");
-  inline const auto Rule = TokenDef("rule");
+  inline const auto Rule = TokenDef("rule", flag::symtab);
   inline const auto RuleHead = TokenDef("rule-head");
   inline const auto RuleHeadComp = TokenDef("rule-head-comp");
   inline const auto RuleHeadFunc = TokenDef("rule-head-func");
@@ -82,6 +82,7 @@ namespace rego
 
   // intermediate tokens
   inline const auto UnifyBody = TokenDef("unify-body");
+  inline const auto RuleRef = TokenDef("rule-ref");
   inline const auto RefHead = TokenDef("ref-head");
   inline const auto RefArgSeq = TokenDef("ref-arg-seq");
   inline const auto ModuleSeq = TokenDef("module-seq");

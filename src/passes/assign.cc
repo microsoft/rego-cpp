@@ -41,30 +41,30 @@ namespace
     const BuiltIns& builtins,
     const std::shared_ptr<NodeMap<bool>>& cache)
   {
-    Node refterm = n.first[0];
+    Node ruleref = n.first[0];
     Node argseq = n.first[1];
-    if (cache->contains(refterm))
+    if (cache->contains(ruleref))
     {
-      return cache->at(refterm);
+      return cache->at(ruleref);
     }
 
-    if (!is_in(refterm, {UnifyBody}))
+    if (!is_in(ruleref, {UnifyBody}))
     {
-      cache->insert({refterm, false});
+      cache->insert({ruleref, false});
       return false;
     }
 
-    Location path = concat(refterm);
+    Location path = concat(ruleref);
     if (!builtins.is_builtin(path))
     {
-      cache->insert({refterm, false});
+      cache->insert({ruleref, false});
       return false;
     }
 
     auto builtin = builtins.at(path);
     bool result = builtin->arity == argseq->size() - 1;
 
-    cache->insert({refterm, result});
+    cache->insert({ruleref, result});
     return result;
   }
 }
@@ -118,27 +118,27 @@ namespace rego
 
       In(Literal) *
           (T(Expr)
-           << (T(ExprCall) << (T(RefTerm)[RefTerm] * T(ArgSeq)[ArgSeq])(
+           << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
                  [builtins, cache](auto& n) {
                    return needs_rewrite(n, builtins, cache);
                  }))) >>
         [builtins](Match& _) {
-          Node refterm = RefTerm << (Var ^ concat(_(RefTerm)));
+          Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
           return Expr
             << (AssignInfix << (AssignArg << var->front())
-                            << (AssignArg << (ExprCall << refterm << argseq)));
+                            << (AssignArg << (ExprCall << ruleref << argseq)));
         },
 
       In(LiteralNot) *
           (T(Expr)
-           << (T(ExprCall) << (T(RefTerm)[RefTerm] * T(ArgSeq)[ArgSeq])(
+           << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
                  [builtins, cache](auto& n) {
                    return needs_rewrite(n, builtins, cache);
                  }))) >>
         [builtins](Match& _) {
-          Node refterm = RefTerm << (Var ^ concat(_(RefTerm)));
+          Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
           return Seq << (Lift
@@ -148,7 +148,7 @@ namespace rego
                                  << (AssignInfix
                                      << (AssignArg << var->front())
                                      << (AssignArg
-                                         << (ExprCall << refterm << argseq))))))
+                                         << (ExprCall << ruleref << argseq))))))
                      << var->clone();
         },
 

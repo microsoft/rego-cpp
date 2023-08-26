@@ -1,7 +1,7 @@
-#include "passes.h"
 #include "errors.h"
-#include "utils.h"
+#include "passes.h"
 #include "resolver.h"
+#include "utils.h"
 
 #include <sstream>
 
@@ -73,8 +73,9 @@ namespace rego
 
       In(Policy) *
           (T(Rule)
-           << ((T(RuleHead)
-                << (T(Var)[Id] *
+           << (T(JSONFalse) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq)[ElseSeq])) >>
         [](Match& _) {
@@ -94,16 +95,24 @@ namespace rego
           return seq;
         },
 
-      In(Policy) * (T(DefaultRule) << (T(Var)[Var] * T(Term)[Term])) >>
-        [](Match& _){
-          Node rank = JSONInt ^ std::to_string(std::numeric_limits<std::size_t>::max());
-          return RuleComp << _(Var) << Empty << _(Term) << rank;
+      In(Policy) *
+          (T(Rule)
+           << (T(JSONTrue) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
+                    (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
+               T(Empty) * (T(ElseSeq) << End))) >>
+        [](Match& _) {
+          std::size_t rank = std::numeric_limits<std::size_t>::max();
+          return RuleComp << _(Id) << Empty << _(Expr)
+                          << (JSONInt ^ std::to_string(rank));
         },
 
       In(Policy) *
           (T(Rule)
-           << ((T(RuleHead)
-                << (T(Var)[Id] *
+           << (T(JSONFalse) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadFunc)
                      << (T(RuleArgs)[RuleArgs] * T(AssignOperator) *
                          T(Expr)[Expr])))) *
@@ -128,44 +137,37 @@ namespace rego
 
       In(Policy) *
           (T(Rule)
-           << ((T(RuleHead)
-                << (T(Var)[Id] * (T(RuleHeadSet) << T(Expr)[Expr]))) *
+           << (T(JSONTrue) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
+                    (T(RuleHeadFunc)
+                     << (T(RuleArgs)[RuleArgs] * T(AssignOperator) *
+                         T(Expr)[Expr])))) *
+               T(Empty) * (T(ElseSeq) << End))) >>
+        [](Match& _) {
+          std::size_t rank = std::numeric_limits<std::size_t>::max();
+          return RuleFunc << _(Id) << _(RuleArgs) << Empty << _(Expr)
+                          << (JSONInt ^ std::to_string(rank));
+        },
+
+      In(Policy) *
+          (T(Rule)
+           << (T(JSONFalse) *(T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
+                    (T(RuleHeadSet) << T(Expr)[Expr]))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq))) >>
         [](Match& _) { return RuleSet << _(Id) << _(Body) << _(Expr); },
 
       In(Policy) *
           (T(Rule)
-           << ((T(RuleHead)
-                << (T(Var)[Id] *
+           << (T(JSONFalse) *(T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadObj)
                      << (T(Expr)[Key] * T(AssignOperator) * T(Expr)[Val])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq))) >>
         [](Match& _) {
           return RuleObj << _(Id) << _(Body) << _(Key) << _(Val);
         },
-
-      In(ExprCall) * (T(VarSeq) << (T(Var)[Var] * End)) >>
-        [](Match& _){
-          return RefTerm << _(Var);
-        },
-      
-      In(ExprCall) * T(VarSeq)[VarSeq] >>
-        [](Match& _){
-          Node refhead = RefHead << _(VarSeq)->front();
-          Node refargseq = NodeDef::create(RefArgSeq);
-          for(auto arg = _(VarSeq)->begin() + 1; arg != _(VarSeq)->end(); ++arg){
-            refargseq->push_back(RefArgDot << *arg);
-          }
-
-          return RefTerm << (Ref << refhead << refargseq);
-        },
-
-      In(RuleArgs) * (T(Term) << T(Var)[Var]) >>
-        [](Match& _) { return ArgVar << _(Var) << Undefined; },
-
-      In(RuleArgs) *
-          (T(Term) << (T(Scalar) / T(Array) / T(Object) / T(Set))[Val]) >>
-        [](Match& _) { return ArgVal << _(Val); },
 
       In(Expr) * (T(Expr) << (T(Term)[Term] * End)) >>
         [](Match& _) { return _(Term); },

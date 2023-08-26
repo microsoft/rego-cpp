@@ -67,7 +67,7 @@ namespace rego
   PassDef absolute_refs()
   {
     return {
-      In(RefTerm) * T(Var)[Var]([](auto& n) {
+      (In(RefTerm) / In(RuleRef)) * T(Var)[Var]([](auto& n) {
         return is_ref_to_type(*n.first, {Import});
       }) >>
         [](Match& _) {
@@ -78,7 +78,7 @@ namespace rego
           return ref->clone();
         },
 
-      In(RefTerm) *
+      (In(RefTerm) / In(RuleRef)) *
           (T(Ref)
            << ((T(RefHead) << T(Var)[Var](
                   [](auto& n) { return is_ref_to_type(*n.first, {Import}); })) *
@@ -95,7 +95,7 @@ namespace rego
           return Ref << refhead << refargseq;
         },
 
-      In(RefTerm) * T(Var)[Var]([](auto& n) {
+      (In(RefTerm) / In(RuleRef)) * T(Var)[Var]([](auto& n) {
         return is_ref_to_type(*n.first, RuleTypes);
       }) >>
         [](Match& _) {
@@ -105,7 +105,7 @@ namespace rego
           return build_ref(rule);
         },
 
-      In(RefTerm) *
+      (In(RefTerm) / In(RuleRef)) *
           (T(Ref)
            << ((T(RefHead) << T(Var)[Var]([](auto& n) {
                   return is_ref_to_type(*n.first, RuleTypes);
