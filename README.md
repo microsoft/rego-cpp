@@ -50,23 +50,23 @@ You can then build and run the tests using:
 
 ### Using the Interpreter
 
-The interpreter will be located at `build/dist/bin/rego_interpreter`. Here are
+The interpreter will be located at `build/dist/bin/rego`. Here are
 some example commands using the provided example files and run from the suggested
 `dist` install directory:
 
-    ./bin/rego_interpreter -d examples/scalars.rego -q data.scalars.greeting
+    ./bin/rego -d examples/scalars.rego -q data.scalars.greeting
     "Hello"
 
-    ./bin/rego_interpreter -d examples/objects.rego -q data.objects.sites[1].name
+    ./bin/rego -d examples/objects.rego -q data.objects.sites[1].name
     "smoke1"
 
-    ./bin/rego_interpreter -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
+    ./bin/rego -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
     [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
 
-    ./bin/rego_interpreter -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
+    ./bin/rego -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
     9.4
 
-    ./bin/rego_interpreter -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
+    ./bin/rego -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
     {"one": 15, "two": 15}
 
 ## Language Support

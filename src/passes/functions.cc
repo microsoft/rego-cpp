@@ -30,6 +30,11 @@ namespace rego
   PassDef functions()
   {
     return {
+      In(Input) * T(DataTerm)[DataTerm] >>
+        [](Match& _){
+          return Term << *_[DataTerm];
+        },
+
       (In(UnifyExpr) / In(ArgSeq)) * (T(Expr) << Any[Val]) >>
         [](Match& _) { return _(Val); },
 
@@ -253,13 +258,13 @@ namespace rego
           T(DataTerm)[DataTerm] >>
         [](Match& _) { return Term << *_[DataTerm]; },
 
-      (In(Term) / In(Input)) * T(DataArray)[DataArray] >>
+      In(Term) * T(DataArray)[DataArray] >>
         [](Match& _) { return Array << *_[DataArray]; },
 
       In(Term) * T(DataSet)[DataSet] >>
         [](Match& _) { return Set << *_[DataSet]; },
 
-      (In(Term) / In(Input)) * T(DataObject)[DataObject] >>
+      In(Term) * T(DataObject)[DataObject] >>
         [](Match& _) { return Object << *_[DataObject]; },
 
       In(Object) * T(DataObjectItem)[DataObjectItem] >>

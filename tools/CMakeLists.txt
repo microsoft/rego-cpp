@@ -4,6 +4,8 @@ target_link_libraries(rego_interpreter
   PRIVATE 
   regocpp::rego)
 
+set_target_properties(rego_interpreter PROPERTIES OUTPUT_NAME "rego")
+
 add_executable(rego_trieste driver.cc)
 
 target_link_libraries(rego_trieste

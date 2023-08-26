@@ -8,7 +8,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "query_math",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-q",
         "x = 5; x + (2 - 4 * 0.25) * -3 + 7.4"
@@ -19,7 +19,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "scalars",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/scalars.rego",
@@ -32,7 +32,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "objects",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/objects.rego",
@@ -45,7 +45,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "input_data",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/data0.json",
@@ -62,7 +62,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "expressions",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/expressions.rego",
@@ -75,7 +75,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "bodies",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/bodies.rego",
@@ -90,7 +90,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "sets",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/sets.rego",
@@ -103,7 +103,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "var_keys",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/objects.rego",
@@ -116,7 +116,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "multi",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/multi.rego",
@@ -131,7 +131,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "functions",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/functions.rego",
@@ -146,7 +146,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "unify",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/unify.rego",
@@ -159,7 +159,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "compare",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/compare.rego",
@@ -172,7 +172,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "keywords",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/keywords.rego",
@@ -188,7 +188,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "imports",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/scalars.rego",
@@ -204,7 +204,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "with",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/bodies.rego",
@@ -218,7 +218,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "every",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/every.rego",
@@ -231,7 +231,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "compr",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/compr.rego",
@@ -245,7 +245,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "enumerate",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/enumerate.rego",
@@ -258,7 +258,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "setops",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/setops.rego",
@@ -292,7 +292,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "errors",
-      "program": "${workspaceFolder}/build/dist/bin/rego_interpreter",
+      "program": "${workspaceFolder}/build/dist/bin/rego",
       "args": [
         "-d",
         "./examples/errors.rego",

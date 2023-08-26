@@ -48,7 +48,7 @@ namespace rego
   inline const auto wf_pass_input_data =
     wf_parser
     | (DataSeq <<= Data++)
-    | (Input <<= Var * (Val >>= Brace | Square))[Var]
+    | (Input <<= Var * (Val >>= Group))[Var]
     | (Data <<= Brace)
     ;
   // clang-format on
@@ -116,7 +116,7 @@ namespace rego
     | (Array <<= Group++)
     | (Set <<= Group++)
     | (UnifyBody <<= (SomeDecl | Group)++)
-    | (Input <<= Var * (Val >>= Array | Object))[Var]
+    | (Input <<= Var * (Val >>= Group))[Var]
     | (Data <<= ObjectItemSeq)
     | (Group <<= (wf_lists_tokens | If)++[1])
     | (List <<= Group++)
@@ -212,7 +212,7 @@ namespace rego
   inline const auto wf_pass_structure =
       (Top <<= Rego)
     | (Rego <<= Query * Input * DataSeq * ModuleSeq)
-    | (Input <<= Var * (Val >>= Array | Object))[Var]
+    | (Input <<= Var * (Val >>= Term))[Var]
     | (DataSeq <<= Data++)
     | (Data <<= ObjectItemSeq)
     | (ObjectItemSeq <<= ObjectItem++)
@@ -248,7 +248,6 @@ namespace rego
     | (Expr <<= (Term | wf_arith_op | wf_bin_op | wf_bool_op | wf_assign_op | Dot | ExprCall | ExprEvery | Membership | Expr)++[1])
     | (ExprCall <<= RuleRef * ArgSeq)
     | (ExprEvery <<= VarSeq * UnifyBody * IsIn)
-    | (VarSeq <<= Var++[1])
     | (ArgSeq <<= Expr++[1])
     | (AssignOperator <<= wf_assign_op)
     | (Term <<= Ref | Var | Scalar | Array | Object | Set | ArrayCompr | ObjectCompr | SetCompr)
@@ -281,7 +280,7 @@ namespace rego
   inline const auto wf_pass_merge_data =
     wf_pass_strings
     | (Rego <<= Query * Input * Data * ModuleSeq)
-    | (Input <<= Var * (Val >>= DataArray | DataObject))[Var]
+    | (Input <<= Var * (Val >>= DataTerm))[Var]
     | (Data <<= Var * DataModule)[Var]
     | (DataModule <<= (DataRule | Submodule)++)
     | (DataRule <<= Key * (Val >>= DataTerm))
@@ -474,7 +473,7 @@ namespace rego
   inline const auto wf_pass_init =
     wf_pass_implicit_enums
     | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralNot | LiteralInit)++[1])
-    | (LiteralInit <<= AssignInfix)
+    | (LiteralInit <<= VarSeq * VarSeq * AssignInfix)
     ;
   // clang-format on
 
@@ -511,7 +510,7 @@ namespace rego
     | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
     | (Function <<= JSONString * ArgSeq)
     | (ArgSeq <<= (Scalar | Var | wf_arith_op | wf_bin_op | wf_bool_op | NestedBody | VarSeq)++)
-    | (Input <<= Var * (Val >>= Array | Object))[Var]
+    | (Input <<= Var * (Val >>= Term))[Var]
     | (Array <<= Term++)
     | (Set <<= Term++)
     | (Object <<= ObjectItem++)

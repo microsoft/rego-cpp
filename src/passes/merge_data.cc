@@ -8,11 +8,8 @@ namespace rego
   PassDef merge_data()
   {
     return {
-      In(Input) * T(Object)[Object] >>
-        [](Match& _) { return DataObject << *_[Object]; },
-
-      In(Input) * T(Array)[Array] >>
-        [](Match& _) { return DataArray << *_[Array]; },
+      In(Input) * T(Term)[DataTerm] >>
+        [](Match& _) { return DataTerm << *_[DataTerm]; },
 
       In(DataSeq) * (T(Data) << T(ObjectItemSeq)[Data]) >>
         [](Match& _) { return DataModule << *_[Data]; },

@@ -40,6 +40,7 @@ if(REGOCPP_OPA_TESTS)
   disjunction
   elsekeyword
   embeddedvirtualdoc
+  eqexpr
   helloworld
   indexing
   intersection

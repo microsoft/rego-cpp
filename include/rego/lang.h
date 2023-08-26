@@ -157,6 +157,8 @@ namespace rego
   inline const auto Tail2 = TokenDef("tail-2");
   inline const auto Lhs = TokenDef("lhs");
   inline const auto Rhs = TokenDef("rhs");
+  inline const auto LhsVars = TokenDef("lhs-vars");
+  inline const auto RhsVars = TokenDef("rhs-vars");
   inline const auto Key = TokenDef("key", flag::print);
   inline const auto RefTerm = TokenDef("ref-term");
   inline const auto NumTerm = TokenDef("num-term");

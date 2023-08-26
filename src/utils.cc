@@ -238,12 +238,12 @@ namespace rego
       return false;
     }
 
-    if (term->type() != Term)
+    Node node = term;
+    if (node->type() == Term)
     {
-      return false;
+      node = node->front();
     }
 
-    Node node = term->front();
     if (node->type() == Scalar)
     {
       return true;

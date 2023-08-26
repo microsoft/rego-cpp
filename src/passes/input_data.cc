@@ -8,17 +8,17 @@ namespace rego
   PassDef input_data()
   {
     return {
-      In(Input) * (T(File) << (T(Group) << (T(Brace) / T(Square))[Val])) >>
-        [](Match& _) { return _(Val); },
+      In(Input) * (T(File) << T(Group)[Group]) >>
+        [](Match& _) { return _(Group); },
 
-      In(Rego) * (T(Input) << (T(Brace) / T(Square))[Val]) >>
-        [](Match& _) { return Input << (Var ^ "input") << _(Val); },
+      In(Rego) * (T(Input) << T(Group)[Group]) >>
+        [](Match& _) { return Input << (Var ^ "input") << _(Group); },
 
       In(DataSeq) * (T(File) << (T(Group) << T(Brace)[Brace])) >>
         [](Match& _) { return Data << _(Brace); },
 
       In(Rego) * (T(Input) << T(Undefined)) >>
-        [](Match&) { return Input << Brace; },
+        [](Match&) { return Input << (Group << JSONNull); },
 
       // errors
       In(Input) * T(File)[File] >>

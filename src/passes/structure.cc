@@ -37,13 +37,13 @@ namespace rego
           T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
-      In(DefaultRule) * (T(Group) << ScalarToken[Scalar]) >>
+      In(Input) * (T(Group) << ScalarToken[Scalar]) >>
         [](Match& _) { return Term << (Scalar << _(Scalar)); },
-
-      In(DefaultRule) * (T(Group) << StringToken[String]) >>
+      
+      In(Input) * (T(Group) << StringToken[String]) >>
         [](Match& _) { return Term << (Scalar << (String << _(String))); },
-
-      In(DefaultRule) * (T(Group) << TermToken[Term]) >>
+      
+      In(Input) * (T(Group) << TermToken[Term]) >>
         [](Match& _) { return Term << _(Term); },
 
       In(With) * (T(WithExpr) << T(Group)[Group]) >>

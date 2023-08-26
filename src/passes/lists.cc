@@ -60,16 +60,6 @@ namespace rego
       In(Data) * (T(Brace) << End) >>
         ([](Match&) -> Node { return ObjectItemSeq; }),
 
-      In(Input) * (T(Square) << T(List)[List]) >>
-        [](Match& _) { return Array << *_[List]; },
-
-      In(Input) * (T(Square) << End) >> ([](Match&) -> Node { return Array; }),
-
-      In(Input) * (T(Brace) << T(List)[List]) >>
-        [](Match& _) { return Object << *_[List]; },
-
-      In(Input) * (T(Brace) << End) >> ([](Match&) -> Node { return Object; }),
-
       In(Group) * (T(Var)[Var] * T(If) * T(Brace)[Brace]) >>
         [](Match& _) {
           return Seq << _(Var) << If << (UnifyBody << *_[Brace]);
@@ -337,9 +327,6 @@ namespace rego
 
       In(Data) * T(Brace)[Brace] >>
         [](Match& _) { return err(_(Brace), "Invalid data body"); },
-
-      In(Input) * (T(Brace) / T(Square))[Val] >>
-        [](Match& _) { return err(_(Val), "Invalid input body"); },
 
       In(Group) * T(Brace)[Brace] >>
         [](Match& _) { return err(_(Brace), "Invalid object"); },
