@@ -105,6 +105,9 @@ namespace rego
 
       In(DataTerm) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Syntax error: unexpected ref"); },
+
+      In(RuleArgs) * T(Term)[Term] >>
+        [](Match& _) { return err(_(Term), "Invalid rule function argument"); },
     };
   }
 

@@ -392,13 +392,21 @@ namespace rego
       if(arg->type() == RefArgDot){
         buf << "." << arg->front()->location().view();
       }else{
-        Location key = arg->front()->location();
-        key.pos += 1;
-        key.len -= 2;
+        Node index = arg->front();
+        if(index->type() == Scalar){
+          index = index->front();
+        }
+
+        Location key = index->location();
+        if(index->type() == JSONString){
+          key.pos += 1;
+          key.len -= 2;
+        }
+
         if(all_alnum(key.view())){
           buf << "." << key.view();
         }else{
-          buf << "[" << arg->front()->location().view() << "]";
+          buf << "[" << index->location().view() << "]";
         }
       }
     }

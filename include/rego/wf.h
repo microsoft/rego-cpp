@@ -203,7 +203,7 @@ namespace rego
     | (RefArgSeq <<= (RefArgDot | RefArgBrack)++)
     | (RefArgDot <<= Var)
     | (RefArgBrack <<= Group)
-    | (RuleRef <<= Var | Ref)
+    | (RuleRef <<= (Var | Array | Dot | Ref)++[1])
     | (Group <<= wf_refs_tokens++[1])
     ;
   // clang-format on

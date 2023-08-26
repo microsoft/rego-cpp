@@ -373,6 +373,9 @@ namespace rego
 
       // errors
 
+      In(Policy) * T(Rule)[Rule] >>
+        [](Match& _) { return err(_(Rule), "Invalid rule"); },
+
       In(UnifyBody) * (T(RuleHead)[RuleHead] << (T(Var) * T(RuleHeadFunc))) >>
         [](Match& _) {
           return err(_(RuleHead), "No rule functions allowed in rule bodies");
@@ -383,9 +386,6 @@ namespace rego
 
       In(Term) * T(Var)[Var] >>
         [](Match& _) { return err(_(Var), "Invalid var term"); },
-
-      In(RuleArgs) * T(Term)[Term] >>
-        [](Match& _) { return err(_(Term), "Invalid rule function argument"); },
 
       In(Literal) * T(SomeDecl)[SomeDecl] >>
         [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
