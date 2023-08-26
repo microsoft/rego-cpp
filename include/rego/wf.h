@@ -140,7 +140,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_elses =
     wf_pass_ifs
-    | (Else <<= (Val >>= Group | Undefined) * UnifyBody)
+    | (Else <<= (Val >>= Group) * UnifyBody)
     ;
   // clang-format on
 

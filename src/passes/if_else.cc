@@ -40,7 +40,7 @@ namespace rego
         },
 
       In(Group) * (T(Else) * T(UnifyBody)[UnifyBody]) >>
-        [](Match& _) { return Else << Undefined << _(UnifyBody); },
+        [](Match& _) { return Else << (Group << (JSONTrue ^ "true")) << _(UnifyBody); },
 
       In(Group) *
           (T(Else) * (T(Assign) / T(Unify)) * T(Group)[Group] *

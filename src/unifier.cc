@@ -541,23 +541,33 @@ namespace rego
             {
               result = maybe_result.value();
               valid_args.insert(call_args.begin(), call_args.end());
-              LOG("> result: ", result);
+              LOG("> result: ", result, "#", result->rank());
             }
             else
             {
-              std::string old_str = to_json(result->to_term());
-              std::string new_str = to_json(maybe_result.value()->to_term());
-              if (old_str != new_str)
+              Value old_result = result;
+              Value new_result = maybe_result.value();
+              if (new_result->rank() < old_result->rank())
               {
-                result = ValueDef::create(
-                  var,
-                  err(
-                    func->node(),
-                    "functions must not produce multiple outputs for same "
-                    "inputs",
-                    EvalConflictError));
-                LOG("> second result => Error");
-                break;
+                result = new_result;
+                LOG("> result: ", result, "#", result->rank());
+              }
+              else if (new_result->rank() == old_result->rank())
+              {
+                std::string old_str = to_json(result->to_term());
+                std::string new_str = to_json(maybe_result.value()->to_term());
+                if (old_str != new_str)
+                {
+                  result = ValueDef::create(
+                    var,
+                    err(
+                      func->node(),
+                      "functions must not produce multiple outputs for same "
+                      "inputs",
+                      EvalConflictError));
+                  LOG("> second result => Error");
+                  break;
+                }
               }
             }
           }
@@ -1401,12 +1411,18 @@ namespace rego
 
     LOG("Rule comp value result: ", to_json(value));
 
+    if(value->type() == Undefined)
+    {
+      LOG("No value");
+      return std::nullopt;
+    }
+
     if (body_result->type() == JSONTrue)
     {
       return std::make_pair(index, value);
     }
 
-    LOG("No value");
+      LOG("No value");
     return std::nullopt;
   }
 

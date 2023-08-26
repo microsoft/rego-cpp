@@ -205,7 +205,10 @@ namespace rego_test
 
     p("indent",
       {// Line comment.
-       "#[^\n]*\n" >> [indent](auto&) { *indent = 0; },
+       "#[^\n]*\n" >> [indent](auto&) { },
+
+       // Line comment at end of file
+       "#[^\n]*$" >> [indent](auto&) { },
 
        R"(\\ )" >> [](auto&) {},
 

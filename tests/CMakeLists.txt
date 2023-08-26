@@ -38,6 +38,8 @@ if(REGOCPP_OPA_TESTS)
   dataderef
   defaultkeyword
   disjunction
+  elsekeyword
+  embeddedvirtualdoc
   helloworld
   indexing
   intersection

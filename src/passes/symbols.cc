@@ -79,20 +79,36 @@ namespace rego
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq)[ElseSeq])) >>
         [](Match& _) {
-          Node seq = NodeDef::create(Seq);
-          seq->push_back(
-            RuleComp << _(Id) << _(Body) << _(Expr) << (JSONInt ^ "0"));
           Node elseseq = _(ElseSeq);
+          if (elseseq->size() == 0)
+          {
+            return RuleComp << _(Id) << _(Body) << _(Expr) << (JSONInt ^ "0");
+          }
+
+          // we need to create sub-rules for each possibility
+          Location rulename = _(Id)->location();
+          Location subrule = _.fresh(rulename);
+          Node seq = NodeDef::create(Seq);
+          seq
+            << (RuleComp << (Var ^ subrule) << _(Body) << _(Expr)
+                         << (JSONInt ^ "0"));
           for (std::size_t i = 0; i < elseseq->size(); ++i)
           {
             Node expr = wfi / elseseq->at(i) / Expr;
             Node body = wfi / elseseq->at(i) / UnifyBody;
-            seq->push_back(
-              RuleComp << _(Id)->clone() << body << expr
-                       << (JSONInt ^ std::to_string(i + 1)));
+            seq
+              << (RuleComp << (Var ^ subrule) << body << expr
+                           << (JSONInt ^ std::to_string(i + 1)));
           }
 
-          return seq;
+          Location value = _.fresh({"value"});
+          return seq
+            << (RuleComp << _(Id) << Empty
+                         << (UnifyBody
+                             << (Literal
+                                 << (Expr << (RefTerm << (Var ^ value)) << Unify
+                                          << (RefTerm << (Var ^ subrule)))))
+                         << (JSONInt ^ "0"));
         },
 
       In(Policy) *
@@ -118,21 +134,52 @@ namespace rego
                          T(Expr)[Expr])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq)[ElseSeq])) >>
         [](Match& _) {
-          Node seq = NodeDef::create(Seq);
-          seq->push_back(
-            RuleFunc << _(Id) << _(RuleArgs) << _(Body) << _(Expr)
-                     << (JSONInt ^ "0"));
           Node elseseq = _(ElseSeq);
+          if (elseseq->size() == 0)
+          {
+            return RuleFunc << _(Id) << _(RuleArgs) << _(Body) << _(Expr)
+                            << (JSONInt ^ "0");
+          }
+
+          // we need to create sub-rules for each possibility
+          Location rulename = _(Id)->location();
+          Location subrule = _.fresh(rulename);
+          Node seq = NodeDef::create(Seq);
+          seq
+            << (RuleFunc << (Var ^ subrule) << _(RuleArgs) << _(Body) << _(Expr)
+                         << (JSONInt ^ "0"));
           for (std::size_t i = 0; i < elseseq->size(); ++i)
           {
             Node expr = wfi / elseseq->at(i) / Expr;
             Node body = wfi / elseseq->at(i) / UnifyBody;
-            seq->push_back(
-              RuleFunc << _(Id)->clone() << _(RuleArgs)->clone() << body << expr
-                       << (JSONInt ^ std::to_string(i + 1)));
+            seq
+              << (RuleFunc << (Var ^ subrule) << _(RuleArgs)->clone() << body
+                           << expr << (JSONInt ^ std::to_string(i + 1)));
           }
 
-          return seq;
+          Location value = _.fresh({"value"});
+          Node argseq = NodeDef::create(ArgSeq);
+          for (auto& arg : *_(RuleArgs))
+          {
+            if (arg->type() == ArgVar)
+            {
+              argseq->push_back(Expr << (RefTerm << (arg / Var)->clone()));
+            }
+            else if (arg->type() == ArgVal)
+            {
+              argseq->push_back(Expr << arg->front()->clone());
+            }
+          }
+
+          return seq
+            << (RuleFunc << _(Id) << _(RuleArgs)->clone() << Empty
+                         << (UnifyBody
+                             << (Literal
+                                 << (Expr << (RefTerm << (Var ^ value)) << Unify
+                                          << (ExprCall
+                                              << (RuleRef << (Var ^ subrule))
+                                              << argseq))))
+                         << (JSONInt ^ "0"));
         },
 
       In(Policy) *

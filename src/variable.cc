@@ -135,6 +135,10 @@ namespace rego
       return term_set->front();
     }
 
+    if(term_set->size() == 0){
+      return Undefined;
+    }
+
     return term_set;
   }
 

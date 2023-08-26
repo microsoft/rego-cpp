@@ -98,7 +98,7 @@ namespace rego
                       << (RuleHead << (RuleRef << _(RefHead) << _[RefArgSeq])
                                    << (RuleHeadComp
                                        << (AssignOperator << Assign) << value))
-                      << _(UnifyBody) << to_elseseq(_[Else], _(UnifyBody));
+                      << _(UnifyBody) << to_elseseq(_[Else], value);
         },
 
       In(Policy) *

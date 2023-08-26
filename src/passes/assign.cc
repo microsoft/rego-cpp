@@ -8,7 +8,9 @@ namespace
 {
   using namespace rego;
 
-  Location concat(const Node& refterm)
+  using FunctionArity = std::shared_ptr<std::map<std::string, std::size_t>>;
+
+  std::string concat(const Node& refterm)
   {
     std::ostringstream path;
     if (refterm->front()->type() == Var)
@@ -33,12 +35,12 @@ namespace
       }
     }
 
-    return Location(path.str());
+    return path.str();
   }
 
   bool needs_rewrite(
     const NodeRange& n,
-    const BuiltIns& builtins,
+    const FunctionArity& func_arity,
     const std::shared_ptr<NodeMap<bool>>& cache)
   {
     Node ruleref = n.first[0];
@@ -54,15 +56,14 @@ namespace
       return false;
     }
 
-    Location path = concat(ruleref);
-    if (!builtins.is_builtin(path))
+    std::string path = concat(ruleref);
+    if (!func_arity->contains(path))
     {
       cache->insert({ruleref, false});
       return false;
     }
 
-    auto builtin = builtins.at(path);
-    bool result = builtin->arity == argseq->size() - 1;
+    bool result = func_arity->at(path) == argseq->size() - 1;
 
     cache->insert({ruleref, result});
     return result;
@@ -79,8 +80,9 @@ namespace rego
   PassDef assign(const BuiltIns& builtins)
   {
     auto cache = std::make_shared<NodeMap<bool>>();
+    FunctionArity func_arity = std::make_shared<std::map<std::string, std::size_t>>();
 
-    return {
+    PassDef assign = {
       In(Expr) *
           (AssignInfixArg[Head](
              [](auto& n) { return is_in(*n.first, {UnifyBody}); }) *
@@ -119,10 +121,10 @@ namespace rego
       In(Literal) *
           (T(Expr)
            << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
-                 [builtins, cache](auto& n) {
-                   return needs_rewrite(n, builtins, cache);
+                 [func_arity, cache](auto& n) {
+                   return needs_rewrite(n, func_arity, cache);
                  }))) >>
-        [builtins](Match& _) {
+        [](Match& _) {
           Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
@@ -134,10 +136,10 @@ namespace rego
       In(LiteralNot) *
           (T(Expr)
            << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
-                 [builtins, cache](auto& n) {
-                   return needs_rewrite(n, builtins, cache);
+                 [func_arity, cache](auto& n) {
+                   return needs_rewrite(n, func_arity, cache);
                  }))) >>
-        [builtins](Match& _) {
+        [](Match& _) {
           Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
@@ -184,5 +186,29 @@ namespace rego
       In(Expr) * (T(Set) / T(SetCompr))[Set] >>
         [](Match& _) { return err(_(Set), "Invalid set in expression"); },
     };
+
+    assign.pre(Rego, [func_arity, builtins](Node node) {
+      if(!func_arity->empty()){
+        return 0;
+      }
+
+      Nodes rules;
+      node->get_symbols(
+        rules, [](Node n) { return n->type() == RuleFunc; });
+      for (auto rule : rules)
+      {
+        std::string path = std::string((rule / Var)->location().view());
+        std::size_t arity = (rule / RuleArgs)->size();
+        func_arity->insert({path, arity});
+      }
+
+      for(auto& [loc, builtin] : builtins){
+        func_arity->insert({std::string(loc.view()), builtin->arity});
+      }
+
+      return 0;
+    });
+
+    return assign;
   }
 }
