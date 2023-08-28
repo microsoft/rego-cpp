@@ -43,6 +43,7 @@ if(REGOCPP_OPA_TESTS)
   eqexpr
   helloworld
   indexing
+  indirectreferences
   intersection
   numbersrange
   objectfilter
