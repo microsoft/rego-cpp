@@ -440,7 +440,7 @@ namespace rego
     {
       LOG_HEADER("Pass " + std::to_string(pass_index), "=====");
       pass();
-      // mark_invalid_values();
+      mark_invalid_values();
       remove_invalid_values();
     }
 
@@ -452,6 +452,20 @@ namespace rego
 
     this->pop_rule(this->m_rule);
     return result;
+  }
+
+  void UnifierDef::mark_invalid_values()
+  {
+    for (auto& [_, var] : m_variables)
+    {
+      if (!var.is_unify())
+      {
+        // only unification statements can mark values as invalid
+        continue;
+      }
+
+      var.mark_invalid_values();
+    }
   }
 
   Args UnifierDef::create_args(const Node& args)
@@ -731,6 +745,44 @@ namespace rego
         values.push_back(ValueDef::create(*maybe_node));
       }
     }
+    else if (peek_type == RuleComp)
+    {
+      Value value;
+      for (auto& def : defs)
+      {
+        auto maybe_node = resolve_rulecomp(def);
+        if (maybe_node.has_value())
+        {
+          RankedNode result = maybe_node.value();
+          if (value == nullptr)
+          {
+            value = ValueDef::create(result);
+          }
+          else if (result.first < value->rank())
+          {
+            value = ValueDef::create(result);
+          }
+          else if(result.first == value->rank())
+          {
+            std::string current = to_json(value->node());
+            std::string next = to_json(result.second);
+            if (current != next)
+            {
+              value = ValueDef::create(err(
+                node,
+                "complete rules must not produce multiple outputs",
+                EvalConflictError));
+              break;
+            }
+          }
+        }
+      }
+
+      if (value != nullptr)
+      {
+        values.push_back(value);
+      }
+    }
     else
     {
       for (const auto& def : defs)
@@ -763,14 +815,6 @@ namespace rego
           // these will always be an argument to apply_access
           values.push_back(ValueDef::create(def));
         }
-        else if (def->type() == RuleComp)
-        {
-          auto maybe_node = resolve_rulecomp(def);
-          if (maybe_node)
-          {
-            values.push_back(ValueDef::create(maybe_node.value()));
-          }
-        }
         else if (def->type() == DataItem)
         {
           Node value = def / Val;
@@ -791,7 +835,7 @@ namespace rego
       }
     }
 
-    return ValueDef::filter_by_rank(values);
+    return values;
   }
 
   Values UnifierDef::apply_access(const Location& var, const Values& args)
@@ -1411,7 +1455,7 @@ namespace rego
 
     LOG("Rule comp value result: ", to_json(value));
 
-    if(value->type() == Undefined)
+    if (value->type() == Undefined)
     {
       LOG("No value");
       return std::nullopt;
@@ -1422,7 +1466,7 @@ namespace rego
       return std::make_pair(index, value);
     }
 
-      LOG("No value");
+    LOG("No value");
     return std::nullopt;
   }
 

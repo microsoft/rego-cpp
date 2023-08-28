@@ -12,6 +12,7 @@ namespace rego
     bool unify(const Values& others);
     std::string str() const;
     bool remove_invalid_values();
+    void mark_invalid_values();
     void mark_valid_values();
     Values valid_values() const;
     Node to_term() const;

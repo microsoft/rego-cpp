@@ -41,6 +41,12 @@ namespace rego
       return true;
     }
 
+    if(name.starts_with("_$"))
+    {
+      // placeholder var
+      return true;
+    }
+
     return name.find('$') == std::string::npos || name[0] == '$' ||
       name.starts_with("value$") || name.starts_with("out$");
   }
@@ -105,6 +111,11 @@ namespace rego
     m_values.mark_valid_values(!m_unify);
   }
 
+  void Variable::mark_invalid_values()
+  {
+    m_values.mark_invalid_values();
+  }
+
   Node Variable::to_term() const
   {
     Nodes nodes = m_values.to_terms();
@@ -122,7 +133,7 @@ namespace rego
         return node;
       }
 
-      if (node->type() == Undefined)
+      if (Resolver::is_undefined(node))
       {
         continue;
       }

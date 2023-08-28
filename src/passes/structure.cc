@@ -280,6 +280,9 @@ namespace rego
 
       // errors
 
+      In(Input) * T(Group)[Group] >>
+        [](Match& _){return err(_(Group), "Invalid input term"); },
+
       In(VarSeq) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Expected a variable"); },
 

@@ -167,7 +167,7 @@ namespace rego
             }
             else if (arg->type() == ArgVal)
             {
-              argseq->push_back(Expr << arg->front()->clone());
+              argseq->push_back(Expr << (Term << arg->front()->clone()));
             }
           }
 

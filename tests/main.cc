@@ -100,7 +100,10 @@ int main(int argc, char** argv)
       }
 
       total++;
-      std::string note = testcase.note().substr(category.size() + 1);
+      std::string note = testcase.note();
+      if(category.size() > 0){
+        note = note.substr(category.size() + 1);
+      }
 
       try
       {

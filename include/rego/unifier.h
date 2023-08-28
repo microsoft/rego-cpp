@@ -95,6 +95,7 @@ namespace rego
     void pass();
     void execute_statements(Nodes::iterator begin, Nodes::iterator end);
     void remove_invalid_values();
+    void mark_invalid_values();
     Variable& get_variable(const Location& name);
     bool is_variable(const Location& name) const;
     Node bind_variables();

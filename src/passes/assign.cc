@@ -80,7 +80,8 @@ namespace rego
   PassDef assign(const BuiltIns& builtins)
   {
     auto cache = std::make_shared<NodeMap<bool>>();
-    FunctionArity func_arity = std::make_shared<std::map<std::string, std::size_t>>();
+    FunctionArity func_arity =
+      std::make_shared<std::map<std::string, std::size_t>>();
 
     PassDef assign = {
       In(Expr) *
@@ -143,15 +144,9 @@ namespace rego
           Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
-          return Seq << (Lift
-                         << UnifyBody
-                         << (Literal
-                             << (Expr
-                                 << (AssignInfix
-                                     << (AssignArg << var->front())
-                                     << (AssignArg
-                                         << (ExprCall << ruleref << argseq))))))
-                     << var->clone();
+          return Expr
+            << (BoolInfix << (BoolArg << var->front()) << Equals
+                          << (BoolArg << (ExprCall << ruleref << argseq)));
         },
 
       In(Literal) * (T(Expr) << (AssignInfixArg[Arg] * End)) >>
@@ -188,13 +183,13 @@ namespace rego
     };
 
     assign.pre(Rego, [func_arity, builtins](Node node) {
-      if(!func_arity->empty()){
+      if (!func_arity->empty())
+      {
         return 0;
       }
 
       Nodes rules;
-      node->get_symbols(
-        rules, [](Node n) { return n->type() == RuleFunc; });
+      node->get_symbols(rules, [](Node n) { return n->type() == RuleFunc; });
       for (auto rule : rules)
       {
         std::string path = std::string((rule / Var)->location().view());
@@ -202,7 +197,8 @@ namespace rego
         func_arity->insert({path, arity});
       }
 
-      for(auto& [loc, builtin] : builtins){
+      for (auto& [loc, builtin] : builtins)
+      {
         func_arity->insert({std::string(loc.view()), builtin->arity});
       }
 

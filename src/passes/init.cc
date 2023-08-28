@@ -65,6 +65,10 @@ namespace
         locals.erase((stmt / Item)->location());
         find_init_stmts(stmt / UnifyBody, locals, init_stmts);
       }
+      else if(stmt->type() == LiteralWith)
+      {
+        find_init_stmts(stmt / UnifyBody, locals, init_stmts);
+      }
       else if (stmt->type() == Literal)
       {
         Node expr = stmt->front()->front();
