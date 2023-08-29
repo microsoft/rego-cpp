@@ -190,8 +190,12 @@ namespace rego_test
         // Null.
         "null\\b" >> [](auto& m) { m.add(Null); },
 
+        // Not a number
+        R"((?:(?:[[:digit:]]+)\.\b){2})" >>
+          [](auto& m) { m.add(String); m.mode("string"); },
+
         // String
-        R"([[:digit:]]*[^[:digit:]^\.,\-\[\]\{\}[:blank:]\r\n])" >>
+        R"([[:digit:]\.]*[^[:digit:]^\.,\-\[\]\{\}[:blank:]\r\n])" >>
           [](auto& m) {
             m.extend(String);
             m.mode("string");
@@ -504,9 +508,37 @@ namespace rego_test
            m.mode("indent");
          },
 
-       R"(\\("))" >> [](auto& m) { m.add(String, 1); },
+       R"(\\("))" >>
+         [quote](auto& m) {
+           if (*quote == Quote::Double)
+           {
+             m.add(String, 1);
+           }
+           else if (*quote == Quote::None)
+           {
+             m.extend(String);
+           }
+           else
+           {
+             m.invalid();
+           }
+         },
 
-       R"(\\ )" >> [](auto&) {},
+       R"(\\ )" >>
+         [quote](auto& m) {
+           if (*quote == Quote::Double)
+           {
+             m.add(String, 1);
+           }
+           else if (*quote == Quote::None)
+           {
+             m.extend(String);
+           }
+           else
+           {
+             m.invalid();
+           }
+         },
 
        R"(\\n)" >>
          [quote](auto& m) {

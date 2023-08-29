@@ -14,5 +14,6 @@ namespace rego
     std::vector<BuiltIn> semver();
     std::vector<BuiltIn> sets();
     std::vector<BuiltIn> strings();
+    std::vector<BuiltIn> units();
   }
 }

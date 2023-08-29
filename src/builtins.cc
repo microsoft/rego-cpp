@@ -9,6 +9,11 @@ namespace
 {
   using namespace rego;
 
+  Node json_marshal(const Nodes& args)
+  {
+    return JSONString ^ to_json(args[0]);
+  }
+
   Node to_number(const Nodes& args)
   {
     auto maybe_number_string = Resolver::maybe_unwrap_string(args[0]);
@@ -120,6 +125,8 @@ namespace rego
   {
     register_builtin(BuiltInDef::create(Location("to_number"), 1, ::to_number));
     register_builtin(BuiltInDef::create(Location("print"), AnyArity, ::print));
+    register_builtin(
+      BuiltInDef::create(Location("json.marshal"), 1, ::json_marshal));
 
     register_builtins(builtins::aggregates());
     register_builtins(builtins::arrays());
@@ -129,6 +136,7 @@ namespace rego
     register_builtins(builtins::sets());
     register_builtins(builtins::semver());
     register_builtins(builtins::strings());
+    register_builtins(builtins::units());
 
     return *this;
   }
