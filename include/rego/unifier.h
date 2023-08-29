@@ -84,7 +84,6 @@ namespace rego
     Values enumerate(const Location& var, const Node& container);
     Values resolve_skip(const Node& skip);
     Values check_with(const Node& var);
-    Values resolve_compr(const Location& var, const Node& compr);
     Values apply_access(const Location& var, const Values& args);
     std::optional<Value> call_function(const Location& var, const Values& args);
     std::optional<Value> call_named_function(

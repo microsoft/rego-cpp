@@ -539,7 +539,6 @@ namespace rego
     else if (func_name == "call")
     {
       Values funcs = args.source_at(0);
-      auto name = funcs.front()->node()->location().view();
       Args func_args = args.subargs(1);
       for (std::size_t i = 0; i < func_args.size(); ++i)
       {
@@ -585,27 +584,6 @@ namespace rego
                 }
               }
             }
-          }
-        }
-
-        if (result == nullptr)
-        {
-          if (name.starts_with("arraycompr$"))
-          {
-            LOG("comprehension with no results, returning empty array");
-            result = ValueDef::create(NodeDef::create(Array));
-          }
-
-          if (name.starts_with("setcompr$"))
-          {
-            LOG("comprehension with no results, returning empty set");
-            result = ValueDef::create(NodeDef::create(Set));
-          }
-
-          if (name.starts_with("objcompr$"))
-          {
-            LOG("comprehension with no results, returning empty object");
-            result = ValueDef::create(NodeDef::create(Object));
           }
         }
 
@@ -797,28 +775,6 @@ namespace rego
               break;
             }
           }
-        }
-      }
-
-      if (value == nullptr)
-      {
-        auto name = (defs[0] / Var)->location().view();
-        if (name.starts_with("arraycompr$"))
-        {
-          LOG("comprehension with no results, returning empty array");
-          value = ValueDef::create(NodeDef::create(Array));
-        }
-
-        if (name.starts_with("setcompr$"))
-        {
-          LOG("comprehension with no results, returning empty set");
-          value = ValueDef::create(NodeDef::create(Set));
-        }
-
-        if (name.starts_with("objcompr$"))
-        {
-          LOG("comprehension with no results, returning empty object");
-          value = ValueDef::create(NodeDef::create(Object));
         }
       }
 
@@ -1881,30 +1837,5 @@ namespace rego
 
     std::string name_str = std::string(name.view());
     throw std::runtime_error("Variable " + name_str + " not found");
-  }
-
-  Values UnifierDef::resolve_compr(const Location& var, const Node& compr)
-  {
-    Values values;
-    if (compr->type() == ArrayCompr)
-    {
-      Value value =
-        ValueDef::create(var, resolve_var(compr->front())[0]->node());
-    }
-    else if (compr->type() == SetCompr)
-    {
-      Value value =
-        ValueDef::create(var, resolve_var(compr->front())[0]->node());
-    }
-    else if (compr->type() == ObjectCompr)
-    {
-      Values key_values = resolve_var(compr / Key);
-    }
-    else
-    {
-      throw std::runtime_error("Unsupported comprehension type");
-    }
-
-    return values;
   }
 }

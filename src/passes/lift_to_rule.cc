@@ -223,6 +223,20 @@ namespace rego
             Node rulebody = _(UnifyBody);
             Locs invars = find_invars(_(UnifyBody));
 
+            Node default_value;
+            if (_(Compr)->type() == ArrayCompr)
+            {
+              default_value = DataTerm << DataArray;
+            }
+            else if (_(Compr)->type() == SetCompr)
+            {
+              default_value = DataTerm << DataSet;
+            }
+            else
+            {
+              default_value = DataTerm << DataObject;
+            }
+
             Node rulename = Var ^ _(Key);
             Location value = _.fresh({"value"});
             if (invars.empty())
@@ -236,6 +250,10 @@ namespace rego
               return Seq << (Lift << DataModule
                                   << (RuleComp << rulename << rulebody
                                                << rulevalue << (JSONInt ^ "0")))
+                         << (Lift
+                             << DataModule
+                             << (RuleComp << rulename->clone() << Empty << default_value
+                                          << (JSONInt ^ "1")))
                          << (UnifyExpr
                              << _(Var)
                              << (Expr << (RefTerm << rulename->clone())));
@@ -258,17 +276,19 @@ namespace rego
                     << (Expr << (_(Compr)->type() << _(Compr) / Var)));
 
               Location partial = _.fresh({"partial"});
-              return Seq << (Lift
-                             << DataModule
-                             << (RuleFunc << rulename << ruleargs << rulebody
-                                          << rulevalue << (JSONInt ^ "0")))
-                         << (Local << (Var ^ partial) << Undefined)
-                         << (UnifyExpr
-                             << (Var ^ partial)
-                             << (Expr
-                                 << (ExprCall << rulename->clone() << argseq)))
-                         << (UnifyExpr << _(Var)
-                                       << (Expr << (Merge << (Var ^ partial))));
+              return Seq
+                << (Lift << DataModule
+                         << (RuleFunc << rulename << ruleargs << rulebody
+                                      << rulevalue << (JSONInt ^ "0")))
+                << (Lift << DataModule
+                         << (RuleFunc << rulename->clone() << ruleargs->clone() << Empty
+                                      << default_value << (JSONInt ^ "1")))
+                << (Local << (Var ^ partial) << Undefined)
+                << (UnifyExpr
+                    << (Var ^ partial)
+                    << (Expr << (ExprCall << rulename->clone() << argseq)))
+                << (UnifyExpr << _(Var)
+                              << (Expr << (Merge << (Var ^ partial))));
             }
           },
 
