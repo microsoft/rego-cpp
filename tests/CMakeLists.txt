@@ -73,6 +73,7 @@ if(REGOCPP_OPA_TESTS)
   trimspace
   trimsuffix
   union
+  units
   )
 
   set( OPA_TEST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/../opa/test/cases/testdata )

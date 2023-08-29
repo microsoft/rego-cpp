@@ -341,6 +341,9 @@ namespace rego
 
       In(ExprEvery) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid every sequence"); },
+      
+      In(ExprEvery) * T(EverySeq)[EverySeq] >>
+        [](Match& _) { return err(_(EverySeq), "Invalid every sequence"); },
 
       T(UnifyBody)[UnifyBody] << End >>
         [](Match& _) { return err(_(UnifyBody), "Empty body"); },

@@ -263,41 +263,6 @@ namespace rego
                                                      << (JSONInt ^ "1"))))))));
         },
 
-      In(Expr) *
-          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
-           << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
-               (T(IsIn) << T(Expr)[Expr]))) >>
-        [](Match& _) {
-          // lifts this every statement into a rule function
-          Location item = _.fresh({"item"});
-          Location every = _.fresh({"every"});
-
-          Node undefbody = UnifyBody
-            << (Literal << (Expr << Not << (RefTerm << _(Val)->clone())));
-          Node val = Expr
-            << (RefTerm
-                << (Ref << (RefHead << (Var ^ item))
-                        << (RefArgSeq
-                            << (RefArgBrack << (Scalar << (JSONInt ^ "1"))))));
-          return Seq
-            << (Lift << Policy
-                     << (RuleFunc
-                         << (Var ^ every)
-                         << (RuleArgs << (ArgVar << _(Val) << Undefined))
-                         << _(UnifyBody)
-                         << (Term << (Scalar << (JSONTrue ^ "true")))
-                         << (JSONInt ^ "0")))
-            << (Lift << Policy
-                     << (RuleFunc
-                         << (Var ^ every)
-                         << (RuleArgs << (ArgVar << _(Val)->clone() << Undefined))
-                         << undefbody
-                         << (Term << (Scalar << (JSONTrue ^ "true")))
-                         << (JSONInt ^ "1")))
-            << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
-            << (Lift << UnifyBody << (LiteralEnum << (Var ^ item) << _(Expr)))
-            << (ExprCall << (RuleRef << (Var ^ every)) << (ArgSeq << val));
-        },
 
       In(UnifyBody) *
           (T(Literal)
@@ -328,49 +293,6 @@ namespace rego
                                                      << (JSONInt ^ "1"))))))));
         },
 
-      In(Expr) *
-          (T(ExprEvery)
-           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
-               T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
-        [](Match& _) {
-          // lifts this every statement into a rule function
-          Location item = _.fresh({"item"});
-          Location every = _.fresh({"every"});
-
-          Node undefbody = UnifyBody
-            << (Literal << (Expr << Not << (RefTerm << _(Val)->clone())));
-          Node idx = Expr
-            << (RefTerm
-                << (Ref << (RefHead << (Var ^ item))
-                        << (RefArgSeq
-                            << (RefArgBrack << (Scalar << (JSONInt ^ "0"))))));
-          Node val = Expr
-            << (RefTerm
-                << (Ref << (RefHead << (Var ^ item))
-                        << (RefArgSeq
-                            << (RefArgBrack << (Scalar << (JSONInt ^ "1"))))));
-          return Seq
-            << (Lift << Policy
-                     << (RuleFunc
-                         << (Var ^ every)
-                         << (RuleArgs << (ArgVar << _(Idx) << Undefined)
-                                      << (ArgVar << _(Val) << Undefined))
-                         << _(UnifyBody)
-                         << (Term << (Scalar << (JSONTrue ^ "true")))
-                         << (JSONInt ^ "0")))
-            << (Lift << Policy
-                     << (RuleFunc
-                         << (Var ^ every)
-                         << (RuleArgs << (ArgVar << _(Idx)->clone() << Undefined)
-                                      << (ArgVar << _(Val)->clone() << Undefined))
-                         << undefbody
-                         << (Term << (Scalar << (JSONTrue ^ "true")))
-                         << (JSONInt ^ "1")))
-            << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
-            << (Lift << UnifyBody << (LiteralEnum << (Var ^ item) << _(Expr)))
-            << (ExprCall << (RuleRef << (Var ^ every))
-                         << (ArgSeq << idx << val));
-        },
 
       (In(UnifyBody) / In(LiteralWith)) *
           (T(Literal)
@@ -495,9 +417,6 @@ namespace rego
 
       In(Expr) * T(Dot)[Dot] >>
         [](Match& _) { return err(_(Dot), "Invalid dot expression"); },
-
-      In(Expr) * T(ExprEvery)[ExprEvery] >>
-        [](Match& _) { return err(_(ExprEvery), "Invalid every expression"); },
     };
   }
 

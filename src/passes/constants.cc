@@ -90,11 +90,92 @@ namespace rego
           return DataObjectItem << (DataTerm << key) << (DataTerm << val);
         },
 
+      In(Expr) *
+          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {Policy}) && is_in(*n.first, {UnifyBody}); })
+           << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
+               (T(IsIn) << T(Expr)[Expr]))) >>
+        [](Match& _) {
+          // lifts this every statement into a rule function
+          Location item = _.fresh({"item"});
+          Location every = _.fresh({"every"});
+
+          Node undefbody = UnifyBody
+            << (Literal << (Expr << Not << (RefTerm << _(Val)->clone())));
+          Node val = Expr
+            << (RefTerm
+                << (Ref << (RefHead << (Var ^ item))
+                        << (RefArgSeq
+                            << (RefArgBrack << (Scalar << (JSONInt ^ "1"))))));
+          return Seq
+            << (Lift << Policy
+                     << (RuleFunc
+                         << (Var ^ every)
+                         << (RuleArgs << (ArgVar << _(Val) << Undefined))
+                         << _(UnifyBody)
+                         << (DataTerm << (Scalar << (JSONTrue ^ "true")))
+                         << (JSONInt ^ "0")))
+            << (Lift << Policy
+                     << (RuleFunc
+                         << (Var ^ every)
+                         << (RuleArgs
+                             << (ArgVar << _(Val)->clone() << Undefined))
+                         << undefbody
+                         << (DataTerm << (Scalar << (JSONTrue ^ "true")))
+                         << (JSONInt ^ "1")))
+            << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
+            << (Lift << UnifyBody << (LiteralEnum << (Var ^ item) << _(Expr)))
+            << (ExprCall << (RuleRef << (Var ^ every)) << (ArgSeq << val));
+        },
+
+      In(Expr) *
+          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {Policy}) && is_in(*n.first, {UnifyBody}); })
+           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
+               T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
+        [](Match& _) {
+          // lifts this every statement into a rule function
+          Location item = _.fresh({"item"});
+          Location every = _.fresh({"every"});
+
+          Node undefbody = UnifyBody
+            << (Literal << (Expr << Not << (RefTerm << _(Val)->clone())));
+          Node idx = Expr
+            << (RefTerm
+                << (Ref << (RefHead << (Var ^ item))
+                        << (RefArgSeq
+                            << (RefArgBrack << (Scalar << (JSONInt ^ "0"))))));
+          Node val = Expr
+            << (RefTerm
+                << (Ref << (RefHead << (Var ^ item))
+                        << (RefArgSeq
+                            << (RefArgBrack << (Scalar << (JSONInt ^ "1"))))));
+          return Seq
+            << (Lift << Policy
+                     << (RuleFunc
+                         << (Var ^ every)
+                         << (RuleArgs << (ArgVar << _(Idx) << Undefined)
+                                      << (ArgVar << _(Val) << Undefined))
+                         << _(UnifyBody)
+                         << (DataTerm << (Scalar << (JSONTrue ^ "true")))
+                         << (JSONInt ^ "0")))
+            << (Lift << Policy
+                     << (RuleFunc
+                         << (Var ^ every)
+                         << (RuleArgs
+                             << (ArgVar << _(Idx)->clone() << Undefined)
+                             << (ArgVar << _(Val)->clone() << Undefined))
+                         << undefbody
+                         << (DataTerm << (Scalar << (JSONTrue ^ "true")))
+                         << (JSONInt ^ "1")))
+            << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
+            << (Lift << UnifyBody << (LiteralEnum << (Var ^ item) << _(Expr)))
+            << (ExprCall << (RuleRef << (Var ^ every))
+                         << (ArgSeq << idx << val));
+        },
+
       // errors
 
-      In(DefaultRule) * T(Term)[Term] >>
-        [](Match& _) {
-          return err(_(Term), "Default rule values must be constant");
-        }};
+      In(Expr) * T(ExprEvery)[ExprEvery] >>
+        [](Match& _) { return err(_(ExprEvery), "Invalid every expression"); },
+    };
   }
 }

@@ -12,7 +12,7 @@ namespace
   const auto inline VarOrTerm = T(Var) / T(Term);
   const auto inline Numbery = T(ArithInfix) / T(UnaryExpr) / T(NumTerm);
   const auto inline CallToken =
-    T(ArrayCompr) / T(ObjectCompr) / T(SetCompr) / T(ExprCall) / T(Enumerate);
+    T(ArrayCompr) / T(ObjectCompr) / T(SetCompr) / T(ExprCall);
 
   void find_locs_from(
     const Node& node, const std::set<Location>& vars, Node varseq)
@@ -669,6 +669,15 @@ namespace rego
 
       In(ObjectItem) * (T(Expr)[Expr] << T(AssignInfix)) >>
         [](Match& _) { return err(_(Expr), "Invalid object item"); },
+
+      In(UnifyBody) * T(AssignInfix)[AssignInfix] >>
+        [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
+
+      In(Expr) * T(AssignInfix)[AssignInfix] >>
+        [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
+
+      In(BoolArg) * T(Membership)[Membership] >>
+        [](Match& _) { return err(_(Membership), "Invalid membership"); },
     };
      
     rulebody.post(UnifyBody, [](Node n){

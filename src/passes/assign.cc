@@ -74,7 +74,7 @@ namespace rego
 {
   const inline auto AssignInfixArg = T(RefTerm) / T(NumTerm) / T(UnaryExpr) /
     T(ArithInfix) / T(BinInfix) / T(Term) / T(BoolInfix) / T(ExprCall) /
-    T(Enumerate) / T(Membership);
+    T(Membership);
 
   // Transforms unification expressions into AssignInfix nodes.
   PassDef assign(const BuiltIns& builtins)
@@ -174,9 +174,6 @@ namespace rego
       (In(RuleComp) / In(RuleFunc) / In(RuleSet) / In(RuleObj)) *
           T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid rule value"); },
-
-      In(Expr) * T(Enumerate)[Enumerate] >>
-        [](Match& _) { return err(_(Enumerate), "Invalid enumeration"); },
 
       In(Expr) * (T(Set) / T(SetCompr))[Set] >>
         [](Match& _) { return err(_(Set), "Invalid set in expression"); },
