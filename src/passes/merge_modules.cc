@@ -113,10 +113,10 @@ namespace rego
       In(Rego) * (T(ModuleSeq) << End) >> ([](Match&) -> Node { return {}; }),
 
       In(Rego) *
-          ((T(Data) << (T(Var)[Var] * T(DataModule)[DataModule])) *
+          ((T(Data) << (T(Key)[Key] * T(DataModule)[DataModule])) *
            T(Submodule)[Submodule]) >>
         [](Match& _) {
-          return Data << _(Var) << merge(_(DataModule), _(Submodule));
+          return Data << _(Key) << merge(_(DataModule), _(Submodule));
         },
 
       // errors

@@ -94,7 +94,7 @@ namespace rego
     };
 
     skips.pre(Rego, [skip_links](Node node) {
-      to_absolute_names(node / Data / DataModule, "data");
+      to_absolute_names(node / Data / Val, "data");
       find_withs(skip_links, node / Data);
       Node skipseq = NodeDef::create(SkipSeq);
       for (auto [path, ref] : *skip_links)

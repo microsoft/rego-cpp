@@ -56,10 +56,10 @@ namespace rego
         [](Match& _) { return DataTerm << _(Term)->front(); },
 
       In(Rego) * (T(DataSeq) << (T(DataModule)[DataModule] * End)) >>
-        [](Match& _) { return Data << (Var ^ "data") << _(DataModule); },
+        [](Match& _) { return Data << (Key ^ "data") << _(DataModule); },
 
       In(Rego) * (T(DataSeq) << End) >>
-        [](Match&) { return Data << (Var ^ "data") << DataModule; },
+        [](Match&) { return Data << (Key ^ "data") << DataModule; },
 
       In(RuleArgs) * (T(Term) << T(Var)[Var]) >>
         [](Match& _) { return ArgVar << _(Var) << Undefined; },

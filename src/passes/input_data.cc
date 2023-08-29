@@ -12,7 +12,7 @@ namespace rego
         [](Match& _) { return _(Group); },
 
       In(Rego) * (T(Input) << T(Group)[Group]) >>
-        [](Match& _) { return Input << (Var ^ "input") << _(Group); },
+        [](Match& _) { return Input << (Key ^ "input") << _(Group); },
 
       In(DataSeq) * (T(File) << (T(Group) << T(Brace)[Brace])) >>
         [](Match& _) { return Data << _(Brace); },
