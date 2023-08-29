@@ -171,13 +171,6 @@ namespace rego
                                                 << (ArgSeq << (Var ^ temp))));
         },
 
-      In(UnifyExpr) *
-          (T(ExprEvery) << (T(VarSeq)[VarSeq] * T(NestedBody)[NestedBody])) >>
-        [](Match& _) {
-          return Function << (JSONString ^ "every")
-                          << (ArgSeq << _(VarSeq) << _(NestedBody));
-        },
-
       (In(UnifyExpr) / In(ArgSeq)) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
         [](Match& _) {
           return Function << (JSONString ^ "unary")
@@ -299,9 +292,6 @@ namespace rego
             _(DataModule),
             "Syntax error: module not allowed as object item value");
         },
-
-      In(ArgSeq) * T(ExprEvery)[ExprEvery] >>
-        [](Match& _) { return err(_(ExprEvery), "Invalid every statement"); },
     };
   }
 }

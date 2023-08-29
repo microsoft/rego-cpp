@@ -41,6 +41,8 @@ if(REGOCPP_OPA_TESTS)
   elsekeyword
   embeddedvirtualdoc
   eqexpr
+  evaltermexpr
+  every
   helloworld
   indexing
   indirectreferences

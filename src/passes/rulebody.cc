@@ -121,7 +121,7 @@ namespace rego
   // <not-expr>.
   PassDef rulebody()
   {
-    return {
+    PassDef rulebody = {
       In(UnifyBody) *
           (T(LiteralWith) << (T(UnifyBody)[UnifyBody] * T(WithSeq)[WithSeq])) >>
         [](Match& _) { return UnifyExprWith << _(UnifyBody) << _(WithSeq); },
@@ -638,7 +638,7 @@ namespace rego
       }) >>
         [](Match& _) {
           LOG("<binarg>.<setcompr>");
-          Location set = _.fresh({"compr"});
+          Location set = _.fresh({"setcompr"});
           return Seq << (Lift << UnifyBody
                               << (Local << (Var ^ set) << Undefined))
                      << (Lift
@@ -670,5 +670,16 @@ namespace rego
       In(ObjectItem) * (T(Expr)[Expr] << T(AssignInfix)) >>
         [](Match& _) { return err(_(Expr), "Invalid object item"); },
     };
+     
+    rulebody.post(UnifyBody, [](Node n){
+      for(auto child: *n){
+        if(child->type() == LiteralInit){
+          n->replace(child, err(child, "Invalid initialization"));
+        }
+      }
+      return 0;
+    });
+
+    return rulebody;
   }
 }

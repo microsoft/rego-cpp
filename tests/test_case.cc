@@ -70,7 +70,9 @@ namespace rego_test
     if (defs.size() == 1)
     {
       Node val = defs[0]->back();
-      assert(val->type() == File);
+      if(val->type() != File){
+        return err(val, "Expected a File node");
+      }
       return val;
     }
 
@@ -321,6 +323,7 @@ namespace rego_test
         std::ostringstream buf;
         buf << "Failed at pass " << pass_name << std::endl;
         ast->errors(buf);
+        buf << "Error with input file " << path << std::endl;
         std::cerr << buf.str() << std::endl;
         return test_cases;
       }

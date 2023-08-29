@@ -36,7 +36,7 @@ option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculati
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        949c46601db56056282bacf0b41b12a101d09616
+  GIT_TAG        140e55346b5b6f367538790c98d9d7543376b515
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 

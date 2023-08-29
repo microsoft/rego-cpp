@@ -539,6 +539,7 @@ namespace rego
     else if (func_name == "call")
     {
       Values funcs = args.source_at(0);
+      auto name = funcs.front()->node()->location().view();
       Args func_args = args.subargs(1);
       for (std::size_t i = 0; i < func_args.size(); ++i)
       {
@@ -584,6 +585,27 @@ namespace rego
                 }
               }
             }
+          }
+        }
+
+        if (result == nullptr)
+        {
+          if (name.starts_with("arraycompr$"))
+          {
+            LOG("comprehension with no results, returning empty array");
+            result = ValueDef::create(NodeDef::create(Array));
+          }
+
+          if (name.starts_with("setcompr$"))
+          {
+            LOG("comprehension with no results, returning empty set");
+            result = ValueDef::create(NodeDef::create(Set));
+          }
+
+          if (name.starts_with("objcompr$"))
+          {
+            LOG("comprehension with no results, returning empty object");
+            result = ValueDef::create(NodeDef::create(Object));
           }
         }
 
@@ -762,7 +784,7 @@ namespace rego
           {
             value = ValueDef::create(result);
           }
-          else if(result.first == value->rank())
+          else if (result.first == value->rank())
           {
             std::string current = to_json(value->node());
             std::string next = to_json(result.second);
@@ -775,6 +797,28 @@ namespace rego
               break;
             }
           }
+        }
+      }
+
+      if (value == nullptr)
+      {
+        auto name = (defs[0] / Var)->location().view();
+        if (name.starts_with("arraycompr$"))
+        {
+          LOG("comprehension with no results, returning empty array");
+          value = ValueDef::create(NodeDef::create(Array));
+        }
+
+        if (name.starts_with("setcompr$"))
+        {
+          LOG("comprehension with no results, returning empty set");
+          value = ValueDef::create(NodeDef::create(Set));
+        }
+
+        if (name.starts_with("objcompr$"))
+        {
+          LOG("comprehension with no results, returning empty object");
+          value = ValueDef::create(NodeDef::create(Object));
         }
       }
 
@@ -810,8 +854,11 @@ namespace rego
         {
           values.push_back(ValueDef::create(resolve_module(def)));
         }
-        else if (def->type() == Data || def->type() == RuleFunc)
+        else if (def->type() == Data)
         {
+          values.push_back(ValueDef::create(resolve_module(def)));
+        }
+        else if(def->type() == RuleFunc){
           // these will always be an argument to apply_access
           values.push_back(ValueDef::create(def));
         }
@@ -1020,13 +1067,6 @@ namespace rego
         set_members->push_back(arg->node());
       }
       return ValueDef::create(var, Resolver::set(set_members), sources);
-    }
-
-    if (func_name == "every")
-    {
-      Node varseq = args[0]->node();
-      Node nestedbody = args[1]->node();
-      return ValueDef::create(var, resolve_every(varseq, nestedbody), sources);
     }
 
     return std::nullopt;
@@ -1820,61 +1860,6 @@ namespace rego
   {
     return create(
       rule, rulebody, m_call_stack, m_with_stack, m_builtins, m_cache);
-  }
-
-  Node UnifierDef::resolve_every(const Node& varseq, const Node& nestedbody)
-  {
-    Node item = varseq->at(0);
-    Node key, val;
-    if (varseq->size() == 2)
-    {
-      val = varseq->at(1)->lookup()[0];
-    }
-    else
-    {
-      key = varseq->at(1)->lookup()[0];
-      val = varseq->at(2)->lookup()[0];
-    }
-
-    Location name = (nestedbody / Key)->location();
-    Node body = nestedbody / Val;
-
-    Values item_values = resolve_var(item);
-    for (Value item_value : item_values)
-    {
-      Node item_node = item_value->node();
-      if (item_node->type() == Undefined)
-      {
-        return JSONFalse ^ "false";
-      }
-
-      if (item_node->type() == Term)
-      {
-        item_node = item_node->front();
-      }
-      else
-      {
-        return err(item_node, "Unsupported item node");
-      }
-
-      val->back() = item_node->at(1);
-      if (key != nullptr)
-      {
-        key->back() = item_node->at(0);
-      }
-      Node result = rule_unifier(name, body)->unify();
-      if (result->type() == JSONFalse)
-      {
-        return JSONFalse ^ "false";
-      }
-
-      if (result->type() == Error)
-      {
-        return result;
-      }
-    }
-
-    return JSONTrue ^ "true";
   }
 
   bool UnifierDef::is_variable(const Location& name) const

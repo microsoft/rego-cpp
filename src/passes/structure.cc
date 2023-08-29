@@ -39,10 +39,10 @@ namespace rego
 
       In(Input) * (T(Group) << ScalarToken[Scalar]) >>
         [](Match& _) { return Term << (Scalar << _(Scalar)); },
-      
+
       In(Input) * (T(Group) << StringToken[String]) >>
         [](Match& _) { return Term << (Scalar << (String << _(String))); },
-      
+
       In(Input) * (T(Group) << TermToken[Term]) >>
         [](Match& _) { return Term << _(Term); },
 
@@ -52,8 +52,30 @@ namespace rego
       In(Membership) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
-      In(ExprEvery) * (T(EverySeq) << T(Group)[Group]) >>
-        [](Match& _) { return _(Group); },
+      In(UnifyBody) *
+          (T(Group)
+           << (T(ExprEvery)
+               << (T(VarSeq)[VarSeq] * T(UnifyBody)[UnifyBody] *
+                   (T(EverySeq) << T(Group)[EverySeq])))) >>
+        [](Match& _) {
+          
+          Node maybe_with = _(EverySeq)->back();
+          if (maybe_with->type() == With)
+          {
+            maybe_with->parent()->pop_back();
+            return LiteralWith
+              << (UnifyBody
+                  << (Literal
+                      << (Expr
+                          << (ExprEvery << _(VarSeq) << _(UnifyBody)
+                                        << _(EverySeq)))))
+              << (WithSeq << maybe_with);
+          }
+
+          return Literal
+            << (Expr
+                << (ExprEvery << _(VarSeq) << _(UnifyBody) << _(EverySeq)));
+        },
 
       (In(ObjectItemSeq) / In(Object)) *
           (T(ObjectItem) << T(Group)[Key] * T(Group)[Val]) >>
@@ -281,7 +303,7 @@ namespace rego
       // errors
 
       In(Input) * T(Group)[Group] >>
-        [](Match& _){return err(_(Group), "Invalid input term"); },
+        [](Match& _) { return err(_(Group), "Invalid input term"); },
 
       In(VarSeq) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Expected a variable"); },

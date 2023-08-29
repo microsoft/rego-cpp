@@ -1061,6 +1061,30 @@ namespace rego
               {
                 os << arg->location().view();
               }
+              else if(arg->type() == NestedBody){
+                os << "{";
+                Node body = arg / Val;
+                std::string sep = "";
+                for (Node expr : *body)
+                {
+                  if (expr->type() != Local)
+                  {
+                    os << sep << stmt_str(expr);
+                    sep = "; ";
+                  }
+                }
+                os << "}";
+              }
+              else if(arg->type() == VarSeq){
+                os << "[";
+                std::string sep = "";
+                for (Node var : *arg)
+                {
+                  os << sep << var->location().view();
+                  sep = ", ";
+                }
+                os << "]";
+              }
               else
               {
                 os << to_json(arg);
@@ -1691,6 +1715,10 @@ namespace rego
 
   void Resolver::flatten_terms_into(const Node& termset, Node& terms)
   {
+    if(is_undefined(termset)){
+      return;
+    }
+
     if (termset->type() == Term)
     {
       terms->push_back(termset->front());

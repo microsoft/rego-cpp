@@ -1,5 +1,7 @@
 #include "errors.h"
+#include "log.h"
 #include "passes.h"
+#include "resolver.h"
 #include "utils.h"
 
 namespace
@@ -19,7 +21,7 @@ namespace
 
     Node local = defs[0];
 
-    if (local->type() != Local)
+    if (local->type() != Local && local->type() != ArgVar)
     {
       return false;
     }

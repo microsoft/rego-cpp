@@ -53,6 +53,11 @@ namespace rego_test
 
     p("start",
       {
+        "---" >>
+          [](auto&) {
+            // TODO: add support for YAML front matter
+          },
+
         // Line comment.
         "#[^\n]*" >> [](auto&) {},
 
@@ -186,7 +191,7 @@ namespace rego_test
         "null\\b" >> [](auto& m) { m.add(Null); },
 
         // String
-        R"([^[:digit:],\-\[\]\{\}[:blank:]\r\n])" >>
+        R"([[:digit:]]*[^[:digit:]^\.,\-\[\]\{\}[:blank:]\r\n])" >>
           [](auto& m) {
             m.extend(String);
             m.mode("string");
@@ -204,13 +209,7 @@ namespace rego_test
       });
 
     p("indent",
-      {// Line comment.
-       "#[^\n]*\n" >> [indent](auto&) { },
-
-       // Line comment at end of file
-       "#[^\n]*$" >> [indent](auto&) { },
-
-       R"(\\ )" >> [](auto&) {},
+      {R"(\\ )" >> [](auto&) {},
 
        // end of file terminates
        "\r*\n$" >>
@@ -299,6 +298,67 @@ namespace rego_test
            m.push(SingleQuoteString, 1);
            m.mode("multiline-string");
            *quote = Quote::Single;
+         },
+
+       "#" >>
+         [indent, string_indent, indents](auto& m) {
+           std::string mode = "comment";
+           if (m.in(LiteralString) || m.in(FoldedString))
+           {
+             mode = "multiline-string";
+             if (*string_indent == 0)
+             {
+               *string_indent = *indent;
+               m.mode("multiline-string");
+               m.add(String);
+               return;
+             }
+             else if (*indent < *string_indent)
+             {
+               mode = "comment";
+               *string_indent = 0;
+               if (m.in(LiteralString))
+               {
+                 m.pop(LiteralString);
+               }
+               else if (m.in(FoldedString))
+               {
+                 m.pop(FoldedString);
+               }
+             }
+             else
+             {
+               m.mode("multiline-string");
+               m.add(String);
+               return;
+             }
+           }
+           else if (m.in(SingleQuoteString) || m.in(DoubleQuoteString))
+           {
+             if (*string_indent == 0)
+             {
+               *string_indent = *indent;
+             }
+             m.mode("multiline-string");
+             m.add(String);
+             return;
+           }
+           else
+           {
+             if (*indent > indents->back())
+             {
+               m.push(Block);
+               indents->push_back(*indent);
+             }
+           }
+
+           while (*indent < indents->back())
+           {
+             m.term({Block});
+             indents->pop_back();
+           }
+           m.term();
+           m.mode(mode);
          },
 
        // Character
@@ -497,6 +557,26 @@ namespace rego_test
 
        // Character
        "." >> [](auto& m) { m.extend(String); }});
+
+    p("comment",
+      {
+        R"(\\?\r*\n$)" >>
+          [indents](auto& m) {
+            while (!indents->empty())
+            {
+              m.term({Block});
+              indents->pop_back();
+            }
+          },
+
+        R"(\\?\r*\n)" >>
+          [indent](auto& m) {
+            *indent = 0;
+            m.term();
+            m.mode("indent");
+          },
+        "." >> [](auto&) {},
+      });
 
     p.done([indents](auto& m) {
       while (!indents->empty())

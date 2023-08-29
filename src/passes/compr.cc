@@ -51,7 +51,7 @@ namespace rego
             << (T(Var)[Var] * T(UnifyBody)[Body] * T(Expr)[Val]) >>
           [](Match& _) {
             Location value = _.fresh({"value"});
-            Location compr = _.fresh({"compr"});
+            Location compr = _.fresh({"setcompr"});
             Node body = NestedBody << (Key ^ compr) << _(Body);
             return RuleSet
               << _(Var) << Empty
@@ -103,7 +103,7 @@ namespace rego
                  T(Expr)[Val])) >>
           [](Match& _) {
             Location value = _.fresh({"value"});
-            Location compr = _.fresh({"compr"});
+            Location compr = _.fresh({"objcompr"});
             Node body = _(Body);
             if (body->type() == Empty)
             {

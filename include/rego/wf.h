@@ -281,7 +281,7 @@ namespace rego
     wf_pass_strings
     | (Rego <<= Query * Input * Data * ModuleSeq)
     | (Input <<= Var * (Val >>= DataTerm))[Var]
-    | (Data <<= Var * DataModule)[Var]
+    | (Data <<= Var * (Val >>= DataModule))[Var]
     | (DataModule <<= (DataRule | Submodule)++)
     | (DataRule <<= Key * (Val >>= DataTerm))
     | (Submodule <<= Key * (Val >>= DataModule))[Key]
@@ -319,9 +319,8 @@ namespace rego
     | (RefTerm <<= Ref | Var)
     | (NumTerm <<= JSONInt | JSONFloat)
     | (RefArgBrack <<= RefTerm | Scalar | Object | Array | Set)
-    | (Expr <<= (RefTerm | NumTerm | Term | wf_arith_op | wf_bin_op | wf_bool_op | Unify | Expr | ExprCall | ExprEvery | Set | SetCompr | Membership)++[1])
+    | (Expr <<= (RefTerm | NumTerm | Term | wf_arith_op | wf_bin_op | wf_bool_op | Unify | Expr | ExprCall | Set | SetCompr | Membership)++[1])
     | (Import <<= Var * Ref)[Var]
-    | (ExprEvery <<= VarSeq * NestedBody)
     | (NestedBody <<= Key * (Val >>= UnifyBody))
     ;
   // clang-format on
@@ -397,7 +396,7 @@ namespace rego
     wf_pass_skips
     | (UnaryExpr <<= ArithArg)
     | (ArithArg <<= (Expr | RefTerm | NumTerm | UnaryExpr | ExprCall))
-    | (Expr <<= (RefTerm | NumTerm | Term | Unify | Expr | UnaryExpr |ExprCall | ExprEvery | Set | SetCompr | Membership | UnaryExpr | wf_arith_op | wf_bin_op | wf_bool_op)++[1])
+    | (Expr <<= (RefTerm | NumTerm | Term | Unify | Expr | UnaryExpr |ExprCall | Set | SetCompr | Membership | UnaryExpr | wf_arith_op | wf_bin_op | wf_bool_op)++[1])
     ;
   // clang-format on
 
@@ -415,7 +414,7 @@ namespace rego
     | (BinInfix <<= BinArg * (Op >>= And) * BinArg)
     | (BinArg <<= (Expr | wf_bin_tokens)++[1])
     | (UnaryExpr <<= ArithArg)
-    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr | UnaryExpr | ArithInfix | BinInfix | ExprCall | ExprEvery | Set | SetCompr | Membership | Add | Subtract | Or | wf_bool_op)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr | UnaryExpr | ArithInfix | BinInfix | ExprCall | Set | SetCompr | Membership | Add | Subtract | Or | wf_bool_op)++[1])
     ;
   // clang-format on
 
@@ -426,7 +425,7 @@ namespace rego
     | (ArithArg <<= Expr | wf_math_tokens)
     | (BinInfix <<= BinArg * (Op >>= wf_bin_op) * BinArg)
     | (BinArg <<= Expr | wf_bin_tokens)
-    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr | UnaryExpr | ArithInfix | BinInfix | ExprCall | ExprEvery | Set | SetCompr | Membership | wf_bool_op)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr | UnaryExpr | ArithInfix | BinInfix | ExprCall | Set | SetCompr | Membership | wf_bool_op)++[1])
     ;
   // clang-format on
 
@@ -439,7 +438,7 @@ namespace rego
     | (BinArg <<= wf_bin_tokens)
     | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralNot)++[1])
     | (LiteralNot <<= Expr)
-    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr| UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate | Membership | Set | SetCompr)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | Unify | Expr| UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | Enumerate | Membership | Set | SetCompr)++[1])
     | (Enumerate <<= Expr)
     ;
   // clang-format on
@@ -449,7 +448,7 @@ namespace rego
     wf_pass_comparison
     | (AssignInfix <<= AssignArg * AssignArg)
     | (AssignArg <<= wf_math_tokens | Term | BinInfix | BoolInfix | Enumerate | Membership)
-    | (Expr <<= (NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | AssignInfix | ExprCall | ExprEvery | Membership)++[1])
+    | (Expr <<= (NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | AssignInfix | ExprCall | Membership)++[1])
     | (ExprEvery <<= VarSeq * NestedBody)
     ;
   // clang-format on
@@ -461,7 +460,7 @@ namespace rego
     wf_pass_skip_refs
     | (RefTerm <<= Var | SimpleRef)
     | (SimpleRef <<= Var * (Op >>= RefArgDot | RefArgBrack))
-    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | AssignInfix | ExprCall | ExprEvery | Membership)
+    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | AssignInfix | ExprCall | Membership)
     | (ExprCall <<= Var * ArgSeq)
     | (RefHead <<= Var)
     ;
@@ -482,7 +481,7 @@ namespace rego
     wf_pass_init
     | (Module <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
     | (UnifyExpr <<= Var * (Val >>= Expr))
-    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate | Membership)
+    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | Enumerate | Membership)
     | (UnifyBody <<= (Local | UnifyExpr | UnifyExprWith | UnifyExprCompr | UnifyExprEnum | UnifyExprNot)++[1])
     | (UnifyExprWith <<= UnifyBody * WithSeq)
     | (UnifyExprCompr <<= Var * (Val >>= ArrayCompr | SetCompr | ObjectCompr) * NestedBody)
@@ -499,7 +498,7 @@ namespace rego
   inline const auto wf_pass_lift_to_rule =
     wf_pass_rulebody
     | (UnifyBody <<= (Local | UnifyExpr | UnifyExprWith | UnifyExprNot)++[1])
-    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | ExprEvery | Enumerate | Membership | ArrayCompr | SetCompr | ObjectCompr | Merge)
+    | (Expr <<= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BinInfix | BoolInfix | ExprCall | Enumerate | Membership | ArrayCompr | SetCompr | ObjectCompr | Merge)
     | (Merge <<= Var)
     ;
   // clang-format on
