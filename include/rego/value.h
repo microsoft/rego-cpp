@@ -17,6 +17,7 @@ namespace rego
   public:
     void mark_as_valid();
     void mark_as_invalid();
+    void reduce_set();
 
     std::string str() const;
     std::string json() const;

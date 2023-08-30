@@ -276,4 +276,12 @@ namespace rego
   {
     return std::stoul(to_json(node));
   }
+
+  void ValueDef::reduce_set()
+  {
+    if (m_node->type() == TermSet)
+    {
+      m_node = Resolver::reduce_termset(m_node);
+    }
+  }
 }

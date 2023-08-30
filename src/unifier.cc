@@ -554,8 +554,24 @@ namespace rego
             if (result == nullptr)
             {
               result = maybe_result.value();
+              result->reduce_set();
               valid_args.insert(call_args.begin(), call_args.end());
-              LOG("> result: ", result, "#", result->rank());
+              if (result->node()->type() == TermSet)
+              {
+                result = ValueDef::create(
+                  var,
+                  err(
+                    result->node(),
+                    "functions must not produce multiple outputs for same "
+                    "inputs",
+                    EvalConflictError));
+                LOG("> result: Termset -> Error");
+                break;
+              }
+              else
+              {
+                LOG("> result: ", result, "#", result->rank());
+              }
             }
             else
             {
@@ -814,7 +830,8 @@ namespace rego
         {
           values.push_back(ValueDef::create(resolve_module(def)));
         }
-        else if(def->type() == RuleFunc){
+        else if (def->type() == RuleFunc)
+        {
           // these will always be an argument to apply_access
           values.push_back(ValueDef::create(def));
         }

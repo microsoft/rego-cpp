@@ -43,6 +43,8 @@ if(REGOCPP_OPA_TESTS)
   eqexpr
   evaltermexpr
   every
+  functionerrors
+  functions
   helloworld
   indexing
   indirectreferences

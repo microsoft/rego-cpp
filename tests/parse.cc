@@ -281,11 +281,12 @@ namespace rego_test
        // Double quote string
        "\"" >>
          [quote, indent, indents](auto& m) {
-           if (*indent > indents->back())
+           while (*indent < indents->back())
            {
-             m.push(Block);
-             indents->push_back(*indent);
+             m.term({Block});
+             indents->pop_back();
            }
+           m.term();
            m.push(DoubleQuoteString, 1);
            m.mode("multiline-string");
            *quote = Quote::Double;
@@ -294,11 +295,12 @@ namespace rego_test
        // Single quote string
        "'" >>
          [quote, indent, indents](auto& m) {
-           if (*indent > indents->back())
+           while (*indent < indents->back())
            {
-             m.push(Block);
-             indents->push_back(*indent);
+             m.term({Block});
+             indents->pop_back();
            }
+           m.term();
            m.push(SingleQuoteString, 1);
            m.mode("multiline-string");
            *quote = Quote::Single;
@@ -561,7 +563,6 @@ namespace rego_test
              *quote = Quote::None;
              *string_indent = 0;
              m.pop(DoubleQuoteString);
-             m.term();
              m.mode("start");
            }
            else
@@ -578,7 +579,6 @@ namespace rego_test
              *quote = Quote::None;
              *string_indent = 0;
              m.pop(SingleQuoteString);
-             m.term();
              m.mode("start");
            }
            else
