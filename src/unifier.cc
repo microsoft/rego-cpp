@@ -820,7 +820,8 @@ namespace rego
         }
         else if (def->type() == Input)
         {
-          values.push_back(ValueDef::create(def / Val));
+          Node term = (def / Val)->clone();
+          values.push_back(ValueDef::create(term));
         }
         else if (def->type() == Submodule)
         {

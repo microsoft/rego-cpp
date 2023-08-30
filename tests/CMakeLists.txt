@@ -48,6 +48,7 @@ if(REGOCPP_OPA_TESTS)
   helloworld
   indexing
   indirectreferences
+  inputvalues
   intersection
   numbersrange
   objectfilter

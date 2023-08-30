@@ -58,7 +58,6 @@ namespace rego
                << (T(VarSeq)[VarSeq] * T(UnifyBody)[UnifyBody] *
                    (T(EverySeq) << T(Group)[EverySeq])))) >>
         [](Match& _) {
-          
           Node maybe_with = _(EverySeq)->back();
           if (maybe_with->type() == With)
           {
@@ -202,6 +201,10 @@ namespace rego
       In(RefArgBrack) * (T(Group) << T(Set)[Set]) >>
         [](Match& _) { return _(Set); },
 
+      In(RefArgBrack) *
+          (T(Group) << (T(UnifyBody)[UnifyBody] * End)) >>
+        [](Match& _) { return Set << *_[UnifyBody]; },
+
       (In(Array) / In(Set)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
@@ -341,7 +344,7 @@ namespace rego
 
       In(ExprEvery) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid every sequence"); },
-      
+
       In(ExprEvery) * T(EverySeq)[EverySeq] >>
         [](Match& _) { return err(_(EverySeq), "Invalid every sequence"); },
 
