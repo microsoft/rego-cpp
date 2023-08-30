@@ -72,13 +72,27 @@ namespace rego
     return os;
   }
 
+  void Args::mark_invalid(const std::set<Value>& active) const
+  {  
+    for (auto& values : m_values)
+    {
+      for (auto& value : values)
+      {
+        if (active.contains(value))
+        {
+          value->mark_as_invalid();
+        }
+      }
+    }
+  }
+
   void Args::mark_invalid_except(const std::set<Value>& active) const
   {
     for (auto& values : m_values)
     {
       for (auto& value : values)
       {
-        if (active.find(value) == active.end())
+        if (!active.contains(value))
         {
           value->mark_as_invalid();
         }

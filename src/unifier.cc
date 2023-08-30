@@ -52,7 +52,8 @@ namespace rego
     m_with_stack(with_stack),
     m_builtins(builtins),
     m_parent_type(rulebody->parent()->type()),
-    m_cache(cache)
+    m_cache(cache),
+    m_negate(false)
   {
     LOG_HEADER("ASSEMBLING UNIFICATION", "---");
     m_dependency_graph.push_back({"start", {}, 0});
@@ -169,6 +170,20 @@ namespace rego
 
         m_dependency_graph[id].dependencies.insert(
           dep_ids.begin(), dep_ids.end());
+      }
+      else if (stmt->type() == UnifyExprNot)
+      {
+        statements.push_back(stmt);
+        std::size_t id = m_dependency_graph.size();
+        std::string name = "not" + std::to_string(id);
+        m_dependency_graph.push_back({name, {root}, 0});
+        m_expr_ids[stmt] = id;
+        m_nested_statements[stmt] = {};
+        init_from_body(stmt->front(), m_nested_statements[stmt], root);
+        for (auto& nested : m_nested_statements[stmt])
+        {
+          m_dependency_graph[id].dependencies.insert(m_expr_ids[nested]);
+        }
       }
     });
   }
@@ -302,7 +317,69 @@ namespace rego
     for (auto it = begin; it != end; ++it)
     {
       Node stmt = *it;
-      if (stmt->type() == UnifyExprWith)
+      if (stmt->type() == UnifyExpr)
+      {
+        LOG(Resolver::expr_str(stmt));
+        Node lhs = wfi / stmt / Var;
+        Variable& var = get_variable(lhs->location());
+        Values values = evaluate(lhs->location(), wfi / stmt / Val);
+        if (values.size() == 0)
+        {
+          if (m_negate && var.is_unify())
+          {
+            var.unify({ValueDef::create(JSONTrue ^ "true")});
+            LOG("> result: ", var);
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else
+        {
+          if (m_negate && var.is_unify())
+          {
+            bool all_false = true;
+            for (auto& value : values)
+            {
+              if (!Resolver::is_falsy(value->node()))
+              {
+                all_false = false;
+                break;
+              }
+            }
+            if (all_false)
+            {
+              for(auto& value : values)
+              {
+                value->mark_as_valid();
+              }
+              var.unify({ValueDef::create(JSONTrue ^ "true")});
+              LOG("> result: ", var);
+            }
+            else
+            {
+              continue;
+            }
+          }
+          else
+          {
+            var.unify(values);
+            LOG("> result: ", var);
+          }
+        }
+      }
+      else if (stmt->type() == UnifyExprNot)
+      {
+        LOG(Resolver::not_str(stmt));
+        push_not();
+        LOG_INDENT();
+        auto nested = m_nested_statements[stmt];
+        execute_statements(nested.begin(), nested.end());
+        LOG_UNINDENT();
+        pop_not();
+      }
+      else if (stmt->type() == UnifyExprWith)
       {
         LOG(Resolver::with_str(stmt));
         push_with(stmt / WithSeq);
@@ -311,20 +388,6 @@ namespace rego
         execute_statements(nested.begin(), nested.end());
         LOG_UNINDENT();
         pop_with();
-      }
-      else if (stmt->type() == UnifyExpr)
-      {
-        LOG(Resolver::expr_str(stmt));
-        Node lhs = wfi / stmt / Var;
-        Variable& var = get_variable(lhs->location());
-        Values values = evaluate(lhs->location(), wfi / stmt / Val);
-        if (values.size() == 0)
-        {
-          continue;
-        }
-
-        var.unify(values);
-        LOG("> result: ", var);
       }
     }
   }
@@ -404,6 +467,11 @@ namespace rego
             LOG("> ", var.name().view(), ": TermSet => true");
             return JSONTrue ^ "true";
           }
+          else if (node->size() == 0 && var.is_user_var())
+          {
+            LOG("> ", var.name().view(), ": Empty TermSet => false");
+            return JSONFalse ^ "false";
+          }
         }
         else if (var.is_unify() && Resolver::is_falsy(node))
         {
@@ -414,6 +482,11 @@ namespace rego
         {
           LOG("> ", var.name().view(), ": Term => true");
           return JSONTrue ^ "true";
+        }
+        else if (var.is_user_var() && Resolver::is_undefined(node))
+        {
+          LOG("> ", var.name().view(), ": undefined => false");
+          return JSONFalse ^ "false";
         }
 
         LOG("> ", var.name().view(), ": ", result->location().view());
@@ -534,6 +607,13 @@ namespace rego
           // these arguments resulted in valid values
           valid_args.insert(call_args.begin(), call_args.end());
         }
+        else if (m_negate)
+        {
+          for (auto arg : call_args)
+          {
+            arg->mark_as_valid();
+          }
+        }
       }
     }
     else if (func_name == "call")
@@ -601,6 +681,13 @@ namespace rego
               }
             }
           }
+          else if (m_negate)
+          {
+            for (auto arg : call_args)
+            {
+              arg->mark_as_valid();
+            }
+          }
         }
 
         if (result != nullptr)
@@ -626,10 +713,24 @@ namespace rego
           values.push_back(result);
           valid_args.insert(call_args.begin(), call_args.end());
         }
+        else if (m_negate)
+        {
+          for (auto arg : call_args)
+          {
+            arg->mark_as_valid();
+          }
+        }
       }
     }
 
-    args.mark_invalid_except(valid_args);
+    if (m_negate)
+    {
+      args.mark_invalid(valid_args);
+    }
+    else
+    {
+      args.mark_invalid_except(valid_args);
+    }
 
     return values;
   }
@@ -1855,5 +1956,17 @@ namespace rego
 
     std::string name_str = std::string(name.view());
     throw std::runtime_error("Variable " + name_str + " not found");
+  }
+
+  void UnifierDef::push_not()
+  {
+    LOG("Pushing not: ", m_negate, " => ", !m_negate);
+    m_negate = !m_negate;
+  }
+
+  void UnifierDef::pop_not()
+  {
+    LOG("Popping not: ", m_negate, " => ", !m_negate);
+    m_negate = !m_negate;
   }
 }

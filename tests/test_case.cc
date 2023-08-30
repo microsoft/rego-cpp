@@ -184,7 +184,7 @@ namespace rego_test
     {
       std::string key = std::string((binding / rego::Var)->location().view());
       std::string value =
-        rego::to_json((binding / rego::Term), m_sort_bindings);
+        rego::to_json((binding / rego::Term), m_sort_bindings, false);
       bindings[key] = value;
     }
 
@@ -250,6 +250,13 @@ namespace rego_test
       if (actual_bindings[key] != value)
       {
         diff(key + " = " + actual_bindings[key], key + " = " + value, os);
+        return false;
+      }
+    }
+
+    for(auto& [key, value] : actual_bindings){
+      if(!wanted_bindings.contains(key)){
+        os << "Unexpected binding for " << key << std::endl;
         return false;
       }
     }

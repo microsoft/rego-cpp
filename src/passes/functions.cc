@@ -31,9 +31,7 @@ namespace rego
   {
     return {
       In(Input) * T(DataTerm)[DataTerm] >>
-        [](Match& _){
-          return Term << *_[DataTerm];
-        },
+        [](Match& _) { return Term << *_[DataTerm]; },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(Expr) << Any[Val]) >>
         [](Match& _) { return _(Val); },
@@ -161,14 +159,9 @@ namespace rego
           return seq;
         },
 
-      In(UnifyBody) * (T(UnifyExprNot) << (T(Var)[Lhs] * T(Expr)[Rhs])) >>
+      (In(UnifyExpr) / In(ArgSeq)) * (T(Not) << T(Expr)[Expr]) >>
         [](Match& _) {
-          Location temp = _.fresh({"expr"});
-          return Seq << (Local << (Var ^ temp) << Undefined)
-                     << (UnifyExpr << (Var ^ temp) << _(Rhs))
-                     << (UnifyExpr << _(Lhs)
-                                   << (Function << (JSONString ^ "not")
-                                                << (ArgSeq << (Var ^ temp))));
+          return Function << (JSONString ^ "not") << (ArgSeq << _(Expr));
         },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>

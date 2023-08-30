@@ -52,28 +52,49 @@ namespace
     }
   }
 
-  Locs find_invars(Node unifybody)
+  void find_invars(Node unifybody, Locs& invars)
   {
+    Locs locals;
     // input vars will be rvalues (i.e. in the Val node)
-    Locs invars;
     for (auto unifyexpr : *unifybody)
     {
-      if (unifyexpr->type() == UnifyExpr)
+      if (unifyexpr->type() == Local)
+      {
+        locals.insert((unifyexpr / Var)->location());
+      }
+      else if (unifyexpr->type() == UnifyExpr)
       {
         add_captures(unifybody, unifyexpr / Val, invars);
       }
+      else if (unifyexpr->type() == UnifyExprNot)
+      {
+        find_invars(unifyexpr / UnifyBody, invars);
+      }
+      else if (unifyexpr->type() == UnifyExprWith)
+      {
+        find_invars(unifyexpr / UnifyBody, invars);
+      }
     }
 
-    return invars;
+    // remove locals (they may be incorrectly marked as captured by nested
+    // bodies)
+    for (auto& loc : locals)
+    {
+      invars.erase(loc);
+    }
   }
 
-  Locs find_outvars(Node unifybody)
+  void find_outvars(Node unifybody, Locs& outvars)
   {
+    Locs locals;
     // output vars will consist of lvalues
-    Locs outvars;
     for (auto unifyexpr : *unifybody)
     {
-      if (unifyexpr->type() == UnifyExpr)
+      if (unifyexpr->type() == Local)
+      {
+        locals.insert((unifyexpr / Var)->location());
+      }
+      else if (unifyexpr->type() == UnifyExpr)
       {
         Node var = unifyexpr / Var;
         if (is_captured(unifybody, unifyexpr / Var))
@@ -81,9 +102,22 @@ namespace
           outvars.insert(var->location());
         }
       }
+      else if (unifyexpr->type() == UnifyExprNot)
+      {
+        find_outvars(unifyexpr / UnifyBody, outvars);
+      }
+      else if (unifyexpr->type() == UnifyExprWith)
+      {
+        find_outvars(unifyexpr / UnifyBody, outvars);
+      }
     }
 
-    return outvars;
+    // remove locals (they may be incorrectly marked as captured by nested
+    // bodies)
+    for (auto& loc : locals)
+    {
+      outvars.erase(loc);
+    }
   }
 
   void replace(Node node, const LocMap& lookup)
@@ -122,9 +156,11 @@ namespace rego
           [](Match& _) {
             Node rulebody = _(UnifyBody);
             // in vars
-            Locs invars = find_invars(rulebody);
+            Locs invars;
+            find_invars(rulebody, invars);
             // out vars
-            Locs outvars = find_outvars(rulebody);
+            Locs outvars;
+            find_outvars(rulebody, outvars);
 
             LocMap out_map;
             for (auto& loc : outvars)
@@ -221,7 +257,8 @@ namespace rego
                  (T(NestedBody) << (T(Key)[Key] * T(UnifyBody)[UnifyBody])))) >>
           [](Match& _) {
             Node rulebody = _(UnifyBody);
-            Locs invars = find_invars(_(UnifyBody));
+            Locs invars;
+            find_invars(_(UnifyBody), invars);
 
             Node default_value;
             if (_(Compr)->type() == ArrayCompr)
@@ -252,8 +289,8 @@ namespace rego
                                                << rulevalue << (JSONInt ^ "0")))
                          << (Lift
                              << DataModule
-                             << (RuleComp << rulename->clone() << Empty << default_value
-                                          << (JSONInt ^ "1")))
+                             << (RuleComp << rulename->clone() << Empty
+                                          << default_value << (JSONInt ^ "1")))
                          << (UnifyExpr
                              << _(Var)
                              << (Expr << (RefTerm << rulename->clone())));
@@ -281,8 +318,9 @@ namespace rego
                          << (RuleFunc << rulename << ruleargs << rulebody
                                       << rulevalue << (JSONInt ^ "0")))
                 << (Lift << DataModule
-                         << (RuleFunc << rulename->clone() << ruleargs->clone() << Empty
-                                      << default_value << (JSONInt ^ "1")))
+                         << (RuleFunc << rulename->clone() << ruleargs->clone()
+                                      << Empty << default_value
+                                      << (JSONInt ^ "1")))
                 << (Local << (Var ^ partial) << Undefined)
                 << (UnifyExpr
                     << (Var ^ partial)
@@ -290,6 +328,39 @@ namespace rego
                 << (UnifyExpr << _(Var)
                               << (Expr << (Merge << (Var ^ partial))));
             }
+          },
+
+        In(Expr) *
+            (T(ExprEvery)([](auto& n) { return is_in(*n.first, {DataModule}); })
+             << T(UnifyBody)[UnifyBody]) >>
+          [](Match& _) {
+            Node rulebody = _(UnifyBody);
+            Locs invars;
+            find_invars(_(UnifyBody), invars);
+
+            Location rulename = _.fresh({"every"});
+            Node rulevalue = DataTerm << (Scalar << (JSONTrue ^ "true"));
+            if (invars.empty())
+            {
+              return Seq << (Lift << DataModule
+                                  << (RuleComp << (Var ^ rulename) << rulebody
+                                               << rulevalue << (JSONInt ^ "0")))
+                         << (RefTerm << (Var ^ rulename));
+            }
+
+            Node ruleargs = NodeDef::create(RuleArgs);
+            Node argseq = NodeDef::create(ArgSeq);
+            for (auto& var : invars)
+            {
+              ruleargs << (ArgVar << (Var ^ var) << Undefined);
+              argseq << (Expr << (RefTerm << (Var ^ var)));
+            }
+
+            return Seq << (Lift << DataModule
+                                << (RuleFunc << (Var ^ rulename) << ruleargs
+                                             << rulebody << rulevalue
+                                             << (JSONInt ^ "0")))
+                       << (ExprCall << (Var ^ rulename) << argseq);
           },
 
         // errors

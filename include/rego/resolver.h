@@ -41,6 +41,7 @@ namespace rego
     static NodePrinter compr_str(const Node& unifyexprcompr);
     static NodePrinter ref_str(const Node& ref);
     static NodePrinter body_str(const Node& rego);
+    static NodePrinter not_str(const Node& rego);
     static NodePrinter rego_str(const Node& rego);
     static Node negate(const Node& value);
     static Node unary(const Node& value);

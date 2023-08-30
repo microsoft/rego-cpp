@@ -96,114 +96,35 @@ namespace rego
           return seq;
         },
 
-      // ref.a
+      // ref.a/ref[a]
       T(RefTerm)
           << (T(Ref)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
               << ((T(RefHead) << T(Var)[Var]) *
-                  (T(RefArgSeq) << (T(RefArgDot))[Head] * RefArg++[Tail]))) >>
+                  (T(RefArgSeq) << (RefArg[Head] * RefArg++[Tail])))) >>
         [](Match& _) {
-          LOG("ref.a");
-          Node seq = NodeDef::create(Seq);
-          Location ref = _.fresh({"ref"});
-          seq->push_back(
-            Lift << UnifyBody << (Local << (Var ^ ref) << Undefined));
-          seq->push_back(
-            Lift << UnifyBody
-                 << (Literal
-                     << (Expr
-                         << (AssignInfix
-                             << (AssignArg << (RefTerm << (Var ^ ref)))
-                             << (AssignArg
-                                 << (RefTerm
-                                     << (SimpleRef << _(Var) << _(Head))))))));
+          LOG("ref.a/ref[a]");
           NodeRange tail = _[Tail];
-          if (tail.second > tail.first)
-          {
-            seq->push_back(
-              RefTerm
-              << (Ref << (RefHead << (Var ^ ref)) << (RefArgSeq << tail)));
-          }
-          else
-          {
-            seq->push_back(RefTerm << (Var ^ ref));
-          }
-
-          return seq;
-        },
-
-      // ref[a]
-      T(RefTerm)
-          << (T(Ref)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
-              << ((T(RefHead) << T(Var)[Var]) *
-                  (T(RefArgSeq) << (T(RefArgBrack)[Head] * RefArg++[Tail])))) >>
-        [](Match& _) {
-          LOG("ref[a]");
-          Node seq = NodeDef::create(Seq);
           Location ref = _.fresh({"ref"});
-          seq->push_back(
-            Lift << UnifyBody << (Local << (Var ^ ref) << Undefined));
+          Node seq =
+            Seq << (Lift << UnifyBody << (Local << (Var ^ ref) << Undefined))
+                << (Lift << UnifyBody
+                         << (Literal
+                             << (Expr
+                                 << (AssignInfix
+                                     << (AssignArg << (RefTerm << (Var ^ ref)))
+                                     << (AssignArg
+                                         << (RefTerm
+                                             << (SimpleRef << _(Var)
+                                                           << _(Head))))))));
 
-          Node head = _(Head);
-          if (contains_local(head))
+          if (tail.first == tail.second)
           {
-            Location index = _.fresh({"index"});
-            seq->push_back(
-              Lift << UnifyBody << (Local << (Var ^ index) << Undefined));
-            seq->push_back(
-              Lift << UnifyBody
-                   << (Literal
-                       << (Expr
-                           << (AssignInfix
-                               << (AssignArg << (RefTerm << (Var ^ ref)))
-                               << (AssignArg
-                                   << (RefTerm
-                                       << (SimpleRef
-                                           << _(Var)
-                                           << (RefArgBrack
-                                               << (RefTerm
-                                                   << (Var ^ index))))))))));
-            Node arg = head->front();
-            if (
-              arg->type() == Array || arg->type() == Object ||
-              arg->type() == Set || arg->type() == Scalar)
-            {
-              arg = Term << arg;
-            }
-
-            seq->push_back(
-              Lift << UnifyBody
-                   << (Literal
-                       << (Expr
-                           << (AssignInfix
-                               << (AssignArg << arg)
-                               << (AssignArg << (RefTerm << (Var ^ index)))))));
-          }
-          else
-          {
-            seq->push_back(
-              Lift << UnifyBody
-                   << (Literal
-                       << (Expr
-                           << (AssignInfix
-                               << (AssignArg << (RefTerm << (Var ^ ref)))
-                               << (AssignArg
-                                   << (RefTerm
-                                       << (SimpleRef << _(Var) << head)))))));
+            return seq << (RefTerm << (Var ^ ref));
           }
 
-          NodeRange tail = _[Tail];
-          if (tail.second > tail.first)
-          {
-            seq->push_back(
-              RefTerm
-              << (Ref << (RefHead << (Var ^ ref)) << (RefArgSeq << tail)));
-          }
-          else
-          {
-            seq->push_back(RefTerm << (Var ^ ref));
-          }
-
-          return seq;
+          return seq
+            << (RefTerm
+                << (Ref << (RefHead << (Var ^ ref)) << (RefArgSeq << tail)));
         },
 
       In(ExprCall) * (T(RuleRef) << T(Var)[Var]) >>

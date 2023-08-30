@@ -11,7 +11,7 @@ namespace
 
   Node json_marshal(const Nodes& args)
   {
-    return JSONString ^ to_json(args[0]);
+    return JSONString ^ to_json(args[0], false, false);
   }
 
   Node to_number(const Nodes& args)

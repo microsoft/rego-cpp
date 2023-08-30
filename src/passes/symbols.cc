@@ -263,7 +263,6 @@ namespace rego
                                                      << (JSONInt ^ "1"))))))));
         },
 
-
       In(UnifyBody) *
           (T(Literal)
            << (T(SomeExpr)
@@ -292,7 +291,6 @@ namespace rego
                                                  << (Scalar
                                                      << (JSONInt ^ "1"))))))));
         },
-
 
       (In(UnifyBody) / In(LiteralWith)) *
           (T(Literal)
@@ -389,6 +387,99 @@ namespace rego
           Location compr = _.fresh({prefix + "compr"});
           return NestedBody << (Key ^ compr) << _(UnifyBody);
         },
+
+      In(Expr) *
+          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
+           << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
+               (T(IsIn) << T(Expr)[Expr]))) >>
+        [](Match& _) {
+          Location item = _.fresh({"item"});
+          Location itemseq = _.fresh({"itemseq"});
+          Node rulebody = UnifyBody
+            << (Local << (Var ^ item) << Undefined)
+            << (LiteralEnum << (Var ^ item)
+                            << (Expr << (RefTerm << (Var ^ itemseq))))
+            << (Literal
+                << (Expr << (RefTerm << _(Val)->clone()) << Unify
+                         << (RefTerm
+                             << (Ref
+                                 << (RefHead << (Var ^ item))
+                                 << (RefArgSeq
+                                     << (RefArgBrack
+                                         << (Scalar << (JSONInt ^ "1"))))))))
+            << *_[UnifyBody];
+
+          return Seq << (Lift << UnifyBody
+                              << (Local << (Var ^ itemseq) << Undefined))
+                     << (Lift << UnifyBody
+                              << (Literal
+                                  << (Expr << (RefTerm << (Var ^ itemseq))
+                                           << Unify << *_[Expr])))
+                     << (ExprCall
+                         << (RuleRef << (Var ^ "count"))
+                         << (ArgSeq
+                             << (Expr
+                                 << (Term
+                                     << (ArrayCompr
+                                         << (Expr
+                                             << (RefTerm << _(Val)->clone()))
+                                         << rulebody)))))
+                     << Equals
+                     << (ExprCall
+                         << (RuleRef << (Var ^ "count"))
+                         << (ArgSeq << (Expr << (RefTerm << (Var ^ itemseq)))));
+        },
+
+      In(Expr) *
+          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
+           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
+               (T(IsIn) << T(Expr)[Expr]))) >>
+        [](Match& _) {
+          Location item = _.fresh({"item"});
+          Location itemseq = _.fresh({"itemseq"});
+          Node rulebody = UnifyBody
+            << (Local << (Var ^ item) << Undefined)
+            << (LiteralEnum << (Var ^ item)
+                            << (Expr << (RefTerm << (Var ^ itemseq))))
+            << (Literal
+                << (Expr << (RefTerm << _(Idx)->clone()) << Unify
+                         << (RefTerm
+                             << (Ref
+                                 << (RefHead << (Var ^ item))
+                                 << (RefArgSeq
+                                     << (RefArgBrack
+                                         << (Scalar << (JSONInt ^ "0"))))))))
+            << (Literal
+                << (Expr << (RefTerm << _(Val)->clone()) << Unify
+                         << (RefTerm
+                             << (Ref
+                                 << (RefHead << (Var ^ item))
+                                 << (RefArgSeq
+                                     << (RefArgBrack
+                                         << (Scalar << (JSONInt ^ "1"))))))))
+            << *_[UnifyBody];
+
+          return Seq << (Lift << UnifyBody
+                              << (Local << (Var ^ itemseq) << Undefined))
+                     << (Lift << UnifyBody
+                              << (Literal
+                                  << (Expr << (RefTerm << (Var ^ itemseq))
+                                           << Unify << *_[Expr])))
+                     << (ExprCall
+                         << (RuleRef << (Var ^ "count"))
+                         << (ArgSeq
+                             << (Expr
+                                 << (Term
+                                     << (ArrayCompr
+                                         << (Expr
+                                             << (RefTerm << _(Val)->clone()))
+                                         << rulebody)))))
+                     << Equals
+                     << (ExprCall
+                         << (RuleRef << (Var ^ "count"))
+                         << (ArgSeq << (Expr << (RefTerm << (Var ^ itemseq)))));
+        },
+
 
       // errors
 

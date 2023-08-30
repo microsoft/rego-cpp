@@ -134,19 +134,33 @@ namespace rego
                             << (AssignArg << (ExprCall << ruleref << argseq)));
         },
 
-      In(LiteralNot) *
+      In(Literal) *
           (T(Expr)
-           << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
-                 [func_arity, cache](auto& n) {
-                   return needs_rewrite(n, func_arity, cache);
-                 }))) >>
+           << (T(AssignInfix)
+               << (T(AssignArg)[Lhs] *
+                   (T(AssignArg)
+                    << (T(ExprCall)
+                        << (T(RuleRef)[RuleRef] *
+                            T(ArgSeq)[ArgSeq])([func_arity, cache](auto& n) {
+                             return needs_rewrite(n, func_arity, cache) &&
+                               is_in(*n.first, {UnifyBody});
+                           })))))) >>
         [](Match& _) {
           Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
-          return Expr
-            << (BoolInfix << (BoolArg << var->front()) << Equals
-                          << (BoolArg << (ExprCall << ruleref << argseq)));
+          return Seq << (Lift
+                         << UnifyBody
+                         << (Literal
+                             << (Expr
+                                 << (AssignInfix
+                                     << (AssignArg << var->front())
+                                     << (AssignArg
+                                         << (ExprCall << ruleref << argseq))))))
+                     << (Expr
+                         << (AssignInfix
+                             << _(Lhs)
+                             << (AssignArg << var->front()->clone())));
         },
 
       In(Literal) * (T(Expr) << (AssignInfixArg[Arg] * End)) >>

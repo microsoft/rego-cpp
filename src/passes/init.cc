@@ -30,6 +30,15 @@ namespace
       node = node / Val;
     }
 
+    if(node->type() == SimpleRef){
+      node = node / Op;
+    }
+
+    if(node->type() == RefArgBrack)
+    {
+      node = node->front();
+    }
+
     if(node->type() == Expr){
       node = node->front();
     }
@@ -66,6 +75,10 @@ namespace
         find_init_stmts(stmt / UnifyBody, locals, init_stmts);
       }
       else if(stmt->type() == LiteralWith)
+      {
+        find_init_stmts(stmt / UnifyBody, locals, init_stmts);
+      }
+      else if(stmt->type() == LiteralNot)
       {
         find_init_stmts(stmt / UnifyBody, locals, init_stmts);
       }
@@ -206,6 +219,12 @@ namespace rego
     init.pre(NestedBody, [init_stmts](Node nested) {
       std::set<Location> locals;
       find_init_stmts(nested / Val, locals, init_stmts);
+      return 0;
+    });
+
+    init.pre(ExprEvery, [init_stmts](Node exprevery){
+      std::set<Location> locals;
+      find_init_stmts(exprevery / UnifyBody, locals, init_stmts);
       return 0;
     });
 

@@ -944,6 +944,11 @@ namespace rego
       return compr_str(statement);
     }
 
+    if (statement->type() == UnifyExprNot)
+    {
+      return not_str(statement);
+    }
+
     return expr_str(statement);
   }
 
@@ -1036,6 +1041,27 @@ namespace rego
       }};
   }
 
+  Resolver::NodePrinter Resolver::not_str(const Node& unifyexprnot)
+  {
+    return {
+      unifyexprnot,
+      [](std::ostream& os, const Node& unifyexprnot) -> std::ostream& {
+        Node unifybody = unifyexprnot->front();
+        os << "not {";
+        std::string sep = "";
+        for (Node expr : *unifybody)
+        {
+          if (expr->type() != Local)
+          {
+            os << sep << stmt_str(expr);
+            sep = "; ";
+          }
+        }
+        os << "}";
+        return os;
+      }};
+  }
+
   Resolver::NodePrinter Resolver::func_str(const Node& function)
   {
     return {
@@ -1061,7 +1087,8 @@ namespace rego
               {
                 os << arg->location().view();
               }
-              else if(arg->type() == NestedBody){
+              else if (arg->type() == NestedBody)
+              {
                 os << "{";
                 Node body = arg / Val;
                 std::string sep = "";
@@ -1075,7 +1102,8 @@ namespace rego
                 }
                 os << "}";
               }
-              else if(arg->type() == VarSeq){
+              else if (arg->type() == VarSeq)
+              {
                 os << "[";
                 std::string sep = "";
                 for (Node var : *arg)
@@ -1218,23 +1246,23 @@ namespace rego
 
   bool Resolver::is_falsy(const Node& node)
   {
-    if (node->type() == Undefined)
+    Node value = node;
+    if (value->type() == Term)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == JSONFalse)
     {
       return true;
     }
 
-    if (node->type() != Term)
-    {
-      return false;
-    }
-
-    Node value = node->front();
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-      return value->type() == JSONFalse;
-    }
-    else if (is_undefined(value))
+    if (is_undefined(value))
     {
       return true;
     }
@@ -1715,7 +1743,8 @@ namespace rego
 
   void Resolver::flatten_terms_into(const Node& termset, Node& terms)
   {
-    if(is_undefined(termset)){
+    if (is_undefined(termset))
+    {
       return;
     }
 

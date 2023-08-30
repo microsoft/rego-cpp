@@ -18,7 +18,7 @@ namespace rego
         [](Match& _) { return Data << _(Brace); },
 
       In(Rego) * (T(Input) << T(Undefined)) >>
-        [](Match&) { return Input << (Group << JSONNull); },
+        [](Match&) { return Input << (Key ^ "input") << Undefined; },
 
       // errors
       In(Input) * T(File)[File] >>

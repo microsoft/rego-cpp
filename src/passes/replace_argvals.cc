@@ -42,7 +42,7 @@ namespace
     if (argval->type() == Scalar || argval->type() == Set)
     {
       stmts.push_back(
-        Literal << (Expr << (RefTerm << argref) << Equals << (Term << argval)));
+        Literal << (Expr << (RefTerm << argref) << Unify << (Term << argval)));
     }
     else if (argval->type() == Var)
     {

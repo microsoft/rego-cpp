@@ -17,7 +17,7 @@ namespace
     const Node& node, std::vector<Scope>& scopes, const BuiltIns& builtins)
   {
     std::set<Token> exclude_parents = {
-      RefArgDot, VarSeq, ArrayCompr, SetCompr, ObjectCompr};
+      RefArgDot, RuleRef, VarSeq, ArrayCompr, SetCompr, ObjectCompr};
     if (exclude_parents.contains(node->type()))
     {
       return;

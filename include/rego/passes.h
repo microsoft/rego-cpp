@@ -37,8 +37,8 @@ namespace rego
   PassDef assign(const BuiltIns& builtins);
   PassDef skip_refs(const BuiltIns& builtins);
   PassDef simple_refs();
-  PassDef implicit_enums();
   PassDef init();
+  PassDef implicit_enums();
   PassDef rulebody();
   PassDef lift_to_rule();
   PassDef functions();

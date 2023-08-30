@@ -105,6 +105,9 @@ namespace rego
     void push_with(const Node& withseq);
     void pop_with();
 
+    void push_not();
+    void pop_not();
+
     Location m_rule;
     std::map<Location, Variable> m_variables;
     std::vector<Node> m_statements;
@@ -117,5 +120,6 @@ namespace rego
     UnifierCache m_cache;
     NodeMap<std::size_t> m_expr_ids;
     std::vector<Dependency> m_dependency_graph;
+    bool m_negate;
   };
 }

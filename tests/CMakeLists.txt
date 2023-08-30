@@ -50,6 +50,8 @@ if(REGOCPP_OPA_TESTS)
   indirectreferences
   inputvalues
   intersection
+  negation
+  nestedreferences
   numbersrange
   objectfilter
   objectfilteridempotent
