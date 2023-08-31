@@ -192,7 +192,10 @@ namespace rego_test
 
         // Not a number
         R"((?:(?:[[:digit:]]+)\.\b){2})" >>
-          [](auto& m) { m.add(String); m.mode("string"); },
+          [](auto& m) {
+            m.add(String);
+            m.mode("string");
+          },
 
         // String
         R"([[:digit:]\.]*[^[:digit:]^\.,\-\[\]\{\}[:blank:]\r\n])" >>
@@ -281,12 +284,20 @@ namespace rego_test
        // Double quote string
        "\"" >>
          [quote, indent, indents](auto& m) {
-           while (*indent < indents->back())
+           if (*indent > indents->back())
            {
-             m.term({Block});
-             indents->pop_back();
+             m.push(Block);
+             indents->push_back(*indent);
            }
-           m.term();
+           else
+           {
+             while (*indent < indents->back())
+             {
+               m.term({Block});
+               indents->pop_back();
+             }
+             m.term();
+           }
            m.push(DoubleQuoteString, 1);
            m.mode("multiline-string");
            *quote = Quote::Double;
@@ -295,12 +306,21 @@ namespace rego_test
        // Single quote string
        "'" >>
          [quote, indent, indents](auto& m) {
-           while (*indent < indents->back())
+           if (*indent > indents->back())
            {
-             m.term({Block});
-             indents->pop_back();
+             m.push(Block);
+             indents->push_back(*indent);
            }
-           m.term();
+           else
+           {
+             while (*indent < indents->back())
+             {
+               m.term({Block});
+               indents->pop_back();
+             }
+             m.term();
+           }
+
            m.push(SingleQuoteString, 1);
            m.mode("multiline-string");
            *quote = Quote::Single;

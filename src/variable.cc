@@ -41,7 +41,7 @@ namespace rego
       return true;
     }
 
-    if(name.starts_with("_$"))
+    if (name.starts_with("_$"))
     {
       // placeholder var
       return true;
@@ -146,7 +146,8 @@ namespace rego
       return term_set->front();
     }
 
-    if(term_set->size() == 0){
+    if (term_set->size() == 0)
+    {
       return Undefined;
     }
 

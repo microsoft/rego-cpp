@@ -73,7 +73,7 @@ namespace rego
   }
 
   void Args::mark_invalid(const std::set<Value>& active) const
-  {  
+  {
     for (auto& values : m_values)
     {
       for (auto& value : values)

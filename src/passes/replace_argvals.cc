@@ -47,7 +47,8 @@ namespace
     else if (argval->type() == Var)
     {
       stmts.push_back(
-        Literal << (Expr << (RefTerm << argval) << Unify << (RefTerm << argref)));
+        Literal
+        << (Expr << (RefTerm << argval) << Unify << (RefTerm << argref)));
     }
     else if (argval->type() == Array)
     {
@@ -109,7 +110,7 @@ namespace rego
             Node argref = Ref << (RefHead << (Var ^ argloc)) << RefArgSeq;
             Node argval = arg->front();
             add_constraints(argref, argval, stmts);
-            newargs->push_back(ArgVar << (Var ^argloc) << Undefined);
+            newargs->push_back(ArgVar << (Var ^ argloc) << Undefined);
           }
 
           body->insert(body->begin(), stmts.begin(), stmts.end());

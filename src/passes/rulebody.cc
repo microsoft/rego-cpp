@@ -13,7 +13,7 @@ namespace
   const auto inline Numbery = T(ArithInfix) / T(UnaryExpr) / T(NumTerm);
   const auto inline CallToken =
     T(ArrayCompr) / T(ObjectCompr) / T(SetCompr) / T(ExprCall);
-  
+
   void find_locs_from(
     const Node& node, const std::set<Location>& vars, Node varseq)
   {
@@ -540,11 +540,8 @@ namespace rego
           },
 
         // <notexpr>
-        In(UnifyBody) *
-            (T(LiteralNot) << T(UnifyBody)[UnifyBody]) >>
-          [](Match& _) {
-            return UnifyExprNot << _(UnifyBody);
-          },
+        In(UnifyBody) * (T(LiteralNot) << T(UnifyBody)[UnifyBody]) >>
+          [](Match& _) { return UnifyExprNot << _(UnifyBody); },
 
         // <array> = <array>
         In(UnifyBody) *

@@ -25,8 +25,8 @@ add_custom_command(TARGET rego_test POST_BUILD
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS
   aggregates
-  array
   arithmetic
+  array
   assignments
   baseandvirtualdocs
   comparisonexpr
@@ -43,6 +43,8 @@ if(REGOCPP_OPA_TESTS)
   eqexpr
   evaltermexpr
   every
+  example
+  fix1863
   functionerrors
   functions
   helloworld
@@ -63,6 +65,9 @@ if(REGOCPP_OPA_TESTS)
   objectremovenonstringkey
   objectunion
   objectunionn
+  partialdocconstants
+  partialiter
+  partialobjectdoc
   rand
   replacen
   semvercompare
@@ -77,8 +82,10 @@ if(REGOCPP_OPA_TESTS)
   trimright
   trimspace
   trimsuffix
+  undos
   union
   units
+  varreferences
   )
 
   set( OPA_TEST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/../opa/test/cases/testdata )

@@ -553,7 +553,8 @@ namespace rego
 
   bool BigInt::is_int(const Location& loc)
   {
-    if(loc.len == 0){
+    if (loc.len == 0)
+    {
       return false;
     }
 

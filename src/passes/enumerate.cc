@@ -7,8 +7,8 @@ namespace
 {
   using namespace rego;
 
-  const auto inline LiteralToken =
-    T(Literal) / T(LiteralWith) / T(LiteralEnum) / T(LiteralInit) / T(LiteralNot) / T(Local);
+  const auto inline LiteralToken = T(Literal) / T(LiteralWith) /
+    T(LiteralEnum) / T(LiteralInit) / T(LiteralNot) / T(Local);
 
   void all_refs(Node node, Location loc, Nodes& refs)
   {

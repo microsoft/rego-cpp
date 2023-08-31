@@ -302,7 +302,8 @@ namespace rego
   inline const auto wf_pass_lift_refheads = wf_pass_merge_data;
 
   inline const auto wf_symbols_exprs =
-    (wf_structure_exprs - (Assign | Dot | ExprEvery)) | RefTerm | NumTerm | Set | SetCompr;
+    (wf_structure_exprs - (Assign | Dot | ExprEvery)) | RefTerm | NumTerm |
+    Set | SetCompr;
 
   // clang-format off
   inline const auto wf_pass_symbols =

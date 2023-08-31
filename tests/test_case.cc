@@ -70,7 +70,8 @@ namespace rego_test
     if (defs.size() == 1)
     {
       Node val = defs[0]->back();
-      if(val->type() != File){
+      if (val->type() != File)
+      {
         return err(val, "Expected a File node");
       }
       return val;
@@ -254,8 +255,10 @@ namespace rego_test
       }
     }
 
-    for(auto& [key, value] : actual_bindings){
-      if(!wanted_bindings.contains(key)){
+    for (auto& [key, value] : actual_bindings)
+    {
+      if (!wanted_bindings.contains(key))
+      {
         os << "Unexpected binding for " << key << std::endl;
         return false;
       }

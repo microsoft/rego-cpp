@@ -50,7 +50,7 @@ namespace rego
     static Node boolinfix(const Node& op, const Node& lhs, const Node& rhs);
     static std::optional<Nodes> apply_access(
       const Node& container, const Node& index);
-    static Node object(const Node& object_items);
+    static Node object(const Node& object_items, bool is_rule);
     static Node array(const Node& array_members);
     static Node set(const Node& set_members);
     static Node set_intersection(const Node& lhs, const Node& rhs);

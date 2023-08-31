@@ -432,8 +432,8 @@ namespace rego
 
       In(Expr) *
           (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
-           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
-               (T(IsIn) << T(Expr)[Expr]))) >>
+           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
+               T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
           Location item = _.fresh({"item"});
           Location itemseq = _.fresh({"itemseq"});
@@ -479,7 +479,6 @@ namespace rego
                          << (RuleRef << (Var ^ "count"))
                          << (ArgSeq << (Expr << (RefTerm << (Var ^ itemseq)))));
         },
-
 
       // errors
 

@@ -201,8 +201,7 @@ namespace rego
       In(RefArgBrack) * (T(Group) << T(Set)[Set]) >>
         [](Match& _) { return _(Set); },
 
-      In(RefArgBrack) *
-          (T(Group) << (T(UnifyBody)[UnifyBody] * End)) >>
+      In(RefArgBrack) * (T(Group) << (T(UnifyBody)[UnifyBody] * End)) >>
         [](Match& _) { return Set << *_[UnifyBody]; },
 
       (In(Array) / In(Set)) * T(Group)[Group] >>

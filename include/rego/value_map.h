@@ -1,11 +1,11 @@
 #pragma once
 
 #include "value.h"
-#include <trieste/ast.h>
 
 #include <map>
 #include <set>
 #include <string>
+#include <trieste/ast.h>
 
 namespace rego
 {

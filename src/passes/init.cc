@@ -25,25 +25,28 @@ namespace
       return;
     }
 
-    if(node->type() == ObjectItem)
+    if (node->type() == ObjectItem)
     {
       node = node / Val;
     }
 
-    if(node->type() == SimpleRef){
+    if (node->type() == SimpleRef)
+    {
       node = node / Op;
     }
 
-    if(node->type() == RefArgBrack)
+    if (node->type() == RefArgBrack)
     {
       node = node->front();
     }
 
-    if(node->type() == Expr){
+    if (node->type() == Expr)
+    {
       node = node->front();
     }
 
-    if(node->type() == Term){
+    if (node->type() == Term)
+    {
       node = node->front();
     }
 
@@ -74,11 +77,11 @@ namespace
         locals.erase((stmt / Item)->location());
         find_init_stmts(stmt / UnifyBody, locals, init_stmts);
       }
-      else if(stmt->type() == LiteralWith)
+      else if (stmt->type() == LiteralWith)
       {
         find_init_stmts(stmt / UnifyBody, locals, init_stmts);
       }
-      else if(stmt->type() == LiteralNot)
+      else if (stmt->type() == LiteralNot)
       {
         find_init_stmts(stmt / UnifyBody, locals, init_stmts);
       }
@@ -222,7 +225,7 @@ namespace rego
       return 0;
     });
 
-    init.pre(ExprEvery, [init_stmts](Node exprevery){
+    init.pre(ExprEvery, [init_stmts](Node exprevery) {
       std::set<Location> locals;
       find_init_stmts(exprevery / UnifyBody, locals, init_stmts);
       return 0;

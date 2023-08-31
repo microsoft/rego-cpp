@@ -350,7 +350,7 @@ namespace rego
             }
             if (all_false)
             {
-              for(auto& value : values)
+              for (auto& value : values)
               {
                 value->mark_as_valid();
               }
@@ -806,7 +806,8 @@ namespace rego
           LOG("flattening ", Resolver::arg_str(termset_value->node()));
           Resolver::flatten_items_into(termset_value->node(), argseq);
         }
-        values.push_back(ValueDef::create(var, Resolver::object(argseq)));
+        values.push_back(
+          ValueDef::create(var, Resolver::object(argseq, false)));
       }
       else
       {
@@ -1111,7 +1112,8 @@ namespace rego
 
         object_items->push_back(arg->node());
       }
-      return ValueDef::create(var, Resolver::object(object_items), sources);
+      return ValueDef::create(
+        var, Resolver::object(object_items, false), sources);
     }
 
     if (func_name == "array")
@@ -1183,6 +1185,14 @@ namespace rego
   {
     Values items;
     Values container_values = resolve_var(container_var);
+    for (auto& value : container_values)
+    {
+      if (value->node()->type() == Error)
+      {
+        items.push_back(value);
+        return items;
+      }
+    }
     LOG_VECTOR(container_values);
     for (auto& container_value : container_values)
     {
@@ -1855,7 +1865,7 @@ namespace rego
       return std::nullopt;
     }
 
-    return Resolver::object(argseq);
+    return Resolver::object(argseq, true);
   }
 
   Nodes UnifierDef::expressions() const

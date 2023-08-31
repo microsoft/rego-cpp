@@ -99,6 +99,14 @@ namespace rego
       return err(args[0], "wrong number of arguments");
     }
 
+    for (auto& arg : args)
+    {
+      if (arg->type() == Error)
+      {
+        return arg;
+      }
+    }
+
     Node result = builtin->behavior(args);
     if (result->type() == Error)
     {

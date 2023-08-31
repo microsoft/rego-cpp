@@ -751,7 +751,7 @@ namespace rego
     return err(value, "Not a term");
   }
 
-  Node Resolver::object(const Node& object_items)
+  Node Resolver::object(const Node& object_items, bool is_rule)
   {
     Node object = NodeDef::create(Object);
     std::map<std::string, Node> items;
@@ -765,8 +765,23 @@ namespace rego
       std::string key = to_json(object_items->at(i));
       if (items.contains(key))
       {
-        return err(
-          object_items->at(i), "object keys must be unique", EvalConflictError);
+        std::string current = to_json(items[key] / Val);
+        std::string next = to_json(object_items->at(i + 1));
+        if (current != next)
+        {
+          if (is_rule)
+          {
+            return err(
+              object_items->at(i),
+              "complete rules must not produce multiple outputs",
+              EvalConflictError);
+          }
+
+          return err(
+            object_items->at(i),
+            "object keys must be unique",
+            EvalConflictError);
+        }
       }
 
       Node item = ObjectItem << to_term(object_items->at(i))
