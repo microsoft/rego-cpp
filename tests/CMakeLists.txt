@@ -78,6 +78,9 @@ if(REGOCPP_OPA_TESTS)
   sprintf
   strings
   subset
+  toarray
+  topdowndynamicdispatch
+  toset
   trim
   trimleft
   trimprefix
