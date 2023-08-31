@@ -345,7 +345,7 @@ namespace rego
     if (node->type() == RuleComp)
     {
       std::string name = std::string((node / Var)->location().view());
-      return name.starts_with("query$");
+      return name.find("query$") != std::string::npos;
     }
 
     return in_query(node->parent()->shared_from_this());

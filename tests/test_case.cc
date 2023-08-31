@@ -183,6 +183,10 @@ namespace rego_test
     BindingMap bindings;
     for (auto& binding : *node)
     {
+      if(binding->type() != rego::Binding){
+        // raw term
+        continue;
+      }
       std::string key = std::string((binding / rego::Var)->location().view());
       std::string value =
         rego::to_json((binding / rego::Term), m_sort_bindings, false);

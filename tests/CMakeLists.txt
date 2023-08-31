@@ -68,6 +68,7 @@ if(REGOCPP_OPA_TESTS)
   partialdocconstants
   partialiter
   partialobjectdoc
+  partialsetdoc
   rand
   replacen
   semvercompare
