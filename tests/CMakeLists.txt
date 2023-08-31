@@ -87,10 +87,12 @@ if(REGOCPP_OPA_TESTS)
   trimright
   trimspace
   trimsuffix
+  type
   undos
   union
   units
   varreferences
+  virtualdocs
   )
 
   set( OPA_TEST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/../opa/test/cases/testdata )

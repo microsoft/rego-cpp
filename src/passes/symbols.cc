@@ -317,7 +317,7 @@ namespace rego
 
       (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
           (T(Expr)
-           << (T(Term)[Term]([](auto& n) { return !contains_ref(*n.first); }) *
+           << (T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) *
                End)) >>
         [](Match& _) { return _(Term); },
 
@@ -328,21 +328,10 @@ namespace rego
           return Term << (Scalar << number);
         },
 
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
-          (T(Expr)
-           << (T(Subtract) *
-               (T(Term) << (T(Scalar) << (T(JSONInt) / T(JSONFloat))[Val])) *
-               End)) >>
-        [](Match& _) {
-          Node number = Resolver::negate(_(Val));
-          return Term << (Scalar << number);
-        },
-
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
-          (T(Expr) << (T(Subtract) * T(NumTerm)[NumTerm]) * End) >>
+      In(Expr) * (Start * T(Subtract) * T(NumTerm)[NumTerm] * End) >>
         [](Match& _) {
           Node number = Resolver::negate(_(NumTerm)->front());
-          return Term << (Scalar << number);
+          return NumTerm << number;
         },
 
       (In(RuleComp) / In(RuleFunc)) * (T(Empty) * T(Expr)[Expr]) >>

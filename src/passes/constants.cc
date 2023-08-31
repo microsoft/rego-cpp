@@ -59,19 +59,25 @@ namespace rego
 
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return DataTerm << _(Term)->front(); },
+      
+      (In(DataArray) / In(DataSet)) * (T(Expr) << T(Set)[Set]) >>
+        [](Match& _) { return DataTerm << _(Set); },
 
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(NumTerm)[NumTerm]) >>
         [](Match& _) { return DataTerm << (Scalar << _(NumTerm)->front()); },
 
       In(DataObject) *
           (T(ObjectItem)
-           << ((T(Expr) << (T(Term) / T(NumTerm))[Key]) *
-               (T(Expr) << (T(Term) / T(NumTerm))[Val]))) >>
+           << ((T(Expr) << (T(Term) / T(NumTerm) / T(Set))[Key]) *
+               (T(Expr) << (T(Term) / T(NumTerm) / T(Set))[Val]))) >>
         [](Match& _) {
           Node key = _(Key);
           if (key->type() == NumTerm)
           {
             key = Scalar << key->front();
+          }
+          else if(key->type() == Set){
+            key = DataTerm << key;
           }
           else
           {
@@ -82,6 +88,9 @@ namespace rego
           if (val->type() == NumTerm)
           {
             val = Scalar << val->front();
+          }
+          else if(val->type() == Set){
+            val = DataTerm << val;
           }
           else
           {

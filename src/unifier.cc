@@ -846,7 +846,7 @@ namespace rego
     }
 
     Token peek_type = defs.front()->type();
-    if (peek_type == RuleSet || peek_type == RuleObj || peek_type == RuleComp)
+    if (peek_type == RuleSet || peek_type == RuleObj || peek_type == RuleComp || peek_type == Submodule)
     {
       auto maybe_node = resolve_rule(defs);
       if (maybe_node)
@@ -877,10 +877,6 @@ namespace rego
         {
           Node term = (def / Val)->clone();
           values.push_back(ValueDef::create(term));
-        }
-        else if (def->type() == Submodule)
-        {
-          values.push_back(ValueDef::create(resolve_module(def)));
         }
         else if (def->type() == Data)
         {
@@ -1751,7 +1747,7 @@ namespace rego
     if (argseq->size() == 0)
     {
       LOG("No value");
-      return std::nullopt;
+      return NodeDef::create(Set);
     }
 
     return Resolver::set(argseq);
@@ -1850,7 +1846,7 @@ namespace rego
     if (argseq->size() == 0)
     {
       LOG("No value");
-      return std::nullopt;
+      return NodeDef::create(Object);
     }
 
     return Resolver::object(argseq, true);

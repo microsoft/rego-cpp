@@ -79,15 +79,19 @@ namespace rego
     }
     else if (node->type() == Set || node->type() == DataSet)
     {
-      std::set<std::string> items;
+      std::vector<std::string> items;
       for (const auto& child : *node)
       {
-        items.insert(to_json(child, sort, rego_set));
+        items.push_back(to_json(child, sort, rego_set));
+      }
+
+      if(sort){
+        std::sort(items.begin(), items.end());
       }
 
       if (rego_set)
       {
-        buf << "{";
+        buf << "<";
       }
       else
       {
@@ -102,7 +106,7 @@ namespace rego
 
       if (rego_set)
       {
-        buf << "}";
+        buf << ">";
       }
       else
       {
@@ -253,6 +257,11 @@ namespace rego
     }
 
     Node node = term;
+    if (node->type() == Expr)
+    {
+      node = node->front();
+    }
+
     if (node->type() == Term)
     {
       node = node->front();
