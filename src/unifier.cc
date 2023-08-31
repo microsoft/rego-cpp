@@ -560,6 +560,7 @@ namespace rego
       {
         arg_values.push_back(ValueDef::create(Undefined));
       }
+      
       function_args.push_back(arg_values);
     }
 
@@ -845,60 +846,12 @@ namespace rego
     }
 
     Token peek_type = defs.front()->type();
-    if (peek_type == RuleSet)
+    if (peek_type == RuleSet || peek_type == RuleObj || peek_type == RuleComp)
     {
-      // construct a set from all valid rules
-      auto maybe_node = resolve_ruleset(defs);
+      auto maybe_node = resolve_rule(defs);
       if (maybe_node)
       {
         values.push_back(ValueDef::create(*maybe_node));
-      }
-    }
-    else if (peek_type == RuleObj)
-    {
-      // construct an object from all valid rules
-      auto maybe_node = resolve_ruleobj(defs);
-      if (maybe_node)
-      {
-        values.push_back(ValueDef::create(*maybe_node));
-      }
-    }
-    else if (peek_type == RuleComp)
-    {
-      Value value;
-      for (auto& def : defs)
-      {
-        auto maybe_node = resolve_rulecomp(def);
-        if (maybe_node.has_value())
-        {
-          RankedNode result = maybe_node.value();
-          if (value == nullptr)
-          {
-            value = ValueDef::create(result);
-          }
-          else if (result.first < value->rank())
-          {
-            value = ValueDef::create(result);
-          }
-          else if (result.first == value->rank())
-          {
-            std::string current = to_json(value->node());
-            std::string next = to_json(result.second);
-            if (current != next)
-            {
-              value = ValueDef::create(err(
-                node,
-                "complete rules must not produce multiple outputs",
-                EvalConflictError));
-              break;
-            }
-          }
-        }
-      }
-
-      if (value != nullptr)
-      {
-        values.push_back(value);
       }
     }
     else
@@ -997,17 +950,11 @@ namespace rego
         if (!defs.empty())
         {
           Token peek_type = defs.front()->type();
-          if (peek_type == RuleSet)
+          if (
+            peek_type == RuleSet || peek_type == RuleObj ||
+            peek_type == RuleComp)
           {
-            auto maybe_node = resolve_ruleset(defs);
-            if (maybe_node)
-            {
-              values.push_back(ValueDef::create(var, *maybe_node, sources));
-            }
-          }
-          else if (peek_type == RuleObj)
-          {
-            auto maybe_node = resolve_ruleobj(defs);
+            auto maybe_node = resolve_rule(defs);
             if (maybe_node)
             {
               values.push_back(ValueDef::create(var, *maybe_node, sources));
@@ -1015,22 +962,13 @@ namespace rego
           }
           else
           {
-            for (auto& def : defs)
-            {
-              if (def->type() == RuleComp)
-              {
-                auto maybe_node = resolve_rulecomp(def);
-                if (maybe_node)
-                {
-                  values.push_back(
-                    ValueDef::create(var, maybe_node.value(), sources));
-                }
-              }
-              else
-              {
-                values.push_back(ValueDef::create(var, def, sources));
-              }
-            }
+            std::transform(
+              defs.begin(),
+              defs.end(),
+              std::back_inserter(values),
+              [var, sources](auto& def) {
+                return ValueDef::create(var, def, sources);
+              });
           }
         }
       }
@@ -1415,6 +1353,10 @@ namespace rego
     std::map<Location, Nodes> rule_nodes;
     for (auto& rule : *module)
     {
+      if(rule->type() == RuleFunc){
+        continue;
+      }
+
       Location name;
       if (rule->type() == Submodule)
       {
@@ -1459,139 +1401,185 @@ namespace rego
     for (auto& [name, rules] : rule_nodes)
     {
       Node key = Term << (Scalar << (JSONString ^ name));
-      Node peek = rules.front();
-      if (peek->type() == Submodule)
+      auto maybe_val = resolve_rule(rules);
+      if (maybe_val.has_value())
       {
-        object->push_back(ObjectItem << key << resolve_module(peek));
-      }
-      else if (peek->type() == RuleObj)
-      {
-        auto maybe_node = resolve_ruleobj(rules);
-        if (maybe_node.has_value())
+        Node val = maybe_val.value();
+        if (val->type() == Error)
         {
-          object->push_back(ObjectItem << key << maybe_node.value());
+          return val;
         }
-      }
-      else if (peek->type() == RuleSet)
-      {
-        auto maybe_node = resolve_ruleset(rules);
-        if (maybe_node.has_value())
-        {
-          object->push_back(ObjectItem << key << maybe_node.value());
+        
+        if(Resolver::is_undefined(val)){
+          continue;
         }
-      }
-      else if (peek->type() == RuleComp)
-      {
-        Values values;
-        for (auto& rule : rules)
-        {
-          auto maybe_node = resolve_rulecomp(rule);
-          if (maybe_node.has_value())
-          {
-            values.push_back(ValueDef::create(maybe_node.value()));
-            break;
-          }
-        }
-        values = ValueDef::filter_by_rank(values);
-        if (values.size() == 1)
-        {
-          Node node = values.front()->to_term();
-          if (node->front()->type() != Undefined)
-          {
-            object->push_back(ObjectItem << key << values.front()->to_term());
-          }
-        }
-        else if (values.size() > 1)
-        {
-          return err(module, "Ambiguous rule");
-        }
+
+        object->push_back(ObjectItem << key << val);
       }
     }
 
     return Term << object;
   }
 
-  std::optional<RankedNode> UnifierDef::resolve_rulecomp(
-    const Node& rulecomp) const
+  std::optional<Node> UnifierDef::resolve_rule(const Nodes& defs) const
   {
-    assert(rulecomp->type() == RuleComp);
-    if (rulecomp->type() != RuleComp)
+    std::map<Token, Nodes> rules_by_type;
+    for (auto& def : defs)
     {
-      return std::nullopt;
+      rules_by_type[def->type()].push_back(def);
     }
 
-    Location rulename = (wfi / rulecomp / Var)->location();
-    Node rulebody = wfi / rulecomp / Body;
-    Node value = wfi / rulecomp / Val;
-    rank_t index = ValueDef::get_rank(wfi / rulecomp / Idx);
-
-    Node body_result;
-    if (rulebody->type() == Empty)
+    if (rules_by_type.contains(RuleComp))
     {
-      body_result = JSONTrue;
+      return resolve_rulecomp(rules_by_type[RuleComp]);
     }
-    else
+
+    if (rules_by_type.contains(RuleSet))
     {
-      try
+      return resolve_ruleset(rules_by_type[RuleSet]);
+    }
+
+    Node object = NodeDef::create(Object);
+    if (rules_by_type.contains(RuleObj))
+    {
+      auto maybe_node = resolve_ruleobj(rules_by_type[RuleObj]);
+      if (maybe_node.has_value())
       {
-        body_result = rule_unifier(rulename, rulebody)->unify();
+        object = maybe_node.value();
+        if (object->type() == Error)
+        {
+          return object;
+        }
       }
-      catch (const std::exception& e)
+    }
+
+    if (rules_by_type.contains(Submodule))
+    {
+      for (auto& submodule : rules_by_type[Submodule])
       {
-        return std::make_pair(index, err(rulecomp, e.what()));
+        Node mod_object = resolve_module(submodule);
+        if(mod_object->type() == Error){
+          return mod_object;
+        }
+
+        mod_object = mod_object->front();
+        object->insert(object->end(), mod_object->begin(), mod_object->end());
       }
     }
 
-    LOG("Rule comp body result: ", to_json(body_result));
+    return object;
+  }
 
-    if (body_result->type() == Error)
+  std::optional<Node> UnifierDef::resolve_rulecomp(const Nodes& rulecomps) const
+  {
+    rank_t rank = 0;
+    Node result = nullptr;
+    for (auto& rulecomp : rulecomps)
     {
-      return std::make_pair(index, body_result);
-    }
-
-    if (body_result->type() == JSONTrue)
-    {
-      if (value->type() == UnifyBody)
+      assert(rulecomp->type() == RuleComp);
+      if (rulecomp->type() != RuleComp)
       {
-        LOG("Evaluating rule comp value");
+        return std::nullopt;
+      }
+
+      Location rulename = (wfi / rulecomp / Var)->location();
+      Node rulebody = wfi / rulecomp / Body;
+      Node value = wfi / rulecomp / Val;
+      rank_t index = ValueDef::get_rank(wfi / rulecomp / Idx);
+
+      Node body_result;
+      if (rulebody->type() == Empty)
+      {
+        body_result = JSONTrue;
+      }
+      else
+      {
         try
         {
-          Unifier unifier = rule_unifier(rulename, value);
-          unifier->unify();
-          auto bindings = unifier->bindings();
-          Node result;
-          for (auto& binding : bindings)
-          {
-            Node var = binding->front();
-            if (var->location().view().starts_with("value$"))
-            {
-              result = binding / Term;
-              break;
-            }
-          }
-          value = result;
+          body_result = rule_unifier(rulename, rulebody)->unify();
         }
         catch (const std::exception& e)
         {
-          return std::make_pair(index, err(rulecomp, e.what()));
+          return err(rulecomp, e.what());
+        }
+      }
+
+      LOG("Rule comp body result: ", to_json(body_result));
+
+      if (body_result->type() == Error)
+      {
+        return body_result;
+      }
+
+      if (body_result->type() == JSONTrue)
+      {
+        if (value->type() == UnifyBody)
+        {
+          LOG("Evaluating rule comp value");
+          try
+          {
+            Unifier unifier = rule_unifier(rulename, value);
+            unifier->unify();
+            auto bindings = unifier->bindings();
+            Node binding_val;
+            for (auto& binding : bindings)
+            {
+              Node var = binding->front();
+              if (var->location().view().starts_with("value$"))
+              {
+                binding_val = binding / Term;
+                break;
+              }
+            }
+            value = binding_val;
+          }
+          catch (const std::exception& e)
+          {
+            return err(rulecomp, e.what());
+          }
+        }
+      }
+
+      LOG("Rule comp value result: ", to_json(value));
+
+      if (value->type() == Undefined)
+      {
+        LOG("No value");
+        continue;
+      }
+
+      if (body_result->type() == JSONTrue)
+      {
+        if (result == nullptr)
+        {
+          rank = index;
+          result = value;
+        }
+        else if (index < rank)
+        {
+          rank = index;
+          result = value;
+        }
+        else if (index == rank)
+        {
+          std::string result_str = to_json(result);
+          std::string value_str = to_json(value);
+          if (result_str != value_str)
+          {
+            return err(
+              rulecomp,
+              "complete rules must not produce multiple outputs",
+              EvalConflictError);
+          }
         }
       }
     }
 
-    LOG("Rule comp value result: ", to_json(value));
-
-    if (value->type() == Undefined)
+    if (result != nullptr)
     {
-      LOG("No value");
-      return std::nullopt;
+      return result;
     }
 
-    if (body_result->type() == JSONTrue)
-    {
-      return std::make_pair(index, value);
-    }
-
-    LOG("No value");
     return std::nullopt;
   }
 

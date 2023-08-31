@@ -29,3 +29,6 @@ output {
 ```
 7. Big number support is unclear.
 8. data.refrules.fruit["color.name"](fruit.apple, "green") is a valid expr-call (violates grammar)
+9. expressions in refargbrack
+10. a[x] if x is an ruleobj but seems as though it should be a ruleset?
+11. Base/Virtual conflicts being resolved by silently deleting the virtual rule seems bad

@@ -30,7 +30,7 @@ namespace rego_test
   {
     None,
     Single,
-    Double
+    Double,
   };
 
   enum class Collection
@@ -49,6 +49,7 @@ namespace rego_test
     auto string_indent = std::make_shared<std::size_t>(0);
     auto quote = std::make_shared<Quote>(Quote::None);
     auto stack = std::make_shared<std::vector<Collection>>();
+    auto in_value = std::make_shared<bool>(false);
     stack->push_back(Collection::None);
 
     p("start",
@@ -72,9 +73,10 @@ namespace rego_test
           },
 
         "\r*\n" >>
-          [indent](auto& m) {
-            m.term();
+          [indent, in_value](auto& m) {
             *indent = 0;
+            *in_value = false;
+            m.term();
             m.mode("indent");
           },
 
@@ -164,7 +166,11 @@ namespace rego_test
           },
 
         // KeyValue.
-        ":[ ]*" >> [](auto& m) { m.add(Colon); },
+        ":[ ]*" >>
+          [in_value](auto& m) {
+            m.add(Colon);
+            *in_value = true;
+          },
 
         // Literal string
         "\\|" >> [](auto& m) { m.push(LiteralString); },
@@ -328,10 +334,8 @@ namespace rego_test
 
        "#" >>
          [indent, string_indent, indents](auto& m) {
-           std::string mode = "comment";
            if (m.in(LiteralString) || m.in(FoldedString))
            {
-             mode = "multiline-string";
              if (*string_indent == 0)
              {
                *string_indent = *indent;
@@ -339,9 +343,9 @@ namespace rego_test
                m.add(String);
                return;
              }
-             else if (*indent < *string_indent)
+
+             if (*indent < *string_indent)
              {
-               mode = "comment";
                *string_indent = 0;
                if (m.in(LiteralString))
                {
@@ -351,15 +355,22 @@ namespace rego_test
                {
                  m.pop(FoldedString);
                }
-             }
-             else
-             {
-               m.mode("multiline-string");
-               m.add(String);
+               while (*indent < indents->back())
+               {
+                 m.term({Block});
+                 indents->pop_back();
+               }
+               m.term();
+               m.mode("comment");
                return;
              }
+
+             m.mode("multiline-string");
+             m.add(String);
+             return;
            }
-           else if (m.in(SingleQuoteString) || m.in(DoubleQuoteString))
+
+           if (m.in(SingleQuoteString) || m.in(DoubleQuoteString))
            {
              if (*string_indent == 0)
              {
@@ -369,22 +380,8 @@ namespace rego_test
              m.add(String);
              return;
            }
-           else
-           {
-             if (*indent > indents->back())
-             {
-               m.push(Block);
-               indents->push_back(*indent);
-             }
-           }
 
-           while (*indent < indents->back())
-           {
-             m.term({Block});
-             indents->pop_back();
-           }
-           m.term();
-           m.mode(mode);
+           m.mode("comment");
          },
 
        // Character
@@ -453,8 +450,9 @@ namespace rego_test
           },
 
         "\r*\n" >>
-          [indent](auto& m) {
+          [indent, in_value](auto& m) {
             *indent = 0;
+            *in_value = false;
             m.term();
             m.mode("indent");
           },
@@ -504,9 +502,17 @@ namespace rego_test
           },
 
         ":" >>
-          [](auto& m) {
-            m.add(Colon);
-            m.mode("start");
+          [in_value](auto& m) {
+            if (*in_value)
+            {
+              m.extend(String);
+            }
+            else
+            {
+              *in_value = true;
+              m.add(Colon);
+              m.mode("start");
+            }
           },
 
         // Character

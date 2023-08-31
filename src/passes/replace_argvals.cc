@@ -57,7 +57,7 @@ namespace
         Node itemref = argref->clone();
         Node item = unwrap_term(argval->at(i));
         (itemref / RefArgSeq)
-          << (RefArgBrack << (Scalar << (JSONInt ^ std::to_string(i))));
+          << (RefArgBrack << (Expr << (Term << (Scalar << (JSONInt ^ std::to_string(i))))));
         add_constraints(itemref, item, stmts);
       }
     }
@@ -66,7 +66,7 @@ namespace
       for (auto& item : *argval)
       {
         Node itemref = argref->clone();
-        Node key = unwrap_term(item / Key);
+        Node key = item / Key;
         Node val = unwrap_term(item / Val);
         (itemref / RefArgSeq) << (RefArgBrack << key);
         add_constraints(itemref, val, stmts);

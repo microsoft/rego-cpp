@@ -91,7 +91,14 @@ namespace rego
 
     PassDef skips = {
       dir::topdown | dir::once,
-    };
+      {
+        In(DataModule) *
+            (T(DataRule) << (T(Var)[Var] * T(DataTerm)[DataTerm])) >>
+          [](Match& _) {
+            return RuleComp << _(Var) << Empty << _(DataTerm)
+                            << (JSONInt ^ "0");
+          },
+      }};
 
     skips.pre(Rego, [skip_links](Node node) {
       to_absolute_names(node / Data / Val, "data");

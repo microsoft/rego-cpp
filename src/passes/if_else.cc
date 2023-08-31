@@ -6,7 +6,7 @@ namespace
 {
   using namespace rego;
 
-  const inline auto ExprTailToken = ExprToken / T(IsIn);
+  const inline auto ExprTailToken = ExprToken / T(IsIn) / T(Assign) / T(Unify);
 }
 
 namespace rego
@@ -15,16 +15,13 @@ namespace rego
   PassDef ifs()
   {
     return {
-      In(Group) * (T(If) * ExprToken[Head] * ExprTailToken++[Tail]) >>
-        [](Match& _) { return UnifyBody << (Group << _(Head) << _[Tail]); },
-
-      In(Group) * (T(If) * T(UnifyBody)[UnifyBody]) >>
-        [](Match& _) { return _(UnifyBody); },
+      In(Group) *
+          (T(If) * (ExprToken / T(SomeDecl))[Head] * ExprTailToken++[Tail]) >>
+        [](Match& _) {
+          return Seq << If << (UnifyBody << (Group << _(Head) << _[Tail]));
+        },
 
       // errors
-
-      In(Group) * T(If)[If] >>
-        [](Match& _) { return err(_(If), "Invalid if statement"); },
     };
   }
 
@@ -34,18 +31,18 @@ namespace rego
     return {
       In(Group) *
           (T(Else) * (T(Assign) / T(Unify)) * ExprToken[Head] *
-           ExprTailToken++[Tail] * T(UnifyBody)[UnifyBody]) >>
+           ExprTailToken++[Tail] * ~T(If) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) {
           return Else << (Group << _(Head) << _[Tail]) << _(UnifyBody);
         },
 
-      In(Group) * (T(Else) * T(UnifyBody)[UnifyBody]) >>
+      In(Group) * (T(Else) * ~T(If) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) {
           return Else << (Group << (JSONTrue ^ "true")) << _(UnifyBody);
         },
 
       In(Group) *
-          (T(Else) * (T(Assign) / T(Unify)) * T(Group)[Group] *
+          (T(Else) * (T(Assign) / T(Unify)) * T(Group)[Group] * ~T(If) *
            T(UnifyBody)[UnifyBody]) >>
         [](Match& _) { return Else << _(Group) << _(UnifyBody); },
 

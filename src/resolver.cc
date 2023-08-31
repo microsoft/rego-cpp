@@ -664,7 +664,10 @@ namespace rego
 
     if (container->type() == Object)
     {
-      Node query = arg->front();
+      Node query = arg;
+      if(query->type() == Term){
+        query = arg->front();
+      }
       return object_lookdown(container, query);
     }
 
@@ -1420,7 +1423,7 @@ namespace rego
         term = Term << term;
       }
 
-      if (term->front()->type() == Undefined)
+      if (is_undefined(term))
       {
         continue;
       }

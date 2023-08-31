@@ -45,11 +45,12 @@ namespace rego
       const WithStack& with_stack,
       const BuiltIns& builtins,
       const UnifierCache& cache);
-    std::optional<RankedNode> resolve_rulecomp(const Node& rulecomp) const;
-    std::optional<RankedNode> resolve_rulefunc(
-      const Node& rulefunc, const Nodes& args) const;
+    std::optional<Node> resolve_rule(const Nodes& defs) const;
+    std::optional<Node> resolve_rulecomp(const Nodes& rulecomp) const;
     std::optional<Node> resolve_ruleset(const Nodes& ruleset) const;
     std::optional<Node> resolve_ruleobj(const Nodes& ruleobj) const;
+    std::optional<RankedNode> resolve_rulefunc(
+      const Node& rulefunc, const Nodes& args) const;
     Node resolve_module(const Node& module) const;
 
   private:

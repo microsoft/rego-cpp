@@ -33,7 +33,7 @@ namespace rego
                 << (T(Term) << (T(Array) / T(Set) / T(Scalar))[Term])))) >>
         [](Match& _) {
           std::string key = strip_quotes(to_json(_(Scalar)));
-          return DataRule << (Key ^ key) << (DataTerm << _(Term));
+          return DataRule << (Var ^ key) << (DataTerm << _(Term));
         },
 
       In(DataObject) *

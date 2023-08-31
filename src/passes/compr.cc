@@ -19,13 +19,6 @@ namespace rego
     return {
       dir::topdown | dir::once,
       {
-        In(DataModule) *
-            (T(DataRule) << (T(Key)[Key] * T(DataTerm)[DataTerm])) >>
-          [](Match& _) {
-            return RuleComp << (Var ^ _(Key)) << Empty << _(DataTerm)
-                            << (JSONInt ^ "0");
-          },
-
         In(Policy) *
             (T(RuleSet)
              << (T(Var)[Var] * (T(UnifyBody) / T(Empty))[Body] *

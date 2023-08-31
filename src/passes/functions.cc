@@ -9,17 +9,6 @@ namespace
 
   const auto inline VarOrTerm = T(Var) / T(Term);
   const auto inline RefArg = T(RefArgDot) / T(RefArgBrack);
-
-  // clang-format off
-  inline const auto wfi =
-    (NumTerm <<= JSONInt | JSONFloat)
-    | (ArithArg <<= RefTerm | NumTerm | UnaryExpr | ArithInfix)
-    | (BoolArg <<= Term | RefTerm | NumTerm | UnaryExpr | ArithInfix)
-    | (RefArgDot <<= Var)
-    | (RefArgBrack <<= Scalar | Var | Object | Array | Set)
-    | (RefTerm <<= SimpleRef)
-    ;
-  // clang-format on
 }
 namespace rego
 {
@@ -201,7 +190,7 @@ namespace rego
           (T(RefTerm)
            << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
         [](Match& _) {
-          Location field_name = (wfi / _(RefArgDot) / Var)->location();
+          Location field_name = _(RefArgDot)->front()->location();
           Node arg = Scalar << (JSONString ^ field_name);
           return Function << (JSONString ^ "apply_access")
                           << (ArgSeq << _(Var) << arg);
@@ -214,7 +203,7 @@ namespace rego
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           Node arg = _(RefArgBrack)->front();
-          if (arg->type() == RefTerm)
+          if (arg->type() == RefTerm || arg->type() == Expr)
           {
             return Function << (JSONString ^ "apply_access")
                             << (ArgSeq << _(Var) << arg);

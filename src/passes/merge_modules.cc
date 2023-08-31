@@ -10,7 +10,27 @@ namespace
   {
     if (dst->type() == DataModule && RuleTypes.contains(src->type()))
     {
-      dst->push_back(src);
+      Location key = src->front()->location();
+      auto target = std::find_if(dst->begin(), dst->end(), [key](auto& item) {
+        return item->front()->location() == key;
+      });
+
+      if (target == dst->end())
+      {
+        dst->push_back(src);
+      }
+      else
+      {
+        Node dst_rule = *target;
+        if (dst_rule->type() != DataRule)
+        {
+          // NB virtual doc rules are only merged if there is a name conflict
+          // with a non-virtual doc rule. This seems counter-intuitive but
+          // is correct as of v0.55.0 of Rego.
+          dst->push_back(src);
+        }
+      }
+
       return dst;
     }
     else if (dst->type() == DataModule && src->type() == Submodule)

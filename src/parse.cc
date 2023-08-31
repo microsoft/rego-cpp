@@ -40,9 +40,6 @@ namespace rego
 
     p("start",
       {
-        // end of file terminates
-        "\r*\n$" >> [](auto& m) { m.term(); },
-
         // A newline sometimes terminates.
         "\r*\n([[:blank:]]*)" >>
           [](auto& m) {
@@ -243,6 +240,10 @@ namespace rego
         "=" >> [](auto& m) { m.add(Unify); },
 
       });
+
+    p.done([](auto& m) {
+      m.term({List, Some, With});
+    });
 
     p.gen({
       JSONInt >> [](auto& rnd) { return std::to_string(rnd() % 100); },

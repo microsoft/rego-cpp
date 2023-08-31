@@ -71,6 +71,7 @@ if(REGOCPP_OPA_TESTS)
   partialsetdoc
   rand
   replacen
+  refheads
   semvercompare
   semverisvalid
   sets

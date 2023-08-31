@@ -103,6 +103,14 @@ namespace rego
                   (T(RefArgSeq) << (RefArg[Head] * RefArg++[Tail])))) >>
         [](Match& _) {
           LOG("ref.a/ref[a]");
+          if(_(Var)->location().view() == "data"){
+            // At this point all possible documents are fully qualified and in
+            // the symbol table. As such, a reference such as this, which points
+            // to a top-level module or rule, is a dead link and can be replaced.
+            Location dead = _.fresh({"dead"});
+            return RefTerm << (Var ^ dead);
+          }
+
           NodeRange tail = _[Tail];
           Location ref = _.fresh({"ref"});
           Node seq =

@@ -32,11 +32,6 @@ namespace rego
       In(Query) * T(Group)[Group] >>
         [](Match& _) { return Literal << (Expr << *_[Group]); },
 
-      (In(RuleHeadComp) / In(RuleHeadFunc) / In(RuleHeadSet) /
-       In(RuleHeadObj)) *
-          T(Group)[Group] >>
-        [](Match& _) { return Expr << *_[Group]; },
-
       In(Input) * (T(Group) << ScalarToken[Scalar]) >>
         [](Match& _) { return Term << (Scalar << _(Scalar)); },
 
@@ -75,6 +70,22 @@ namespace rego
             << (Expr
                 << (ExprEvery << _(VarSeq) << _(UnifyBody) << _(EverySeq)));
         },
+
+      In(Rule) *
+          (T(RuleHead)
+           << ((T(RuleRef) << (T(Ref)[Ref] * (T(Array) << T(Group)[Key]))) *
+               (T(RuleHeadComp)
+                << (T(AssignOperator)[AssignOperator] * T(Group)[Val])))) >>
+        [](Match& _) {
+          return RuleHead << (RuleRef << _(Ref))
+                          << (RuleHeadObj << _(Key) << _(AssignOperator)
+                                          << _(Val));
+        },
+
+      (In(RuleHeadComp) / In(RuleHeadFunc) / In(RuleHeadSet) /
+       In(RuleHeadObj)) *
+          T(Group)[Group] >>
+        [](Match& _) { return Expr << *_[Group]; },
 
       (In(ObjectItemSeq) / In(Object)) *
           (T(ObjectItem) << T(Group)[Key] * T(Group)[Val]) >>
@@ -183,26 +194,29 @@ namespace rego
       In(Array) * (T(Group) << T(Expr)[Expr]) >>
         [](Match& _) { return _(Expr); },
 
-      In(RefArgBrack) * (T(Group) << T(Var)[Var]) >>
+      In(RefArgBrack) * (T(Group) << (T(Var)[Var] * End)) >>
         [](Match& _) { return _(Var); },
 
-      In(RefArgBrack) * (T(Group) << ScalarToken[Val]) >>
+      In(RefArgBrack) * (T(Group) << (ScalarToken[Val] * End)) >>
         [](Match& _) { return Scalar << _(Val); },
 
-      In(RefArgBrack) * (T(Group) << StringToken[Val]) >>
+      In(RefArgBrack) * (T(Group) << (StringToken[Val] * End)) >>
         [](Match& _) { return Scalar << (String << _(Val)); },
 
-      In(RefArgBrack) * (T(Group) << T(Object)[Object]) >>
+      In(RefArgBrack) * (T(Group) << (T(Object)[Object] * End)) >>
         [](Match& _) { return _(Object); },
 
-      In(RefArgBrack) * (T(Group) << T(Array)[Array]) >>
+      In(RefArgBrack) * (T(Group) << (T(Array)[Array] * End)) >>
         [](Match& _) { return _(Array); },
 
-      In(RefArgBrack) * (T(Group) << T(Set)[Set]) >>
+      In(RefArgBrack) * (T(Group) << (T(Set)[Set] * End)) >>
         [](Match& _) { return _(Set); },
 
       In(RefArgBrack) * (T(Group) << (T(UnifyBody)[UnifyBody] * End)) >>
         [](Match& _) { return Set << *_[UnifyBody]; },
+      
+      In(RefArgBrack) * T(Group)[Group] >>
+        [](Match& _) { return Expr << *_[Group]; },
 
       (In(Array) / In(Set)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
@@ -358,9 +372,6 @@ namespace rego
 
       In(Expr) * T(UnifyBody)[UnifyBody] >>
         [](Match& _) { return err(_(UnifyBody), "Invalid body location"); },
-
-      In(RefArgBrack) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid index"); },
 
       In(RuleArgs) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid argument"); },
