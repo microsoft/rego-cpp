@@ -26,6 +26,131 @@ namespace rego_test
     std::size_t indent;
   };
 
+  class Indent
+  {
+  public:
+    Indent() : m_current(0), m_string_start(0)
+    {
+      m_indents.push_back(0);
+    }
+
+    void newline()
+    {
+      m_current = 0;
+    }
+
+    bool at_string_start()
+    {
+      return m_string_start > 0 && m_string_start == m_current;
+    }
+
+    void end_string()
+    {
+      m_string_start = 0;
+    }
+
+    void inc(std::size_t n = 1)
+    {
+      m_current += n;
+    }
+
+    bool push()
+    {
+      if (m_current > m_indents.back())
+      {
+        m_indents.push_back(m_current);
+        return true;
+      }
+
+      return false;
+    }
+
+    template <typename M>
+    void pop_blocks(M& m)
+    {
+      while (m_current < m_indents.back())
+      {
+        m.term({Block});
+        m_indents.pop_back();
+      }
+    }
+
+    template <typename M>
+    void cleanup(M& m)
+    {
+      while (!m_indents.empty())
+      {
+        m.term({Block});
+        m_indents.pop_back();
+      }
+    }
+
+    template <typename M>
+    bool complete(M& m, std::string mode)
+    {
+      if (m.in(LiteralString) || m.in(FoldedString))
+      {
+        if (m_string_start == 0)
+        {
+          m_string_start = m_current;
+          m.mode("multiline-string");
+          m.add(String);
+          return false;
+        }
+
+        if (m_current < m_string_start)
+        {
+          m_string_start = 0;
+          if (m.in(LiteralString))
+          {
+            m.pop(LiteralString);
+          }
+          else if (m.in(FoldedString))
+          {
+            m.pop(FoldedString);
+          }
+          pop_blocks(m);
+          m.term();
+          m.mode(mode);
+          return true;
+        }
+
+        m.mode("multiline-string");
+        m.add(String);
+        return false;
+      }
+
+      if (m.in(SingleQuoteString) || m.in(DoubleQuoteString))
+      {
+        if (m_string_start == 0)
+        {
+          m_string_start = m_current;
+        }
+        m.mode("multiline-string");
+        m.add(String);
+        return false;
+      }
+
+      if (push())
+      {
+        m.push(Block);
+      }
+      else
+      {
+        pop_blocks(m);
+      }
+
+      m.term();
+      m.mode(mode);
+      return true;
+    }
+
+  private:
+    std::size_t m_current;
+    std::size_t m_string_start;
+    std::vector<std::size_t> m_indents;
+  };
+
   enum class Quote
   {
     None,
@@ -43,10 +168,7 @@ namespace rego_test
   Parse parser()
   {
     Parse p(depth::file);
-    auto indents = std::make_shared<std::vector<std::size_t>>();
-    indents->push_back(0);
-    auto indent = std::make_shared<std::size_t>(0);
-    auto string_indent = std::make_shared<std::size_t>(0);
+    auto indent = std::make_shared<Indent>();
     auto quote = std::make_shared<Quote>(Quote::None);
     auto stack = std::make_shared<std::vector<Collection>>();
     auto in_value = std::make_shared<bool>(false);
@@ -62,28 +184,20 @@ namespace rego_test
         // Line comment.
         "#[^\n]*" >> [](auto&) {},
 
-        // end of file terminates
-        "\r*\n$" >>
-          [indents](auto& m) {
-            while (!indents->empty())
-            {
-              m.term({Block});
-              indents->pop_back();
-            }
-          },
-
         "\r*\n" >>
           [indent, in_value](auto& m) {
-            *indent = 0;
             *in_value = false;
+            indent->newline();
             m.term();
             m.mode("indent");
           },
 
         // Brace.
-        R"((\{)[[:blank:]]*)" >>
-          [stack](auto& m) {
-            m.push(Brace, 1);
+        R"(\{)" >>
+          [stack, in_value](auto& m) {
+            *in_value = false;
+            m.term();
+            m.push(Brace);
             stack->push_back(Collection::Brace);
           },
 
@@ -102,9 +216,10 @@ namespace rego_test
           },
 
         // Square.
-        R"((\[)[[:blank:]]*)" >>
+        R"(\[)" >>
           [stack](auto& m) {
-            m.push(Square, 1);
+            m.term();
+            m.push(Square);
             stack->push_back(Collection::Square);
           },
 
@@ -124,13 +239,14 @@ namespace rego_test
 
         // Comma.
         ",[[:blank:]]*" >>
-          [stack](auto& m) {
+          [stack, in_value](auto& m) {
             if (stack->back() == Collection::None)
             {
               m.extend(String);
             }
             else
             {
+              *in_value = false;
               m.term();
             }
           },
@@ -180,11 +296,11 @@ namespace rego_test
 
         // Entry.
         "-[ \n][\r\n]*" >>
-          [indent, indents](auto& m) {
-            *indent += 2;
+          [indent](auto& m) {
+            indent->inc(2);
+            indent->push();
             m.add(Hyphen);
             m.push(Block);
-            indents->push_back(*indent);
           },
 
         // True.
@@ -224,47 +340,37 @@ namespace rego_test
     p("indent",
       {R"(\\ )" >> [](auto&) {},
 
-       // end of file terminates
-       "\r*\n$" >>
-         [indents](auto& m) {
-           while (!indents->empty())
-           {
-             m.term({Block});
-             indents->pop_back();
-           }
-         },
-
        "\r*\n" >>
-         [indent, string_indent](auto& m) {
-           if (*indent == *string_indent)
+         [indent](auto& m) {
+           if (indent->at_string_start())
            {
              m.add(Blank);
              m.term();
            }
-           *indent = 0;
+           indent->newline();
          },
 
        // Space
        " " >>
-         [indent, string_indent](auto& m) {
-           if (*string_indent > 0 && *indent == *string_indent)
+         [indent](auto& m) {
+           if (indent->at_string_start())
            {
              m.mode("multiline-string");
              m.add(String);
            }
            else
            {
-             *indent = *indent + 1;
+             indent->inc();
            }
          },
 
        // Hyphen
        "-[ \n][\r\n]*" >>
-         [indent, string_indent, indents](auto& m) {
+         [indent](auto& m) {
            m.mode("start");
            if (m.in(LiteralString) || m.in(FoldedString))
            {
-             *string_indent = 0;
+             indent->end_string();
              if (m.in(LiteralString))
              {
                m.pop(LiteralString);
@@ -275,33 +381,23 @@ namespace rego_test
              }
            }
 
-           while (*indent < indents->back())
-           {
-             m.term({Block});
-             indents->pop_back();
-           }
-
-           *indent += 2;
+           indent->pop_blocks(m);
+           indent->inc(2);
+           indent->push();
            m.add(Hyphen);
            m.push(Block);
-           indents->push_back(*indent);
          },
 
        // Double quote string
        "\"" >>
-         [quote, indent, indents](auto& m) {
-           if (*indent > indents->back())
+         [quote, indent](auto& m) {
+           if (indent->push())
            {
              m.push(Block);
-             indents->push_back(*indent);
            }
            else
            {
-             while (*indent < indents->back())
-             {
-               m.term({Block});
-               indents->pop_back();
-             }
+             indent->pop_blocks(m);
              m.term();
            }
            m.push(DoubleQuoteString, 1);
@@ -311,19 +407,14 @@ namespace rego_test
 
        // Single quote string
        "'" >>
-         [quote, indent, indents](auto& m) {
-           if (*indent > indents->back())
+         [quote, indent](auto& m) {
+           if (indent->push())
            {
              m.push(Block);
-             indents->push_back(*indent);
            }
            else
            {
-             while (*indent < indents->back())
-             {
-               m.term({Block});
-               indents->pop_back();
-             }
+             indent->pop_blocks(m);
              m.term();
            }
 
@@ -332,134 +423,81 @@ namespace rego_test
            *quote = Quote::Single;
          },
 
-       "#" >>
-         [indent, string_indent, indents](auto& m) {
-           if (m.in(LiteralString) || m.in(FoldedString))
+       "#" >> [indent](auto& m) { indent->complete(m, "comment"); },
+
+       R"(\{)" >>
+         [indent, stack, in_value](auto& m) {
+           if (indent->complete(m, "start"))
            {
-             if (*string_indent == 0)
-             {
-               *string_indent = *indent;
-               m.mode("multiline-string");
-               m.add(String);
-               return;
-             }
-
-             if (*indent < *string_indent)
-             {
-               *string_indent = 0;
-               if (m.in(LiteralString))
-               {
-                 m.pop(LiteralString);
-               }
-               else if (m.in(FoldedString))
-               {
-                 m.pop(FoldedString);
-               }
-               while (*indent < indents->back())
-               {
-                 m.term({Block});
-                 indents->pop_back();
-               }
-               m.term();
-               m.mode("comment");
-               return;
-             }
-
-             m.mode("multiline-string");
-             m.add(String);
-             return;
+             *in_value = false;
+             stack->push_back(Collection::Brace);
+             m.term();
+             m.push(Brace);
            }
+         },
 
-           if (m.in(SingleQuoteString) || m.in(DoubleQuoteString))
+       R"(\})" >>
+         [indent, stack](auto& m) {
+           if (stack->back() == Collection::Brace)
            {
-             if (*string_indent == 0)
-             {
-               *string_indent = *indent;
-             }
-             m.mode("multiline-string");
-             m.add(String);
-             return;
+             m.term();
+             m.pop(Brace);
+             stack->pop_back();
+             m.mode("start");
            }
+           else if (indent->complete(m, "string"))
+           {
+             m.add(String);
+           }
+         },
 
-           m.mode("comment");
+       R"(\[)" >>
+         [indent, stack](auto& m) {
+           if (indent->complete(m, "start"))
+           {
+             stack->push_back(Collection::Square);
+             m.term();
+             m.push(Square);
+           }
+         },
+
+       R"(\])" >>
+         [indent, stack](auto& m) {
+           if (stack->back() == Collection::Square)
+           {
+             m.term();
+             m.pop(Square);
+             stack->pop_back();
+             m.mode("start");
+           }
+           else if (indent->complete(m, "string"))
+           {
+             m.add(String);
+           }
          },
 
        // Character
        "." >>
-         [indent, string_indent, indents](auto& m) {
-           std::string mode = "string";
-           if (m.in(LiteralString) || m.in(FoldedString))
+         [indent](auto& m) {
+           if (indent->complete(m, "string"))
            {
-             mode = "multiline-string";
-             if (*string_indent == 0)
-             {
-               *string_indent = *indent;
-             }
-             else if (*indent < *string_indent)
-             {
-               mode = "string";
-               *string_indent = 0;
-               if (m.in(LiteralString))
-               {
-                 m.pop(LiteralString);
-               }
-               else if (m.in(FoldedString))
-               {
-                 m.pop(FoldedString);
-               }
-             }
-           }
-           else if (m.in(SingleQuoteString) || m.in(DoubleQuoteString))
-           {
-             if (*string_indent == 0)
-             {
-               *string_indent = *indent;
-             }
-             m.mode("multiline-string");
              m.add(String);
-             return;
            }
-           else
-           {
-             if (*indent > indents->back())
-             {
-               m.push(Block);
-               indents->push_back(*indent);
-             }
-           }
-
-           while (*indent < indents->back())
-           {
-             m.term({Block});
-             indents->pop_back();
-           }
-           m.term();
-           m.mode(mode);
-           m.add(String);
          }});
 
     p("string",
       {
-        "\r*\n$" >>
-          [indents](auto& m) {
-            while (!indents->empty())
-            {
-              m.term({Block});
-              indents->pop_back();
-            }
-          },
-
         "\r*\n" >>
           [indent, in_value](auto& m) {
-            *indent = 0;
+            indent->newline();
             *in_value = false;
             m.term();
             m.mode("indent");
           },
 
         R"(\})" >>
-          [stack](auto& m) {
-            if (stack->back() == Collection::Brace)
+          [stack, quote](auto& m) {
+            if (*quote == Quote::None && stack->back() == Collection::Brace)
             {
               m.term();
               m.pop(Brace);
@@ -473,8 +511,8 @@ namespace rego_test
           },
 
         R"(\])" >>
-          [stack](auto& m) {
-            if (stack->back() == Collection::Square)
+          [stack, quote](auto& m) {
+            if (*quote == Quote::None && stack->back() == Collection::Square)
             {
               m.term();
               m.pop(Square);
@@ -489,13 +527,14 @@ namespace rego_test
 
         // Comma.
         ",[[:blank:]]*" >>
-          [stack](auto& m) {
+          [stack, in_value](auto& m) {
             if (stack->back() == Collection::None)
             {
               m.extend(String);
             }
             else
             {
+              *in_value = false;
               m.term();
               m.mode("start");
             }
@@ -520,18 +559,9 @@ namespace rego_test
       });
 
     p("multiline-string",
-      {R"(\\?\r*\n$)" >>
-         [indents](auto& m) {
-           while (!indents->empty())
-           {
-             m.term({Block});
-             indents->pop_back();
-           }
-         },
-
-       R"(\\?\r*\n)" >>
+      {R"(\\?\r*\n)" >>
          [indent](auto& m) {
-           *indent = 0;
+           indent->newline();
            m.term();
            m.mode("indent");
          },
@@ -582,12 +612,12 @@ namespace rego_test
          },
 
        "\"" >>
-         [string_indent, quote](auto& m) {
+         [indent, quote](auto& m) {
            if (*quote == Quote::Double)
            {
              m.term();
              *quote = Quote::None;
-             *string_indent = 0;
+             indent->end_string();
              m.pop(DoubleQuoteString);
              m.mode("start");
            }
@@ -598,12 +628,12 @@ namespace rego_test
          },
 
        "'" >>
-         [string_indent, quote](auto& m) {
+         [indent, quote](auto& m) {
            if (*quote == Quote::Single)
            {
              m.term();
              *quote = Quote::None;
-             *string_indent = 0;
+             indent->end_string();
              m.pop(SingleQuoteString);
              m.mode("start");
            }
@@ -618,30 +648,21 @@ namespace rego_test
 
     p("comment",
       {
-        R"(\\?\r*\n$)" >>
-          [indents](auto& m) {
-            while (!indents->empty())
-            {
-              m.term({Block});
-              indents->pop_back();
-            }
-          },
-
         R"(\\?\r*\n)" >>
           [indent](auto& m) {
-            *indent = 0;
+            indent->newline();
             m.term();
             m.mode("indent");
           },
         "." >> [](auto&) {},
       });
 
-    p.done([indents](auto& m) {
-      while (!indents->empty())
+    p.done([indent, stack](auto& m) {
+      if (stack->size() > 1)
       {
-        m.term({Block});
-        indents->pop_back();
+        m.error("Unclosed braces");
       }
+      indent->cleanup(m);
     });
 
     p.gen({
