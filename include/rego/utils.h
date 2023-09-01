@@ -23,7 +23,7 @@ namespace rego
     T(Object) / T(Paren) / T(Not) / T(Dot) / T(And) / T(Or) / T(ExprCall);
   const auto inline MembershipToken = ScalarToken / T(JSONString) /
     T(RawString) / T(Var) / T(Object) / T(Array) / T(Set) / T(Dot) / T(Paren) /
-    ArithToken / BoolToken / T(And) / T(Or);
+    ArithToken / BoolToken / T(And) / T(Or) / T(ExprCall);
   const auto inline RuleRefToken = T(Var) / T(Dot) / T(Array);
 
   inline const std::set<std::string> Keywords(

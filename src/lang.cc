@@ -6,21 +6,6 @@
 
 #include <charconv>
 
-namespace
-{
-  using namespace rego;
-
-  // clang-format off
-  inline const auto wfi =
-      (Binding <<= Var * Term)
-    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
-    | (DataItem <<= Key * (Val >>= DataTerm))
-    | (Term <<= Scalar | Array | Object | Set | Undefined)
-    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
-    ;
-  // clang-format on
-}
-
 namespace rego
 {
   bool Logger::enabled = false;

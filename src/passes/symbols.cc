@@ -35,13 +35,6 @@ namespace
   }
 
   const inline auto LocalToken = T(RefTerm) / T(Term);
-
-  // clang-format off
-  inline const auto wfi =
-      (Top <<= Rego)
-    | (Else <<= Expr * UnifyBody)
-    ;
-  // clang-format on
 }
 
 namespace rego
@@ -94,8 +87,8 @@ namespace rego
                          << (JSONInt ^ "0"));
           for (std::size_t i = 0; i < elseseq->size(); ++i)
           {
-            Node expr = wfi / elseseq->at(i) / Expr;
-            Node body = wfi / elseseq->at(i) / UnifyBody;
+            Node expr =  elseseq->at(i) / Val;
+            Node body =  elseseq->at(i) / Body;
             seq
               << (RuleComp << (Var ^ subrule) << body << expr
                            << (JSONInt ^ std::to_string(i + 1)));
@@ -150,8 +143,8 @@ namespace rego
                          << (JSONInt ^ "0"));
           for (std::size_t i = 0; i < elseseq->size(); ++i)
           {
-            Node expr = wfi / elseseq->at(i) / Expr;
-            Node body = wfi / elseseq->at(i) / UnifyBody;
+            Node expr =  elseseq->at(i) / Val;
+            Node body =  elseseq->at(i) / Body;
             seq
               << (RuleFunc << (Var ^ subrule) << _(RuleArgs)->clone() << body
                            << expr << (JSONInt ^ std::to_string(i + 1)));

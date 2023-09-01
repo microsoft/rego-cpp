@@ -123,7 +123,7 @@ namespace rego
           [](Match& _) {
             Location out = _.fresh({"out"});
             Node tail = _(NestedBody) / Val;
-            while (tail->back()->type() == LiteralEnum)
+            while (tail->back()->type() == LiteralEnum || tail->back()->type() == LiteralWith)
             {
               tail = tail->back() / UnifyBody;
             }
@@ -140,7 +140,7 @@ namespace rego
           [](Match& _) {
             Location out = _.fresh({"out"});
             Node tail = _(NestedBody) / Val;
-            while (tail->back()->type() == LiteralEnum)
+            while (tail->back()->type() == LiteralEnum || tail->back()->type() == LiteralWith)
             {
               tail = tail->back() / UnifyBody;
             }

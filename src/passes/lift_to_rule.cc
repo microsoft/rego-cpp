@@ -364,17 +364,6 @@ namespace rego
           },
 
         // errors
-
-        In(ExprCall) * (T(ArgSeq)[ArgSeq] << End) >>
-          [](Match& _) {
-            return err(_(ArgSeq), "Syntax error: empty argument sequence");
-          },
-
-        In(RuleFunc) * (T(RuleArgs)[RuleArgs] << End) >>
-          [](Match& _) {
-            return err(_(RuleArgs), "Syntax error: no rule arguments");
-          },
-
       }};
   }
 }

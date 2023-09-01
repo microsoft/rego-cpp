@@ -102,6 +102,11 @@ namespace rego
               m.pop(Some);
               m.term();
             }
+            if (m.in(With))
+            {
+              m.pop(With);
+              m.term();
+            }
             m.pop(Brace);
           },
 
@@ -116,11 +121,21 @@ namespace rego
               m.pop(Some);
               m.term();
             }
+            if (m.in(With))
+            {
+              m.pop(With);
+              m.term();
+            }
             m.pop(Square);
           },
 
         // Parens.
-        R"((\()[[:blank:]]*)" >> [](auto& m) { m.push(Paren, 1); },
+        R"((\()[[:blank:]]*)" >>
+          [](auto& m) {
+            m.push(Paren, 1);
+            // deal with empty parens
+            m.push(Group);
+          },
 
         R"(\))" >>
           [](auto& m) {
@@ -128,6 +143,11 @@ namespace rego
             if (m.in(Some))
             {
               m.pop(Some);
+              m.term();
+            }
+            if (m.in(With))
+            {
+              m.pop(With);
               m.term();
             }
             m.pop(Paren);
@@ -180,7 +200,15 @@ namespace rego
           },
 
         // With
-        "with\\b" >> [](auto& m) { m.push(With); },
+        "with\\b" >>
+          [](auto& m) {
+            m.term();
+            if (m.in(With))
+            {
+              m.pop(With);
+            }
+            m.push(With);
+          },
 
         // Empty set.
         R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
@@ -241,9 +269,7 @@ namespace rego
 
       });
 
-    p.done([](auto& m) {
-      m.term({List, Some, With});
-    });
+    p.done([](auto& m) { m.term({List, Some, With}); });
 
     p.gen({
       JSONInt >> [](auto& rnd) { return std::to_string(rnd() % 100); },

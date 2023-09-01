@@ -57,6 +57,7 @@ builtins/objects.cc
 builtins/semver.cc
 builtins/sets.cc
 builtins/strings.cc
+builtins/time.cc
 builtins/units.cc
 builtins/utf8.cc
 # third-party

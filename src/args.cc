@@ -100,6 +100,11 @@ namespace rego
     }
   }
 
+  std::size_t Args::source_size() const
+  {
+    return m_values.size();
+  }
+
   const Values& Args::source_at(std::size_t index) const
   {
     return m_values[index];

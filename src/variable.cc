@@ -4,26 +4,12 @@
 #include "resolver.h"
 #include "utils.h"
 
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-      (Local <<= Var * (Val >>= Undefined | Term))
-    | (Term <<= Scalar | Array | Object | Set | Undefined)
-    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
-    ;
-  // clang-format on
-}
-
 namespace rego
 {
   Variable::Variable(const Node& local, std::size_t id) :
     m_local(local), m_initialized(false), m_id(id)
   {
-    Location name = (wfi / local / Var)->location();
+    Location name = ( local / Var)->location();
     m_unify = is_unify(name.view());
     m_user_var = is_user_var(name.view());
   }
@@ -100,7 +86,7 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
-    return os << (wfi / variable.m_local / Var)->location().view() << " = "
+    return os << ( variable.m_local / Var)->location().view() << " = "
               << variable.m_values;
   }
 
@@ -219,7 +205,7 @@ namespace rego
 
   Location Variable::name() const
   {
-    return (wfi / m_local / Var)->location();
+    return ( m_local / Var)->location();
   }
 
   std::size_t Variable::id() const

@@ -168,6 +168,7 @@ namespace rego
     register_builtins(builtins::sets());
     register_builtins(builtins::semver());
     register_builtins(builtins::strings());
+    register_builtins(builtins::time());
     register_builtins(builtins::units());
 
     return *this;

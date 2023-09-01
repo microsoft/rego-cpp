@@ -171,7 +171,7 @@ namespace rego
       In(Group) * (T(Square) << (T(List)[List] * End)) >>
         [](Match& _) { return Array << *_[List]; },
 
-      (In(Group) / In(ImportRef) / In(WithRef)) *
+      (In(Group) / In(ImportRef)) *
           (T(Square) << T(Group)[Group]) >>
         [](Match& _) { return Array << _(Group); },
 
@@ -364,7 +364,7 @@ namespace rego
       In(Group) * T(Every)[Every] >>
         [](Match& _) { return err(_(Every), "Invalid every"); },
 
-      (In(ImportRef) / In(WithRef)) * T(Square)[Square] >>
+      In(ImportRef) * T(Square)[Square] >>
         [](Match& _) { return err(_(Square), "Invalid reference"); },
 
       In(UnifyBody) * T(List)[List] >>
@@ -384,9 +384,6 @@ namespace rego
 
       In(UnifyBody) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) { return err(_(ObjectItem), "Invalid key/value pair"); },
-
-      T(Group)[Group] << End >>
-        [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
     };
   }
 }

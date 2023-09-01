@@ -42,6 +42,7 @@ namespace rego
     static NodePrinter ref_str(const Node& ref);
     static NodePrinter body_str(const Node& rego);
     static NodePrinter not_str(const Node& rego);
+    static NodePrinter term_str(const Node& rego);
     static NodePrinter rego_str(const Node& rego);
     static Node negate(const Node& value);
     static Node unary(const Node& value);
@@ -90,6 +91,7 @@ namespace rego
     static void flatten_terms_into(const Node& termset, Node& terms);
     static void flatten_items_into(const Node& termset, Node& terms);
     static Node reduce_termset(const Node& termset);
+    static void insert_into_object(Node& object, const std::string& path, const Node& value);
   };
 
   std::ostream& operator<<(

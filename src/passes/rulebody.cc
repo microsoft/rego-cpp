@@ -100,17 +100,6 @@ namespace
       }
     }
   }
-
-  // clang-format off
-  inline const auto wfi =
-      (Expr <<= (Val >>= NumTerm | RefTerm | Term | UnaryExpr | ArithInfix | BoolInfix | AssignInfix))
-    | (AssignArg <<= (Val >>= RefTerm | NumTerm | UnaryExpr | ArithInfix | Term | BoolInfix))
-    | (ObjectItem <<= (Key >>= Expr) * (Val >>= Expr))
-    | (ObjectCompr <<= Var * NestedBody)
-    | (ArrayCompr <<= Var * NestedBody)
-    | (SetCompr <<= Var * NestedBody)
-    ;
-  // clang-format on
 }
 
 namespace rego
@@ -606,8 +595,8 @@ namespace rego
           [](Match& _) {
             LOG("<compr>");
             return UnifyExprCompr
-              << _(Var) << (_(Compr)->type() << (wfi / _(Compr) / Var))
-              << (wfi / _(Compr) / NestedBody);
+              << _(Var) << (_(Compr)->type() << ( _(Compr) / Var))
+              << ( _(Compr) / NestedBody);
           },
 
         // <compr>
@@ -619,8 +608,8 @@ namespace rego
           [](Match& _) {
             LOG("<compr>");
             return UnifyExprCompr
-              << _(Var) << (_(Compr)->type() << (wfi / _(Compr) / Var))
-              << (wfi / _(Compr) / NestedBody);
+              << _(Var) << (_(Compr)->type() << ( _(Compr) / Var))
+              << ( _(Compr) / NestedBody);
           },
 
         // <compr> (other)

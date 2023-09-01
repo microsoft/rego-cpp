@@ -4,19 +4,6 @@
 #include "resolver.h"
 #include "utils.h"
 
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-      (Top <<= Rego)
-    | (Rego <<= Query * Input * Data)
-    ;
-  // clang-format on
-}
-
 namespace rego
 {
   // Performs unification.
@@ -52,7 +39,7 @@ namespace rego
       LOG_HEADER(" Program ", "vvvvvvvvvvvvvvv");
       LOG(Resolver::rego_str(node));
       LOG_HEADER(" Program ", "^^^^^^^^^^^^^^^");
-      Node query = wfi / node / Query;
+      Node query = node / Query;
       try
       {
         Node result = Resolver::resolve_query(query, builtins);

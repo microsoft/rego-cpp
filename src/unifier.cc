@@ -3,6 +3,7 @@
 #include "CLI/TypeTools.hpp"
 #include "args.h"
 #include "errors.h"
+#include "lang.h"
 #include "log.h"
 #include "resolver.h"
 #include "utils.h"
@@ -11,30 +12,6 @@
 #include <iostream>
 #include <sstream>
 #include <type_traits>
-
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-      (Local <<= Var * (Val >>= Term | Undefined))
-    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
-    | (UnifyExprWith <<= UnifyBody * WithSeq)
-    | (RuleComp <<= Var * (Body >>= JSONTrue | JSONFalse | UnifyBody | Empty) * (Val >>= Term | UnifyBody) * (Idx >>= JSONInt))
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= Term | UnifyBody) * (Idx >>= JSONInt))
-    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))
-    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))
-    | (Function <<= JSONString * ArgSeq)
-    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
-    | (Term <<= Scalar | Array | Object | Set)
-    | (ArgVar <<= Var * Term)
-    | (Binding <<= Var * Term)
-    | (With <<= Ref * Var)
-    ;
-  // clang-format on
-}
 
 namespace rego
 {
@@ -160,7 +137,7 @@ namespace rego
         for (auto& with : *withseq)
         {
           std::vector<Location> deps;
-          scan_vars(wfi / with / Var, deps);
+          scan_vars(with / Var, deps);
           std::transform(
             deps.begin(),
             deps.end(),
@@ -190,7 +167,7 @@ namespace rego
 
   std::size_t UnifierDef::add_variable(const Node& local)
   {
-    auto name = (wfi / local / Var)->location();
+    auto name = (local / Var)->location();
     std::size_t id = m_dependency_graph.size();
     m_variables.insert({name, Variable(local, id)});
     m_dependency_graph.push_back({std::string(name.view()), {}, 0});
@@ -199,8 +176,8 @@ namespace rego
 
   std::size_t UnifierDef::add_unifyexpr(const Node& unifyexpr)
   {
-    Node lhs = wfi / unifyexpr / Var;
-    Node rhs = wfi / unifyexpr / Val;
+    Node lhs = unifyexpr / Var;
+    Node rhs = unifyexpr / Val;
     if (!is_local(lhs))
     {
       std::string name = std::string(lhs->location().view());
@@ -320,9 +297,9 @@ namespace rego
       if (stmt->type() == UnifyExpr)
       {
         LOG(Resolver::expr_str(stmt));
-        Node lhs = wfi / stmt / Var;
+        Node lhs = stmt / Var;
         Variable& var = get_variable(lhs->location());
-        Values values = evaluate(lhs->location(), wfi / stmt / Val);
+        Values values = evaluate(lhs->location(), stmt / Val);
         if (values.size() == 0)
         {
           if (m_negate && var.is_unify())
@@ -499,7 +476,8 @@ namespace rego
   {
     if (this->push_rule(this->m_rule))
     {
-      throw std::runtime_error("Recursion detected in rule body");
+      throw std::runtime_error(
+        "Recursion detected in rule body: " + std::string(m_rule.view()));
     }
 
     LOG_HEADER("Unification", "=====");
@@ -560,7 +538,7 @@ namespace rego
       {
         arg_values.push_back(ValueDef::create(Undefined));
       }
-      
+
       function_args.push_back(arg_values);
     }
 
@@ -621,12 +599,42 @@ namespace rego
     {
       Values funcs = args.source_at(0);
       Args func_args = args.subargs(1);
+      if (func_args.source_size() == 0)
+      {
+        Node peek = funcs.front()->node();
+        if (peek->type() != RuleFunc && peek->type() != BuiltInHook)
+        {
+          Node term = funcs.front()->to_term();
+          // likely the result of the function being replaced by with
+          values.push_back(funcs.front());
+        }
+        else
+        {
+          auto maybe_result = call_function(var, funcs);
+          if (maybe_result.has_value())
+          {
+            Value result = maybe_result.value();
+            LOG("> result: ", result);
+            values.push_back(result);
+          }
+        }
+      }
+
       for (std::size_t i = 0; i < func_args.size(); ++i)
       {
         Value result = nullptr;
         Values arglist = func_args.at(i);
         for (Value func : funcs)
         {
+          if (
+            func->node()->type() != RuleFunc &&
+            func->node()->type() != BuiltInHook)
+          {
+            // likely the result of the function being replaced by with
+            result = func;
+            break;
+          }
+
           Values call_args = {func};
           call_args.insert(call_args.end(), arglist.begin(), arglist.end());
           auto maybe_result = call_function(var, call_args);
@@ -667,7 +675,16 @@ namespace rego
               {
                 std::string old_str = to_json(result->to_term());
                 std::string new_str = to_json(maybe_result.value()->to_term());
-                if (old_str != new_str)
+                if (old_str == "undefined" && new_str != "undefined")
+                {
+                  result = maybe_result.value();
+                  LOG("> result: ", result, "#", result->rank());
+                }
+                else if (new_str == "undefined")
+                {
+                  continue;
+                }
+                else if (old_str != new_str)
                 {
                   result = ValueDef::create(
                     var,
@@ -755,8 +772,8 @@ namespace rego
     else if (value->type() == Function)
     {
       std::string func_name =
-        std::string((wfi / value / JSONString)->location().view());
-      Node args_node = wfi / value / ArgSeq;
+        std::string((value / JSONString)->location().view());
+      Node args_node = value / ArgSeq;
       if (func_name == "enumerate")
       {
         Values arg_values = enumerate(var, args_node->front());
@@ -821,12 +838,16 @@ namespace rego
     return values;
   }
 
-  Values UnifierDef::resolve_var(const Node& node)
+  Values UnifierDef::resolve_var(const Node& node, bool exclude_with)
   {
-    Values values = check_with(node);
-    if (!values.empty())
+    Values values;
+    if (!exclude_with)
     {
-      return values;
+      values = check_with(node);
+      if (!values.empty())
+      {
+        return values;
+      }
     }
 
     if (is_variable(node->location()))
@@ -846,7 +867,9 @@ namespace rego
     }
 
     Token peek_type = defs.front()->type();
-    if (peek_type == RuleSet || peek_type == RuleObj || peek_type == RuleComp || peek_type == Submodule)
+    if (
+      peek_type == RuleSet || peek_type == RuleObj || peek_type == RuleComp ||
+      peek_type == Submodule)
     {
       auto maybe_node = resolve_rule(defs);
       if (maybe_node)
@@ -862,11 +885,11 @@ namespace rego
         {
           // a resolved local from another problem in the same rule
           // i.e. referring to a body local from the value.
-          values.push_back(ValueDef::create(wfi / def / Val));
+          values.push_back(ValueDef::create(def / Val));
         }
         else if (def->type() == ArgVar)
         {
-          values.push_back(ValueDef::create(wfi / def / Term));
+          values.push_back(ValueDef::create(def / Val));
         }
         else if (def->type() == Skip)
         {
@@ -1084,7 +1107,7 @@ namespace rego
   }
 
   std::optional<Value> UnifierDef::call_function(
-    const Location& var, const Values& args)
+    const Location& var, const Values& args) const
   {
     Values sources;
     std::copy_if(
@@ -1152,7 +1175,7 @@ namespace rego
         for (const Node& object_item : *container)
         {
           Node tuple = Term
-            << (Array << wfi / object_item / Key << wfi / object_item / Val);
+            << (Array << object_item / Key << object_item / Val);
           items.push_back(ValueDef::create(var, tuple));
         }
       }
@@ -1227,28 +1250,16 @@ namespace rego
       {
         if (key == key_str)
         {
-          LOG("Found key: ", key_str, " in with stack");
-          result = val;
-          if (m_parent_type == RuleFunc && m_builtins.is_builtin(key_str))
+          if (result.size() == 0)
           {
-            if (
-              std::find_if(
-                result.begin(), result.end(), [&](const Value& value) {
-                  Node node = value->node();
-                  if (node->type() == RuleFunc)
-                  {
-                    return (node / Var)->location() == m_rule;
-                  }
-
-                  return false;
-                }) != result.end())
-            {
-              LOG("Recursion detected in rule-func: ", key_str);
-              return {};
-            }
+            LOG("Found key: ", key_str, " in with stack");
+            result = val;
+            break;
           }
-
-          break;
+          else
+          {
+            LOG("Already overridden with higher precedence.");
+          }
         }
         else if (key.starts_with(key_str) && !partials.contains(key))
         {
@@ -1263,15 +1274,30 @@ namespace rego
       return result;
     }
 
-    std::map<std::string, Node> object_map;
+    if (result.size() == 0)
+    {
+      result = resolve_var(var, true);
+    }
+
+    Node object;
     if (result.size() > 0)
     {
-      Node base = result.front()->node();
-      for (auto& item : *base)
+      object = result.front()->node()->clone();
+      LOG("Found base object for modification: ", Resolver::term_str(object));
+      if (object->type() == Term)
       {
-        std::string key = to_json(item / Key);
-        object_map[key] = item / Val;
+        object = object->front();
       }
+
+      if (object->type() != Object)
+      {
+        LOG("Replacing with object (cannot merge partials)");
+        object = NodeDef::create(Object);
+      }
+    }
+    else
+    {
+      object = NodeDef::create(Object);
     }
 
     for (auto& [key, val] : partials)
@@ -1281,14 +1307,9 @@ namespace rego
         continue;
       }
 
-      object_map[key] = val.front()->node();
-    }
-
-    Node object = NodeDef::create(Object);
-    for (auto& [loc, val] : object_map)
-    {
-      Node key = Term << (Scalar << (JSONString ^ loc));
-      object->push_back(ObjectItem << key << val);
+      LOG("Inserting ", key);
+      Resolver::insert_into_object(object, key, val.front()->node());
+      LOG("> result: ", Resolver::term_str(object));
     }
 
     return {ValueDef::create(object)};
@@ -1297,7 +1318,7 @@ namespace rego
   Values UnifierDef::resolve_skip(const Node& skip)
   {
     assert(skip->type() == Skip);
-    LOG("Resolving skip: ", to_json(skip->front()));
+    LOG("Resolving skip: ", Resolver::term_str(skip->front()));
     Values values = check_with(skip->front());
     if (!values.empty())
     {
@@ -1309,9 +1330,7 @@ namespace rego
 
     if (ref->type() == Undefined)
     {
-      // this is likely a skip to a with-only location
-      values.push_back(ValueDef::create(
-        err(skip, "Undefined reference (missing document or with?)")));
+      return values;
     }
     else if (ref->type() == BuiltInHook)
     {
@@ -1349,8 +1368,14 @@ namespace rego
     std::map<Location, Nodes> rule_nodes;
     for (auto& rule : *module)
     {
-      if(rule->type() == RuleFunc){
-        continue;
+      if (rule->type() == RuleFunc)
+      {
+        Node args = rule / RuleArgs;
+        if (args->size() > 0)
+        {
+          // no way to include this without arguments
+          continue;
+        }
       }
 
       Location name;
@@ -1397,16 +1422,30 @@ namespace rego
     for (auto& [name, rules] : rule_nodes)
     {
       Node key = Term << (Scalar << (JSONString ^ name));
-      auto maybe_val = resolve_rule(rules);
-      if (maybe_val.has_value())
+      std::optional<Node> maybe_node;
+      if (rules[0]->type() == RuleFunc)
       {
-        Node val = maybe_val.value();
+        // this is a zero-argument function
+        auto maybe_val = call_function(name, {ValueDef::create(rules[0])});
+        if (maybe_val.has_value())
+        {
+          maybe_node = maybe_val.value()->node();
+        }
+      }
+      else
+      {
+        maybe_node = resolve_rule(rules);
+      }
+      if (maybe_node.has_value())
+      {
+        Node val = maybe_node.value();
         if (val->type() == Error)
         {
           return val;
         }
-        
-        if(Resolver::is_undefined(val)){
+
+        if (Resolver::is_undefined(val))
+        {
           continue;
         }
 
@@ -1454,7 +1493,8 @@ namespace rego
       for (auto& submodule : rules_by_type[Submodule])
       {
         Node mod_object = resolve_module(submodule);
-        if(mod_object->type() == Error){
+        if (mod_object->type() == Error)
+        {
           return mod_object;
         }
 
@@ -1478,10 +1518,10 @@ namespace rego
         return std::nullopt;
       }
 
-      Location rulename = (wfi / rulecomp / Var)->location();
-      Node rulebody = wfi / rulecomp / Body;
-      Node value = wfi / rulecomp / Val;
-      rank_t index = ValueDef::get_rank(wfi / rulecomp / Idx);
+      Location rulename = (rulecomp / Var)->location();
+      Node rulebody = rulecomp / Body;
+      Node value = rulecomp / Val;
+      rank_t index = ValueDef::get_rank(rulecomp / Idx);
 
       Node body_result;
       if (rulebody->type() == Empty)
@@ -1500,7 +1540,7 @@ namespace rego
         }
       }
 
-      LOG("Rule comp body result: ", to_json(body_result));
+      LOG("Rule comp body result: ", Resolver::term_str(body_result));
 
       if (body_result->type() == Error)
       {
@@ -1536,7 +1576,7 @@ namespace rego
         }
       }
 
-      LOG("Rule comp value result: ", to_json(value));
+      LOG("Rule comp value result: ", Resolver::term_str(value));
 
       if (value->type() == Undefined)
       {
@@ -1587,7 +1627,7 @@ namespace rego
       return std::nullopt;
     }
 
-    rank_t index = ValueDef::get_rank(wfi / rulefunc / Idx);
+    rank_t index = ValueDef::get_rank(rulefunc / Idx);
     Node rule = Resolver::inject_args(rulefunc, args);
     if (rule->type() == Error)
     {
@@ -1600,8 +1640,8 @@ namespace rego
       return std::nullopt;
     }
 
-    Location rulename = (wfi / rule / Var)->location();
-    Node rulebody = wfi / rule / Body;
+    Location rulename = (rule / Var)->location();
+    Node rulebody = rule / Body;
     Node body_result;
 
     if (rulebody->type() == Empty)
@@ -1620,7 +1660,7 @@ namespace rego
       }
     }
 
-    LOG("Rule func body result: ", to_json(body_result));
+    LOG("Rule func body result: ", Resolver::term_str(body_result));
 
     if (body_result->type() == Error)
     {
@@ -1633,7 +1673,7 @@ namespace rego
       return std::nullopt;
     }
 
-    Node value = wfi / rule / Val;
+    Node value = rule / Val;
 
     if (value->type() == UnifyBody)
     {
@@ -1674,9 +1714,9 @@ namespace rego
         return std::nullopt;
       }
 
-      Location rulename = (wfi / rule / Var)->location();
-      Node rulebody = wfi / rule / Body;
-      Node value = wfi / rule / Val;
+      Location rulename = (rule / Var)->location();
+      Node rulebody = rule / Body;
+      Node value = rule / Val;
 
       // rulebody has not yet been unified
       Node body_result;
@@ -1696,7 +1736,7 @@ namespace rego
         }
       }
 
-      LOG("Rule set body result: ", to_json(body_result));
+      LOG("Rule set body result: ", Resolver::term_str(body_result));
 
       if (body_result->type() == Error)
       {
@@ -1769,9 +1809,9 @@ namespace rego
         return std::nullopt;
       }
 
-      Location rulename = (wfi / rule / Var)->location();
-      Node rulebody = wfi / rule / Body;
-      Node value = wfi / rule / Val;
+      Location rulename = (rule / Var)->location();
+      Node rulebody = rule / Body;
+      Node value = rule / Val;
 
       // rulebody has not yet been unified
       Node body_result;
@@ -1791,7 +1831,7 @@ namespace rego
         }
       }
 
-      LOG("Rule obj body result: ", to_json(body_result));
+      LOG("Rule obj body result: ", Resolver::term_str(body_result));
 
       if (body_result->type() == Error)
       {
@@ -1884,8 +1924,8 @@ namespace rego
     ValuesLookup lookup;
     for (auto& with : *withseq)
     {
-      Node ref = wfi / with / Ref;
-      Node var = wfi / with / Var;
+      Node ref = with / RuleRef;
+      Node var = with / Var;
       std::ostringstream os;
       os << Resolver::ref_str(ref);
       std::string key = os.str();

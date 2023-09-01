@@ -1,6 +1,7 @@
 #include "resolver.h"
 
 #include "errors.h"
+#include "log.h"
 #include "unifier.h"
 #include "utils.h"
 
@@ -8,29 +9,6 @@ namespace
 {
   using namespace rego;
   using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-    (DataItemSeq <<= DataItem++)
-    | (DataItem <<= Var * (Val >>= DataModule | Term))
-    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
-    | (UnifyExprWith <<= UnifyBody * WithSeq)
-    | (UnifyExprCompr <<= Var * (Val >>= ArrayCompr | SetCompr | ObjectCompr) * UnifyBody)
-    | (UnifyExprEnum <<= (Unify >>= Var) * (Item >>= Var) * (ItemSeq >>= Var) * NestedBody)
-    | (NestedBody <<= Key * UnifyBody)
-    | (Local <<= Var * Term)
-    | (Term <<= Scalar | Array | Object | Set)
-    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
-    | (ArgVal <<= Scalar | Array | Object | Set)
-    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
-    | (ArgVar <<= Var * (Val >>= Term | Undefined))
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
-    | (Function <<= JSONString * ArgSeq)
-    | (Submodule <<= Key * DataModule)
-    | (With <<= Ref * Var)
-    | (Ref <<= RefHead * RefArgSeq)
-    ;
-  // clang-format on
 
   bool contains_multiple_outputs(Node term)
   {
@@ -665,7 +643,8 @@ namespace rego
     if (container->type() == Object)
     {
       Node query = arg;
-      if(query->type() == Term){
+      if (query->type() == Term)
+      {
         query = arg->front();
       }
       return object_lookdown(container, query);
@@ -691,15 +670,15 @@ namespace rego
       {
         if (def->type() == DataItem)
         {
-          nodes.push_back(wfi / def / Val);
+          nodes.push_back(def / Val);
         }
         else if (def->type() == ObjectItem)
         {
-          nodes.push_back(wfi / def / Val);
+          nodes.push_back(def / Val);
         }
         else if (def->type() == Submodule)
         {
-          nodes.push_back(wfi / def / DataModule);
+          nodes.push_back(def / DataModule);
         }
         else
         {
@@ -974,12 +953,20 @@ namespace rego
   {
     return {
       unifyexpr, [](std::ostream& os, const Node& unifyexpr) -> std::ostream& {
-        Node lhs = wfi / unifyexpr / Var;
-        Node rhs = wfi / unifyexpr / Val;
+        Node lhs = unifyexpr / Var;
+        Node rhs = unifyexpr / Val;
         os << lhs->location().view() << " = "
            << (rhs->type() == Function ? func_str(rhs) : arg_str(rhs));
         return os;
       }};
+  }
+
+  Resolver::NodePrinter Resolver::term_str(const Node& term)
+  {
+    return {term, [](std::ostream& os, const Node& term) -> std::ostream& {
+              os << term->type().str() << "(" << to_json(term) << ")";
+              return os;
+            }};
   }
 
   Resolver::NodePrinter Resolver::with_str(const Node& unifyexprwith)
@@ -987,7 +974,7 @@ namespace rego
     return {
       unifyexprwith,
       [](std::ostream& os, const Node& unifyexprwith) -> std::ostream& {
-        Node unifybody = wfi / unifyexprwith / UnifyBody;
+        Node unifybody = unifyexprwith / UnifyBody;
         os << "{";
         std::string sep = "";
         for (Node expr : *unifybody)
@@ -997,14 +984,19 @@ namespace rego
             os << sep << expr_str(expr);
             sep = "; ";
           }
+          else if (expr->type() == UnifyExprNot)
+          {
+            os << sep << not_str(expr);
+            sep = "; ";
+          }
         }
         os << "} ";
         sep = "";
-        Node withseq = wfi / unifyexprwith / WithSeq;
+        Node withseq = unifyexprwith / WithSeq;
         for (Node with : *withseq)
         {
-          Node ref = wfi / with / Ref;
-          Node var = wfi / with / Var;
+          Node ref = with / RuleRef;
+          Node var = with / Var;
           os << sep << "with " << ref_str(ref) << " as " << arg_str(var);
           sep = "; ";
         }
@@ -1017,9 +1009,9 @@ namespace rego
     return {
       unifyexprcompr,
       [](std::ostream& os, const Node& unifyexprcompr) -> std::ostream& {
-        Node lhs = wfi / unifyexprcompr / Var;
-        Node rhs = wfi / unifyexprcompr / Val;
-        Node unifybody = wfi / unifyexprcompr / UnifyBody;
+        Node lhs = unifyexprcompr / Var;
+        Node rhs = unifyexprcompr / Val;
+        Node unifybody = unifyexprcompr / UnifyBody;
         os << lhs->location().view() << " = " << rhs->type().str() << "{";
         std::string sep = "";
         for (Node expr : *unifybody)
@@ -1040,9 +1032,9 @@ namespace rego
     return {
       unifyexprenum,
       [](std::ostream& os, const Node& unifyexprenum) -> std::ostream& {
-        Node item = wfi / unifyexprenum / Item;
-        Node itemseq = wfi / unifyexprenum / ItemSeq;
-        Node unifybody = wfi / unifyexprenum / NestedBody / UnifyBody;
+        Node item = unifyexprenum / Item;
+        Node itemseq = unifyexprenum / ItemSeq;
+        Node unifybody = unifyexprenum / NestedBody / UnifyBody;
         os << "foreach " << item->location().view() << " in "
            << itemseq->location().view() << " unify {";
         std::string sep = "";
@@ -1084,8 +1076,8 @@ namespace rego
   {
     return {
       function, [](std::ostream& os, const Node& function) -> std::ostream& {
-        Node name = wfi / function / JSONString;
-        Node args = wfi / function / ArgSeq;
+        Node name = function / JSONString;
+        Node args = function / ArgSeq;
         os << name->location().view() << "(";
         std::string sep = "";
         for (const auto& child : *args)
@@ -1141,20 +1133,20 @@ namespace rego
 
   Resolver::NodePrinter Resolver::ref_str(const Node& ref)
   {
-    return {ref, [](std::ostream& os, const Node& ref) -> std::ostream& {
-              if (ref->type() == VarSeq)
+    return {ref, [](std::ostream& os, const Node& node) -> std::ostream& {
+              Node ref = node;
+              if (node->type() == RuleRef || node->type() == RefTerm)
               {
-                std::string sep = "";
-                for (auto var : *ref)
+                ref = node->front();
+                if (ref->type() == Var)
                 {
-                  os << sep << var->location().view();
-                  sep = ".";
+                  os << ref->location().view();
+                  return os;
                 }
-                return os;
               }
 
-              Node refhead = wfi / ref / RefHead;
-              Node refargseq = wfi / ref / RefArgSeq;
+              Node refhead = ref / RefHead;
+              Node refargseq = ref / RefArgSeq;
               os << refhead->front()->location().view();
               for (Node refarg : *refargseq)
               {
@@ -1183,7 +1175,7 @@ namespace rego
 
   Node Resolver::inject_args(const Node& rulefunc, const Nodes& args)
   {
-    Node ruleargs = wfi / rulefunc / RuleArgs;
+    Node ruleargs = rulefunc / RuleArgs;
     std::size_t num_args = ruleargs->size();
     if (num_args != args.size())
     {
@@ -1208,7 +1200,7 @@ namespace rego
       }
       else if (rulearg->type() == ArgVar)
       {
-        rulearg->at(wfi.index(ArgVar, Val)) = arg;
+        rulearg->at(1) = arg;
       }
     }
 
@@ -1294,7 +1286,7 @@ namespace rego
     std::string query_str = to_json(query);
     for (auto& object_item : *object)
     {
-      Node key = wfi / object_item / Key;
+      Node key = object_item / Key;
       if (key->type() == Ref)
       {
         throw std::runtime_error("Not implemented.");
@@ -1303,7 +1295,7 @@ namespace rego
       std::string key_str = to_json(key);
       if (key_str == query_str)
       {
-        terms.push_back((wfi / object_item / Val)->clone());
+        terms.push_back((object_item / Val)->clone());
       }
     }
 
@@ -1403,8 +1395,8 @@ namespace rego
         continue;
       }
 
-      Node var = (wfi / child / Var)->clone();
-      Node term = (wfi / child / Term)->clone();
+      Node var = (child / Var)->clone();
+      Node term = (child / Val)->clone();
 
       if (term->type() == TermSet)
       {
@@ -1711,7 +1703,7 @@ namespace rego
             os << (current / Var)->location().view();
             if (current->type() == RuleFunc || current->type() == RuleComp)
             {
-              os << "#" << (current / JSONInt)->location().view();
+              os << "#" << (current / Idx)->location().view();
             }
             if (current->type() == RuleFunc)
             {
@@ -1827,6 +1819,82 @@ namespace rego
       {
         items->push_back(err(term, "Not a term"));
       }
+    }
+  }
+
+  void Resolver::insert_into_object(
+    Node& object, const std::string& path, const Node& value)
+  {
+    Node current = object;
+    auto start = 0;
+    auto pos = path.find('.');
+    while (pos != path.npos)
+    {
+      std::string prefix = path.substr(start, pos - start);
+      Node query = JSONString ^ prefix;
+
+      bool found = false;
+      std::string query_str = to_json(query);
+      for (auto& object_item : *current)
+      {
+        Node key = object_item / Key;
+        std::string key_str = to_json(key);
+        if (key_str == query_str)
+        {
+          current = object_item / Val;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found)
+      {
+        current = NodeDef::create(Object);
+        object->push_back(
+          ObjectItem << (Term << (Scalar << query)) << (Term << current));
+      }
+      else
+      {
+        if(current->type() == Term){
+          current = current->front();
+        }
+      }
+
+      start = pos + 1;
+      pos = path.find('.', start);
+    }
+
+    if (current->type() != Object)
+    {
+      LOG(
+        "Conflict: cannot merge partials into non-object: ", term_str(current));
+      Node replacement = NodeDef::create(Object);
+      current->parent()->replace(current, replacement);
+      current = replacement;
+    }
+
+    Node key = (Scalar << (JSONString ^ path.substr(start)));
+    std::string key_str = to_json(key);
+    Node existing = nullptr;
+    for (auto& object_item : *current)
+    {
+      Node item_key = object_item / Key;
+      std::string item_key_str = to_json(item_key);
+      if (key_str == item_key_str)
+      {
+        existing = object_item;
+        break;
+      }
+    }
+
+    if (existing == nullptr)
+    {
+      current->push_back(ObjectItem << (Term << key) << (Term << value));
+    }
+    else
+    {
+      current->replace(
+        existing, ObjectItem << (Term << key) << (Term << value));
     }
   }
 }

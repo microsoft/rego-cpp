@@ -3,23 +3,6 @@
 #include "resolver.h"
 #include "utils.h"
 
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  const inline auto RefHeadToken = T(Var) / T(ExprCall);
-
-  // clang-format off
-  inline const auto wfi =
-      (Top <<= Rego)
-    | (RefArgDot <<= Var)
-    | (Else <<= (Val >>= Undefined | Group) * UnifyBody)
-    | (Ref <<= RefHead * RefArgSeq)
-    ;
-  // clang-format on
-}
-
 namespace rego
 {
   // Modify the AST to resemble the target Rego syntax as much as possible.
@@ -102,50 +85,12 @@ namespace rego
       In(Package) * (T(Group) << (T(Ref)[Ref] * End)) >>
         [](Match& _) { return _(Ref); },
 
-      In(With) * (T(WithRef) << (T(Group) << (T(Ref)[Ref] * End))) >>
-        [](Match& _) {
-          Node var = (_(Ref) / RefHead)->front();
-          if (var->type() != Var)
-          {
-            return err(var, "Non-var refhead in with");
-          }
-
-          Node varseq = VarSeq << var;
-          Node refargseq = _(Ref) / RefArgSeq;
-          for (Node refarg : *refargseq)
-          {
-            if (refarg->type() == RefArgDot)
-            {
-              varseq << refarg->front();
-            }
-            else if (refarg->type() == RefArgBrack)
-            {
-              Node index = refarg->front();
-              if (index->type() == Var)
-              {
-                return err(index, "Non-constant index in with");
-              }
-              std::string index_str = strip_quotes(to_json(index));
-              varseq << (Var ^ index_str);
-            }
-            else
-            {
-              return err(refarg, "Invalid refarg in with");
-            }
-          }
-
-          return varseq;
-        },
-
-      In(With) * (T(WithRef) << (T(Group) << (T(Var)[Var] * End))) >>
-        [](Match& _) { return VarSeq << _(Var); },
-
       In(Import) *
           ((T(ImportRef) << (T(Group) << (T(Ref)[Ref] * End))) * T(As) *
            T(Undefined)) >>
         [](Match& _) {
-          Node refhead = wfi / _(Ref) / RefHead;
-          Node refargseq = wfi / _(Ref) / RefArgSeq;
+          Node refhead = _(Ref) / RefHead;
+          Node refargseq = _(Ref) / RefArgSeq;
           Node var;
           if (refargseq->size() == 0)
           {
@@ -214,7 +159,7 @@ namespace rego
 
       In(RefArgBrack) * (T(Group) << (T(UnifyBody)[UnifyBody] * End)) >>
         [](Match& _) { return Set << *_[UnifyBody]; },
-      
+
       In(RefArgBrack) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
@@ -225,40 +170,75 @@ namespace rego
           (T(Group)
            << (T(SomeDecl) << (T(VarSeq)[VarSeq] * T(Group)[Group]))) >>
         [](Match& _) {
+          Node withseq = NodeDef::create(WithSeq);
           Node maybe_with = _(Group)->back();
-          if (maybe_with->type() == With)
+          while (maybe_with->type() == With)
           {
             _(Group)->pop_back();
+            withseq->push_front(maybe_with);
+            maybe_with = _(Group)->back();
+          }
+
+          if (withseq->size() > 0)
+          {
             return LiteralWith
               << (UnifyBody << (Literal << (SomeDecl << _(VarSeq) << _(Group))))
-              << (WithSeq << maybe_with);
+              << withseq;
           }
+
           return Literal << (SomeDecl << _(VarSeq) << _(Group));
         },
 
       In(UnifyBody) * T(Group)[Group] >>
         [](Match& _) {
+          Node withseq = NodeDef::create(WithSeq);
           Node maybe_with = _(Group)->back();
-          if (maybe_with->type() == With)
+          while (maybe_with->type() == With)
           {
-            if (_(Group)->size() == 1)
+            _(Group)->pop_back();
+            withseq->push_front(maybe_with);
+            if (_(Group)->size() == 0)
             {
-              return maybe_with;
+              break;
             }
 
-            Node expr = NodeDef::create(Expr);
-            expr->insert(expr->begin(), _(Group)->begin(), _(Group)->end() - 1);
-            return LiteralWith << (UnifyBody << (Literal << expr))
-                               << (WithSeq << maybe_with);
+            maybe_with = _(Group)->back();
           }
-          return Literal << (Expr << *_[Group]);
+
+          if (_(Group)->size() == 0)
+          {
+            return withseq;
+          }
+
+          Node expr = NodeDef::create(Expr);
+          expr->insert(expr->end(), _(Group)->begin(), _(Group)->end());
+
+          if (withseq->size() > 0)
+          {
+            return LiteralWith << (UnifyBody << (Literal << expr)) << withseq;
+          }
+
+          return Literal << expr;
+        },
+
+      In(UnifyBody) * (T(Literal)[Literal] * T(WithSeq)[WithSeq]) >>
+        [](Match& _) {
+          return LiteralWith << (UnifyBody << _(Literal)) << _(WithSeq);
         },
 
       In(UnifyBody) *
-          ((T(LiteralWith) << (T(Literal)[Literal] * T(WithSeq)[WithSeq])) *
+          ((T(LiteralWith) << (T(UnifyBody)[UnifyBody] * T(WithSeq)[Head])) *
+           T(WithSeq)[Tail]) >>
+        [](Match& _) {
+          return LiteralWith << _(UnifyBody)
+                             << (WithSeq << *_[Head] << *_[Tail]);
+        },
+
+      In(UnifyBody) *
+          ((T(LiteralWith) << (T(UnifyBody)[UnifyBody] * T(WithSeq)[WithSeq])) *
            T(With)[With]) >>
         [](Match& _) {
-          return LiteralWith << (UnifyBody << _(Literal))
+          return LiteralWith << _(UnifyBody)
                              << (WithSeq << *_[WithSeq] << _(With));
         },
 
@@ -326,9 +306,6 @@ namespace rego
 
       In(Import) * T(ImportRef)[ImportRef] >>
         [](Match& _) { return err(_(ImportRef), "Invalid import reference"); },
-
-      In(With) * T(WithRef)[WithRef] >>
-        [](Match& _) { return err(_(WithRef), "Invalid with reference"); },
 
       In(Package) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid package name"); },

@@ -85,7 +85,8 @@ namespace rego
         items.push_back(to_json(child, sort, rego_set));
       }
 
-      if(sort){
+      if (sort)
+      {
         std::sort(items.begin(), items.end());
       }
 
@@ -167,6 +168,11 @@ namespace rego
     else if (node->type() == Error)
     {
       buf << node;
+    }
+    else if (RuleTypes.contains(node->type()))
+    {
+      buf << node->type().str() << "(" << (node / Var)->location().view() << ":"
+          << static_cast<void*>(node.get()) << ")";
     }
     else
     {

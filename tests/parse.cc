@@ -29,9 +29,19 @@ namespace rego_test
   class Indent
   {
   public:
-    Indent() : m_current(0), m_string_start(0)
+    Indent() : m_enabled(true), m_current(0), m_string_start(0)
     {
       m_indents.push_back(0);
+    }
+
+    void enable()
+    {
+      m_enabled = true;
+    }
+
+    void disable()
+    {
+      m_enabled = false;
     }
 
     void newline()
@@ -56,6 +66,11 @@ namespace rego_test
 
     bool push()
     {
+      if (!m_enabled)
+      {
+        return false;
+      }
+
       if (m_current > m_indents.back())
       {
         m_indents.push_back(m_current);
@@ -68,6 +83,11 @@ namespace rego_test
     template <typename M>
     void pop_blocks(M& m)
     {
+      if (!m_enabled)
+      {
+        return;
+      }
+
       while (m_current < m_indents.back())
       {
         m.term({Block});
@@ -88,6 +108,12 @@ namespace rego_test
     template <typename M>
     bool complete(M& m, std::string mode)
     {
+      if (!m_enabled)
+      {
+        m.mode(mode);
+        return true;
+      }
+
       if (m.in(LiteralString) || m.in(FoldedString))
       {
         if (m_string_start == 0)
@@ -131,21 +157,12 @@ namespace rego_test
         return false;
       }
 
-      if (push())
-      {
-        m.push(Block);
-      }
-      else
-      {
-        pop_blocks(m);
-      }
-
-      m.term();
       m.mode(mode);
       return true;
     }
 
   private:
+    bool m_enabled;
     std::size_t m_current;
     std::size_t m_string_start;
     std::vector<std::size_t> m_indents;
@@ -194,7 +211,8 @@ namespace rego_test
 
         // Brace.
         R"(\{)" >>
-          [stack, in_value](auto& m) {
+          [stack, in_value, indent](auto& m) {
+            indent->disable();
             *in_value = false;
             m.term();
             m.push(Brace);
@@ -202,12 +220,16 @@ namespace rego_test
           },
 
         R"(\})" >>
-          [stack](auto& m) {
+          [stack, indent](auto& m) {
             if (stack->back() == Collection::Brace)
             {
               m.term();
               m.pop(Brace);
               stack->pop_back();
+              if (stack->back() == Collection::None)
+              {
+                indent->enable();
+              }
             }
             else
             {
@@ -217,19 +239,24 @@ namespace rego_test
 
         // Square.
         R"(\[)" >>
-          [stack](auto& m) {
+          [stack, indent](auto& m) {
+            indent->disable();
             m.term();
             m.push(Square);
             stack->push_back(Collection::Square);
           },
 
         R"(\])" >>
-          [stack](auto& m) {
+          [stack, indent](auto& m) {
             if (stack->back() == Collection::Square)
             {
               m.term();
               m.pop(Square);
               stack->pop_back();
+              if (stack->back() == Collection::None)
+              {
+                indent->enable();
+              }
             }
             else
             {
@@ -429,6 +456,7 @@ namespace rego_test
          [indent, stack, in_value](auto& m) {
            if (indent->complete(m, "start"))
            {
+             indent->disable();
              *in_value = false;
              stack->push_back(Collection::Brace);
              m.term();
@@ -443,10 +471,23 @@ namespace rego_test
              m.term();
              m.pop(Brace);
              stack->pop_back();
+             if (stack->back() == Collection::None)
+             {
+               indent->enable();
+             }
              m.mode("start");
            }
            else if (indent->complete(m, "string"))
            {
+             if (indent->push())
+             {
+               m.push(Block);
+             }
+             else
+             {
+               indent->pop_blocks(m);
+             }
+             m.term();
              m.add(String);
            }
          },
@@ -455,6 +496,7 @@ namespace rego_test
          [indent, stack](auto& m) {
            if (indent->complete(m, "start"))
            {
+             indent->disable();
              stack->push_back(Collection::Square);
              m.term();
              m.push(Square);
@@ -468,10 +510,23 @@ namespace rego_test
              m.term();
              m.pop(Square);
              stack->pop_back();
+             if (stack->back() == Collection::None)
+             {
+               indent->enable();
+             }
              m.mode("start");
            }
            else if (indent->complete(m, "string"))
            {
+             if (indent->push())
+             {
+               m.push(Block);
+             }
+             else
+             {
+               indent->pop_blocks(m);
+             }
+             m.term();
              m.add(String);
            }
          },
@@ -481,6 +536,15 @@ namespace rego_test
          [indent](auto& m) {
            if (indent->complete(m, "string"))
            {
+             if (indent->push())
+             {
+               m.push(Block);
+             }
+             else
+             {
+               indent->pop_blocks(m);
+             }
+             m.term();
              m.add(String);
            }
          }});
@@ -496,12 +560,16 @@ namespace rego_test
           },
 
         R"(\})" >>
-          [stack, quote](auto& m) {
+          [stack, quote, indent](auto& m) {
             if (*quote == Quote::None && stack->back() == Collection::Brace)
             {
               m.term();
               m.pop(Brace);
               stack->pop_back();
+              if (stack->back() == Collection::None)
+              {
+                indent->enable();
+              }
               m.mode("start");
             }
             else
@@ -511,12 +579,16 @@ namespace rego_test
           },
 
         R"(\])" >>
-          [stack, quote](auto& m) {
+          [stack, quote, indent](auto& m) {
             if (*quote == Quote::None && stack->back() == Collection::Square)
             {
               m.term();
               m.pop(Square);
               stack->pop_back();
+              if (stack->back() == Collection::None)
+              {
+                indent->enable();
+              }
               m.mode("start");
             }
             else

@@ -53,12 +53,14 @@ namespace rego
 
       In(Policy) *
           (T(Group)
-           << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) *
-               T(If) * T(UnifyBody)[UnifyBody])) >>
+           << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) * T(If) *
+               T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
           return Rule << JSONFalse
                       << (RuleHead << (RuleRef << _(Id))
-                                   << (RuleHeadObj << _(Item) << (AssignOperator << Assign) << (Group << (JSONTrue ^ "true"))))
+                                   << (RuleHeadObj
+                                       << _(Item) << (AssignOperator << Assign)
+                                       << (Group << (JSONTrue ^ "true"))))
                       << _(UnifyBody) << ElseSeq;
         },
 
@@ -101,8 +103,8 @@ namespace rego
 
       In(Policy) *
           (T(Group)
-           << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] *
-               ~T(If) * T(UnifyBody)[UnifyBody] * (T(Else) / T(UnifyBody))++[Else])) >>
+           << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] * ~T(If) *
+               T(UnifyBody)[UnifyBody] * (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
           Node value = Group << JSONTrue;
           return Rule << JSONFalse
@@ -116,7 +118,8 @@ namespace rego
           (T(Group)
            << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] *
                (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail] *
-               ~T(If) * T(UnifyBody)[UnifyBody] * (T(Else) / T(UnifyBody))++[Else])) >>
+               ~T(If) * T(UnifyBody)[UnifyBody] *
+               (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
           Node value = (Group << _(Head) << _[Tail]);
           return Rule << JSONFalse
@@ -129,8 +132,8 @@ namespace rego
       In(Policy) *
           (T(Group)
            << (~T(Default)[Default] * RuleRefToken[RefHead] *
-               RuleRefToken++[RefArgSeq] * (T(Assign) / T(Unify)) *
-               ~T(If) * ExprToken[Head] * ExprToken++[Tail])) >>
+               RuleRefToken++[RefArgSeq] * (T(Assign) / T(Unify)) * ~T(If) *
+               ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
           Node is_default = _(Default) != nullptr ? JSONTrue : JSONFalse;
           return Rule << is_default
@@ -174,7 +177,11 @@ namespace rego
           }
           else
           {
-            args->push_back(paren->front());
+            Node arg = paren->front();
+            if (arg->size() > 0)
+            {
+              args->push_back(arg);
+            }
           }
 
           Node value = Group << JSONTrue;
@@ -190,7 +197,7 @@ namespace rego
           (T(Group)
            << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] *
                T(Paren)[Paren] * (T(Assign) / T(Unify)) * ExprToken[Head] *
-               ExprToken++[Tail] * ~T(If) *  T(UnifyBody)[UnifyBody] *
+               ExprToken++[Tail] * ~T(If) * T(UnifyBody)[UnifyBody] *
                (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
           Node args = NodeDef::create(RuleArgs);
@@ -204,7 +211,11 @@ namespace rego
           }
           else
           {
-            args->push_back(paren->front());
+            Node arg = paren->front();
+            if (arg->size() > 0)
+            {
+              args->push_back(arg);
+            }
           }
 
           Node value = Group << _(Head) << _[Tail];
@@ -234,7 +245,11 @@ namespace rego
           }
           else
           {
-            args->push_back(paren->front());
+            Node arg = paren->front();
+            if (arg->size() > 0)
+            {
+              args->push_back(arg);
+            }
           }
 
           Node is_default = _(Default) != nullptr ? JSONTrue : JSONFalse;
@@ -250,8 +265,8 @@ namespace rego
       In(Policy) *
           (T(Group)
            << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] * T(Contains) *
-               ExprToken[Head] * ExprToken++[Tail] *
-               ~T(If) * T(UnifyBody)[UnifyBody])) >>
+               ExprToken[Head] * ExprToken++[Tail] * ~T(If) *
+               T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
           return Rule << JSONFalse
                       << (RuleHead
@@ -271,6 +286,9 @@ namespace rego
                           << (RuleHeadSet << (Group << _(Head) << _[Tail])))
                       << Empty << ElseSeq;
         },
+
+      In(RuleRef) * (T(Group) << (RuleRefToken++[RuleRef] * End)) >>
+        [](Match& _) { return Seq << _[RuleRef]; },
 
       // errors
 

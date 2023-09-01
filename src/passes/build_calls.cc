@@ -48,7 +48,10 @@ namespace rego
             }
             else
             {
-              argseq << group;
+              if (group->size() > 0)
+              {
+                argseq << group;
+              }
             }
           }
 
@@ -56,9 +59,6 @@ namespace rego
         },
 
       // errors
-
-      In(ExprCall) * (T(ArgSeq)[ArgSeq] << End) >>
-        [](Match& _) { return err(_(ArgSeq), "Missing arguments"); },
 
       T(Group)[Group] << End >>
         [](Match& _) { return err(_(Group), "Syntax error: empty group"); },

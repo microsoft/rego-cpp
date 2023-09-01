@@ -22,9 +22,9 @@ namespace rego
   {
     return {
       In(With) *
-          (T(Group)[WithRef] * (T(Group) << (T(As) * Any++[WithExpr]))) >>
+          (T(Group)[RuleRef] * (T(Group) << (T(As) * Any++[WithExpr]))) >>
         [](Match& _) {
-          return Seq << (WithRef << _(WithRef))
+          return Seq << (RuleRef << _(RuleRef))
                      << (WithExpr << (Group << _[WithExpr]));
         },
 

@@ -49,6 +49,12 @@ namespace rego
       In(Policy) * ((T(Group)[Lhs] << T(Var)) * (T(Group)[Rhs] << T(Else))) >>
         [](Match& _) { return Group << *_[Lhs] << *_[Rhs]; },
 
+      In(Group) * (T(Else) * (T(Assign) / T(Unify)) * ExprToken[Head] *
+           ExprTailToken++[Tail]) >>
+        [](Match& _){
+          return Else << (Group << _(Head) << _[Tail]) << Empty;
+        },
+
       // errors
       In(Group) * (T(Else)[Else] << End) >>
         [](Match& _) { return err(_(Else), "Invalid else statement"); },

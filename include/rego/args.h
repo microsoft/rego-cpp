@@ -17,6 +17,7 @@ namespace rego
     Values at(std::size_t index) const;
     std::size_t size() const;
     std::string str() const;
+    std::size_t source_size() const;
     const Values& source_at(std::size_t index) const;
     Args subargs(std::size_t start) const;
     friend std::ostream& operator<<(std::ostream& os, const Args& args);

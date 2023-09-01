@@ -192,7 +192,6 @@ namespace rego
   inline const auto Compr = TokenDef("compr");
   inline const auto Merge = TokenDef("merge");
   inline const auto ImportRef = TokenDef("import-ref");
-  inline const auto WithRef = TokenDef("with-ref");
   inline const auto WithExpr = TokenDef("with-expr");
   inline const auto EverySeq = TokenDef("every-seq");
   inline const auto ErrorCode = TokenDef("error-code", flag::print);

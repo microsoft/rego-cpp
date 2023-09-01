@@ -12,14 +12,23 @@ namespace
   {
     if (node->type() == With)
     {
-      Node varseq = node / VarSeq;
+      Node ref = (node / RuleRef)->front();
       std::ostringstream buf;
-      std::string sep = "";
-      for (auto& var : *varseq)
-      {
-        buf << sep << var->location().view();
-        sep = ".";
+      if(ref->type() == Var){
+        buf << ref->location().view();
+      }else{
+        buf << (ref / RefHead)->front()->location().view();
+        Node refargseq = ref / RefArgSeq;
+        for (auto& arg : *refargseq)
+        {
+          if(arg->type() == RefArgDot){
+            buf << "." << (arg->front())->location().view();
+          }else{
+            buf << "[" << (arg->front())->location().view() << "]";
+          }
+        }
       }
+      
       std::string path = buf.str();
 
       if (!skips->contains(path) && path != "data" && path != "input")
