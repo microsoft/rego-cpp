@@ -140,9 +140,26 @@ namespace rego
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
-          if (idx->type() != RefTerm)
+          if (idx->type() == Expr)
+          {
+            idx = idx->front();
+          }
+
+          if (idx->type() == NumTerm)
+          {
+            idx = Term << (Scalar << idx->front());
+          }
+
+          std::set<Token> term_types = {
+            Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
+          if (term_types.contains(idx->type()))
           {
             idx = Term << idx;
+          }
+
+          if (idx->type() != RefTerm && idx->type() != Term)
+          {
+            return err(idx, "Invalid index for enumeration");
           }
 
           auto temp = _.fresh({"enum"});

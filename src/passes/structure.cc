@@ -359,6 +359,15 @@ namespace rego
 
       In(RuleRef) * (T(Dot) / T(Array))[Val] >>
         [](Match& _) { return err(_(Val), "Invalid rule reference"); },
+
+      In(UnifyBody) * T(WithSeq)[WithSeq] >>
+        [](Match& _) { return err(_(WithSeq), "Invalid with statement"); },
+
+      In(UnifyBody) * T(SomeDecl)[SomeDecl] >>
+        [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
+
+      In(Set) * T(SomeDecl)[SomeDecl] >>
+        [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
     };
   }
 }

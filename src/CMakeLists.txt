@@ -80,7 +80,6 @@ target_link_libraries(rego
 target_precompile_headers(rego
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/rego.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/wf.h
 )
 
 

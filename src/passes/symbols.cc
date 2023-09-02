@@ -489,6 +489,9 @@ namespace rego
 
       In(Expr) * T(Dot)[Dot] >>
         [](Match& _) { return err(_(Dot), "Invalid dot expression"); },
+
+      In(Expr) * T(ExprEvery)[ExprEvery] >>
+        [](Match& _) { return err(_(ExprEvery), "Invalid every expression"); },
     };
   }
 

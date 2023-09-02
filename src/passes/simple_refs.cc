@@ -168,6 +168,9 @@ namespace rego
       In(RefTerm) *
           T(Ref)[Ref]([](auto& n) { return !is_in(*n.first, {UnifyBody}); }) >>
         [](Match& _) { return err(_(Ref), "Unable to simplify reference"); },
+
+      In(RuleRef) * T(Ref)[Ref] >>
+        [](Match& _) { return err(_(Ref), "Invalid rule reference call"); },
     };
   }
 }

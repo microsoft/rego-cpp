@@ -300,6 +300,15 @@ namespace rego
 
       In(Group) * T(Default)[Default] >>
         [](Match& _) { return err(_(Default), "Invalid default rule"); },
+
+      In(Group) * T(If)[If] >>
+        [](Match& _) { return err(_(If), "Invalid if"); },
+
+      In(RuleRef) * T(Group)[Group] >>
+        [](Match& _) { return err(_(Group), "Invalid rule reference"); },
+
+      In(With) * (T(RuleRef)[RuleRef] << (T(Group) << End)) >>
+        [](Match& _) { return err(_(RuleRef), "Empty rule ref"); },
     };
   }
 }

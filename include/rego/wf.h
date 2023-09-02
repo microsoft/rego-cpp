@@ -54,7 +54,7 @@ namespace rego
   // clang-format on
 
   inline const auto wf_modules_tokens =
-    wf_parse_tokens - (Package | Colon | Import);
+    wf_parse_tokens - (Package | Colon | Import | Placeholder);
 
   // clang-format off
   inline const auto wf_pass_modules =
@@ -99,7 +99,8 @@ namespace rego
     ;
   // clang-format on
 
-  inline const auto wf_lists_tokens = (wf_keywords_tokens - (Some | Every)) |
+  inline const auto wf_lists_tokens =
+    (wf_keywords_tokens - (Some | Every | EmptySet | Brace | Square)) |
     UnifyBody | ObjectItemSeq | Array | Object | Set | ExprEvery | SomeDecl |
     ObjectCompr | ArrayCompr | SetCompr | Comma | Undefined;
 
@@ -137,7 +138,7 @@ namespace rego
     ;
   // clang-format on
 
-  inline const auto wf_rules_tokens = wf_lists_tokens - If;
+  inline const auto wf_rules_tokens = wf_lists_tokens - (If | Else | Default);
 
   // clang-format off
   inline const auto wf_pass_rules =

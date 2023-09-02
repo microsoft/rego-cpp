@@ -641,6 +641,9 @@ namespace rego
                        << (RefTerm << (Var ^ set));
           },
 
+        In(RefArgBrack) * T(NumTerm)[NumTerm] >>
+          [](Match& _) { return Scalar << _(NumTerm)->front(); },
+
         // errors
 
         In(BoolArg) * T(BoolInfix)[BoolInfix] >>
@@ -672,8 +675,11 @@ namespace rego
         In(Expr) * T(AssignInfix)[AssignInfix] >>
           [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
 
-        In(BoolArg) * T(Membership)[Membership] >>
-          [](Match& _) { return err(_(Membership), "Invalid membership"); },
+        In(BoolArg) * (T(Membership) / T(AssignInfix))[Arg] >>
+          [](Match& _) { return err(_(Arg), "Invalid boolean argument"); },
+
+        In(RefArgBrack) * (T(Membership) / T(AssignInfix))[Arg] >>
+          [](Match& _) { return err(_(Arg), "Invalid index"); },
       };
 
     rulebody.post(UnifyBody, [](Node n) {
