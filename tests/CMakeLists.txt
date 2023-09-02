@@ -93,6 +93,7 @@ if(REGOCPP_OPA_TESTS)
   units
   varreferences
   virtualdocs
+  withkeyword
   )
 
   set( OPA_TEST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/../opa/test/cases/testdata )

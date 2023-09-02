@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lang.h"
+#include "tokens.h"
 #include "trieste/token.h"
 
 namespace rego
@@ -169,7 +169,8 @@ namespace rego
     ;
   // clang-format on
 
-  inline const auto wf_membership_tokens = (wf_call_tokens - Comma) | Membership;
+  inline const auto wf_membership_tokens =
+    (wf_call_tokens - Comma) | Membership;
 
   // clang-format off
   inline const auto wf_pass_membership =
@@ -469,6 +470,7 @@ namespace rego
     | (Expr <<= wf_assign_exprs)
     | (ExprCall <<= Var * ArgSeq)
     | (RefHead <<= Var)
+    | (RuleRef <<= Var)
     ;
   // clang-format on
 

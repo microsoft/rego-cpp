@@ -26,8 +26,15 @@ namespace rego
     static Node scalar(BigInt value);
     static Node scalar(double value);
     static Node scalar(bool value);
+    static Node scalar(const char* value);
     static Node scalar(const std::string& value);
     static Node scalar();
+    static Node term(BigInt value);
+    static Node term(double value);
+    static Node term(bool value);
+    static Node term(const char* value);
+    static Node term(const std::string& value);
+    static Node term();
     static double get_double(const Node& node);
     static std::string get_string(const Node& node);
     static bool get_bool(const Node& node);
@@ -91,7 +98,8 @@ namespace rego
     static void flatten_terms_into(const Node& termset, Node& terms);
     static void flatten_items_into(const Node& termset, Node& terms);
     static Node reduce_termset(const Node& termset);
-    static void insert_into_object(Node& object, const std::string& path, const Node& value);
+    static void insert_into_object(
+      Node& object, const std::string& path, const Node& value);
   };
 
   std::ostream& operator<<(

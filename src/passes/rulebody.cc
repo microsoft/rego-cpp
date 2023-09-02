@@ -1,8 +1,8 @@
 #include "errors.h"
+#include "helpers.h"
 #include "log.h"
 #include "passes.h"
 #include "resolver.h"
-#include "utils.h"
 
 namespace
 {
@@ -594,9 +594,9 @@ namespace rego
                           T(ObjectCompr))[Compr])))) >>
           [](Match& _) {
             LOG("<compr>");
-            return UnifyExprCompr
-              << _(Var) << (_(Compr)->type() << ( _(Compr) / Var))
-              << ( _(Compr) / NestedBody);
+            return UnifyExprCompr << _(Var)
+                                  << (_(Compr)->type() << (_(Compr) / Var))
+                                  << (_(Compr) / NestedBody);
           },
 
         // <compr>
@@ -607,9 +607,9 @@ namespace rego
                   << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr]))) >>
           [](Match& _) {
             LOG("<compr>");
-            return UnifyExprCompr
-              << _(Var) << (_(Compr)->type() << ( _(Compr) / Var))
-              << ( _(Compr) / NestedBody);
+            return UnifyExprCompr << _(Var)
+                                  << (_(Compr)->type() << (_(Compr) / Var))
+                                  << (_(Compr) / NestedBody);
           },
 
         // <compr> (other)

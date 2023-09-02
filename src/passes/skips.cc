@@ -1,6 +1,6 @@
 #include "errors.h"
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
 
 namespace
 {
@@ -14,21 +14,27 @@ namespace
     {
       Node ref = (node / RuleRef)->front();
       std::ostringstream buf;
-      if(ref->type() == Var){
+      if (ref->type() == Var)
+      {
         buf << ref->location().view();
-      }else{
+      }
+      else
+      {
         buf << (ref / RefHead)->front()->location().view();
         Node refargseq = ref / RefArgSeq;
         for (auto& arg : *refargseq)
         {
-          if(arg->type() == RefArgDot){
+          if (arg->type() == RefArgDot)
+          {
             buf << "." << (arg->front())->location().view();
-          }else{
+          }
+          else
+          {
             buf << "[" << (arg->front())->location().view() << "]";
           }
         }
       }
-      
+
       std::string path = buf.str();
 
       if (!skips->contains(path) && path != "data" && path != "input")

@@ -1,6 +1,7 @@
-#include "utils.h"
-
 #include "errors.h"
+#include "helpers.h"
+#include "resolver.h"
+#include "version.h"
 
 namespace rego
 {
@@ -457,5 +458,34 @@ namespace rego
       }
     }
     return buf.str();
+  }
+
+  Node version()
+  {
+    Node object = NodeDef::create(Object);
+    object->push_back(
+      ObjectItem << Resolver::term("commit")
+                 << Resolver::term(REGOCPP_GIT_HASH));
+    object->push_back(
+      ObjectItem << Resolver::term("regocpp_version")
+                 << Resolver::term(REGOCPP_VERSION));
+    object->push_back(
+      ObjectItem << Resolver::term("version")
+                 << Resolver::term(REGOCPP_OPA_VERSION));
+    Node env = NodeDef::create(Object);
+    for (size_t i = 0; environ[i] != NULL; i++)
+    {
+      std::string env_str = environ[i];
+      size_t pos = env_str.find('=');
+      if (pos != std::string::npos)
+      {
+        std::string key = env_str.substr(0, pos);
+        std::string value = env_str.substr(pos + 1);
+        env->push_back(
+          ObjectItem << Resolver::term(key) << Resolver::term(value));
+      }
+    }
+    object->push_back(ObjectItem << Resolver::term("env") << env);
+    return object;
   }
 }

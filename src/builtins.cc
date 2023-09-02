@@ -2,34 +2,46 @@
 
 #include "builtins/register.h"
 #include "errors.h"
+#include "helpers.h"
 #include "resolver.h"
-#include "utils.h"
+#include "version.h"
+
+extern char** environ;
 
 namespace
 {
   using namespace rego;
 
+  Node opa_runtime(const Nodes&)
+  {
+    return version();
+  }
+
   Node cast_array(const Nodes& args)
   {
     auto maybe_items = Resolver::maybe_unwrap(args[0], {Array, Set});
-    if(!maybe_items.has_value()){
-      return err(args[0], "operand 1 must be one of {array, set}", EvalTypeError);
+    if (!maybe_items.has_value())
+    {
+      return err(
+        args[0], "operand 1 must be one of {array, set}", EvalTypeError);
     }
 
     Node items = maybe_items.value();
     return Resolver::array(items);
-  } 
+  }
 
   Node cast_set(const Nodes& args)
   {
     auto maybe_items = Resolver::maybe_unwrap(args[0], {Array, Set});
-    if(!maybe_items.has_value()){
-      return err(args[0], "operand 1 must be one of {array, set}", EvalTypeError);
+    if (!maybe_items.has_value())
+    {
+      return err(
+        args[0], "operand 1 must be one of {array, set}", EvalTypeError);
     }
 
     Node items = maybe_items.value();
     return Resolver::set(items);
-  } 
+  }
 
   Node json_marshal(const Nodes& args)
   {
@@ -153,12 +165,14 @@ namespace rego
 
   BuiltIns& BuiltIns::register_standard_builtins()
   {
-    register_builtin(BuiltInDef::create(Location("to_number"), 1, ::to_number));
-    register_builtin(BuiltInDef::create(Location("print"), AnyArity, ::print));
-    register_builtin(
-      BuiltInDef::create(Location("json.marshal"), 1, ::json_marshal));
-    register_builtin(BuiltInDef::create(Location("cast_array"), 1, ::cast_array));
-    register_builtin(BuiltInDef::create(Location("cast_set"), 1, ::cast_set));
+    register_builtins<std::initializer_list<BuiltIn>>({
+      BuiltInDef::create(Location("to_number"), 1, ::to_number),
+      BuiltInDef::create(Location("print"), AnyArity, ::print),
+      BuiltInDef::create(Location("json.marshal"), 1, ::json_marshal),
+      BuiltInDef::create(Location("cast_array"), 1, ::cast_array),
+      BuiltInDef::create(Location("cast_set"), 1, ::cast_set),
+      BuiltInDef::create(Location("opa.runtime"), 0, ::opa_runtime),
+    });
 
     register_builtins(builtins::aggregates());
     register_builtins(builtins::arrays());

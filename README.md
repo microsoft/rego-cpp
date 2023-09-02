@@ -71,7 +71,7 @@ some example commands using the provided example files and run from the suggeste
 
 ## Language Support
 
-At present we support v0.55.0 of the Rego grammar as defined by OPA:
+At present we support v0.55.0 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
 module          = package { import } policy

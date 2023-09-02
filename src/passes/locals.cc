@@ -1,7 +1,7 @@
 #include "builtins.h"
 #include "errors.h"
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
 
 #include <map>
 
@@ -17,7 +17,7 @@ namespace
     const Node& node, std::vector<Scope>& scopes, const BuiltIns& builtins)
   {
     std::set<Token> exclude_parents = {
-      RefArgDot, RuleRef, VarSeq, ArrayCompr, SetCompr, ObjectCompr};
+      RefArgDot, RuleRef, VarSeq, ArrayCompr, SetCompr, ObjectCompr, WithSeq};
     if (exclude_parents.contains(node->type()))
     {
       return;

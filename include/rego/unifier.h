@@ -81,12 +81,13 @@ namespace rego
     Values evaluate(const Location& var, const Node& value);
     Values evaluate_function(
       const Location& var, const std::string& func_name, const Args& args);
-    Values resolve_var(const Node& var, bool exclude_with=false);
+    Values resolve_var(const Node& var, bool exclude_with = false);
     Values enumerate(const Location& var, const Node& container);
     Values resolve_skip(const Node& skip);
-    Values check_with(const Node& var);
+    Values check_with(const Node& var, bool bypass_recurse_check = false);
     Values apply_access(const Location& var, const Values& args);
-    std::optional<Value> call_function(const Location& var, const Values& args) const;
+    std::optional<Value> call_function(
+      const Location& var, const Values& args) const;
     std::optional<Value> call_named_function(
       const Location& var, const std::string& name, const Values& args);
     bool is_local(const Node& var);
@@ -99,7 +100,7 @@ namespace rego
     bool is_variable(const Location& name) const;
     Node bind_variables();
     Args create_args(const Node& args);
-    bool would_recurse(const Node& node) const;
+    bool would_recurse(const Node& node);
 
     bool push_rule(const Location& rule);
     void pop_rule(const Location& rule);

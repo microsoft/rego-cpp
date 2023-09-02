@@ -1,5 +1,6 @@
 #include "test_case.h"
 
+#include <CLI/CLI.hpp>
 #include <type_traits>
 
 const std::string Green = "\x1b[32m";

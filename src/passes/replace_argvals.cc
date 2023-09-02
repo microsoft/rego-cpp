@@ -1,7 +1,7 @@
 #include "errors.h"
-#include "lang.h"
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
+#include "tokens.h"
 
 namespace
 {
@@ -57,7 +57,8 @@ namespace
         Node itemref = argref->clone();
         Node item = unwrap_term(argval->at(i));
         (itemref / RefArgSeq)
-          << (RefArgBrack << (Expr << (Term << (Scalar << (JSONInt ^ std::to_string(i))))));
+          << (RefArgBrack
+              << (Expr << (Term << (Scalar << (JSONInt ^ std::to_string(i))))));
         add_constraints(itemref, item, stmts);
       }
     }

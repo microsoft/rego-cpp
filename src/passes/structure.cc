@@ -1,7 +1,7 @@
 #include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 #include "resolver.h"
-#include "utils.h"
 
 namespace rego
 {
@@ -167,26 +167,15 @@ namespace rego
         [](Match& _) { return Expr << *_[Group]; },
 
       In(UnifyBody) *
-          (T(Group)
-           << (T(SomeDecl) << (T(VarSeq)[VarSeq] * T(Group)[Group]))) >>
+          (T(Group) << (T(SomeDecl)[SomeDecl] * T(With)++[WithSeq])) >>
         [](Match& _) {
-          Node withseq = NodeDef::create(WithSeq);
-          Node maybe_with = _(Group)->back();
-          while (maybe_with->type() == With)
+          if (_[WithSeq].first == _[WithSeq].second)
           {
-            _(Group)->pop_back();
-            withseq->push_front(maybe_with);
-            maybe_with = _(Group)->back();
+            return Literal << _(SomeDecl);
           }
 
-          if (withseq->size() > 0)
-          {
-            return LiteralWith
-              << (UnifyBody << (Literal << (SomeDecl << _(VarSeq) << _(Group))))
-              << withseq;
-          }
-
-          return Literal << (SomeDecl << _(VarSeq) << _(Group));
+          return LiteralWith << (UnifyBody << (Literal << _(SomeDecl)))
+                             << (WithSeq << _[WithSeq]);
         },
 
       In(UnifyBody) * T(Group)[Group] >>

@@ -1,6 +1,6 @@
 #include "errors.h"
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
 
 namespace
 {
@@ -49,11 +49,10 @@ namespace rego
       In(Policy) * ((T(Group)[Lhs] << T(Var)) * (T(Group)[Rhs] << T(Else))) >>
         [](Match& _) { return Group << *_[Lhs] << *_[Rhs]; },
 
-      In(Group) * (T(Else) * (T(Assign) / T(Unify)) * ExprToken[Head] *
+      In(Group) *
+          (T(Else) * (T(Assign) / T(Unify)) * ExprToken[Head] *
            ExprTailToken++[Tail]) >>
-        [](Match& _){
-          return Else << (Group << _(Head) << _[Tail]) << Empty;
-        },
+        [](Match& _) { return Else << (Group << _(Head) << _[Tail]) << Empty; },
 
       // errors
       In(Group) * (T(Else)[Else] << End) >>

@@ -3,10 +3,10 @@
 #include "CLI/TypeTools.hpp"
 #include "args.h"
 #include "errors.h"
-#include "lang.h"
+#include "helpers.h"
 #include "log.h"
 #include "resolver.h"
-#include "utils.h"
+#include "tokens.h"
 
 #include <algorithm>
 #include <iostream>
@@ -631,7 +631,25 @@ namespace rego
             func->node()->type() != BuiltInHook)
           {
             // likely the result of the function being replaced by with
-            result = func;
+            // even though we won't call the function, we still have to check
+            // that the arguments were valid, i.e. not undefined.
+            LOG("func value ", func, " is not a function.");
+            LOG("checking that args are valid");
+            bool all_valid = true;
+            for (auto& arg : arglist)
+            {
+              if (Resolver::is_undefined(arg->node()))
+              {
+                LOG("Undefined arg -> invalid");
+                all_valid = false;
+                break;
+              }
+            }
+            if (all_valid)
+            {
+              LOG("all args valid");
+              result = func;
+            }
             break;
           }
 
@@ -1238,11 +1256,58 @@ namespace rego
     m_call_stack->pop_back();
   }
 
-  Values UnifierDef::check_with(const Node& var)
+  bool UnifierDef::would_recurse(const Node& node)
+  {
+    if (node->type() == Function)
+    {
+      std::string func_name =
+        strip_quotes(Resolver::get_string(node / JSONString));
+      if (func_name != "call")
+      {
+        return false;
+      }
+
+      Node func = (node / ArgSeq)->front();
+      Values values = check_with(func, true);
+      for (auto value : values)
+      {
+        Node maybe_func = value->node();
+        if (maybe_func->type() == RuleFunc)
+        {
+          Location name = (maybe_func / Var)->location();
+          if (
+            std::find(m_call_stack->begin(), m_call_stack->end(), name) !=
+            m_call_stack->end())
+          {
+            LOG(
+              func->location().view(),
+              " is replaced by ",
+              name.view(),
+              " which would recurse");
+            return true;
+          }
+        }
+      }
+    }
+    else
+    {
+      for (auto& child : *node)
+      {
+        if (would_recurse(child))
+        {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  Values UnifierDef::check_with(const Node& var, bool bypass_recurse_check)
   {
     std::string key_str = std::string(var->location().view());
 
-    Values result;
+    Values results;
     std::map<std::string, Values> partials;
     for (auto it = m_with_stack->rbegin(); it != m_with_stack->rend(); ++it)
     {
@@ -1250,10 +1315,10 @@ namespace rego
       {
         if (key == key_str)
         {
-          if (result.size() == 0)
+          if (results.size() == 0)
           {
             LOG("Found key: ", key_str, " in with stack");
-            result = val;
+            results = val;
             break;
           }
           else
@@ -1269,20 +1334,39 @@ namespace rego
       }
     }
 
-    if (partials.size() == 0)
+    if (!results.empty())
     {
-      return result;
+      for (auto& result : results)
+      {
+        Node node = result->node();
+        if (node->type() == RuleFunc && !bypass_recurse_check)
+        {
+          // check whether anything in the result would cause recursion
+          if (would_recurse(node / Body) || would_recurse(node / Val))
+          {
+            LOG("Recursion detected in with result");
+            return {};
+          }
+        }
+      }
     }
 
-    if (result.size() == 0)
+    if (partials.empty())
     {
-      result = resolve_var(var, true);
+      return results;
+    }
+
+    if (results.empty())
+    {
+      // as there is no base object from the with stack
+      // we need to procure the original.
+      results = resolve_var(var, true);
     }
 
     Node object;
-    if (result.size() > 0)
+    if (results.size() > 0)
     {
-      object = result.front()->node()->clone();
+      object = results.front()->node()->clone();
       LOG("Found base object for modification: ", Resolver::term_str(object));
       if (object->type() == Term)
       {

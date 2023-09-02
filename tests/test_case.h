@@ -2,6 +2,7 @@
 
 #include "rego.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 

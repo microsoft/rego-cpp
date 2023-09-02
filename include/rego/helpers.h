@@ -1,6 +1,7 @@
 #pragma once
 
-#include "lang.h"
+#include "rego.h"
+#include "tokens.h"
 
 namespace rego
 {
@@ -41,6 +42,4 @@ namespace rego
   bool in_query(const Node& node);
   bool is_constant(const Node& node);
   std::string strip_quotes(const std::string_view& str);
-  std::string to_json(
-    const Node& node, bool sort = false, bool rego_set = true);
 }

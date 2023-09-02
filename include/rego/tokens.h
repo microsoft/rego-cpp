@@ -1,8 +1,8 @@
 #pragma once
 
 #include "builtins.h"
-#include "trieste/driver.h"
-#include "trieste/token.h"
+
+#include <trieste/token.h>
 
 namespace rego
 {
@@ -209,9 +209,4 @@ namespace rego
   inline const auto Not = TokenDef("not");
   inline const auto Comma = TokenDef("comma");
   inline const auto Placeholder = TokenDef("_");
-
-  Parse parser();
-  Driver& driver(const BuiltIns& builtins);
-  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
-  std::vector<PassCheck> passes(const BuiltIns& builtins);
 }

@@ -1,5 +1,5 @@
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
 
 #include <set>
 
@@ -177,16 +177,18 @@ namespace rego
       std::set<std::string> used_builtins;
       find_used_builtins(node, builtins, used_builtins);
       Node skipseq = node / SkipSeq;
+      int changes = 0;
       for (auto& builtin : used_builtins)
       {
         if (!added_builtins->contains(builtin))
         {
           skipseq << (Skip << (Key ^ builtin) << (BuiltInHook ^ builtin));
           added_builtins->insert(builtin);
+          changes++;
         }
       }
 
-      return 0;
+      return changes;
     });
 
     return skip_refs;

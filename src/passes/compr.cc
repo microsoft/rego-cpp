@@ -1,6 +1,6 @@
 #include "errors.h"
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
 
 // TODO
 // Given the current design, there is no reason why the comprehension call
@@ -123,7 +123,8 @@ namespace rego
           [](Match& _) {
             Location out = _.fresh({"out"});
             Node tail = _(NestedBody) / Val;
-            while (tail->back()->type() == LiteralEnum || tail->back()->type() == LiteralWith)
+            while (tail->back()->type() == LiteralEnum ||
+                   tail->back()->type() == LiteralWith)
             {
               tail = tail->back() / UnifyBody;
             }
@@ -140,7 +141,8 @@ namespace rego
           [](Match& _) {
             Location out = _.fresh({"out"});
             Node tail = _(NestedBody) / Val;
-            while (tail->back()->type() == LiteralEnum || tail->back()->type() == LiteralWith)
+            while (tail->back()->type() == LiteralEnum ||
+                   tail->back()->type() == LiteralWith)
             {
               tail = tail->back() / UnifyBody;
             }

@@ -1,6 +1,6 @@
 #include "errors.h"
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
 
 namespace
 {
@@ -171,8 +171,7 @@ namespace rego
       In(Group) * (T(Square) << (T(List)[List] * End)) >>
         [](Match& _) { return Array << *_[List]; },
 
-      (In(Group) / In(ImportRef)) *
-          (T(Square) << T(Group)[Group]) >>
+      (In(Group) / In(ImportRef)) * (T(Square) << T(Group)[Group]) >>
         [](Match& _) { return Array << _(Group); },
 
       T(List)
@@ -258,9 +257,18 @@ namespace rego
             return err(list, "some must contain at least one variable");
           }
 
-          Node back = list->back();
-          auto in_pos = back->begin();
-          for (; in_pos != back->end(); ++in_pos)
+          Node maybe_contains_in;
+          if (list->size() == 1)
+          {
+            maybe_contains_in = list->front();
+          }
+          else
+          {
+            maybe_contains_in = list->at(1);
+          }
+
+          auto in_pos = maybe_contains_in->begin();
+          for (; in_pos != maybe_contains_in->end(); ++in_pos)
           {
             Node n = *in_pos;
             if (n->type() == IsIn)
@@ -269,13 +277,25 @@ namespace rego
             }
           }
 
-          if (in_pos != back->end())
+          if (in_pos != maybe_contains_in->end())
           {
             Node item = NodeDef::create(Group);
-            item->insert(item->end(), back->begin(), in_pos);
+            item->insert(item->end(), maybe_contains_in->begin(), in_pos);
             Node itemseq = NodeDef::create(Group);
-            itemseq->insert(itemseq->end(), in_pos, back->end());
-            if (list->size() == 2)
+            itemseq->insert(itemseq->end(), in_pos, maybe_contains_in->end());
+            if (list->size() > 2)
+            {
+              // some i, x in c with ...
+              Node seq = Seq
+                << (SomeDecl << (VarSeq << list->front() << item) << itemseq);
+              for (auto it = list->begin() + 2; it != list->end(); ++it)
+              {
+                Node group = *it;
+                seq->insert(seq->end(), group->begin(), group->end());
+              }
+              return seq;
+            }
+            else if (list->size() == 2)
             {
               // some i, x in c
               return SomeDecl << (VarSeq << list->front() << item) << itemseq;

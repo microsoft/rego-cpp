@@ -1,15 +1,15 @@
 #include "variable.h"
 
+#include "helpers.h"
 #include "log.h"
 #include "resolver.h"
-#include "utils.h"
 
 namespace rego
 {
   Variable::Variable(const Node& local, std::size_t id) :
     m_local(local), m_initialized(false), m_id(id)
   {
-    Location name = ( local / Var)->location();
+    Location name = (local / Var)->location();
     m_unify = is_unify(name.view());
     m_user_var = is_user_var(name.view());
   }
@@ -86,7 +86,7 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
-    return os << ( variable.m_local / Var)->location().view() << " = "
+    return os << (variable.m_local / Var)->location().view() << " = "
               << variable.m_values;
   }
 
@@ -205,7 +205,7 @@ namespace rego
 
   Location Variable::name() const
   {
-    return ( m_local / Var)->location();
+    return (m_local / Var)->location();
   }
 
   std::size_t Variable::id() const

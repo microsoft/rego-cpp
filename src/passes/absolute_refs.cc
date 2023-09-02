@@ -1,6 +1,6 @@
 #include "errors.h"
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
 
 #include <set>
 
@@ -118,7 +118,8 @@ namespace rego
           Nodes defs = _(Var)->lookup();
           Node rule = defs[0];
           Node ref = build_ref(rule);
-          (ref / RefArgSeq) << *_[RefArgSeq];
+          Node refargseq = (ref / RefArgSeq);
+          refargseq << *_[RefArgSeq];
           return ref;
         },
 

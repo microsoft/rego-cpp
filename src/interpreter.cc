@@ -1,8 +1,8 @@
 #include "interpreter.h"
 
 #include "errors.h"
+#include "helpers.h"
 #include "trieste/ast.h"
-#include "utils.h"
 #include "wf.h"
 
 #include <iostream>
@@ -223,12 +223,13 @@ namespace rego
 
       for (auto& error : *ast)
       {
+        Node error_ast = error / ErrorAst;
         result_buf << "---" << std::endl;
         result_buf << "error: " << (error / ErrorMsg)->location().view()
                    << std::endl;
         result_buf << "code: " << (error / ErrorCode)->location().view()
                    << std::endl;
-        result_buf << error / ErrorAst;
+        result_buf << error_ast;
       }
     }
     else

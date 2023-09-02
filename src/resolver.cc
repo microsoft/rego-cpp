@@ -1,9 +1,9 @@
 #include "resolver.h"
 
 #include "errors.h"
+#include "helpers.h"
 #include "log.h"
 #include "unifier.h"
-#include "utils.h"
 
 namespace
 {
@@ -276,6 +276,41 @@ namespace rego
     return JSONFloat ^ oss.str();
   }
 
+  Node Resolver::scalar()
+  {
+    return JSONNull ^ "null";
+  }
+
+  Node Resolver::term(BigInt value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term(double value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term(bool value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term(const char* value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term(const std::string& value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term()
+  {
+    return Term << (Scalar << scalar());
+  }
+
   std::string Resolver::get_string(const Node& node)
   {
     Node value = node;
@@ -295,6 +330,11 @@ namespace rego
     }
 
     return std::string(value->location().view());
+  }
+
+  Node Resolver::scalar(const char* value)
+  {
+    return scalar(std::string(value));
   }
 
   Node Resolver::scalar(const std::string& value)
@@ -1855,7 +1895,8 @@ namespace rego
       }
       else
       {
-        if(current->type() == Term){
+        if (current->type() == Term)
+        {
           current = current->front();
         }
       }

@@ -1,7 +1,7 @@
 #include "errors.h"
-#include "lang.h"
+#include "helpers.h"
 #include "passes.h"
-#include "utils.h"
+#include "tokens.h"
 
 namespace rego
 {
@@ -59,7 +59,7 @@ namespace rego
 
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return DataTerm << _(Term)->front(); },
-      
+
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(Set)[Set]) >>
         [](Match& _) { return DataTerm << _(Set); },
 
@@ -76,7 +76,8 @@ namespace rego
           {
             key = Scalar << key->front();
           }
-          else if(key->type() == Set){
+          else if (key->type() == Set)
+          {
             key = DataTerm << key;
           }
           else
@@ -89,7 +90,8 @@ namespace rego
           {
             val = Scalar << val->front();
           }
-          else if(val->type() == Set){
+          else if (val->type() == Set)
+          {
             val = DataTerm << val;
           }
           else

@@ -1,7 +1,7 @@
 #include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 #include "resolver.h"
-#include "utils.h"
 
 #include <sstream>
 
@@ -87,8 +87,8 @@ namespace rego
                          << (JSONInt ^ "0"));
           for (std::size_t i = 0; i < elseseq->size(); ++i)
           {
-            Node expr =  elseseq->at(i) / Val;
-            Node body =  elseseq->at(i) / Body;
+            Node expr = elseseq->at(i) / Val;
+            Node body = elseseq->at(i) / Body;
             seq
               << (RuleComp << (Var ^ subrule) << body << expr
                            << (JSONInt ^ std::to_string(i + 1)));
@@ -143,8 +143,8 @@ namespace rego
                          << (JSONInt ^ "0"));
           for (std::size_t i = 0; i < elseseq->size(); ++i)
           {
-            Node expr =  elseseq->at(i) / Val;
-            Node body =  elseseq->at(i) / Body;
+            Node expr = elseseq->at(i) / Val;
+            Node body = elseseq->at(i) / Body;
             seq
               << (RuleFunc << (Var ^ subrule) << _(RuleArgs)->clone() << body
                            << expr << (JSONInt ^ std::to_string(i + 1)));

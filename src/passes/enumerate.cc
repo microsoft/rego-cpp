@@ -1,7 +1,7 @@
 #include "errors.h"
+#include "helpers.h"
 #include "log.h"
 #include "passes.h"
-#include "utils.h"
 
 namespace
 {
@@ -231,7 +231,8 @@ namespace rego
 
       In(UnifyBody) * T(Local)[Local]([](auto& n) {
         Node local = *n.first;
-        if(in_query(local)){
+        if (in_query(local))
+        {
           return false;
         }
         if ((local / Var)->location().view().starts_with("out$"))

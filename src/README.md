@@ -32,3 +32,4 @@ output {
 9. expressions in refargbrack
 10. a[x] if x is an ruleobj but seems as though it should be a ruleset?
 11. Base/Virtual conflicts being resolved by silently deleting the virtual rule seems bad
+12. The test case `withkeyword/builtin-builtin: arity 0` will never pass as written. What is going on there?
