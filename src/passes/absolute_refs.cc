@@ -1,4 +1,5 @@
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 
 #include <set>
@@ -11,7 +12,7 @@ namespace
   bool is_ref_to_type(const Node& var, const std::set<Token>& types)
   {
     Nodes defs = var->lookup();
-    if (defs.size() == 1)
+    if (defs.size() > 0)
     {
       return types.contains(defs[0]->type());
     }
@@ -19,6 +20,45 @@ namespace
     {
       return false;
     }
+  }
+
+  Node build_ref(Node leaf)
+  {
+    if (leaf->type() == Data)
+    {
+      return Ref << (RefHead << (Var ^ "data")) << RefArgSeq;
+    }
+
+    if (leaf->type() == Module)
+    {
+      Node ref = (leaf / Package)->front()->clone();
+      Node refhead = (ref / RefHead)->front()->clone();
+      Node refargseq = ref / RefArgSeq;
+      refargseq->push_front(RefArgDot << refhead);
+      return Ref << (RefHead << (Var ^ "data")) << refargseq;
+    }
+
+    Node ref = build_ref(leaf->parent()->shared_from_this());
+
+    if (leaf->type() == Policy || leaf->type() == DataModule)
+    {
+      return ref;
+    }
+
+    if (leaf->type() == Submodule)
+    {
+      (ref / RefArgSeq) << (RefArgDot << (Var ^ (leaf / Key)));
+    }
+    else if (RuleTypes.contains(leaf->type()))
+    {
+      (ref / RefArgSeq) << (RefArgDot << (leaf / Var)->clone());
+    }
+    else
+    {
+      return err(leaf, "Unable to build ref");
+    }
+
+    return ref;
   }
 }
 
@@ -29,7 +69,7 @@ namespace rego
   PassDef absolute_refs()
   {
     return {
-      In(RefTerm) * T(Var)[Var]([](auto& n) {
+      (In(RefTerm) / In(RuleRef)) * T(Var)[Var]([](auto& n) {
         return is_ref_to_type(*n.first, {Import});
       }) >>
         [](Match& _) {
@@ -40,11 +80,11 @@ namespace rego
           return ref->clone();
         },
 
-      In(RefTerm) *
+      (In(RefTerm) / In(RuleRef)) *
           (T(Ref)
            << ((T(RefHead) << T(Var)[Var](
                   [](auto& n) { return is_ref_to_type(*n.first, {Import}); })) *
-               (T(RefArgSeq)[RefArgSeq]))) >>
+               T(RefArgSeq)[RefArgSeq])) >>
         [](Match& _) {
           // <import>.dot <import>[brack]
           Nodes defs = _(Var)->lookup();
@@ -57,41 +97,33 @@ namespace rego
           return Ref << refhead << refargseq;
         },
 
-      In(RefTerm) * T(Var)[Var]([](auto& n) {
+      (In(RefTerm) / In(RuleRef)) * T(Var)[Var]([](auto& n) {
         return is_ref_to_type(*n.first, RuleTypes);
       }) >>
         [](Match& _) {
           // <rule>
           Nodes defs = _(Var)->lookup();
           Node rule = defs[0];
-          Node module = rule->parent()->parent()->shared_from_this();
-          Node ref = (module / Package)->front()->clone();
-          Node refhead = (ref / RefHead)->front()->clone();
-          Node refargseq = ref / RefArgSeq;
-          refargseq->push_front(RefArgDot << refhead);
-          refargseq->push_back(RefArgDot << _(Var));
-          return Ref << (RefHead << (Var ^ "data")) << refargseq;
+          return build_ref(rule);
         },
 
-      In(RefTerm) *
-          (T(Ref) << (T(RefHead) << T(Var)[Var]([](auto& n) {
-                        return is_ref_to_type(*n.first, RuleTypes);
-                      }))
-                  << T(RefArgSeq)[RefArgSeq]) >>
+      (In(RefTerm) / In(RuleRef)) *
+          (T(Ref)
+           << ((T(RefHead) << T(Var)[Var]([](auto& n) {
+                  return is_ref_to_type(*n.first, RuleTypes);
+                })) *
+               T(RefArgSeq)[RefArgSeq])) >>
         [](Match& _) {
           // <rule>.dot <rule>[brack]
           Nodes defs = _(Var)->lookup();
           Node rule = defs[0];
-          Node module = rule->parent()->parent()->shared_from_this();
-          Node ref = (module / Package)->front()->clone();
-          Node refhead = (ref / RefHead)->front()->clone();
-          Node refargseq = ref / RefArgSeq;
-          refargseq->push_front(RefArgDot << refhead);
-          refargseq->push_back(RefArgDot << _(Var));
-          refargseq->insert(
-            refargseq->end(), _(RefArgSeq)->begin(), _(RefArgSeq)->end());
-          return Ref << (RefHead << (Var ^ "data")) << refargseq;
+          Node ref = build_ref(rule);
+          Node refargseq = (ref / RefArgSeq);
+          refargseq << *_[RefArgSeq];
+          return ref;
         },
+
+      In(Policy) * T(Import) >> [](Match&) { return Node{}; },
     };
   }
 }

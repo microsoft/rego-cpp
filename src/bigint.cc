@@ -553,6 +553,11 @@ namespace rego
 
   bool BigInt::is_int(const Location& loc)
   {
+    if (loc.len == 0)
+    {
+      return false;
+    }
+
     std::set<char> digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
     auto it = loc.view().begin();
     auto end = loc.view().end();

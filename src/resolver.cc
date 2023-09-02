@@ -1,7 +1,8 @@
 #include "resolver.h"
 
 #include "errors.h"
-#include "lang.h"
+#include "helpers.h"
+#include "log.h"
 #include "unifier.h"
 
 namespace
@@ -9,28 +10,23 @@ namespace
   using namespace rego;
   using namespace wf::ops;
 
-  // clang-format off
-  inline const auto wfi =
-    (DataItemSeq <<= DataItem++)
-    | (DataItem <<= Var * (Val >>= Module | Term))
-    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
-    | (UnifyExprWith <<= UnifyBody * WithSeq)
-    | (UnifyExprCompr <<= Var * (Val >>= ArrayCompr | SetCompr | ObjectCompr) * UnifyBody)
-    | (UnifyExprEnum <<= (Unify >>= Var) * (Item >>= Var) * (ItemSeq >>= Var) * NestedBody)
-    | (NestedBody <<= Key * UnifyBody)
-    | (Local <<= Var * Term)
-    | (Term <<= Scalar | Array | Object | Set)
-    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
-    | (ArgVal <<= Scalar | Array | Object | Set)
-    | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
-    | (ArgVar <<= Var * (Val >>= Term | Undefined))
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody) * (Val >>= UnifyBody))
-    | (Function <<= JSONString * ArgSeq)
-    | (Submodule <<= Key * Module)
-    | (With <<= Ref * Var)
-    | (Ref <<= RefHead * RefArgSeq)
-    ;
-  // clang-format on
+  bool contains_multiple_outputs(Node term)
+  {
+    if (term->type() == TermSet)
+    {
+      return true;
+    }
+
+    for (auto& child : *term)
+    {
+      if (contains_multiple_outputs(child))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   BigInt get_int(const Node& node)
   {
@@ -280,14 +276,65 @@ namespace rego
     return JSONFloat ^ oss.str();
   }
 
+  Node Resolver::scalar()
+  {
+    return JSONNull ^ "null";
+  }
+
+  Node Resolver::term(BigInt value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term(double value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term(bool value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term(const char* value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term(const std::string& value)
+  {
+    return Term << (Scalar << scalar(value));
+  }
+
+  Node Resolver::term()
+  {
+    return Term << (Scalar << scalar());
+  }
+
   std::string Resolver::get_string(const Node& node)
   {
-    if (node->type() == JSONString)
+    Node value = node;
+    if (value->type() == Term)
     {
-      return strip_quotes(std::string(node->location().view()));
+      value = value->front();
     }
 
-    return std::string(node->location().view());
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == JSONString)
+    {
+      return strip_quotes(value->location().view());
+    }
+
+    return std::string(value->location().view());
+  }
+
+  Node Resolver::scalar(const char* value)
+  {
+    return scalar(std::string(value));
   }
 
   Node Resolver::scalar(const std::string& value)
@@ -531,6 +578,31 @@ namespace rego
     return std::nullopt;
   }
 
+  std::optional<Node> Resolver::maybe_unwrap_int(const Node& node)
+  {
+    Node value;
+    if (node->type() == Term || node->type() == DataTerm)
+    {
+      value = node->front();
+    }
+    else
+    {
+      value = node;
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == JSONInt)
+    {
+      return value;
+    }
+
+    return std::nullopt;
+  }
+
   std::optional<Node> Resolver::maybe_unwrap_set(const Node& node)
   {
     Node value;
@@ -610,13 +682,15 @@ namespace rego
 
     if (container->type() == Object)
     {
-      Node query = arg->front();
+      Node query = arg;
+      if (query->type() == Term)
+      {
+        query = arg->front();
+      }
       return object_lookdown(container, query);
     }
 
-    if (
-      container->type() == Input || container->type() == Data ||
-      container->type() == Module)
+    if (container->type() == Data || container->type() == DataModule)
     {
       Node key = arg->front();
       std::string key_str = strip_quotes(to_json(key));
@@ -626,9 +700,7 @@ namespace rego
         return Nodes({err(container, "No definition found for " + key_str)});
       }
 
-      if (
-        defs[0]->type() == RuleComp || defs[0]->type() == DefaultRule ||
-        defs[0]->type() == RuleFunc)
+      if (defs[0]->type() == RuleComp || defs[0]->type() == RuleFunc)
       {
         return defs;
       }
@@ -638,15 +710,15 @@ namespace rego
       {
         if (def->type() == DataItem)
         {
-          nodes.push_back(wfi / def / Val);
+          nodes.push_back(def / Val);
         }
         else if (def->type() == ObjectItem)
         {
-          nodes.push_back(wfi / def / Val);
+          nodes.push_back(def / Val);
         }
         else if (def->type() == Submodule)
         {
-          nodes.push_back(wfi / def / Module);
+          nodes.push_back(def / DataModule);
         }
         else
         {
@@ -666,24 +738,76 @@ namespace rego
         std::string repr = to_json(member);
         if (repr == query_repr)
         {
-          return Nodes({Term << (Scalar << JSONTrue)});
+          return Nodes({to_term(arg)});
         }
       }
 
-      return Nodes({Term << (Scalar << JSONFalse)});
+      return std::nullopt;
     }
 
     return std::nullopt;
   }
 
-  Node Resolver::object(const Node& object_items)
+  Node Resolver::to_term(const Node& value)
+  {
+    if (value->type() == Term || value->type() == TermSet)
+    {
+      return value;
+    }
+
+    if (
+      value->type() == Array || value->type() == Set ||
+      value->type() == Object || value->type() == Scalar)
+    {
+      return Term << value;
+    }
+
+    if (
+      value->type() == JSONInt || value->type() == JSONFloat ||
+      value->type() == JSONString || value->type() == JSONTrue ||
+      value->type() == JSONFalse || value->type() == JSONNull)
+    {
+      return Term << (Scalar << value);
+    }
+
+    return err(value, "Not a term");
+  }
+
+  Node Resolver::object(const Node& object_items, bool is_rule)
   {
     Node object = NodeDef::create(Object);
     std::map<std::string, Node> items;
     for (std::size_t i = 0; i < object_items->size(); i += 2)
     {
+      if (object_items->at(i)->type() == Error)
+      {
+        return object_items->at(i);
+      }
+
       std::string key = to_json(object_items->at(i));
-      Node item = ObjectItem << object_items->at(i) << object_items->at(i + 1);
+      if (items.contains(key))
+      {
+        std::string current = to_json(items[key] / Val);
+        std::string next = to_json(object_items->at(i + 1));
+        if (current != next)
+        {
+          if (is_rule)
+          {
+            return err(
+              object_items->at(i),
+              "complete rules must not produce multiple outputs",
+              EvalConflictError);
+          }
+
+          return err(
+            object_items->at(i),
+            "object keys must be unique",
+            EvalConflictError);
+        }
+      }
+
+      Node item = ObjectItem << to_term(object_items->at(i))
+                             << to_term(object_items->at(i + 1));
       items[key] = item;
     }
 
@@ -699,7 +823,10 @@ namespace rego
   Node Resolver::array(const Node& array_members)
   {
     Node array = NodeDef::create(Array);
-    array->insert(array->end(), array_members->begin(), array_members->end());
+    for (Node member : *array_members)
+    {
+      array->push_back(to_term(member));
+    }
     return array;
   }
 
@@ -729,7 +856,7 @@ namespace rego
       std::string repr = to_json(member);
       if (!members.contains(repr))
       {
-        members[repr] = member;
+        members[repr] = to_term(member);
       }
     }
 
@@ -854,6 +981,11 @@ namespace rego
       return compr_str(statement);
     }
 
+    if (statement->type() == UnifyExprNot)
+    {
+      return not_str(statement);
+    }
+
     return expr_str(statement);
   }
 
@@ -861,12 +993,20 @@ namespace rego
   {
     return {
       unifyexpr, [](std::ostream& os, const Node& unifyexpr) -> std::ostream& {
-        Node lhs = wfi / unifyexpr / Var;
-        Node rhs = wfi / unifyexpr / Val;
+        Node lhs = unifyexpr / Var;
+        Node rhs = unifyexpr / Val;
         os << lhs->location().view() << " = "
            << (rhs->type() == Function ? func_str(rhs) : arg_str(rhs));
         return os;
       }};
+  }
+
+  Resolver::NodePrinter Resolver::term_str(const Node& term)
+  {
+    return {term, [](std::ostream& os, const Node& term) -> std::ostream& {
+              os << term->type().str() << "(" << to_json(term) << ")";
+              return os;
+            }};
   }
 
   Resolver::NodePrinter Resolver::with_str(const Node& unifyexprwith)
@@ -874,7 +1014,7 @@ namespace rego
     return {
       unifyexprwith,
       [](std::ostream& os, const Node& unifyexprwith) -> std::ostream& {
-        Node unifybody = wfi / unifyexprwith / UnifyBody;
+        Node unifybody = unifyexprwith / UnifyBody;
         os << "{";
         std::string sep = "";
         for (Node expr : *unifybody)
@@ -884,14 +1024,19 @@ namespace rego
             os << sep << expr_str(expr);
             sep = "; ";
           }
+          else if (expr->type() == UnifyExprNot)
+          {
+            os << sep << not_str(expr);
+            sep = "; ";
+          }
         }
         os << "} ";
         sep = "";
-        Node withseq = wfi / unifyexprwith / WithSeq;
+        Node withseq = unifyexprwith / WithSeq;
         for (Node with : *withseq)
         {
-          Node ref = wfi / with / Ref;
-          Node var = wfi / with / Var;
+          Node ref = with / RuleRef;
+          Node var = with / Var;
           os << sep << "with " << ref_str(ref) << " as " << arg_str(var);
           sep = "; ";
         }
@@ -904,9 +1049,9 @@ namespace rego
     return {
       unifyexprcompr,
       [](std::ostream& os, const Node& unifyexprcompr) -> std::ostream& {
-        Node lhs = wfi / unifyexprcompr / Var;
-        Node rhs = wfi / unifyexprcompr / Val;
-        Node unifybody = wfi / unifyexprcompr / UnifyBody;
+        Node lhs = unifyexprcompr / Var;
+        Node rhs = unifyexprcompr / Val;
+        Node unifybody = unifyexprcompr / UnifyBody;
         os << lhs->location().view() << " = " << rhs->type().str() << "{";
         std::string sep = "";
         for (Node expr : *unifybody)
@@ -927,11 +1072,32 @@ namespace rego
     return {
       unifyexprenum,
       [](std::ostream& os, const Node& unifyexprenum) -> std::ostream& {
-        Node item = wfi / unifyexprenum / Item;
-        Node itemseq = wfi / unifyexprenum / ItemSeq;
-        Node unifybody = wfi / unifyexprenum / NestedBody / UnifyBody;
+        Node item = unifyexprenum / Item;
+        Node itemseq = unifyexprenum / ItemSeq;
+        Node unifybody = unifyexprenum / NestedBody / UnifyBody;
         os << "foreach " << item->location().view() << " in "
            << itemseq->location().view() << " unify {";
+        std::string sep = "";
+        for (Node expr : *unifybody)
+        {
+          if (expr->type() != Local)
+          {
+            os << sep << stmt_str(expr);
+            sep = "; ";
+          }
+        }
+        os << "}";
+        return os;
+      }};
+  }
+
+  Resolver::NodePrinter Resolver::not_str(const Node& unifyexprnot)
+  {
+    return {
+      unifyexprnot,
+      [](std::ostream& os, const Node& unifyexprnot) -> std::ostream& {
+        Node unifybody = unifyexprnot->front();
+        os << "not {";
         std::string sep = "";
         for (Node expr : *unifybody)
         {
@@ -950,8 +1116,8 @@ namespace rego
   {
     return {
       function, [](std::ostream& os, const Node& function) -> std::ostream& {
-        Node name = wfi / function / JSONString;
-        Node args = wfi / function / ArgSeq;
+        Node name = function / JSONString;
+        Node args = function / ArgSeq;
         os << name->location().view() << "(";
         std::string sep = "";
         for (const auto& child : *args)
@@ -971,6 +1137,32 @@ namespace rego
               {
                 os << arg->location().view();
               }
+              else if (arg->type() == NestedBody)
+              {
+                os << "{";
+                Node body = arg / Val;
+                std::string sep = "";
+                for (Node expr : *body)
+                {
+                  if (expr->type() != Local)
+                  {
+                    os << sep << stmt_str(expr);
+                    sep = "; ";
+                  }
+                }
+                os << "}";
+              }
+              else if (arg->type() == VarSeq)
+              {
+                os << "[";
+                std::string sep = "";
+                for (Node var : *arg)
+                {
+                  os << sep << var->location().view();
+                  sep = ", ";
+                }
+                os << "]";
+              }
               else
               {
                 os << to_json(arg);
@@ -981,20 +1173,20 @@ namespace rego
 
   Resolver::NodePrinter Resolver::ref_str(const Node& ref)
   {
-    return {ref, [](std::ostream& os, const Node& ref) -> std::ostream& {
-              if (ref->type() == VarSeq)
+    return {ref, [](std::ostream& os, const Node& node) -> std::ostream& {
+              Node ref = node;
+              if (node->type() == RuleRef || node->type() == RefTerm)
               {
-                std::string sep = "";
-                for (auto var : *ref)
+                ref = node->front();
+                if (ref->type() == Var)
                 {
-                  os << sep << var->location().view();
-                  sep = ".";
+                  os << ref->location().view();
+                  return os;
                 }
-                return os;
               }
 
-              Node refhead = wfi / ref / RefHead;
-              Node refargseq = wfi / ref / RefArgSeq;
+              Node refhead = ref / RefHead;
+              Node refargseq = ref / RefArgSeq;
               os << refhead->front()->location().view();
               for (Node refarg : *refargseq)
               {
@@ -1023,7 +1215,7 @@ namespace rego
 
   Node Resolver::inject_args(const Node& rulefunc, const Nodes& args)
   {
-    Node ruleargs = wfi / rulefunc / RuleArgs;
+    Node ruleargs = rulefunc / RuleArgs;
     std::size_t num_args = ruleargs->size();
     if (num_args != args.size())
     {
@@ -1048,7 +1240,7 @@ namespace rego
       }
       else if (rulearg->type() == ArgVar)
       {
-        rulearg->at(wfi.index(ArgVar, Val)) = arg;
+        rulearg->at(1) = arg;
       }
     }
 
@@ -1081,6 +1273,11 @@ namespace rego
 
   bool Resolver::is_undefined(const Node& node)
   {
+    if (node->type() == DataModule)
+    {
+      return false;
+    }
+
     if (node->type() == Undefined)
     {
       return true;
@@ -1099,23 +1296,23 @@ namespace rego
 
   bool Resolver::is_falsy(const Node& node)
   {
-    if (node->type() == Undefined)
+    Node value = node;
+    if (value->type() == Term)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == JSONFalse)
     {
       return true;
     }
 
-    if (node->type() != Term)
-    {
-      return false;
-    }
-
-    Node value = node->front();
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-      return value->type() == JSONFalse;
-    }
-    else if (is_undefined(value))
+    if (is_undefined(value))
     {
       return true;
     }
@@ -1126,32 +1323,19 @@ namespace rego
   Nodes Resolver::object_lookdown(const Node& object, const Node& query)
   {
     Nodes terms;
-    Nodes defs = object->lookdown(query->location());
-
-    if (defs.size() > 0)
-    {
-      std::transform(
-        defs.begin(),
-        defs.end(),
-        std::back_inserter(terms),
-        [](const Node& def) { return wfi / def / Val; });
-      return terms;
-    }
-
     std::string query_str = to_json(query);
     for (auto& object_item : *object)
     {
-      Node key = wfi / object_item / Key;
+      Node key = object_item / Key;
       if (key->type() == Ref)
       {
         throw std::runtime_error("Not implemented.");
       }
 
       std::string key_str = to_json(key);
-
       if (key_str == query_str)
       {
-        terms.push_back(wfi / object_item / Val);
+        terms.push_back((object_item / Val)->clone());
       }
     }
 
@@ -1192,27 +1376,51 @@ namespace rego
     return results;
   }
 
+  Node Resolver::reduce_termset(const Node& termset)
+  {
+    Node reduce = NodeDef::create(TermSet);
+    std::set<std::string> values;
+    for (Node term : *termset)
+    {
+      std::string repr = to_json(term);
+      if (!values.contains(repr))
+      {
+        values.insert(repr);
+        reduce->push_back(term);
+      }
+    }
+
+    if (reduce->size() == 1)
+    {
+      return reduce->front();
+    }
+
+    return reduce;
+  }
+
   Node Resolver::resolve_query(const Node& query, const BuiltIns& builtins)
   {
-    Nodes defs = resolve_varseq(query->front());
+    Nodes defs = query->front()->lookup();
     if (defs.size() != 1)
     {
       return err(query, "query not found");
     }
 
     Node rulebody = defs[0] / Val;
+    auto unifier = UnifierDef::create(
+      {"query"},
+      rulebody,
+      std::make_shared<std::vector<Location>>(),
+      std::make_shared<std::vector<ValuesLookup>>(),
+      builtins,
+      std::make_shared<NodeMap<Unifier>>());
+    Node result = unifier->unify();
+    if (result->type() == Error)
     {
-      auto unifier = UnifierDef::create(
-        {"query"},
-        rulebody,
-        std::make_shared<std::vector<Location>>(),
-        std::make_shared<std::vector<ValuesLookup>>(),
-        builtins,
-        std::make_shared<NodeMap<Unifier>>());
-      unifier->unify();
+      return Query << result;
     }
 
-    Node result = NodeDef::create(Query);
+    result = NodeDef::create(Query);
 
     for (auto& child : *rulebody)
     {
@@ -1227,8 +1435,8 @@ namespace rego
         continue;
       }
 
-      Node var = (wfi / child / Var)->clone();
-      Node term = (wfi / child / Term)->clone();
+      Node var = (child / Var)->clone();
+      Node term = (child / Val)->clone();
 
       if (term->type() == TermSet)
       {
@@ -1238,18 +1446,27 @@ namespace rego
         }
         else
         {
-          result->push_back(err(child, "Multiple values for binding"));
+          term = reduce_termset(term);
         }
-      }
-
-      if (term->type() == Undefined)
-      {
-        continue;
       }
 
       if (term->type() != Term)
       {
         term = Term << term;
+      }
+
+      if (is_undefined(term))
+      {
+        continue;
+      }
+
+      if (contains_multiple_outputs(term))
+      {
+        result->push_back(err(
+          term,
+          "complete rules must not produce multiple outputs",
+          EvalConflictError));
+        continue;
       }
 
       std::string name = std::string(var->location().view());
@@ -1464,6 +1681,11 @@ namespace rego
       return "string";
     }
 
+    if (type == JSONTrue || type == JSONFalse)
+    {
+      return "boolean";
+    }
+
     return std::string(type.str());
   }
 
@@ -1481,5 +1703,239 @@ namespace rego
     }
 
     return type_name(value->type(), specify_number);
+  }
+
+  Resolver::NodePrinter Resolver::body_str(const Node& unifybody)
+  {
+    return {
+      unifybody, [](std::ostream& os, const Node& unifybody) -> std::ostream& {
+        os << "{" << std::endl;
+        for (auto& stmt : *unifybody)
+        {
+          if (stmt->type() == Local)
+          {
+            os << "  local " << (stmt / Var)->location().view() << std::endl;
+          }
+          else
+          {
+            os << "  " << stmt_str(stmt) << std::endl;
+          }
+        }
+        os << "}";
+        return os;
+      }};
+  }
+
+  Resolver::NodePrinter Resolver::rego_str(const Node& rego)
+  {
+    return {
+      rego, [](std::ostream& os, const Node& rego) -> std::ostream& {
+        std::deque<Node> queue;
+        queue.push_back(rego / Data);
+        os << std::endl << std::endl;
+        while (!queue.empty())
+        {
+          Node current = queue.front();
+          queue.pop_front();
+          if (RuleTypes.contains(current->type()))
+          {
+            os << current->type().str() << " ";
+            os << (current / Var)->location().view();
+            if (current->type() == RuleFunc || current->type() == RuleComp)
+            {
+              os << "#" << (current / Idx)->location().view();
+            }
+            if (current->type() == RuleFunc)
+            {
+              os << "(";
+              std::string sep = "";
+              for (auto& arg : *(current / RuleArgs))
+              {
+                os << sep << (arg / Var)->location().view();
+                sep = ", ";
+              }
+              os << ")";
+            }
+            os << std::endl;
+            os << "body: ";
+            Node body = current / Body;
+            if (body->type() == Empty)
+            {
+              os << "empty" << std::endl;
+            }
+            else
+            {
+              os << body_str(body) << std::endl;
+            }
+            os << "value: ";
+            Node value = current / Val;
+            if (value->type() == Term)
+            {
+              os << to_json(value) << std::endl;
+            }
+            else
+            {
+              os << body_str(value) << std::endl;
+            }
+            os << std::endl;
+          }
+          else
+          {
+            for (auto& child : *current)
+            {
+              queue.push_back(child);
+            }
+          }
+        }
+        return os;
+      }};
+  }
+
+  void Resolver::flatten_terms_into(const Node& termset, Node& terms)
+  {
+    if (is_undefined(termset))
+    {
+      return;
+    }
+
+    if (termset->type() == Term)
+    {
+      terms->push_back(termset->front());
+      return;
+    }
+
+    if (termset->type() != TermSet)
+    {
+      terms->push_back(err(termset, "Not a term"));
+      return;
+    }
+
+    for (auto& term : *termset)
+    {
+      if (term->type() == TermSet)
+      {
+        flatten_terms_into(term, terms);
+      }
+      else if (term->type() == Term)
+      {
+        terms->push_back(term->front());
+      }
+      else
+      {
+        terms->push_back(err(term, "Not a term"));
+      }
+    }
+  }
+
+  void Resolver::flatten_items_into(const Node& termset, Node& items)
+  {
+    if (termset->type() == Term)
+    {
+      Node array = termset->front();
+      items->push_back(array->front());
+      items->push_back(array->back());
+      return;
+    }
+
+    if (termset->type() != TermSet)
+    {
+      items->push_back(err(termset, "Not a term"));
+      return;
+    }
+
+    for (auto& term : *termset)
+    {
+      if (term->type() == TermSet)
+      {
+        flatten_items_into(term, items);
+      }
+      else if (term->type() == Term)
+      {
+        Node array = term->front();
+        items->push_back(array->front());
+        items->push_back(array->back());
+      }
+      else
+      {
+        items->push_back(err(term, "Not a term"));
+      }
+    }
+  }
+
+  void Resolver::insert_into_object(
+    Node& object, const std::string& path, const Node& value)
+  {
+    Node current = object;
+    std::size_t start = 0;
+    std::size_t pos = path.find('.');
+    while (pos != path.npos)
+    {
+      std::string prefix = path.substr(start, pos - start);
+      Node query = JSONString ^ prefix;
+
+      bool found = false;
+      std::string query_str = to_json(query);
+      for (auto& object_item : *current)
+      {
+        Node key = object_item / Key;
+        std::string key_str = to_json(key);
+        if (key_str == query_str)
+        {
+          current = object_item / Val;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found)
+      {
+        current = NodeDef::create(Object);
+        object->push_back(
+          ObjectItem << (Term << (Scalar << query)) << (Term << current));
+      }
+      else
+      {
+        if (current->type() == Term)
+        {
+          current = current->front();
+        }
+      }
+
+      start = pos + 1;
+      pos = path.find('.', start);
+    }
+
+    if (current->type() != Object)
+    {
+      LOG(
+        "Conflict: cannot merge partials into non-object: ", term_str(current));
+      Node replacement = NodeDef::create(Object);
+      current->parent()->replace(current, replacement);
+      current = replacement;
+    }
+
+    Node key = (Scalar << (JSONString ^ path.substr(start)));
+    std::string key_str = to_json(key);
+    Node existing = nullptr;
+    for (auto& object_item : *current)
+    {
+      Node item_key = object_item / Key;
+      std::string item_key_str = to_json(item_key);
+      if (key_str == item_key_str)
+      {
+        existing = object_item;
+        break;
+      }
+    }
+
+    if (existing == nullptr)
+    {
+      current->push_back(ObjectItem << (Term << key) << (Term << value));
+    }
+    else
+    {
+      current->replace(
+        existing, ObjectItem << (Term << key) << (Term << value));
+    }
   }
 }

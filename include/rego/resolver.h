@@ -2,7 +2,6 @@
 
 #include "bigint.h"
 #include "builtins.h"
-#include "lang.h"
 
 #include <optional>
 #include <string>
@@ -27,8 +26,15 @@ namespace rego
     static Node scalar(BigInt value);
     static Node scalar(double value);
     static Node scalar(bool value);
+    static Node scalar(const char* value);
     static Node scalar(const std::string& value);
     static Node scalar();
+    static Node term(BigInt value);
+    static Node term(double value);
+    static Node term(bool value);
+    static Node term(const char* value);
+    static Node term(const std::string& value);
+    static Node term();
     static double get_double(const Node& node);
     static std::string get_string(const Node& node);
     static bool get_bool(const Node& node);
@@ -41,6 +47,10 @@ namespace rego
     static NodePrinter with_str(const Node& unifyexprwith);
     static NodePrinter compr_str(const Node& unifyexprcompr);
     static NodePrinter ref_str(const Node& ref);
+    static NodePrinter body_str(const Node& rego);
+    static NodePrinter not_str(const Node& rego);
+    static NodePrinter term_str(const Node& rego);
+    static NodePrinter rego_str(const Node& rego);
     static Node negate(const Node& value);
     static Node unary(const Node& value);
     static Node arithinfix(const Node& op, const Node& lhs, const Node& rhs);
@@ -48,7 +58,7 @@ namespace rego
     static Node boolinfix(const Node& op, const Node& lhs, const Node& rhs);
     static std::optional<Nodes> apply_access(
       const Node& container, const Node& index);
-    static Node object(const Node& object_items);
+    static Node object(const Node& object_items, bool is_rule);
     static Node array(const Node& array_members);
     static Node set(const Node& set_members);
     static Node set_intersection(const Node& lhs, const Node& rhs);
@@ -64,6 +74,7 @@ namespace rego
     static std::optional<Node> maybe_unwrap(
       const Node& term, const std::set<Token>& types);
     static std::optional<Node> maybe_unwrap_number(const Node& term);
+    static std::optional<Node> maybe_unwrap_int(const Node& term);
     static std::optional<Node> maybe_unwrap_string(const Node& term);
     static std::optional<Node> maybe_unwrap_bool(const Node& term);
     static std::optional<Node> maybe_unwrap_array(const Node& term);
@@ -83,6 +94,12 @@ namespace rego
     static std::string type_name(
       const Token& type, bool specify_number = false);
     static std::string type_name(const Node& node, bool specify_number = false);
+    static Node to_term(const Node& value);
+    static void flatten_terms_into(const Node& termset, Node& terms);
+    static void flatten_items_into(const Node& termset, Node& terms);
+    static Node reduce_termset(const Node& termset);
+    static void insert_into_object(
+      Node& object, const std::string& path, const Node& value);
   };
 
   std::ostream& operator<<(

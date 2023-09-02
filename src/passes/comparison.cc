@@ -1,3 +1,5 @@
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 
 namespace rego
@@ -13,7 +15,9 @@ namespace rego
   {
     return {
       In(UnifyBody) * (T(Literal) << (T(Expr) << (T(Not) * Any++[Expr]))) >>
-        [](Match& _) { return LiteralNot << (Expr << _[Expr]); },
+        [](Match& _) {
+          return LiteralNot << (UnifyBody << (Literal << (Expr << _[Expr])));
+        },
 
       In(Expr) * (T(Expr) << (BoolInfixArg[Arg] * End)) >>
         [](Match& _) { return _(Arg); },

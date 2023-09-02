@@ -1,9 +1,11 @@
 #pragma once
 
-#include "lang.h"
+#include <trieste/source.h>
 
 namespace rego
 {
+  using namespace trieste;
+
   class ValueDef;
   using rank_t = std::size_t;
   using Value = std::shared_ptr<ValueDef>;
@@ -15,6 +17,7 @@ namespace rego
   public:
     void mark_as_valid();
     void mark_as_invalid();
+    void reduce_set();
 
     std::string str() const;
     std::string json() const;

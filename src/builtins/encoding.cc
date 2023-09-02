@@ -1,4 +1,6 @@
 #include "base64/base64.h"
+#include "errors.h"
+#include "helpers.h"
 #include "register.h"
 #include "resolver.h"
 
@@ -29,7 +31,7 @@ namespace
     }
 
     std::string x_string =
-      strip_quotes(std::string(maybe_x_string.value()->location().view()));
+      strip_quotes(maybe_x_string.value()->location().view());
     std::string decoded = ::base64_decode(x_string);
     return JSONString ^ decoded;
   }

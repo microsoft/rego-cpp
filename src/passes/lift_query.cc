@@ -1,3 +1,5 @@
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 
 namespace rego
@@ -18,9 +20,10 @@ namespace rego
                  << (Policy
                      << (RuleComp << (Var ^ queryrule) << Empty << _(Query)
                                   << (JSONInt ^ "0")));
-        Node varseq = VarSeq << (Var ^ "data") << (Var ^ querymodule)
-                             << (Var ^ queryrule);
-        return Seq << (Query << varseq) << _(Input) << _(Data)
+        std::ostringstream oss;
+        oss << "data." << querymodule.view() << "." << queryrule.view();
+        std::string ref = oss.str();
+        return Seq << (Query << (Var ^ ref)) << _(Input) << _(Data)
                    << (ModuleSeq << module << *_[ModuleSeq]);
       }};
   }

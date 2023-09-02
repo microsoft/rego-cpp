@@ -9,10 +9,9 @@ interpreter on top of the experimental term rewriter
 
 > **Warning**
 > While this project has progressed to the point that we support full Rego language
-> (see [Language Support](#language-support) below) we do not support all built-ins
-> and do not yet have a system built to verify compatibility with the reference Go
-> implementation. As such, it should still be considered experimental software and
-> used with discretion.
+> (see [Language Support](#language-support) below) we do not support all built-ins.
+> That said, we have verified compliance with the OPA Rego test suite. Even so, it
+> should still be considered experimental software and used with discretion.
 
 ## Getting Started
 
@@ -50,28 +49,32 @@ You can then build and run the tests using:
 
 ### Using the Interpreter
 
-The interpreter will be located at `build/dist/bin/rego_interpreter`. Here are
+The interpreter will be located at `build/dist/bin/rego`. Here are
 some example commands using the provided example files and run from the suggested
 `dist` install directory:
 
-    ./bin/rego_interpreter -d examples/scalars.rego -q data.scalars.greeting
+    ./bin/rego -d examples/scalars.rego -q data.scalars.greeting
     "Hello"
 
-    ./bin/rego_interpreter -d examples/objects.rego -q data.objects.sites[1].name
+    ./bin/rego -d examples/objects.rego -q data.objects.sites[1].name
     "smoke1"
 
-    ./bin/rego_interpreter -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
+    ./bin/rego -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
     [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
 
-    ./bin/rego_interpreter -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
+    ./bin/rego -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
     9.4
 
-    ./bin/rego_interpreter -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
+    ./bin/rego -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
     {"one": 15, "two": 15}
+
+You can run the test driver from the same directory:
+
+    ./bin/rego_test tests/regocpp.yaml
 
 ## Language Support
 
-At present we support v0.55.0 of the Rego grammar as defined by OPA:
+At present we support v0.55.0 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
 module          = package { import } policy
@@ -148,42 +151,52 @@ all the standard builtins. The following builtins are currently supported:
 - `aggregates`
 - `arrays`
 - `numbers`
+- `objects`
+- `semver`
 - `sets`
 - `strings`
+- `units`
 - miscellaneous
-    - `print`
-    - `to_number`
-    - `base64_encode`
-    - `base64_decode`
+    * `base64_encode`
+    * `base64_decode`
+    * `cast_array`
+    * `cast_set`
+    * `json.marshal`
+    * `opa.runtime`
+    * `print`
+    * `time.now_ns`
+    * `to_number`
 
 ### Compatibility with the OPA Rego Go implementation
 
 Our goal is to achieve and maintain full compatibility with the reference Go
 implementation. We have developed a test driver which runs the same tests
-and validates that we produce the same outputs. We currently pass the following
-test case suites:
+and validates that we produce the same outputs. At this stage we pass all
+the non-builtin specific test suites, which we clone from the
+[OPA repository](https://github.com/open-policy-agent/opa/tree/main/test/cases/testdata).
+To build with the OPA tests available for testing, use one of the following presets:
+- `release-clang-opa`
+- `release-opa`
 
-- `aggregates`
-- `arithmetic`
-- `array`
-- `comparisonexpr`
-- `compositebasedereference`
-- `helloworld`
-- `indexing`
-- `intersection`
-- `numbersrange`
-- `rand`
-- `replacen`
-- `sets`
-- `sprintf`
-- `strings`
-- `trim`
-- `trimleft`
-- `trimprefix`
-- `trimright`
-- `trimspace`
-- `trimsuffix`
-- `union` 
+At present, we are **NOT** passing the following test suites in full:
+- `base64*`
+- `bits*`
+- `casts`
+- `crypto*`
+- `glob*`
+- `graphql`
+- `invalidkeyerror`
+- `json*`
+- `jwt*`
+- `net*`
+- `planner-ir`
+- `providers-aws`
+- `reachable`
+- `regex*`
+- `typebuiltin`
+- `typenamebuiltin`
+- `urlbuiltins`
+- `walkbuiltin`
 
 ## Contributing
 

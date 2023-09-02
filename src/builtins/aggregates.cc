@@ -1,4 +1,5 @@
 #include "errors.h"
+#include "helpers.h"
 #include "register.h"
 #include "resolver.h"
 #include "utf8.h"
@@ -29,8 +30,7 @@ namespace
 
     if (collection->type() == JSONString)
     {
-      std::string collection_str =
-        strip_quotes(std::string(collection->location().view()));
+      std::string collection_str = strip_quotes(collection->location().view());
       runestring collection_runes = utf8_to_runestring(collection_str);
       return Resolver::scalar(BigInt(collection_runes.size()));
     }

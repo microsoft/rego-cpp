@@ -12,8 +12,8 @@ namespace rego_test
     return {
       In(Top) * T(File)[File] >> [](Match& _) { return Block << *_[File]; },
 
-      In(Block) * (T(Group) << (T(String) * T(Colon) * (T(Brace) << End))) >>
-        [](Match&) { return Node(); },
+      In(Group) * (T(Brace)[Brace] << End) >>
+        [](Match& _) { return EmptyMapping ^ _(Brace); },
 
       In(Group) * (T(Colon) * T(Integer)[Integer] * T(String)[String]) >>
         [](Match& _) {
@@ -74,9 +74,11 @@ namespace rego_test
           (T(Group) << T(Blank)) >>
         [](Match&) { return String ^ ""; },
 
+      T(Group) << (T(Blank) * End) >> [](Match&) { return Node{}; },
+
       // errors
-      In(Group) * (T(Block)[Block] << End) >>
-        [](Match& _) { return err(_(Block), "Syntax error: empty block"); },
+      In(Group) * T(Blank)[Blank] >>
+        [](Match& _) { return err(_(Blank), "Invalid blank line."); },
 
       (In(Entry) / In(Block)) * (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
@@ -86,8 +88,8 @@ namespace rego_test
           return err(_(Hyphen), "Invalid sequence entry declaration");
         },
 
-      In(Group) * T(Blank)[Blank] >>
-        [](Match& _) { return err(_(Blank), "Invalid blank line"); },
+      In(Group) * (T(Entry)[Entry] << End) >>
+        [](Match& _) { return err(_(Entry), "Invalid entry declaration"); },
 
       In(LiteralString) * T(Group)[Group] >>
         [](Match& _) {
@@ -253,6 +255,9 @@ namespace rego_test
       In(Group) * (T(Block) << (T(KeyValue)++[Mapping] * End)) >>
         [](Match& _) { return Mapping << _[Mapping]; },
 
+      In(Group) * T(EmptyMapping)[EmptyMapping] >>
+        [](Match& _) { return Mapping ^ _(EmptyMapping); },
+
       // errors
       (In(Entry) / In(Group)) * T(Block)[Block] >>
         [](Match& _) { return err(_(Block), "Invalid indented block"); },
@@ -335,10 +340,18 @@ namespace rego_test
         [](Match& _) { return _(Entry)->front(); },
 
       In(Group) * T(Key)[Key] >>
-        [](Match& _) { return rego::JSONString ^ _(Key); },
+        [](Match& _) {
+          std::string key_str =
+            "\"" + std::string(_(Key)->location().view()) + "\"";
+          return rego::JSONString ^ key_str;
+        },
 
       (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(String)[String]) >>
-        [](Match& _) { return rego::JSONString ^ _(String); },
+        [](Match& _) {
+          std::string str =
+            "\"" + std::string(_(String)->location().view()) + "\"";
+          return rego::JSONString ^ str;
+        },
 
       (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(Integer)[Integer]) >>
         [](Match& _) { return rego::JSONInt ^ _(Integer); },
@@ -375,7 +388,7 @@ namespace rego_test
 
       In(rego::Term) * T(Mapping)[Mapping] >>
         [](Match& _) {
-          bool is_set = true;
+          bool is_set = _(Mapping)->size() > 0;
           for (auto& keyvalue : *_(Mapping))
           {
             Node val = keyvalue / Val;

@@ -1,4 +1,7 @@
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
+#include "tokens.h"
 
 namespace rego
 {
@@ -12,7 +15,12 @@ namespace rego
 
       (In(RuleComp) / In(RuleFunc)) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>
-        [](Match& _) { return UnifyBody << (Literal << (Expr << _(Term))); },
+        [](Match& _) {
+          Location value = _.fresh({"value"});
+          return UnifyBody
+            << (Literal
+                << (Expr << (RefTerm << (Var ^ value)) << Unify << _(Term)));
+        },
 
       In(RuleSet) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>
@@ -52,18 +60,25 @@ namespace rego
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return DataTerm << _(Term)->front(); },
 
+      (In(DataArray) / In(DataSet)) * (T(Expr) << T(Set)[Set]) >>
+        [](Match& _) { return DataTerm << _(Set); },
+
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(NumTerm)[NumTerm]) >>
         [](Match& _) { return DataTerm << (Scalar << _(NumTerm)->front()); },
 
       In(DataObject) *
           (T(ObjectItem)
-           << ((T(Expr) << (T(Term) / T(NumTerm))[Key]) *
-               (T(Expr) << (T(Term) / T(NumTerm))[Val]))) >>
+           << ((T(Expr) << (T(Term) / T(NumTerm) / T(Set))[Key]) *
+               (T(Expr) << (T(Term) / T(NumTerm) / T(Set))[Val]))) >>
         [](Match& _) {
           Node key = _(Key);
           if (key->type() == NumTerm)
           {
             key = Scalar << key->front();
+          }
+          else if (key->type() == Set)
+          {
+            key = DataTerm << key;
           }
           else
           {
@@ -75,6 +90,10 @@ namespace rego
           {
             val = Scalar << val->front();
           }
+          else if (val->type() == Set)
+          {
+            val = DataTerm << val;
+          }
           else
           {
             val = val->front();
@@ -83,11 +102,75 @@ namespace rego
           return DataObjectItem << (DataTerm << key) << (DataTerm << val);
         },
 
-      // errors
-
-      In(DefaultRule) * T(Term)[Term] >>
+      In(Expr) *
+          (T(ExprEvery)([](auto& n) {
+             return is_in(*n.first, {Policy}) && is_in(*n.first, {UnifyBody});
+           })
+           << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
+               (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
-          return err(_(Term), "Default rule values must be constant");
-        }};
+          // lifts this every statement into a rule function
+          Location item = _.fresh({"item"});
+          Location every = _.fresh({"every"});
+
+          return ExprEvery
+            << (UnifyBody
+                << (Local << (Var ^ item) << Undefined)
+                << (LiteralNot
+                    << (UnifyBody
+                        << (LiteralEnum << (Var ^ item) << _(Expr))
+                        << (Literal
+                            << (Expr << (RefTerm << _(Val)) << Unify
+                                     << (RefTerm
+                                         << (Ref << (RefHead << (Var ^ item))
+                                                 << (RefArgSeq
+                                                     << (RefArgBrack
+                                                         << (Scalar
+                                                             << (JSONInt ^
+                                                                 "1"))))))))
+                        << (LiteralNot << _(UnifyBody)))));
+        },
+
+      In(Expr) *
+          (T(ExprEvery)([](auto& n) {
+             return is_in(*n.first, {Policy}) && is_in(*n.first, {UnifyBody});
+           })
+           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
+               T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
+        [](Match& _) {
+          // lifts this every statement into a rule function
+          Location item = _.fresh({"item"});
+          Location every = _.fresh({"every"});
+
+          return ExprEvery
+            << (UnifyBody
+                << (Local << (Var ^ item) << Undefined)
+                << (LiteralNot
+                    << (UnifyBody
+                        << (LiteralEnum << (Var ^ item) << _(Expr))
+                        << (Literal
+                            << (Expr << (RefTerm << _(Idx)->clone()) << Unify
+                                     << (RefTerm
+                                         << (Ref << (RefHead << (Var ^ item))
+                                                 << (RefArgSeq
+                                                     << (RefArgBrack
+                                                         << (Scalar
+                                                             << (JSONInt ^
+                                                                 "0"))))))))
+
+                        << (Literal
+                            << (Expr << (RefTerm << _(Val)->clone()) << Unify
+                                     << (RefTerm
+                                         << (Ref << (RefHead << (Var ^ item))
+                                                 << (RefArgSeq
+                                                     << (RefArgBrack
+                                                         << (Scalar
+                                                             << (JSONInt ^
+                                                                 "1"))))))))
+                        << (LiteralNot << _(UnifyBody)))));
+        },
+
+      // errors
+    };
   }
 }

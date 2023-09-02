@@ -1,4 +1,5 @@
 #include "errors.h"
+#include "helpers.h"
 #include "register.h"
 #include "resolver.h"
 
@@ -166,7 +167,7 @@ namespace
     }
 
     std::string seed_string =
-      strip_quotes(std::string(maybe_seed_string.value()->location().view()));
+      strip_quotes(maybe_seed_string.value()->location().view());
     std::size_t n = BigInt(args[1]->location()).to_size();
     std::hash<std::string> hash;
     auto seed = static_cast<std::mt19937::result_type>(hash(seed_string));

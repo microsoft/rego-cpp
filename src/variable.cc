@@ -1,29 +1,15 @@
 #include "variable.h"
 
+#include "helpers.h"
 #include "log.h"
 #include "resolver.h"
-
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-      (Local <<= Var * (Val >>= Undefined | Term))
-    | (Term <<= Scalar | Array | Object | Set | Undefined)
-    | (DefaultTerm <<= Scalar | Array | Object | Set | Undefined)
-    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
-    ;
-  // clang-format on
-}
 
 namespace rego
 {
   Variable::Variable(const Node& local, std::size_t id) :
     m_local(local), m_initialized(false), m_id(id)
   {
-    Location name = (wfi / local / Var)->location();
+    Location name = (local / Var)->location();
     m_unify = is_unify(name.view());
     m_user_var = is_user_var(name.view());
   }
@@ -38,6 +24,12 @@ namespace rego
     if (name.starts_with("__") && name.ends_with("__"))
     {
       // OPA test local variables use this convention
+      return true;
+    }
+
+    if (name.starts_with("_$"))
+    {
+      // placeholder var
       return true;
     }
 
@@ -94,32 +86,31 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const Variable& variable)
   {
-    return os << (wfi / variable.m_local / Var)->location().view() << " = "
+    return os << (variable.m_local / Var)->location().view() << " = "
               << variable.m_values;
   }
 
   void Variable::mark_valid_values()
   {
-    // `false` and `undefined` are value values for everything
+    // `false` and `undefined` are valid values for everything
     // except a unification statement.
     m_values.mark_valid_values(!m_unify);
   }
 
+  void Variable::mark_invalid_values()
+  {
+    m_values.mark_invalid_values();
+  }
+
   Node Variable::to_term() const
   {
-    Nodes nodes = m_values.nodes();
+    Nodes nodes = m_values.to_terms();
 
     if (nodes.size() == 1)
     {
-      if (nodes[0]->type() == DefaultTerm)
-      {
-        return Term << nodes[0]->front();
-      }
-
       return nodes[0];
     }
 
-    std::set<std::string> values;
     Node term_set = NodeDef::create(TermSet);
     for (const auto& node : nodes)
     {
@@ -128,22 +119,22 @@ namespace rego
         return node;
       }
 
-      if (node->type() == DefaultTerm || node->type() == Undefined)
+      if (Resolver::is_undefined(node))
       {
         continue;
       }
 
-      std::string json = to_json(node);
-      if (!values.contains(json))
-      {
-        values.insert(json);
-        term_set->push_back(node);
-      }
+      term_set->push_back(node);
     }
 
     if (term_set->size() == 1)
     {
       return term_set->front();
+    }
+
+    if (term_set->size() == 0)
+    {
+      return Undefined;
     }
 
     return term_set;
@@ -214,7 +205,7 @@ namespace rego
 
   Location Variable::name() const
   {
-    return (wfi / m_local / Var)->location();
+    return (m_local / Var)->location();
   }
 
   std::size_t Variable::id() const

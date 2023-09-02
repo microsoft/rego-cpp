@@ -1,3 +1,5 @@
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 
 namespace rego
@@ -5,7 +7,11 @@ namespace rego
   PassDef build_calls()
   {
     return {
-      In(Group) * (T(Var)[Var] * T(Paren)[Paren]) >>
+      In(Group) * (T(Contains)[Contains] * T(Paren)[Paren]) >>
+        [](Match& _) { return Seq << (Var ^ _(Contains)) << _(Paren); },
+
+      In(Group) *
+          (RuleRefToken[Head] * RuleRefToken++[Tail] * T(Paren)[Paren]) >>
         [](Match& _) {
           Node argseq = NodeDef::create(ArgSeq);
           Node paren = _(Paren);
@@ -42,25 +48,20 @@ namespace rego
             }
             else
             {
-              argseq << group;
+              if (group->size() > 0)
+              {
+                argseq << group;
+              }
             }
           }
 
-          return ExprCall << (VarSeq << (Group << _(Var))) << argseq;
-        },
-
-      In(Group) *
-          (T(Var)[Var] * T(Dot) *
-           (T(ExprCall) << (T(VarSeq)[VarSeq] * T(ArgSeq)[ArgSeq]))) >>
-        [](Match& _) {
-          return ExprCall << (VarSeq << (Group << _(Var)) << *_[VarSeq])
-                          << _(ArgSeq);
+          return ExprCall << (RuleRef << _(Head) << _[Tail]) << argseq;
         },
 
       // errors
 
-      In(ExprCall) * (T(ArgSeq)[ArgSeq] << End) >>
-        [](Match& _) { return err(_(ArgSeq), "Missing arguments"); },
+      T(Group)[Group] << End >>
+        [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
     };
   }
 }

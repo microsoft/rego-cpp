@@ -13,6 +13,7 @@ resolver.cc
 variable.cc
 wf.cc
 builtins.cc
+utils.cc
 passes/input_data.cc
 passes/modules.cc
 passes/lists.cc
@@ -26,6 +27,7 @@ passes/build_refs.cc
 passes/structure.cc
 passes/strings.cc
 passes/merge_data.cc
+passes/lift_refheads.cc
 passes/symbols.cc
 passes/replace_argvals.cc
 passes/lift_query.cc
@@ -51,8 +53,12 @@ builtins/aggregates.cc
 builtins/arrays.cc
 builtins/encoding.cc
 builtins/numbers.cc
+builtins/objects.cc
+builtins/semver.cc
 builtins/sets.cc
 builtins/strings.cc
+builtins/time.cc
+builtins/units.cc
 builtins/utf8.cc
 # third-party
 builtins/base64/base64.cpp
@@ -73,13 +79,13 @@ target_link_libraries(rego
 
 target_precompile_headers(rego
   PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/lang.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/wf.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/rego.h
 )
 
 
 if (MSVC)
-  target_compile_options(rego PUBLIC "/Zc:__cplusplus")    
+  target_compile_options(rego PUBLIC "/Zc:__cplusplus")
+  target_compile_definitions(rego PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
 endif()
 
 target_include_directories( rego

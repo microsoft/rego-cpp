@@ -1,6 +1,7 @@
 #include "value.h"
 
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "resolver.h"
 
 #include <sstream>
@@ -198,9 +199,7 @@ namespace rego
 
   Node ValueDef::to_term() const
   {
-    if (
-      m_node->type() == Term || m_node->type() == DefaultTerm ||
-      m_node->type() == Error)
+    if (m_node->type() == Term || m_node->type() == Error)
     {
       return m_node;
     }
@@ -218,7 +217,7 @@ namespace rego
 
     if (term->type() == TermSet)
     {
-      return Term << Resolver::set(term);
+      return term;
     }
 
     return err(term, "Not a term");
@@ -276,5 +275,13 @@ namespace rego
   rank_t ValueDef::get_rank(const Node& node)
   {
     return std::stoul(to_json(node));
+  }
+
+  void ValueDef::reduce_set()
+  {
+    if (m_node->type() == TermSet)
+    {
+      m_node = Resolver::reduce_termset(m_node);
+    }
   }
 }

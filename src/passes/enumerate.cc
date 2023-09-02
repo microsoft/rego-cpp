@@ -1,3 +1,5 @@
+#include "errors.h"
+#include "helpers.h"
 #include "log.h"
 #include "passes.h"
 
@@ -5,8 +7,8 @@ namespace
 {
   using namespace rego;
 
-  const auto inline LiteralToken =
-    T(Literal) / T(LiteralWith) / T(LiteralEnum) / T(Local);
+  const auto inline LiteralToken = T(Literal) / T(LiteralWith) /
+    T(LiteralEnum) / T(LiteralInit) / T(LiteralNot) / T(Local);
 
   void all_refs(Node node, Location loc, Nodes& refs)
   {
@@ -103,22 +105,62 @@ namespace rego
   {
     return {
       In(UnifyBody) *
-          ((T(Literal)
-            << (T(Expr)
-                << (T(AssignInfix)
-                    << ((T(AssignArg) << (T(RefTerm) << T(Var)[Val])) *
-                        (T(AssignArg)
-                         << (T(RefTerm)
-                             << (T(SimpleRef)
-                                 << ((T(Var)[ItemSeq]) *
-                                     (T(RefArgBrack)
-                                      << (T(RefTerm)
-                                          << T(Var)[Idx]([](auto& n) {
-                                               return contains_local(*n.first);
-                                             }))))))))))) *
+          (T(LiteralInit)
+           << (T(VarSeq)[LhsVars](
+                 [](auto& n) { return (*n.first)->size() > 0; }) *
+               T(VarSeq)[RhsVars](
+                 [](auto& n) { return (*n.first)->size() >= 0; }) *
+               (T(AssignInfix)
+                << ((T(AssignArg)[Lhs]
+                     << (T(RefTerm)
+                         << (T(SimpleRef)
+                             << ((T(Var)[ItemSeq]) * T(RefArgBrack))))) *
+                    T(AssignArg)[Rhs])))) >>
+        [](Match& _) {
+          return LiteralInit << _(RhsVars) << _(LhsVars)
+                             << (AssignInfix << _(Rhs) << _(Lhs));
+        },
+
+      In(UnifyBody) *
+          ((
+             T(LiteralInit)
+             << (T(VarSeq)[LhsVars](
+                   [](auto& n) { return (*n.first)->size() > 0; }) *
+                 T(VarSeq)[RhsVars](
+                   [](auto& n) { return (*n.first)->size() > 0; }) *
+                 (T(AssignInfix)
+                  << (T(AssignArg)[Lhs] *
+                      (T(AssignArg)
+                       << (T(RefTerm)
+                           << (T(SimpleRef)
+                               << ((T(Var)[ItemSeq]) *
+                                   (T(RefArgBrack)[Idx]))))))))) *
            LiteralToken++[Tail] * End) >>
         [](Match& _) {
           LOG("val = ref[idx]");
+
+          Node idx = _(Idx)->front();
+          if (idx->type() == Expr)
+          {
+            idx = idx->front();
+          }
+
+          if (idx->type() == NumTerm)
+          {
+            idx = Term << (Scalar << idx->front());
+          }
+
+          std::set<Token> term_types = {
+            Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
+          if (term_types.contains(idx->type()))
+          {
+            idx = Term << idx;
+          }
+
+          if (idx->type() != RefTerm && idx->type() != Term)
+          {
+            return err(idx, "Invalid index for enumeration");
+          }
 
           auto temp = _.fresh({"enum"});
           auto item = _.fresh({"item"});
@@ -127,21 +169,73 @@ namespace rego
             << (LiteralEnum
                 << (Var ^ item) << _(ItemSeq)
                 << (UnifyBody
+                    << (LiteralInit
+                        << _(RhsVars) << VarSeq
+                        << (AssignInfix
+                            << (AssignArg << idx)
+                            << (AssignArg
+                                << (RefTerm
+                                    << (SimpleRef
+                                        << (Var ^ item)
+                                        << (RefArgBrack
+                                            << (Scalar << (JSONInt ^ "0"))))))))
+                    << (LiteralInit
+                        << _(LhsVars) << VarSeq
+                        << (AssignInfix
+                            << _(Lhs)
+                            << (AssignArg
+                                << (RefTerm
+                                    << (SimpleRef
+                                        << (Var ^ item)
+                                        << (RefArgBrack
+                                            << (Scalar << (JSONInt ^ "1"))))))))
+                    << _[Tail]));
+        },
+
+      In(UnifyBody) *
+          ((
+             T(LiteralInit)
+             << (T(VarSeq)([](auto& n) { return (*n.first)->size() == 0; }) *
+                 T(VarSeq)[RhsVars](
+                   [](auto& n) { return (*n.first)->size() > 0; }) *
+                 (T(AssignInfix)
+                  << (T(AssignArg)[Lhs] *
+                      (T(AssignArg)
+                       << (T(RefTerm)
+                           << (T(SimpleRef)
+                               << ((T(Var)[ItemSeq]) *
+                                   T(RefArgBrack)[Idx])))))))) *
+           LiteralToken++[Tail] * End) >>
+        [](Match& _) {
+          LOG("val = ref[idx]");
+
+          Node idx = _(Idx)->front();
+          if (idx->type() != RefTerm)
+          {
+            idx = Term << idx;
+          }
+
+          auto temp = _.fresh({"enum"});
+          auto item = _.fresh({"item"});
+          return Seq
+            << (Local << (Var ^ item) << Undefined)
+            << (LiteralEnum
+                << (Var ^ item) << _(ItemSeq)
+                << (UnifyBody
+                    << (LiteralInit
+                        << _(RhsVars) << VarSeq
+                        << (AssignInfix
+                            << (AssignArg << idx)
+                            << (AssignArg
+                                << (RefTerm
+                                    << (SimpleRef
+                                        << (Var ^ item)
+                                        << (RefArgBrack
+                                            << (Scalar << (JSONInt ^ "0"))))))))
                     << (Literal
                         << (Expr
                             << (AssignInfix
-                                << (AssignArg << (RefTerm << _(Idx)))
-                                << (AssignArg
-                                    << (RefTerm
-                                        << (SimpleRef
-                                            << (Var ^ item)
-                                            << (RefArgBrack
-                                                << (Scalar
-                                                    << (JSONInt ^ "0")))))))))
-                    << (Literal
-                        << (Expr
-                            << (AssignInfix
-                                << (AssignArg << (RefTerm << _(Val)))
+                                << _(Lhs)
                                 << (AssignArg
                                     << (RefTerm
                                         << (SimpleRef
@@ -154,6 +248,10 @@ namespace rego
 
       In(UnifyBody) * T(Local)[Local]([](auto& n) {
         Node local = *n.first;
+        if (in_query(local))
+        {
+          return false;
+        }
         if ((local / Var)->location().view().starts_with("out$"))
         {
           return false;

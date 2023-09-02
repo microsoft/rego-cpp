@@ -6,8 +6,10 @@
 #include "variable.h"
 
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
+#include <trieste/ast.h>
 #include <vector>
 
 namespace rego
@@ -39,10 +41,17 @@ namespace rego
     static Unifier create(
       const Location& rule,
       const Node& rulebody,
-      CallStack call_stack,
-      WithStack with_stack,
+      const CallStack& call_stack,
+      const WithStack& with_stack,
       const BuiltIns& builtins,
-      UnifierCache cache);
+      const UnifierCache& cache);
+    std::optional<Node> resolve_rule(const Nodes& defs) const;
+    std::optional<Node> resolve_rulecomp(const Nodes& rulecomp) const;
+    std::optional<Node> resolve_ruleset(const Nodes& ruleset) const;
+    std::optional<Node> resolve_ruleobj(const Nodes& ruleobj) const;
+    std::optional<RankedNode> resolve_rulefunc(
+      const Node& rulefunc, const Nodes& args) const;
+    Node resolve_module(const Node& module) const;
 
   private:
     struct Dependency
@@ -52,7 +61,7 @@ namespace rego
       std::size_t score;
     };
 
-    Unifier rule_unifier(const Location& rule, const Node& rulebody);
+    Unifier rule_unifier(const Location& rule, const Node& rulebody) const;
     void init_from_body(
       const Node& rulebody, std::vector<Node>& statements, std::size_t root);
     std::size_t add_variable(const Node& local);
@@ -72,34 +81,35 @@ namespace rego
     Values evaluate(const Location& var, const Node& value);
     Values evaluate_function(
       const Location& var, const std::string& func_name, const Args& args);
-    Values resolve_var(const Node& var);
+    Values resolve_var(const Node& var, bool exclude_with = false);
     Values enumerate(const Location& var, const Node& container);
     Values resolve_skip(const Node& skip);
-    Values check_with(const Node& var);
-    std::optional<RankedNode> resolve_rulecomp(const Node& rulecomp);
-    std::optional<RankedNode> resolve_rulefunc(
-      const Node& rulefunc, const Nodes& args);
-    std::optional<Node> resolve_ruleset(const Nodes& ruleset);
-    std::optional<Node> resolve_ruleobj(const Nodes& ruleobj);
-    Node resolve_every(const Node& varseq, const Node& nestedbody);
-    Values resolve_compr(const Location& var, const Node& compr);
-    Values call_function(
+    Values check_with(const Node& var, bool bypass_recurse_check = false);
+    Values apply_access(const Location& var, const Values& args);
+    std::optional<Value> call_function(
+      const Location& var, const Values& args) const;
+    std::optional<Value> call_named_function(
       const Location& var, const std::string& name, const Values& args);
     bool is_local(const Node& var);
     std::size_t scan_vars(const Node& expr, std::vector<Location>& locals);
     void pass();
     void execute_statements(Nodes::iterator begin, Nodes::iterator end);
     void remove_invalid_values();
+    void mark_invalid_values();
     Variable& get_variable(const Location& name);
     bool is_variable(const Location& name) const;
     Node bind_variables();
     Args create_args(const Node& args);
+    bool would_recurse(const Node& node);
 
     bool push_rule(const Location& rule);
     void pop_rule(const Location& rule);
 
     void push_with(const Node& withseq);
     void pop_with();
+
+    void push_not();
+    void pop_not();
 
     Location m_rule;
     std::map<Location, Variable> m_variables;
@@ -113,5 +123,6 @@ namespace rego
     UnifierCache m_cache;
     NodeMap<std::size_t> m_expr_ids;
     std::vector<Dependency> m_dependency_graph;
+    bool m_negate;
   };
 }

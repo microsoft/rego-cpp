@@ -1,5 +1,6 @@
 #include "test_case.h"
 
+#include <CLI/CLI.hpp>
 #include <type_traits>
 
 const std::string Green = "\x1b[32m";
@@ -23,6 +24,30 @@ void load_testcases(
       testcases[test_case.category()] = std::vector<rego_test::TestCase>();
     }
     testcases[test_case.category()].push_back(test_case);
+  }
+}
+
+void load_testcase_dir(
+  const std::filesystem::path& dir,
+  const std::filesystem::path& debug_path,
+  TestCases& testcases)
+{
+  for (auto& file_or_dir : std::filesystem::directory_iterator(dir))
+  {
+    if (std::filesystem::is_directory(file_or_dir))
+    {
+      std::cout << std::endl << file_or_dir << std::endl;
+      load_testcase_dir(file_or_dir, debug_path, testcases);
+    }
+    else if (std::filesystem::exists(file_or_dir))
+    {
+      std::cout << ".";
+      load_testcases(file_or_dir, debug_path, testcases);
+    }
+    else
+    {
+      std::cerr << "Not a file: " << file_or_dir << std::endl;
+    }
   }
 }
 
@@ -64,18 +89,18 @@ int main(int argc, char** argv)
 
   rego::Logger::enabled = enable_logging;
 
+  std::cout << "Loading test cases:";
   TestCases all_testcases;
   for (auto file_or_dir : case_paths)
   {
     if (std::filesystem::is_directory(file_or_dir))
     {
-      for (auto& p : std::filesystem::directory_iterator(file_or_dir))
-      {
-        load_testcases(p, debug_path, all_testcases);
-      }
+      std::cout << std::endl << file_or_dir << std::endl;
+      load_testcase_dir(file_or_dir, debug_path, all_testcases);
     }
     else if (std::filesystem::exists(file_or_dir))
     {
+      std::cout << ".";
       load_testcases(file_or_dir, debug_path, all_testcases);
     }
     else
@@ -84,6 +109,8 @@ int main(int argc, char** argv)
       return 1;
     }
   }
+
+  std::cout << std::endl << "Done" << std::endl;
 
   int total = 0;
   int failures = 0;
@@ -100,7 +127,11 @@ int main(int argc, char** argv)
       }
 
       total++;
-      std::string note = testcase.note().substr(category.size() + 1);
+      std::string note = testcase.note();
+      if (category.size() > 0)
+      {
+        note = note.substr(category.size() + 1);
+      }
 
       try
       {

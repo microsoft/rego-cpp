@@ -1,3 +1,5 @@
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 
 namespace rego
@@ -6,23 +8,32 @@ namespace rego
   PassDef merge_data()
   {
     return {
-      In(Input) * T(ObjectItemSeq)[ObjectItemSeq] >>
-        [](Match& _) { return DataItemSeq << *_[ObjectItemSeq]; },
+      In(Input) * T(Term)[DataTerm] >>
+        [](Match& _) { return DataTerm << *_[DataTerm]; },
 
       In(DataSeq) * (T(Data) << T(ObjectItemSeq)[Data]) >>
-        [](Match& _) { return DataItemSeq << *_[Data]; },
+        [](Match& _) { return DataModule << *_[Data]; },
 
-      In(DataSeq) *
-          (T(DataItemSeq)[Lhs] * (T(Data) << T(ObjectItemSeq)[Rhs])) >>
-        [](Match& _) { return DataItemSeq << *_[Lhs] << *_[Rhs]; },
+      In(DataSeq) * (T(DataModule)[Lhs] * (T(Data) << T(ObjectItemSeq)[Rhs])) >>
+        [](Match& _) { return DataModule << *_[Lhs] << *_[Rhs]; },
 
-      In(DataItemSeq) *
+      In(DataModule) *
           (T(ObjectItem)
            << ((T(Expr) << (T(Term) << T(Scalar)[Scalar])) *
-               (T(Expr) << T(Term)[Term]))) >>
+               (T(Expr) << (T(Term) << T(Object)[DataModule])))) >>
         [](Match& _) {
           std::string key = strip_quotes(to_json(_(Scalar)));
-          return DataItem << (Key ^ key) << (DataTerm << _(Term)->front());
+          return Submodule << (Key ^ key) << (DataModule << *_[DataModule]);
+        },
+
+      In(DataModule) *
+          (T(ObjectItem)
+           << ((T(Expr) << (T(Term) << T(Scalar)[Scalar])) *
+               (T(Expr)
+                << (T(Term) << (T(Array) / T(Set) / T(Scalar))[Term])))) >>
+        [](Match& _) {
+          std::string key = strip_quotes(to_json(_(Scalar)));
+          return DataRule << (Var ^ key) << (DataTerm << _(Term));
         },
 
       In(DataObject) *
@@ -44,15 +55,22 @@ namespace rego
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return DataTerm << _(Term)->front(); },
 
-      In(Rego) * (T(DataSeq) << (T(DataItemSeq)[DataItemSeq] * End)) >>
-        [](Match& _) { return Data << (Var ^ "data") << _(DataItemSeq); },
+      In(Rego) * (T(DataSeq) << (T(DataModule)[DataModule] * End)) >>
+        [](Match& _) { return Data << (Key ^ "data") << _(DataModule); },
 
       In(Rego) * (T(DataSeq) << End) >>
-        [](Match&) { return Data << (Var ^ "data") << DataItemSeq; },
+        [](Match&) { return Data << (Key ^ "data") << DataModule; },
+
+      In(RuleArgs) * (T(Term) << T(Var)[Var]) >>
+        [](Match& _) { return ArgVar << _(Var) << Undefined; },
+
+      In(RuleArgs) *
+          (T(Term) << (T(Scalar) / T(Array) / T(Object) / T(Set))[Val]) >>
+        [](Match& _) { return ArgVal << _(Val); },
 
       // errors
 
-      In(DataItemSeq) * T(ObjectItem)[ObjectItem] >>
+      In(DataModule) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) {
           return err(_(ObjectItem), "Syntax error: unexpected object item");
         },
@@ -84,6 +102,9 @@ namespace rego
 
       In(DataTerm) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Syntax error: unexpected ref"); },
+
+      In(RuleArgs) * T(Term)[Term] >>
+        [](Match& _) { return err(_(Term), "Invalid rule function argument"); },
     };
   }
 

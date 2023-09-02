@@ -1,9 +1,10 @@
 #pragma once
 
 #include "builtins.h"
-#include "lang.h"
 
 #include <string>
+#include <trieste/parse.h>
+#include <trieste/wf.h>
 
 namespace rego
 {

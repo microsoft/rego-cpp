@@ -132,7 +132,7 @@ namespace rego
     return values;
   }
 
-  Nodes ValueMap::nodes() const
+  Nodes ValueMap::to_terms() const
   {
     Values values = valid_values();
     std::sort(values.begin(), values.end());

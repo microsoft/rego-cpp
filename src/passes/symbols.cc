@@ -1,7 +1,7 @@
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 #include "resolver.h"
-#include "trieste/rewrite.h"
 
 #include <sstream>
 
@@ -35,13 +35,6 @@ namespace
   }
 
   const inline auto LocalToken = T(RefTerm) / T(Term);
-
-  // clang-format off
-  inline const auto wfi =
-      (Top <<= Rego)
-    | (Else <<= Expr * UnifyBody)
-    ;
-  // clang-format on
 }
 
 namespace rego
@@ -73,77 +66,150 @@ namespace rego
 
       In(Policy) *
           (T(Rule)
-           << ((T(RuleHead)
-                << (T(Var)[Id] *
+           << (T(JSONFalse) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq)[ElseSeq])) >>
         [](Match& _) {
-          Node seq = NodeDef::create(Seq);
-          seq->push_back(
-            RuleComp << _(Id) << _(Body) << _(Expr) << (JSONInt ^ "0"));
           Node elseseq = _(ElseSeq);
-          for (std::size_t i = 0; i < elseseq->size(); ++i)
+          if (elseseq->size() == 0)
           {
-            Node expr = wfi / elseseq->at(i) / Expr;
-            Node body = wfi / elseseq->at(i) / UnifyBody;
-            seq->push_back(
-              RuleComp << _(Id)->clone() << body << expr
-                       << (JSONInt ^ std::to_string(i + 1)));
+            return RuleComp << _(Id) << _(Body) << _(Expr) << (JSONInt ^ "0");
           }
 
-          return seq;
+          // we need to create sub-rules for each possibility
+          Location rulename = _(Id)->location();
+          Location subrule = _.fresh(rulename);
+          Node seq = NodeDef::create(Seq);
+          seq
+            << (RuleComp << (Var ^ subrule) << _(Body) << _(Expr)
+                         << (JSONInt ^ "0"));
+          for (std::size_t i = 0; i < elseseq->size(); ++i)
+          {
+            Node expr = elseseq->at(i) / Val;
+            Node body = elseseq->at(i) / Body;
+            seq
+              << (RuleComp << (Var ^ subrule) << body << expr
+                           << (JSONInt ^ std::to_string(i + 1)));
+          }
+
+          Location value = _.fresh({"value"});
+          return seq
+            << (RuleComp << _(Id) << Empty
+                         << (UnifyBody
+                             << (Literal
+                                 << (Expr << (RefTerm << (Var ^ value)) << Unify
+                                          << (RefTerm << (Var ^ subrule)))))
+                         << (JSONInt ^ "0"));
         },
 
       In(Policy) *
           (T(Rule)
-           << ((T(RuleHead)
-                << (T(Var)[Id] *
+           << (T(JSONTrue) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
+                    (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
+               T(Empty) * (T(ElseSeq) << End))) >>
+        [](Match& _) {
+          std::size_t rank = std::numeric_limits<std::uint16_t>::max();
+          return RuleComp << _(Id) << Empty << _(Expr)
+                          << (JSONInt ^ std::to_string(rank));
+        },
+
+      In(Policy) *
+          (T(Rule)
+           << (T(JSONFalse) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadFunc)
                      << (T(RuleArgs)[RuleArgs] * T(AssignOperator) *
                          T(Expr)[Expr])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq)[ElseSeq])) >>
         [](Match& _) {
-          Node seq = NodeDef::create(Seq);
-          seq->push_back(
-            RuleFunc << _(Id) << _(RuleArgs) << _(Body) << _(Expr)
-                     << (JSONInt ^ "0"));
           Node elseseq = _(ElseSeq);
-          for (std::size_t i = 0; i < elseseq->size(); ++i)
+          if (elseseq->size() == 0)
           {
-            Node expr = wfi / elseseq->at(i) / Expr;
-            Node body = wfi / elseseq->at(i) / UnifyBody;
-            seq->push_back(
-              RuleFunc << _(Id)->clone() << _(RuleArgs)->clone() << body << expr
-                       << (JSONInt ^ std::to_string(i + 1)));
+            return RuleFunc << _(Id) << _(RuleArgs) << _(Body) << _(Expr)
+                            << (JSONInt ^ "0");
           }
 
-          return seq;
+          // we need to create sub-rules for each possibility
+          Location rulename = _(Id)->location();
+          Location subrule = _.fresh(rulename);
+          Node seq = NodeDef::create(Seq);
+          seq
+            << (RuleFunc << (Var ^ subrule) << _(RuleArgs) << _(Body) << _(Expr)
+                         << (JSONInt ^ "0"));
+          for (std::size_t i = 0; i < elseseq->size(); ++i)
+          {
+            Node expr = elseseq->at(i) / Val;
+            Node body = elseseq->at(i) / Body;
+            seq
+              << (RuleFunc << (Var ^ subrule) << _(RuleArgs)->clone() << body
+                           << expr << (JSONInt ^ std::to_string(i + 1)));
+          }
+
+          Location value = _.fresh({"value"});
+          Node argseq = NodeDef::create(ArgSeq);
+          for (auto& arg : *_(RuleArgs))
+          {
+            if (arg->type() == ArgVar)
+            {
+              argseq->push_back(Expr << (RefTerm << (arg / Var)->clone()));
+            }
+            else if (arg->type() == ArgVal)
+            {
+              argseq->push_back(Expr << (Term << arg->front()->clone()));
+            }
+          }
+
+          return seq
+            << (RuleFunc << _(Id) << _(RuleArgs)->clone() << Empty
+                         << (UnifyBody
+                             << (Literal
+                                 << (Expr << (RefTerm << (Var ^ value)) << Unify
+                                          << (ExprCall
+                                              << (RuleRef << (Var ^ subrule))
+                                              << argseq))))
+                         << (JSONInt ^ "0"));
         },
 
       In(Policy) *
           (T(Rule)
-           << ((T(RuleHead)
-                << (T(Var)[Id] * (T(RuleHeadSet) << T(Expr)[Expr]))) *
+           << (T(JSONTrue) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
+                    (T(RuleHeadFunc)
+                     << (T(RuleArgs)[RuleArgs] * T(AssignOperator) *
+                         T(Expr)[Expr])))) *
+               T(Empty) * (T(ElseSeq) << End))) >>
+        [](Match& _) {
+          std::size_t rank = std::numeric_limits<std::uint16_t>::max();
+          return RuleFunc << _(Id) << _(RuleArgs) << Empty << _(Expr)
+                          << (JSONInt ^ std::to_string(rank));
+        },
+
+      In(Policy) *
+          (T(Rule)
+           << (T(JSONFalse) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
+                    (T(RuleHeadSet) << T(Expr)[Expr]))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq))) >>
         [](Match& _) { return RuleSet << _(Id) << _(Body) << _(Expr); },
 
       In(Policy) *
           (T(Rule)
-           << ((T(RuleHead)
-                << (T(Var)[Id] *
+           << (T(JSONFalse) *
+               (T(RuleHead)
+                << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadObj)
                      << (T(Expr)[Key] * T(AssignOperator) * T(Expr)[Val])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq))) >>
         [](Match& _) {
           return RuleObj << _(Id) << _(Body) << _(Key) << _(Val);
         },
-
-      In(RuleArgs) * (T(Term) << T(Var)[Var]) >>
-        [](Match& _) { return ArgVar << _(Var) << Undefined; },
-
-      In(RuleArgs) *
-          (T(Term) << (T(Scalar) / T(Array) / T(Object) / T(Set))[Val]) >>
-        [](Match& _) { return ArgVal << _(Val); },
 
       In(Expr) * (T(Expr) << (T(Term)[Term] * End)) >>
         [](Match& _) { return _(Term); },
@@ -190,29 +256,6 @@ namespace rego
                                                      << (JSONInt ^ "1"))))))));
         },
 
-      In(Expr) *
-          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
-           << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
-               (T(IsIn) << T(Expr)[Expr]))) >>
-        [](Match& _) {
-          Location item = _.fresh({"item"});
-          Location every = _.fresh({"every"});
-          return Seq
-            << (Lift << UnifyBody << (LiteralEnum << (Var ^ item) << _(Expr)))
-            << (Lift << UnifyBody
-                     << (Literal
-                         << (Expr
-                             << (RefTerm << _(Val)->clone()) << Unify
-                             << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (JSONInt ^ "1")))))))))
-            << (ExprEvery << (VarSeq << (Var ^ item) << _(Val)->clone())
-                          << (NestedBody << (Key ^ every) << _(UnifyBody)));
-        },
-
       In(UnifyBody) *
           (T(Literal)
            << (T(SomeExpr)
@@ -242,43 +285,6 @@ namespace rego
                                                      << (JSONInt ^ "1"))))))));
         },
 
-      In(Expr) *
-          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
-           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
-               T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
-        [](Match& _) {
-          Location item = _.fresh({"item"});
-          Location every = _.fresh({"every"});
-
-          return Seq
-            << (Lift << UnifyBody << (Local << (Var ^ item) << Undefined))
-            << (Lift << UnifyBody << (LiteralEnum << (Var ^ item) << _(Expr)))
-            << (Lift << UnifyBody
-                     << (Literal
-                         << (Expr
-                             << (RefTerm << _(Idx)->clone()) << Unify
-                             << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (JSONInt ^ "0")))))))))
-            << (Lift << UnifyBody
-                     << (Literal
-                         << (Expr
-                             << (RefTerm << _(Val)->clone()) << Unify
-                             << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (JSONInt ^ "1")))))))))
-
-            << (ExprEvery << (VarSeq << (Var ^ item) << _(Idx)->clone()
-                                     << _(Val)->clone())
-                          << (NestedBody << (Key ^ every) << _(UnifyBody)));
-        },
-
       (In(UnifyBody) / In(LiteralWith)) *
           (T(Literal)
            << (T(Expr) << (LocalToken++[Head] * T(Assign) * Any++[Tail]))) >>
@@ -304,7 +310,7 @@ namespace rego
 
       (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
           (T(Expr)
-           << (T(Term)[Term]([](auto& n) { return !contains_ref(*n.first); }) *
+           << (T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) *
                End)) >>
         [](Match& _) { return _(Term); },
 
@@ -315,21 +321,24 @@ namespace rego
           return Term << (Scalar << number);
         },
 
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
-          (T(Expr)
-           << (T(Subtract) *
-               (T(Term) << (T(Scalar) << (T(JSONInt) / T(JSONFloat))[Val])) *
-               End)) >>
-        [](Match& _) {
-          Node number = Resolver::negate(_(Val));
-          return Term << (Scalar << number);
-        },
-
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
-          (T(Expr) << (T(Subtract) * T(NumTerm)[NumTerm]) * End) >>
+      In(Expr) * (Start * T(Subtract) * T(NumTerm)[NumTerm] * End) >>
         [](Match& _) {
           Node number = Resolver::negate(_(NumTerm)->front());
-          return Term << (Scalar << number);
+          return NumTerm << number;
+        },
+
+      (In(RuleComp) / In(RuleFunc)) * (T(Empty) * T(Expr)[Expr]) >>
+        [](Match& _) {
+          Location out = _.fresh({"out"});
+          Location value = _.fresh({"value"});
+          return Seq << (UnifyBody
+                         << (Literal
+                             << (Expr << (RefTerm << (Var ^ out)) << Unify
+                                      << *_[Expr])))
+                     << (UnifyBody
+                         << (Literal
+                             << (Expr << (RefTerm << (Var ^ value)) << Unify
+                                      << (RefTerm << (Var ^ out)))));
         },
 
       (In(RuleComp) / In(RuleFunc)) * T(Expr)[Expr] >>
@@ -343,11 +352,120 @@ namespace rego
       (In(ObjectCompr) / In(SetCompr) / In(ArrayCompr)) *
           T(UnifyBody)[UnifyBody] >>
         [](Match& _) {
-          Location compr = _.fresh({"compr"});
+          std::string prefix;
+          auto& parent_type = _(UnifyBody)->parent()->type();
+          if (parent_type == ArrayCompr)
+          {
+            prefix = "array";
+          }
+          else if (parent_type == SetCompr)
+          {
+            prefix = "set";
+          }
+          else
+          {
+            prefix = "object";
+          }
+          Location compr = _.fresh({prefix + "compr"});
           return NestedBody << (Key ^ compr) << _(UnifyBody);
         },
 
+      In(Expr) *
+          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
+           << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
+               (T(IsIn) << T(Expr)[Expr]))) >>
+        [](Match& _) {
+          Location item = _.fresh({"item"});
+          Location itemseq = _.fresh({"itemseq"});
+          Node rulebody = UnifyBody
+            << (Local << (Var ^ item) << Undefined)
+            << (LiteralEnum << (Var ^ item)
+                            << (Expr << (RefTerm << (Var ^ itemseq))))
+            << (Literal
+                << (Expr << (RefTerm << _(Val)->clone()) << Unify
+                         << (RefTerm
+                             << (Ref
+                                 << (RefHead << (Var ^ item))
+                                 << (RefArgSeq
+                                     << (RefArgBrack
+                                         << (Scalar << (JSONInt ^ "1"))))))))
+            << *_[UnifyBody];
+
+          return Seq << (Lift << UnifyBody
+                              << (Local << (Var ^ itemseq) << Undefined))
+                     << (Lift << UnifyBody
+                              << (Literal
+                                  << (Expr << (RefTerm << (Var ^ itemseq))
+                                           << Unify << *_[Expr])))
+                     << (ExprCall
+                         << (RuleRef << (Var ^ "count"))
+                         << (ArgSeq
+                             << (Expr
+                                 << (Term
+                                     << (ArrayCompr
+                                         << (Expr
+                                             << (RefTerm << _(Val)->clone()))
+                                         << rulebody)))))
+                     << Equals
+                     << (ExprCall
+                         << (RuleRef << (Var ^ "count"))
+                         << (ArgSeq << (Expr << (RefTerm << (Var ^ itemseq)))));
+        },
+
+      In(Expr) *
+          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
+           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
+               T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
+        [](Match& _) {
+          Location item = _.fresh({"item"});
+          Location itemseq = _.fresh({"itemseq"});
+          Node rulebody = UnifyBody
+            << (Local << (Var ^ item) << Undefined)
+            << (LiteralEnum << (Var ^ item)
+                            << (Expr << (RefTerm << (Var ^ itemseq))))
+            << (Literal
+                << (Expr << (RefTerm << _(Idx)->clone()) << Unify
+                         << (RefTerm
+                             << (Ref
+                                 << (RefHead << (Var ^ item))
+                                 << (RefArgSeq
+                                     << (RefArgBrack
+                                         << (Scalar << (JSONInt ^ "0"))))))))
+            << (Literal
+                << (Expr << (RefTerm << _(Val)->clone()) << Unify
+                         << (RefTerm
+                             << (Ref
+                                 << (RefHead << (Var ^ item))
+                                 << (RefArgSeq
+                                     << (RefArgBrack
+                                         << (Scalar << (JSONInt ^ "1"))))))))
+            << *_[UnifyBody];
+
+          return Seq << (Lift << UnifyBody
+                              << (Local << (Var ^ itemseq) << Undefined))
+                     << (Lift << UnifyBody
+                              << (Literal
+                                  << (Expr << (RefTerm << (Var ^ itemseq))
+                                           << Unify << *_[Expr])))
+                     << (ExprCall
+                         << (RuleRef << (Var ^ "count"))
+                         << (ArgSeq
+                             << (Expr
+                                 << (Term
+                                     << (ArrayCompr
+                                         << (Expr
+                                             << (RefTerm << _(Val)->clone()))
+                                         << rulebody)))))
+                     << Equals
+                     << (ExprCall
+                         << (RuleRef << (Var ^ "count"))
+                         << (ArgSeq << (Expr << (RefTerm << (Var ^ itemseq)))));
+        },
+
       // errors
+
+      In(Policy) * T(Rule)[Rule] >>
+        [](Match& _) { return err(_(Rule), "Invalid rule"); },
 
       In(UnifyBody) * (T(RuleHead)[RuleHead] << (T(Var) * T(RuleHeadFunc))) >>
         [](Match& _) {
@@ -359,9 +477,6 @@ namespace rego
 
       In(Term) * T(Var)[Var] >>
         [](Match& _) { return err(_(Var), "Invalid var term"); },
-
-      In(RuleArgs) * T(Term)[Term] >>
-        [](Match& _) { return err(_(Term), "Invalid rule function argument"); },
 
       In(Literal) * T(SomeDecl)[SomeDecl] >>
         [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
@@ -375,15 +490,8 @@ namespace rego
       In(Expr) * T(Dot)[Dot] >>
         [](Match& _) { return err(_(Dot), "Invalid dot expression"); },
 
-      In(ExprEvery) * (T(IsIn)[IsIn] << T(Undefined)) >>
-        [](Match& _) {
-          return err(
-            _(IsIn),
-            "Every statement requires an explicit sequence to evaluate.");
-        },
-
-      In(ExprEvery) * T(UnifyBody)[UnifyBody] >>
-        [](Match& _) { return err(_(UnifyBody), "Invalid every statement"); },
+      In(Expr) * T(ExprEvery)[ExprEvery] >>
+        [](Match& _) { return err(_(ExprEvery), "Invalid every expression"); },
     };
   }
 

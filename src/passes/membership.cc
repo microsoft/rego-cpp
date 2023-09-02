@@ -1,5 +1,6 @@
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
-#include "trieste/rewrite.h"
 
 namespace
 {

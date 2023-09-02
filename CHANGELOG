@@ -1,5 +1,67 @@
 # Changelog
 
+## 2023-09-02 - Version 0.3.0
+Minor release. From this point the implementation passes the Rego
+test suite and can be considered a compatible Rego implementation.
+
+Adds the `semver`, `objects`, and `units` builtins.
+
+**New Features**
+- `semver` builtins
+- `objects` builtins
+- `units` builtins
+- Miscellaneous builtins
+  * `cast_array`
+  * `cast_set`
+  * `opa.runtime`
+  * `json.marshal`
+  * `time.now_ns`
+
+**New Test Coverage**
+- `assignments`
+- `baseandvirtualdocs`
+- `completedoc`
+- `compositereferences`
+- `comprehensions`
+- `containskeyword`
+- `dataderef`
+- `defaultkeyword`
+- `disjunction`
+- `elsekeyword`
+- `embeddedvirtualdoc`
+- `eqexpr`
+- `evaltermexpr`
+- `every`
+- `example`
+- `fix1863`
+- `functionerrors`
+- `functions`
+- `indirectreferences`
+- `inputvalues`
+- `negation`
+- `nestedreferences`
+- `object*`
+- `partialdocconstants`
+- `partialiter`
+- `partialobjectdoc`
+- `partialsetdoc`
+- `refheads`
+- `semver*`
+- `subset`
+- `toarray`
+- `topdowndynamicdispatch`
+- `toset`
+- `type`
+- `undos`
+- `units`
+- `varreferences`
+- `virtualdocs`
+- `withkeyword`
+
+
+**Bug Fixes**
+- A great many implementation details exposed by testing
+
 ## 2023-08-12 - Version 0.2.6
 Adding the `aggregates`, `arrays`, and `strings` builtins.
 

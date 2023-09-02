@@ -1,19 +1,8 @@
+#include "errors.h"
+#include "helpers.h"
+#include "log.h"
 #include "passes.h"
 #include "resolver.h"
-
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  // clang-format off
-  inline const auto wfi =
-      (Top <<= Rego)
-    | (Rego <<= Query * Input * Data)
-    ;
-  // clang-format on
-
-}
 
 namespace rego
 {
@@ -23,10 +12,9 @@ namespace rego
     PassDef unify = {
       dir::topdown | dir::once,
       {
-        In(Input) * T(DataItemSeq) >>
-          ([](Match&) -> Node { return DataItemSeq; }),
-        In(Data) * T(DataItemSeq) >>
-          ([](Match&) -> Node { return DataItemSeq; }),
+        In(Input) * T(Term) >>
+          ([](Match&) -> Node { return Term << (Scalar << JSONNull); }),
+        In(Data) * T(DataModule) >> ([](Match&) -> Node { return DataModule; }),
         In(Rego) * T(SkipSeq) >> ([](Match&) -> Node { return SkipSeq; }),
         (In(Query) / In(Array) / In(Set) / In(ObjectItem)) *
             (ScalarToken / T(JSONString))[Scalar] >>
@@ -48,7 +36,10 @@ namespace rego
       }};
 
     unify.pre(Rego, [builtins](Node node) {
-      Node query = wfi / node / Query;
+      LOG_HEADER(" Program ", "vvvvvvvvvvvvvvv");
+      LOG(Resolver::rego_str(node));
+      LOG_HEADER(" Program ", "^^^^^^^^^^^^^^^");
+      Node query = node / Query;
       try
       {
         Node result = Resolver::resolve_query(query, builtins);

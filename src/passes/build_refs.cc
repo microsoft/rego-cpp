@@ -1,4 +1,5 @@
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 
 namespace
@@ -26,7 +27,21 @@ namespace rego
                      << (RefArgSeq << (RefArgBrack << *_[Array]));
         },
 
-      In(Group) *
+      In(RuleRef) * (T(Var)[RefHead] * T(Dot) * T(Var)[Rhs]) >>
+        [](Match& _) {
+          return Ref << (RefHead << _(RefHead))
+                     << (RefArgSeq << (RefArgDot << _(Rhs)));
+        },
+
+      In(RuleRef) *
+          (T(Var)[RefHead] *
+           (T(Array) << ((T(Group)[Arg] << StringToken) * End))) >>
+        [](Match& _) {
+          return Ref << (RefHead << _(RefHead))
+                     << (RefArgSeq << (RefArgBrack << _(Arg)));
+        },
+
+      (In(Group) / In(RuleRef)) *
           ((T(Ref) << (T(RefHead)[RefHead] * T(RefArgSeq)[RefArgSeq])) *
            T(Dot) * T(Var)[Rhs]) >>
         [](Match& _) {
@@ -41,6 +56,14 @@ namespace rego
           return Ref << _(RefHead)
                      << (RefArgSeq << *_[RefArgSeq]
                                    << (RefArgBrack << *_[Array]));
+        },
+
+      In(RuleRef) *
+          ((T(Ref) << (T(RefHead)[RefHead] * T(RefArgSeq)[RefArgSeq])) *
+           (T(Array) << ((T(Group)[Arg] << StringToken) * End))) >>
+        [](Match& _) {
+          return Ref << _(RefHead)
+                     << (RefArgSeq << *_[RefArgSeq] << (RefArgBrack << _(Arg)));
         },
 
       // errors

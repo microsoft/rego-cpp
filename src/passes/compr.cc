@@ -1,5 +1,13 @@
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
+
+// TODO
+// Given the current design, there is no reason why the comprehension call
+// shouldn't live in the innermost enum and then be passed up the chain.
+// This will deal with the issue where nested enumerations mangle the output
+// value, i.e. the captured value passed up the lambda chain would already
+// be a valid Term.
 
 namespace rego
 {
@@ -36,7 +44,7 @@ namespace rego
             << (T(Var)[Var] * T(UnifyBody)[Body] * T(Expr)[Val]) >>
           [](Match& _) {
             Location value = _.fresh({"value"});
-            Location compr = _.fresh({"compr"});
+            Location compr = _.fresh({"setcompr"});
             Node body = NestedBody << (Key ^ compr) << _(Body);
             return RuleSet
               << _(Var) << Empty
@@ -88,7 +96,7 @@ namespace rego
                  T(Expr)[Val])) >>
           [](Match& _) {
             Location value = _.fresh({"value"});
-            Location compr = _.fresh({"compr"});
+            Location compr = _.fresh({"objcompr"});
             Node body = _(Body);
             if (body->type() == Empty)
             {
@@ -115,7 +123,8 @@ namespace rego
           [](Match& _) {
             Location out = _.fresh({"out"});
             Node tail = _(NestedBody) / Val;
-            while (tail->back()->type() == LiteralEnum)
+            while (tail->back()->type() == LiteralEnum ||
+                   tail->back()->type() == LiteralWith)
             {
               tail = tail->back() / UnifyBody;
             }
@@ -132,7 +141,8 @@ namespace rego
           [](Match& _) {
             Location out = _.fresh({"out"});
             Node tail = _(NestedBody) / Val;
-            while (tail->back()->type() == LiteralEnum)
+            while (tail->back()->type() == LiteralEnum ||
+                   tail->back()->type() == LiteralWith)
             {
               tail = tail->back() / UnifyBody;
             }

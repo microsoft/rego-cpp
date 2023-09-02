@@ -1,5 +1,6 @@
 #include "args.h"
 
+#include "helpers.h"
 #include "value.h"
 
 #include <sstream>
@@ -77,11 +78,46 @@ namespace rego
     {
       for (auto& value : values)
       {
-        if (active.find(value) == active.end())
+        if (active.contains(value))
         {
           value->mark_as_invalid();
         }
       }
     }
+  }
+
+  void Args::mark_invalid_except(const std::set<Value>& active) const
+  {
+    for (auto& values : m_values)
+    {
+      for (auto& value : values)
+      {
+        if (!active.contains(value))
+        {
+          value->mark_as_invalid();
+        }
+      }
+    }
+  }
+
+  std::size_t Args::source_size() const
+  {
+    return m_values.size();
+  }
+
+  const Values& Args::source_at(std::size_t index) const
+  {
+    return m_values[index];
+  }
+
+  Args Args::subargs(std::size_t start) const
+  {
+    Args subargs;
+    for (std::size_t i = start; i < m_values.size(); ++i)
+    {
+      subargs.push_back(m_values[i]);
+    }
+
+    return subargs;
   }
 }

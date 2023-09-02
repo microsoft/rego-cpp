@@ -1,4 +1,5 @@
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 
 namespace
@@ -7,7 +8,32 @@ namespace
 
   Node merge(Node dst, Node src)
   {
-    if (dst->type() == DataItemSeq && src->type() == DataItem)
+    if (dst->type() == DataModule && RuleTypes.contains(src->type()))
+    {
+      Location key = src->front()->location();
+      auto target = std::find_if(dst->begin(), dst->end(), [key](auto& item) {
+        return item->front()->location() == key;
+      });
+
+      if (target == dst->end())
+      {
+        dst->push_back(src);
+      }
+      else
+      {
+        Node dst_rule = *target;
+        if (dst_rule->type() != DataRule)
+        {
+          // NB virtual doc rules are only merged if there is a name conflict
+          // with a non-virtual doc rule. This seems counter-intuitive but
+          // is correct as of v0.55.0 of Rego.
+          dst->push_back(src);
+        }
+      }
+
+      return dst;
+    }
+    else if (dst->type() == DataModule && src->type() == Submodule)
     {
       Location key = src->front()->location();
       auto target = std::find_if(dst->begin(), dst->end(), [key](auto& item) {
@@ -31,46 +57,19 @@ namespace
 
       return dst;
     }
-    else if (dst->type() == Module && src->type() == Module)
+    else if (dst->type() == DataModule && src->type() == DataModule)
     {
       for (auto& child : *src)
       {
-        Location key = child->front()->location();
-        auto target = std::find_if(dst->begin(), dst->end(), [key](auto& item) {
-          return item->front()->location() == key;
-        });
-        if (target == dst->end())
-        {
-          dst->push_back(child);
-        }
-        else
-        {
-          Node dst_submodule = (*target)->back();
-          Node src_submodule = child->back();
-          if (dst_submodule->type() != Module)
-          {
-            return err(
-              dst_submodule, "Cannot merge into a rule with the same name");
-          }
-          if (src_submodule->type() != Module)
-          {
-            return err(
-              dst_submodule,
-              "Cannot merge a rule with a submodule of the same name");
-          }
-
-          Node result = merge(dst_submodule, src_submodule);
-          if (result->type() == Error)
-          {
-            return result;
-          }
-        }
+        merge(dst, child);
       }
 
       return dst;
     }
     else
     {
+      std::cout << dst << std::endl;
+      std::cout << src << std::endl;
       return err(src, "Unsupported merge");
     }
   }
@@ -92,14 +91,15 @@ namespace rego
                T(Policy)[Policy])) >>
         [](Match& _) {
           Node args = _(RefArgSeq);
-          Node module = Module << *_[Policy];
+          Node module = DataModule << *_[Policy];
           while (args->size() > 0)
           {
             Node arg = args->back();
             args->pop_back();
             if (arg->type() == RefArgDot)
             {
-              module = Module << (Submodule << (Key ^ arg->front()) << module);
+              module = DataModule
+                << (Submodule << (Key ^ arg->front()) << module);
             }
             else if (arg->type() == RefArgBrack)
             {
@@ -113,10 +113,13 @@ namespace rego
               {
                 return err(idx, "Invalid package ref index");
               }
-              Location loc = idx->location();
-              loc.pos += 1;
-              loc.len -= 2;
-              module = Module << (Submodule << (Key ^ loc) << module);
+
+              std::string key = strip_quotes(idx->location().view());
+              if (!all_alnum(key))
+              {
+                key = "[\"" + key + "\"]";
+              }
+              module = DataModule << (Submodule << (Key ^ key) << module);
             }
             else
             {
@@ -124,16 +127,16 @@ namespace rego
             }
           }
 
-          return Lift << Rego << (DataItem << (Key ^ _(Var)) << module);
+          return Lift << Rego << (Submodule << (Key ^ _(Var)) << module);
         },
 
       In(Rego) * (T(ModuleSeq) << End) >> ([](Match&) -> Node { return {}; }),
 
       In(Rego) *
-          ((T(Data) << (T(Var)[Var] * T(DataItemSeq)[DataItemSeq])) *
-           T(DataItem)[DataItem]) >>
+          ((T(Data) << (T(Key)[Key] * T(DataModule)[DataModule])) *
+           T(Submodule)[Submodule]) >>
         [](Match& _) {
-          return Data << _(Var) << merge(_(DataItemSeq), _(DataItem));
+          return Data << _(Key) << merge(_(DataModule), _(Submodule));
         },
 
       // errors
@@ -143,6 +146,8 @@ namespace rego
 
       In(Rego) * (T(ModuleSeq)[ModuleSeq] << T(Error)) >>
         [](Match& _) { return _(Error); },
-    };
+
+      In(DataModule) * T(Import)[Import] >>
+        [](Match& _) { return err(_(Import), "Invalid import"); }};
   }
 }

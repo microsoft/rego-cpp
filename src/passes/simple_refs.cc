@@ -1,4 +1,5 @@
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "log.h"
 #include "passes.h"
 
@@ -95,160 +96,81 @@ namespace rego
           return seq;
         },
 
-      // ref.a
+      // ref.a/ref[a]
       T(RefTerm)
           << (T(Ref)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
               << ((T(RefHead) << T(Var)[Var]) *
-                  (T(RefArgSeq) << (T(RefArgDot))[Head] * RefArg++[Tail]))) >>
+                  (T(RefArgSeq) << (RefArg[Head] * RefArg++[Tail])))) >>
         [](Match& _) {
-          LOG("ref.a");
-          Node seq = NodeDef::create(Seq);
-          Location ref = _.fresh({"ref"});
-          seq->push_back(
-            Lift << UnifyBody << (Local << (Var ^ ref) << Undefined));
-          seq->push_back(
-            Lift << UnifyBody
-                 << (Literal
-                     << (Expr
-                         << (AssignInfix
-                             << (AssignArg << (RefTerm << (Var ^ ref)))
-                             << (AssignArg
-                                 << (RefTerm
-                                     << (SimpleRef << _(Var) << _(Head))))))));
-          NodeRange tail = _[Tail];
-          if (tail.second > tail.first)
+          LOG("ref.a/ref[a]");
+          if (_(Var)->location().view() == "data")
           {
-            seq->push_back(
-              RefTerm
-              << (Ref << (RefHead << (Var ^ ref)) << (RefArgSeq << tail)));
-          }
-          else
-          {
-            seq->push_back(RefTerm << (Var ^ ref));
+            // At this point all possible documents are fully qualified and in
+            // the symbol table. As such, a reference such as this, which points
+            // to a top-level module or rule, is a dead link and can be
+            // replaced.
+            Location dead = _.fresh({"dead"});
+            return RefTerm << (Var ^ dead);
           }
 
-          return seq;
+          NodeRange tail = _[Tail];
+          Location ref = _.fresh({"ref"});
+          Node seq =
+            Seq << (Lift << UnifyBody << (Local << (Var ^ ref) << Undefined))
+                << (Lift << UnifyBody
+                         << (Literal
+                             << (Expr
+                                 << (AssignInfix
+                                     << (AssignArg << (RefTerm << (Var ^ ref)))
+                                     << (AssignArg
+                                         << (RefTerm
+                                             << (SimpleRef << _(Var)
+                                                           << _(Head))))))));
+
+          if (tail.first == tail.second)
+          {
+            return seq << (RefTerm << (Var ^ ref));
+          }
+
+          return seq
+            << (RefTerm
+                << (Ref << (RefHead << (Var ^ ref)) << (RefArgSeq << tail)));
         },
 
-      // ref[a]
-      T(RefTerm)
-          << (T(Ref)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
-              << ((T(RefHead) << T(Var)[Var]) *
-                  (T(RefArgSeq) << (T(RefArgBrack)[Head] * RefArg++[Tail])))) >>
+      In(ExprCall) * (T(RuleRef) << T(Var)[Var]) >>
+        [](Match& _) { return _(Var); },
+
+      In(ExprCall) *
+          (T(RuleRef)[RuleRef](
+             [](auto& n) { return is_in(*n.first, {UnifyBody}); })
+           << T(Ref)) >>
         [](Match& _) {
-          LOG("ref[a]");
-          Node seq = NodeDef::create(Seq);
-          Location ref = _.fresh({"ref"});
-          seq->push_back(
-            Lift << UnifyBody << (Local << (Var ^ ref) << Undefined));
-
-          Node head = _(Head);
-          if (contains_local(head))
-          {
-            Location index = _.fresh({"index"});
-            seq->push_back(
-              Lift << UnifyBody << (Local << (Var ^ index) << Undefined));
-            seq->push_back(
-              Lift << UnifyBody
-                   << (Literal
-                       << (Expr
-                           << (AssignInfix
-                               << (AssignArg << (RefTerm << (Var ^ ref)))
-                               << (AssignArg
-                                   << (RefTerm
-                                       << (SimpleRef
-                                           << _(Var)
-                                           << (RefArgBrack
-                                               << (RefTerm
-                                                   << (Var ^ index))))))))));
-            Node arg = head->front();
-            if (
-              arg->type() == Array || arg->type() == Object ||
-              arg->type() == Set || arg->type() == Scalar)
-            {
-              arg = Term << arg;
-            }
-
-            seq->push_back(
-              Lift << UnifyBody
-                   << (Literal
-                       << (Expr
-                           << (AssignInfix
-                               << (AssignArg << arg)
-                               << (AssignArg << (RefTerm << (Var ^ index)))))));
-          }
-          else
-          {
-            seq->push_back(
-              Lift << UnifyBody
-                   << (Literal
-                       << (Expr
-                           << (AssignInfix
-                               << (AssignArg << (RefTerm << (Var ^ ref)))
-                               << (AssignArg
-                                   << (RefTerm
-                                       << (SimpleRef << _(Var) << head)))))));
-          }
-
-          NodeRange tail = _[Tail];
-          if (tail.second > tail.first)
-          {
-            seq->push_back(
-              RefTerm
-              << (Ref << (RefHead << (Var ^ ref)) << (RefArgSeq << tail)));
-          }
-          else
-          {
-            seq->push_back(RefTerm << (Var ^ ref));
-          }
-
-          return seq;
-        },
-
-      // expr-call
-      T(ExprCall)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
-          << ((T(VarSeq) << (T(Var)[Head] * T(Var)++[Tail])) *
-              T(ArgSeq)[ArgSeq]) >>
-        [](Match& _) {
-          LOG("expr-call");
-          Node seq = NodeDef::create(Seq);
-          Node head = _(Head);
-          NodeRange tail = _[Tail];
-          if (tail.second > tail.first)
-          {
-            for (auto it = tail.first; it != tail.second; ++it)
-            {
-              Node n = *it;
-              Location ref = _.fresh({"ref"});
-              seq->push_back(
-                Lift << UnifyBody << (Local << (Var ^ ref) << Undefined));
-              seq->push_back(
-                Lift << UnifyBody
+          Location call_func = _.fresh({"call_func"});
+          return Seq
+            << (Lift << UnifyBody << (Local << (Var ^ call_func) << Undefined))
+            << (Lift << UnifyBody
                      << (Literal
                          << (Expr
                              << (AssignInfix
-                                 << (AssignArg << (RefTerm << (Var ^ ref)))
                                  << (AssignArg
-                                     << (RefTerm
-                                         << (SimpleRef
-                                             << head << (RefArgDot << n))))))));
-              head = Var ^ ref;
-            }
-          }
-          seq->push_back(ExprCall << head << _(ArgSeq));
-          return seq;
+                                     << (RefTerm << (Var ^ call_func)))
+                                 << (AssignArg << (RefTerm << *_[RuleRef]))))))
+            << (Var ^ call_func);
         },
 
       // errors
       T(Expr)[Expr] << (Any * Any) >>
         [](Match& _) { return err(_(Expr), "Invalid expression"); },
 
-      In(ExprCall) * T(VarSeq)[VarSeq] >>
-        [](Match& _) { return err(_(VarSeq), "Invalid function call"); },
+      In(ExprCall) * T(RuleRef)[RuleRef] >>
+        [](Match& _) { return err(_(RuleRef), "Invalid function call"); },
 
       In(RefTerm) *
           T(Ref)[Ref]([](auto& n) { return !is_in(*n.first, {UnifyBody}); }) >>
         [](Match& _) { return err(_(Ref), "Unable to simplify reference"); },
+
+      In(RuleRef) * T(Ref)[Ref] >>
+        [](Match& _) { return err(_(Ref), "Invalid rule reference call"); },
     };
   }
 }

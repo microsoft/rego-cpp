@@ -1,24 +1,7 @@
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 #include "resolver.h"
-#include "trieste/token.h"
-
-namespace
-{
-  using namespace rego;
-  using namespace wf::ops;
-
-  const inline auto RefHeadToken = T(Var) / T(ExprCall);
-
-  // clang-format off
-  inline const auto wfi =
-      (Top <<= Rego)
-    | (RefArgDot <<= Var)
-    | (Else <<= (Val >>= Undefined | Group) * UnifyBody)
-    | (Ref <<= RefHead * RefArgSeq)
-    ;
-  // clang-format on
-}
 
 namespace rego
 {
@@ -32,18 +15,13 @@ namespace rego
       In(Query) * T(Group)[Group] >>
         [](Match& _) { return Literal << (Expr << *_[Group]); },
 
-      (In(RuleHeadComp) / In(RuleHeadFunc) / In(RuleHeadSet) /
-       In(RuleHeadObj)) *
-          T(Group)[Group] >>
-        [](Match& _) { return Expr << *_[Group]; },
-
-      In(DefaultRule) * (T(Group) << ScalarToken[Scalar]) >>
+      In(Input) * (T(Group) << ScalarToken[Scalar]) >>
         [](Match& _) { return Term << (Scalar << _(Scalar)); },
 
-      In(DefaultRule) * (T(Group) << StringToken[String]) >>
+      In(Input) * (T(Group) << StringToken[String]) >>
         [](Match& _) { return Term << (Scalar << (String << _(String))); },
 
-      In(DefaultRule) * (T(Group) << TermToken[Term]) >>
+      In(Input) * (T(Group) << TermToken[Term]) >>
         [](Match& _) { return Term << _(Term); },
 
       In(With) * (T(WithExpr) << T(Group)[Group]) >>
@@ -52,8 +30,45 @@ namespace rego
       In(Membership) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
-      In(ExprEvery) * (T(EverySeq) << T(Group)[Group]) >>
-        [](Match& _) { return _(Group); },
+      In(UnifyBody) *
+          (T(Group)
+           << (T(ExprEvery)
+               << (T(VarSeq)[VarSeq] * T(UnifyBody)[UnifyBody] *
+                   (T(EverySeq) << T(Group)[EverySeq])))) >>
+        [](Match& _) {
+          Node maybe_with = _(EverySeq)->back();
+          if (maybe_with->type() == With)
+          {
+            maybe_with->parent()->pop_back();
+            return LiteralWith
+              << (UnifyBody
+                  << (Literal
+                      << (Expr
+                          << (ExprEvery << _(VarSeq) << _(UnifyBody)
+                                        << _(EverySeq)))))
+              << (WithSeq << maybe_with);
+          }
+
+          return Literal
+            << (Expr
+                << (ExprEvery << _(VarSeq) << _(UnifyBody) << _(EverySeq)));
+        },
+
+      In(Rule) *
+          (T(RuleHead)
+           << ((T(RuleRef) << (T(Ref)[Ref] * (T(Array) << T(Group)[Key]))) *
+               (T(RuleHeadComp)
+                << (T(AssignOperator)[AssignOperator] * T(Group)[Val])))) >>
+        [](Match& _) {
+          return RuleHead << (RuleRef << _(Ref))
+                          << (RuleHeadObj << _(Key) << _(AssignOperator)
+                                          << _(Val));
+        },
+
+      (In(RuleHeadComp) / In(RuleHeadFunc) / In(RuleHeadSet) /
+       In(RuleHeadObj)) *
+          T(Group)[Group] >>
+        [](Match& _) { return Expr << *_[Group]; },
 
       (In(ObjectItemSeq) / In(Object)) *
           (T(ObjectItem) << T(Group)[Key] * T(Group)[Val]) >>
@@ -70,50 +85,12 @@ namespace rego
       In(Package) * (T(Group) << (T(Ref)[Ref] * End)) >>
         [](Match& _) { return _(Ref); },
 
-      In(With) * (T(WithRef) << (T(Group) << (T(Ref)[Ref] * End))) >>
-        [](Match& _) {
-          Node var = (_(Ref) / RefHead)->front();
-          if (var->type() != Var)
-          {
-            return err(var, "Non-var refhead in with");
-          }
-
-          Node varseq = VarSeq << var;
-          Node refargseq = _(Ref) / RefArgSeq;
-          for (Node refarg : *refargseq)
-          {
-            if (refarg->type() == RefArgDot)
-            {
-              varseq << refarg->front();
-            }
-            else if (refarg->type() == RefArgBrack)
-            {
-              Node index = refarg->front();
-              if (index->type() == Var)
-              {
-                return err(index, "Non-constant index in with");
-              }
-              std::string index_str = strip_quotes(to_json(index));
-              varseq << (Var ^ index_str);
-            }
-            else
-            {
-              return err(refarg, "Invalid refarg in with");
-            }
-          }
-
-          return varseq;
-        },
-
-      In(With) * (T(WithRef) << (T(Group) << (T(Var)[Var] * End))) >>
-        [](Match& _) { return VarSeq << _(Var); },
-
       In(Import) *
           ((T(ImportRef) << (T(Group) << (T(Ref)[Ref] * End))) * T(As) *
            T(Undefined)) >>
         [](Match& _) {
-          Node refhead = wfi / _(Ref) / RefHead;
-          Node refargseq = wfi / _(Ref) / RefArgSeq;
+          Node refhead = _(Ref) / RefHead;
+          Node refargseq = _(Ref) / RefArgSeq;
           Node var;
           if (refargseq->size() == 0)
           {
@@ -162,62 +139,95 @@ namespace rego
       In(Array) * (T(Group) << T(Expr)[Expr]) >>
         [](Match& _) { return _(Expr); },
 
-      In(RefArgBrack) * (T(Group) << T(Var)[Var]) >>
+      In(RefArgBrack) * (T(Group) << (T(Var)[Var] * End)) >>
         [](Match& _) { return _(Var); },
 
-      In(RefArgBrack) * (T(Group) << ScalarToken[Val]) >>
+      In(RefArgBrack) * (T(Group) << (ScalarToken[Val] * End)) >>
         [](Match& _) { return Scalar << _(Val); },
 
-      In(RefArgBrack) * (T(Group) << StringToken[Val]) >>
+      In(RefArgBrack) * (T(Group) << (StringToken[Val] * End)) >>
         [](Match& _) { return Scalar << (String << _(Val)); },
 
-      In(RefArgBrack) * (T(Group) << T(Object)[Object]) >>
+      In(RefArgBrack) * (T(Group) << (T(Object)[Object] * End)) >>
         [](Match& _) { return _(Object); },
 
-      In(RefArgBrack) * (T(Group) << T(Array)[Array]) >>
+      In(RefArgBrack) * (T(Group) << (T(Array)[Array] * End)) >>
         [](Match& _) { return _(Array); },
+
+      In(RefArgBrack) * (T(Group) << (T(Set)[Set] * End)) >>
+        [](Match& _) { return _(Set); },
+
+      In(RefArgBrack) * (T(Group) << (T(UnifyBody)[UnifyBody] * End)) >>
+        [](Match& _) { return Set << *_[UnifyBody]; },
+
+      In(RefArgBrack) * T(Group)[Group] >>
+        [](Match& _) { return Expr << *_[Group]; },
 
       (In(Array) / In(Set)) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
       In(UnifyBody) *
-          (T(Group)
-           << (T(SomeDecl) << (T(VarSeq)[VarSeq] * T(Group)[Group]))) >>
+          (T(Group) << (T(SomeDecl)[SomeDecl] * T(With)++[WithSeq])) >>
         [](Match& _) {
-          Node maybe_with = _(Group)->back();
-          if (maybe_with->type() == With)
+          if (_[WithSeq].first == _[WithSeq].second)
           {
-            _(Group)->pop_back();
-            return LiteralWith
-              << (UnifyBody << (Literal << (SomeDecl << _(VarSeq) << _(Group))))
-              << (WithSeq << maybe_with);
+            return Literal << _(SomeDecl);
           }
-          return Literal << (SomeDecl << _(VarSeq) << _(Group));
+
+          return LiteralWith << (UnifyBody << (Literal << _(SomeDecl)))
+                             << (WithSeq << _[WithSeq]);
         },
 
       In(UnifyBody) * T(Group)[Group] >>
         [](Match& _) {
+          Node withseq = NodeDef::create(WithSeq);
           Node maybe_with = _(Group)->back();
-          if (maybe_with->type() == With)
+          while (maybe_with->type() == With)
           {
-            if (_(Group)->size() == 1)
+            _(Group)->pop_back();
+            withseq->push_front(maybe_with);
+            if (_(Group)->size() == 0)
             {
-              return maybe_with;
+              break;
             }
 
-            Node expr = NodeDef::create(Expr);
-            expr->insert(expr->begin(), _(Group)->begin(), _(Group)->end() - 1);
-            return LiteralWith << (UnifyBody << (Literal << expr))
-                               << (WithSeq << maybe_with);
+            maybe_with = _(Group)->back();
           }
-          return Literal << (Expr << *_[Group]);
+
+          if (_(Group)->size() == 0)
+          {
+            return withseq;
+          }
+
+          Node expr = NodeDef::create(Expr);
+          expr->insert(expr->end(), _(Group)->begin(), _(Group)->end());
+
+          if (withseq->size() > 0)
+          {
+            return LiteralWith << (UnifyBody << (Literal << expr)) << withseq;
+          }
+
+          return Literal << expr;
+        },
+
+      In(UnifyBody) * (T(Literal)[Literal] * T(WithSeq)[WithSeq]) >>
+        [](Match& _) {
+          return LiteralWith << (UnifyBody << _(Literal)) << _(WithSeq);
         },
 
       In(UnifyBody) *
-          ((T(LiteralWith) << (T(Literal)[Literal] * T(WithSeq)[WithSeq])) *
+          ((T(LiteralWith) << (T(UnifyBody)[UnifyBody] * T(WithSeq)[Head])) *
+           T(WithSeq)[Tail]) >>
+        [](Match& _) {
+          return LiteralWith << _(UnifyBody)
+                             << (WithSeq << *_[Head] << *_[Tail]);
+        },
+
+      In(UnifyBody) *
+          ((T(LiteralWith) << (T(UnifyBody)[UnifyBody] * T(WithSeq)[WithSeq])) *
            T(With)[With]) >>
         [](Match& _) {
-          return LiteralWith << (UnifyBody << _(Literal))
+          return LiteralWith << _(UnifyBody)
                              << (WithSeq << *_[WithSeq] << _(With));
         },
 
@@ -277,14 +287,14 @@ namespace rego
 
       // errors
 
+      In(Input) * T(Group)[Group] >>
+        [](Match& _) { return err(_(Group), "Invalid input term"); },
+
       In(VarSeq) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Expected a variable"); },
 
       In(Import) * T(ImportRef)[ImportRef] >>
         [](Match& _) { return err(_(ImportRef), "Invalid import reference"); },
-
-      In(With) * T(WithRef)[WithRef] >>
-        [](Match& _) { return err(_(WithRef), "Invalid with reference"); },
 
       In(Package) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid package name"); },
@@ -314,6 +324,9 @@ namespace rego
       In(ExprEvery) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid every sequence"); },
 
+      In(ExprEvery) * T(EverySeq)[EverySeq] >>
+        [](Match& _) { return err(_(EverySeq), "Invalid every sequence"); },
+
       T(UnifyBody)[UnifyBody] << End >>
         [](Match& _) { return err(_(UnifyBody), "Empty body"); },
 
@@ -325,9 +338,6 @@ namespace rego
 
       In(Expr) * T(UnifyBody)[UnifyBody] >>
         [](Match& _) { return err(_(UnifyBody), "Invalid body location"); },
-
-      In(RefArgBrack) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid index"); },
 
       In(RuleArgs) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid argument"); },
@@ -343,6 +353,21 @@ namespace rego
 
       In(SomeDecl) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid some declaration"); },
+
+      In(RuleRef) * (Any * Any[Val]) >>
+        [](Match& _) { return err(_(Val), "Invalid rule reference"); },
+
+      In(RuleRef) * (T(Dot) / T(Array))[Val] >>
+        [](Match& _) { return err(_(Val), "Invalid rule reference"); },
+
+      In(UnifyBody) * T(WithSeq)[WithSeq] >>
+        [](Match& _) { return err(_(WithSeq), "Invalid with statement"); },
+
+      In(UnifyBody) * T(SomeDecl)[SomeDecl] >>
+        [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
+
+      In(Set) * T(SomeDecl)[SomeDecl] >>
+        [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
     };
   }
 }

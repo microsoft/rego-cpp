@@ -1,27 +1,66 @@
 #include "builtins.h"
 
 #include "builtins/register.h"
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "resolver.h"
+#include "version.h"
 
 namespace
 {
   using namespace rego;
 
+  Node opa_runtime(const Nodes&)
+  {
+    return version();
+  }
+
+  Node cast_array(const Nodes& args)
+  {
+    auto maybe_items = Resolver::maybe_unwrap(args[0], {Array, Set});
+    if (!maybe_items.has_value())
+    {
+      return err(
+        args[0], "operand 1 must be one of {array, set}", EvalTypeError);
+    }
+
+    Node items = maybe_items.value();
+    return Resolver::array(items);
+  }
+
+  Node cast_set(const Nodes& args)
+  {
+    auto maybe_items = Resolver::maybe_unwrap(args[0], {Array, Set});
+    if (!maybe_items.has_value())
+    {
+      return err(
+        args[0], "operand 1 must be one of {array, set}", EvalTypeError);
+    }
+
+    Node items = maybe_items.value();
+    return Resolver::set(items);
+  }
+
+  Node json_marshal(const Nodes& args)
+  {
+    return JSONString ^ to_json(args[0], false, false);
+  }
+
   Node to_number(const Nodes& args)
   {
-    auto maybe_number = Resolver::maybe_unwrap_string(args[0]);
-    if (!maybe_number.has_value())
+    auto maybe_number_string = Resolver::maybe_unwrap_string(args[0]);
+    if (!maybe_number_string.has_value())
     {
       return err(args[0], "to_number: expected string argument");
     }
 
-    if (BigInt::is_int(args[0]->location()))
+    Node number_string = maybe_number_string.value();
+    if (BigInt::is_int(number_string->location()))
     {
-      return JSONInt ^ args[0]->location();
+      return JSONInt ^ number_string->location();
     }
 
-    std::string number_str = Resolver::get_string(*maybe_number);
+    std::string number_str = Resolver::get_string(number_string);
     try
     {
       double float_value = std::stod(number_str);
@@ -92,6 +131,14 @@ namespace rego
       return err(args[0], "wrong number of arguments");
     }
 
+    for (auto& arg : args)
+    {
+      if (arg->type() == Error)
+      {
+        return arg;
+      }
+    }
+
     Node result = builtin->behavior(args);
     if (result->type() == Error)
     {
@@ -116,15 +163,25 @@ namespace rego
 
   BuiltIns& BuiltIns::register_standard_builtins()
   {
-    register_builtin(BuiltInDef::create(Location("to_number"), 1, ::to_number));
-    register_builtin(BuiltInDef::create(Location("print"), AnyArity, ::print));
+    register_builtins<std::initializer_list<BuiltIn>>({
+      BuiltInDef::create(Location("to_number"), 1, ::to_number),
+      BuiltInDef::create(Location("print"), AnyArity, ::print),
+      BuiltInDef::create(Location("json.marshal"), 1, ::json_marshal),
+      BuiltInDef::create(Location("cast_array"), 1, ::cast_array),
+      BuiltInDef::create(Location("cast_set"), 1, ::cast_set),
+      BuiltInDef::create(Location("opa.runtime"), 0, ::opa_runtime),
+    });
 
     register_builtins(builtins::aggregates());
     register_builtins(builtins::arrays());
     register_builtins(builtins::encoding());
     register_builtins(builtins::numbers());
+    register_builtins(builtins::objects());
     register_builtins(builtins::sets());
+    register_builtins(builtins::semver());
     register_builtins(builtins::strings());
+    register_builtins(builtins::time());
+    register_builtins(builtins::units());
 
     return *this;
   }

@@ -43,6 +43,7 @@ namespace rego_test
   inline const auto Square = TokenDef("yaml-square");
   inline const auto NewLine = TokenDef("yaml-newline");
   inline const auto EmptySequence = TokenDef("yaml-empty-sequence");
+  inline const auto EmptyMapping = TokenDef("yaml-empty-mapping");
 
   inline const auto wf_parse_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | LiteralString | FoldedString | SingleQuoteString |
@@ -52,7 +53,7 @@ namespace rego_test
   inline const auto wf_parser =
     (Top <<= File)
     | (File <<= Group++[1])
-    | (Block <<= Group++[1])
+    | (Block <<= Group++)
     | (LiteralString <<= Group++[1])
     | (FoldedString <<= Group++[1])
     | (SingleQuoteString <<= Group++)
@@ -65,7 +66,7 @@ namespace rego_test
 
   inline const auto wf_entry_tokens = Block | String | Integer | Float | True |
     False | Null | Colon | Entry | LiteralString | FoldedString |
-    SingleQuoteString | DoubleQuoteString | EmptySequence;
+    SingleQuoteString | DoubleQuoteString | EmptySequence | EmptyMapping;
 
   // clang-format off
   inline const auto wf_pass_entry =
@@ -81,7 +82,7 @@ namespace rego_test
   // clang-format on    
 
   inline const auto wf_sequence_tokens =
-    Block | String | Integer | Float | True | False | Null | Colon | Sequence;
+    Block | String | Integer | Float | True | False | Null | Colon | Sequence | EmptyMapping;
 
   // clang-format off
   inline const auto wf_pass_sequence =
@@ -95,7 +96,7 @@ namespace rego_test
   inline const auto wf_pass_scalar =
     wf_pass_sequence
     | (Scalar <<= String | Integer | Float | True | False | Null)
-    | (Group <<= (Block | Scalar | Sequence | Colon)++[1])
+    | (Group <<= (Block | Scalar | Sequence | Colon | EmptyMapping)++[1])
     ;
   // clang-format on
 
@@ -103,8 +104,8 @@ namespace rego_test
   inline const auto wf_pass_keyvalue =
     wf_pass_scalar
     | (KeyValue <<= Key * Group)
-    | (Block <<= (Group | KeyValue)++[1])
-    | (Group <<= Block | Scalar | Sequence | KeyValue)
+    | (Block <<= (Group | KeyValue)++)
+    | (Group <<= Block | Scalar | Sequence | KeyValue | EmptyMapping)
     ;
   // clang-format on
 
@@ -145,7 +146,7 @@ namespace rego_test
     | (WantResult <<= rego::Binding++)
     | (rego::Binding <<= rego::Var * rego::Term)
     | (rego::Term <<= wf_rego_term_tokens)
-    | (rego::Object <<= rego::ObjectItem++[1])
+    | (rego::Object <<= rego::ObjectItem++)
     | (rego::ObjectItem <<= rego::Key * rego::Term)
     | (rego::Array <<= rego::Term++)
     | (rego::Set <<= rego::Term++)

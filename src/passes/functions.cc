@@ -1,4 +1,5 @@
-#include "lang.h"
+#include "errors.h"
+#include "helpers.h"
 #include "passes.h"
 
 namespace
@@ -8,17 +9,6 @@ namespace
 
   const auto inline VarOrTerm = T(Var) / T(Term);
   const auto inline RefArg = T(RefArgDot) / T(RefArgBrack);
-
-  // clang-format off
-  inline const auto wfi =
-    (NumTerm <<= JSONInt | JSONFloat)
-    | (ArithArg <<= RefTerm | NumTerm | UnaryExpr | ArithInfix)
-    | (BoolArg <<= Term | RefTerm | NumTerm | UnaryExpr | ArithInfix)
-    | (RefArgDot <<= Var)
-    | (RefArgBrack <<= Scalar | Var | Object | Array | Set)
-    | (RefTerm <<= SimpleRef)
-    ;
-  // clang-format on
 }
 namespace rego
 {
@@ -29,6 +19,9 @@ namespace rego
   PassDef functions()
   {
     return {
+      In(Input) * T(DataTerm)[DataTerm] >>
+        [](Match& _) { return Term << *_[DataTerm]; },
+
       (In(UnifyExpr) / In(ArgSeq)) * (T(Expr) << Any[Val]) >>
         [](Match& _) { return _(Val); },
 
@@ -132,12 +125,6 @@ namespace rego
           ;
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * T(ToValues)[ToValues] >>
-        [](Match& _) {
-          return Function << (JSONString ^ "to-values")
-                          << (ArgSeq << *_[ToValues]);
-        },
-
       (In(UnifyExpr) / In(ArgSeq)) * (T(Merge) << T(Var)[Var]) >>
         [](Match& _) {
           return Function << (JSONString ^ "merge") << (ArgSeq << _(Var));
@@ -161,21 +148,9 @@ namespace rego
           return seq;
         },
 
-      In(UnifyBody) * (T(UnifyExprNot) << (T(Var)[Lhs] * T(Expr)[Rhs])) >>
+      (In(UnifyExpr) / In(ArgSeq)) * (T(Not) << T(Expr)[Expr]) >>
         [](Match& _) {
-          Location temp = _.fresh({"expr"});
-          return Seq << (Local << (Var ^ temp) << Undefined)
-                     << (UnifyExpr << (Var ^ temp) << _(Rhs))
-                     << (UnifyExpr << _(Lhs)
-                                   << (Function << (JSONString ^ "not")
-                                                << (ArgSeq << (Var ^ temp))));
-        },
-
-      In(UnifyExpr) *
-          (T(ExprEvery) << (T(VarSeq)[VarSeq] * T(NestedBody)[NestedBody])) >>
-        [](Match& _) {
-          return Function << (JSONString ^ "every")
-                          << (ArgSeq << _(VarSeq) << _(NestedBody));
+          return Function << (JSONString ^ "not") << (ArgSeq << _(Expr));
         },
 
       (In(UnifyExpr) / In(ArgSeq)) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
@@ -215,7 +190,7 @@ namespace rego
           (T(RefTerm)
            << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
         [](Match& _) {
-          Location field_name = (wfi / _(RefArgDot) / Var)->location();
+          Location field_name = _(RefArgDot)->front()->location();
           Node arg = Scalar << (JSONString ^ field_name);
           return Function << (JSONString ^ "apply_access")
                           << (ArgSeq << _(Var) << arg);
@@ -228,7 +203,7 @@ namespace rego
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           Node arg = _(RefArgBrack)->front();
-          if (arg->type() == RefTerm)
+          if (arg->type() == RefTerm || arg->type() == Expr)
           {
             return Function << (JSONString ^ "apply_access")
                             << (ArgSeq << _(Var) << arg);
@@ -293,14 +268,12 @@ namespace rego
       In(ArgSeq) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Invalid reference"); },
 
-      In(ObjectItem) * T(Module)[Module] >>
+      In(ObjectItem) * T(DataModule)[DataModule] >>
         [](Match& _) {
           return err(
-            _(Module), "Syntax error: module not allowed as object item value");
+            _(DataModule),
+            "Syntax error: module not allowed as object item value");
         },
-
-      In(ArgSeq) * T(ExprEvery)[ExprEvery] >>
-        [](Match& _) { return err(_(ExprEvery), "Invalid every statement"); },
     };
   }
 }

@@ -15,7 +15,18 @@ list( GET REGOCPP_VERSION_LIST 1 REGOCPP_VERSION_MINOR )
 
 list( GET REGOCPP_VERSION_LIST 2 REGOCPP_VERSION_REVISION )
 
+set ( REGOCPP_OPA_VERSION 0.55.0 )
+
 set( REGOCPP_VERSION ${REGOCPP_VERSION_MAJOR}.${REGOCPP_VERSION_MINOR}.${REGOCPP_VERSION_REVISION} )
+
+find_package(Git REQUIRED)
+
+execute_process(
+  COMMAND git log -1 --format=%H
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+  OUTPUT_VARIABLE REGOCPP_GIT_HASH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
 
 message("Configure REGOCPP_VERSION at ${REGOCPP_VERSION}")
 
@@ -36,7 +47,7 @@ option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculati
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        949c46601db56056282bacf0b41b12a101d09616
+  GIT_TAG        140e55346b5b6f367538790c98d9d7543376b515
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
@@ -86,7 +97,6 @@ else()
 endif()
 
 if(REGOCPP_OPA_TESTS)
-  find_package(Git REQUIRED)
   if(NOT IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/opa)
     execute_process(COMMAND ${GIT_EXECUTABLE} clone --depth=1 --branch v0.55.0 https://github.com/open-policy-agent/opa/ 
                     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

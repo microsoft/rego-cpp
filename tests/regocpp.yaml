@@ -1045,3 +1045,33 @@ cases:
     - x:
       - 3
       - "3"
+- note: regocpp/refrules
+  modules:
+  - |
+    package refrules
+
+    fruit.apple.seeds = 12
+    fruit.orange.colors = {"orange"}
+    fruit.apple["name"] = "apple"
+    fruit.apple.colors = {"red", "green"}
+    fruit["orange"].size = 5.3
+    fruit.orange.name = "orange"
+    fruit["apple"]["color.count"] = count(fruit.apple["colors"])
+    fruit["color.name"](fruit, color) := name {
+      sep := [" "]
+      fruit.colors[color]
+      name := concat(sep[0], [color, fruit.name])
+    }
+  query: data.refrules.fruit = x; data.refrules.fruit["color.name"](data.refrules.fruit.apple, "green") = y
+  want_result:
+    - x:
+        apple:
+          color.count: 2
+          colors: [green, red]
+          name: apple
+          seeds: 12
+        orange:
+          colors: [orange]
+          name: orange
+          size: 5.3
+      y: "green apple"

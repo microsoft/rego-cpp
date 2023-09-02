@@ -1,4 +1,5 @@
 #include "errors.h"
+#include "helpers.h"
 #include "register.h"
 #include "resolver.h"
 #include "utf8.h"
@@ -513,7 +514,7 @@ namespace
           break;
 
         case PrintVerbType::String:
-          result << Resolver::get_string(node->front());
+          result << Resolver::get_string(node);
           break;
 
         case PrintVerbType::Literal:
