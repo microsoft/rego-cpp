@@ -49,8 +49,8 @@ namespace
   std::optional<SemVer> parse_semver(const std::string& s)
   {
     SemVer result;
-    auto start = 0;
-    auto end = s.find('.');
+    std::size_t start = 0;
+    std::size_t end = s.find('.');
 
     if (end == s.npos)
     {
@@ -67,7 +67,7 @@ namespace
     {
       result.major = std::stoi(major);
     }
-    catch (std::invalid_argument& e)
+    catch (std::invalid_argument&)
     {
       return std::nullopt;
     }
@@ -90,7 +90,7 @@ namespace
     {
       result.minor = std::stoi(minor);
     }
-    catch (std::invalid_argument& e)
+    catch (std::invalid_argument&)
     {
       return std::nullopt;
     }
@@ -106,7 +106,7 @@ namespace
     {
       result.patch = std::stoi(patch);
     }
-    catch (std::invalid_argument& e)
+    catch (std::invalid_argument&)
     {
       return std::nullopt;
     }

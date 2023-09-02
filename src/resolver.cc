@@ -1866,8 +1866,8 @@ namespace rego
     Node& object, const std::string& path, const Node& value)
   {
     Node current = object;
-    auto start = 0;
-    auto pos = path.find('.');
+    std::size_t start = 0;
+    std::size_t pos = path.find('.');
     while (pos != path.npos)
     {
       std::string prefix = path.substr(start, pos - start);

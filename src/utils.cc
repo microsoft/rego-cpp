@@ -3,8 +3,64 @@
 #include "resolver.h"
 #include "version.h"
 
+#ifdef _WIN32
+#include <codecvt>
+#include <windows.h>
+
+typedef std::map<std::string, std::string> environment_t;
+environment_t get_env()
+{
+  environment_t env;
+
+  using convert_type = std::codecvt_utf8<wchar_t>;
+  std::wstring_convert<convert_type, wchar_t> converter;
+
+  auto free = [](wchar_t* p) { FreeEnvironmentStringsW(p); };
+  auto env_block =
+    std::unique_ptr<wchar_t, decltype(free)>{GetEnvironmentStringsW(), free};
+
+  for (const wchar_t* name = env_block.get(); *name != L'\0';)
+  {
+    const wchar_t* equal = wcschr(name, L'=');
+    std::wstring keyw(name, equal - name);
+
+    const wchar_t* pValue = equal + 1;
+    std::wstring valuew(pValue);
+
+    std::string key = converter.to_bytes(keyw);
+    std::string value = converter.to_bytes(valuew);
+
+    env[key] = value;
+
+    name = pValue + value.length() + 1;
+  }
+
+  return env;
+}
+#else
+extern char** environ;
+
+std::map<std::string, std::string> get_env()
+{
+  std::map<std::string, std::string> env;
+  for (size_t i = 0; environ[i] != NULL; i++)
+  {
+    std::string env_str = environ[i];
+    size_t pos = env_str.find('=');
+    if (pos != std::string::npos)
+    {
+      std::string key = env_str.substr(0, pos);
+      std::string value = env_str.substr(pos + 1);
+      env[key] = value;
+    }
+  }
+  return env;
+}
+#endif
+
 namespace rego
 {
+
   std::string to_json(const Node& node, bool sort, bool rego_set)
   {
     std::ostringstream buf;
@@ -473,17 +529,11 @@ namespace rego
       ObjectItem << Resolver::term("version")
                  << Resolver::term(REGOCPP_OPA_VERSION));
     Node env = NodeDef::create(Object);
-    for (size_t i = 0; environ[i] != NULL; i++)
+    std::map<std::string, std::string> env_map = get_env();
+    for (auto& [key, value] : env_map)
     {
-      std::string env_str = environ[i];
-      size_t pos = env_str.find('=');
-      if (pos != std::string::npos)
-      {
-        std::string key = env_str.substr(0, pos);
-        std::string value = env_str.substr(pos + 1);
-        env->push_back(
-          ObjectItem << Resolver::term(key) << Resolver::term(value));
-      }
+      env->push_back(
+        ObjectItem << Resolver::term(key) << Resolver::term(value));
     }
     object->push_back(ObjectItem << Resolver::term("env") << env);
     return object;

@@ -6,8 +6,6 @@
 #include "resolver.h"
 #include "version.h"
 
-extern char** environ;
-
 namespace
 {
   using namespace rego;

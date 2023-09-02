@@ -84,7 +84,8 @@ target_precompile_headers(rego
 
 
 if (MSVC)
-  target_compile_options(rego PUBLIC "/Zc:__cplusplus")    
+  target_compile_options(rego PUBLIC "/Zc:__cplusplus")
+  target_compile_definitions(rego PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
 endif()
 
 target_include_directories( rego

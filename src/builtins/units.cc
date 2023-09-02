@@ -7,7 +7,7 @@ namespace
 {
   using namespace rego;
 
-  const BigInt kb = 1024ul;
+  const BigInt kb = static_cast<std::size_t>(1024);
   std::map<std::string, BigInt> bytes = {
     {"ki", kb},
     {"mi", kb* kb},
@@ -17,7 +17,7 @@ namespace
     {"ei", kb* kb* kb* kb* kb* kb},
   };
 
-  const BigInt k = 1000ul;
+  const BigInt k = static_cast<std::size_t>(1000);
   std::map<std::string, BigInt> big_units = {
     {"k", k},
     {"m", k* k},

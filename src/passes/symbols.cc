@@ -112,7 +112,7 @@ namespace rego
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
                T(Empty) * (T(ElseSeq) << End))) >>
         [](Match& _) {
-          std::size_t rank = std::numeric_limits<std::size_t>::max();
+          std::size_t rank = std::numeric_limits<std::uint16_t>::max();
           return RuleComp << _(Id) << Empty << _(Expr)
                           << (JSONInt ^ std::to_string(rank));
         },
@@ -185,7 +185,7 @@ namespace rego
                          T(Expr)[Expr])))) *
                T(Empty) * (T(ElseSeq) << End))) >>
         [](Match& _) {
-          std::size_t rank = std::numeric_limits<std::size_t>::max();
+          std::size_t rank = std::numeric_limits<std::uint16_t>::max();
           return RuleFunc << _(Id) << _(RuleArgs) << Empty << _(Expr)
                           << (JSONInt ^ std::to_string(rank));
         },
