@@ -31,6 +31,12 @@ if(REGOCPP_OPA_TESTS)
   array
   assignments
   baseandvirtualdocs
+  bitsand
+  bitsnegate
+  bitsor
+  bitsshiftleft
+  bitsshiftright
+  bitsxor
   casts
   comparisonexpr
   completedoc

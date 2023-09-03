@@ -51,6 +51,7 @@ passes/unify.cc
 passes/query.cc
 builtins/aggregates.cc
 builtins/arrays.cc
+builtins/bits.cc
 builtins/casts.cc
 builtins/encoding.cc
 builtins/numbers.cc

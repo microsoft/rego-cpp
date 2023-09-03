@@ -8,6 +8,7 @@ namespace rego
   {
     std::vector<BuiltIn> aggregates();
     std::vector<BuiltIn> arrays();
+    std::vector<BuiltIn> bits();
     std::vector<BuiltIn> casts();
     std::vector<BuiltIn> encoding();
     std::vector<BuiltIn> numbers();

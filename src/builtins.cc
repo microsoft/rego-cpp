@@ -119,6 +119,7 @@ namespace rego
 
     register_builtins(builtins::aggregates());
     register_builtins(builtins::arrays());
+    register_builtins(builtins::bits());
     register_builtins(builtins::casts());
     register_builtins(builtins::encoding());
     register_builtins(builtins::numbers());
