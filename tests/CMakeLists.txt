@@ -79,6 +79,7 @@ if(REGOCPP_OPA_TESTS)
   regexmatch
   regexreplace
   regexsplit
+  regexmatchtemplate
   semvercompare
   semverisvalid
   sets

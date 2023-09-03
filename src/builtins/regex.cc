@@ -425,6 +425,105 @@ namespace
 
     return array;
   }
+
+  enum class SectionType
+  {
+    Literal,
+    Regex
+  };
+
+  struct Section
+  {
+    std::string pattern;
+    SectionType type;
+  };
+
+  std::vector<Section> parse_template(const std::string& template_, const std::string& delim_start, const std::string& delim_end)
+  {
+    std::vector<Section> sections;
+    std::size_t start = 0;
+    std::size_t regex_start = template_.find(delim_start);
+    while(regex_start < template_.npos)
+    {
+      regex_start += delim_start.size();
+      std::size_t regex_end = template_.find(delim_end, regex_start);
+      if(regex_end != template_.npos){
+        if(regex_start > start){
+          sections.push_back({template_.substr(start, regex_start-start-delim_start.size()), SectionType::Literal});
+        }
+        sections.push_back({template_.substr(regex_start, regex_end-regex_start), SectionType::Regex});
+        start = regex_end + delim_end.size();
+        regex_start = template_.find(delim_start, start);
+      }else{
+        break;
+      }
+    }
+
+    if(start < template_.size()){
+      sections.push_back({template_.substr(start), SectionType::Literal});
+    }
+
+    return sections;
+  }
+
+  std::string compile_template(const std::string& template_, const std::string& delim_start, const std::string& delim_end)
+  {
+    std::vector<Section> sections = parse_template(template_, delim_start, delim_end);
+    std::ostringstream os;
+    for(const auto& section : sections)
+    {
+      if(section.type == SectionType::Literal){
+        os << section.pattern;
+      }else{
+        os << "(?:" << section.pattern << ")";
+      }
+    }
+    return os.str();
+  }
+
+  Node template_match(const Nodes& args)
+  {
+    Node template_node = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("regex.template_match"));
+    if (template_node->type() == Error)
+    {
+      return template_node;
+    }
+
+    Node value_node = unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("regex.template_match"));
+    if (value_node->type() == Error)
+    {
+      return value_node;
+    }
+
+    Node delimiter_start_node = unwrap_arg(args, UnwrapOpt(2).type(JSONString).func("regex.template_match"));
+    if (delimiter_start_node->type() == Error)
+    {
+      return delimiter_start_node;
+    }
+
+    Node delimiter_end_node = unwrap_arg(args, UnwrapOpt(3).type(JSONString).func("regex.template_match"));
+    if (delimiter_end_node->type() == Error)
+    {
+      return delimiter_end_node;
+    }
+
+    std::string template_ = json_to_raw(get_string(template_node));
+    std::string value = get_string(value_node);
+    std::string delimiter_start = get_string(delimiter_start_node);
+    std::string delimiter_end = get_string(delimiter_end_node);
+
+    std::string pattern = compile_template(template_, delimiter_start, delimiter_end);
+    try
+    {
+      std::regex re(pattern);
+      bool match = std::regex_match(value, re);
+      return Resolver::scalar(match);
+    }
+    catch (std::regex_error& e)
+    {
+      return error(template_node, e.code());
+    }
+  }
 }
 
 namespace rego
@@ -440,7 +539,8 @@ namespace rego
         BuiltInDef::create(Location("regex.is_valid"), 1, is_valid),
         BuiltInDef::create(Location("regex.match"), 2, match),
         BuiltInDef::create(Location("regex.replace"), 3, replace),
-        BuiltInDef::create(Location("regex.split"), 2, split),
+        BuiltInDef::create(Location("regex.split"), 2, split),\
+        BuiltInDef::create(Location("regex.template_match"), 4, template_match),
       };
     }
   }
