@@ -2,7 +2,6 @@
 #include "errors.h"
 #include "helpers.h"
 #include "register.h"
-#include "resolver.h"
 
 namespace
 {
@@ -10,28 +9,26 @@ namespace
 
   Node base64_encode_(const Nodes& args)
   {
-    auto maybe_x_string = Resolver::maybe_unwrap_string(args[0]);
-    if (!maybe_x_string.has_value())
+    Node x_string_node = unwrap_arg(args, UnwrapOpt(0).type(JSONString));
+    if (x_string_node->type() == Error)
     {
-      return err(args[0], "Not a string");
+      return x_string_node;
     }
 
-    std::string x_string =
-      std::string(maybe_x_string.value()->location().view());
+    std::string x_string = get_string(x_string_node);
     std::string encoded = ::base64_encode(x_string);
     return JSONString ^ encoded;
   }
 
   Node base64_decode_(const Nodes& args)
   {
-    auto maybe_x_string = Resolver::maybe_unwrap_string(args[0]);
-    if (!maybe_x_string.has_value())
+    Node x_string_node = unwrap_arg(args, UnwrapOpt(0).type(JSONString));
+    if (x_string_node->type() == Error)
     {
-      return err(args[0], "Not a string");
+      return x_string_node;
     }
 
-    std::string x_string =
-      strip_quotes(maybe_x_string.value()->location().view());
+    std::string x_string = get_string(x_string_node);
     std::string decoded = ::base64_decode(x_string);
     return JSONString ^ decoded;
   }

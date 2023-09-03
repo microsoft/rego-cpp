@@ -2,7 +2,6 @@
 #include "helpers.h"
 #include "log.h"
 #include "passes.h"
-#include "resolver.h"
 
 namespace
 {

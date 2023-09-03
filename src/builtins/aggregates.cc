@@ -10,41 +10,21 @@ namespace
 
   Node count(const Nodes& args)
   {
-    Node collection = args[0];
-    if (collection->type() == Term)
+    Node collection = unwrap_arg(
+      args, UnwrapOpt(0).types({Array, Object, Set, JSONString}));
+    if (collection->type() == Error)
     {
-      collection = collection->front();
-    }
-
-    if (
-      collection->type() == Object || collection->type() == Array ||
-      collection->type() == Set)
-    {
-      return Resolver::scalar(BigInt(collection->size()));
-    }
-
-    if (collection->type() == Scalar)
-    {
-      collection = collection->front();
+      return collection;
     }
 
     if (collection->type() == JSONString)
     {
-      std::string collection_str = strip_quotes(collection->location().view());
+      std::string collection_str = get_string(collection);
       runestring collection_runes = utf8_to_runestring(collection_str);
       return Resolver::scalar(BigInt(collection_runes.size()));
     }
 
-    std::string collection_type = std::string(collection->type().str());
-    if (collection_type == "INT" || collection_type == "FLOAT")
-    {
-      collection_type = "number";
-    }
-    return err(
-      args[0],
-      "operand 1 must be one of {array, object, set, string} but got " +
-        collection_type,
-      EvalTypeError);
+    return Resolver::scalar(BigInt(collection->size()));
   }
 
   Node max(const Nodes& args)

@@ -1,5 +1,6 @@
-#include "errors.h"
 #include "helpers.h"
+
+#include "errors.h"
 #include "resolver.h"
 #include "version.h"
 
@@ -57,6 +58,21 @@ std::map<std::string, std::string> get_env()
   return env;
 }
 #endif
+
+namespace
+{
+  using namespace rego;
+
+  BigInt get_int(const Node& node)
+  {
+    return BigInt(node->location());
+  }
+
+  double get_double(const Node& node)
+  {
+    return std::stod(to_json(node));
+  }
+}
 
 namespace rego
 {
@@ -537,5 +553,343 @@ namespace rego
     }
     object->push_back(ObjectItem << Resolver::term("env") << env);
     return object;
+  }
+
+  BigInt get_int(const Node& node)
+  {
+    assert(node->type() == JSONInt);
+    return ::get_int(node);
+  }
+
+  double get_double(const Node& node)
+  {
+    assert(node->type() == JSONFloat || node->type() == JSONInt);
+    return ::get_double(node);
+  }
+
+  std::string get_string(const Node& node)
+  {
+    Node value = node;
+    if (value->type() == Term)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == JSONString)
+    {
+      return strip_quotes(value->location().view());
+    }
+
+    return std::string(value->location().view());
+  }
+
+  bool get_bool(const Node& node)
+  {
+    assert(node->type() == JSONTrue || node->type() == JSONFalse);
+    return node->type() == JSONTrue;
+  }
+
+  bool is_truthy(const Node& node)
+  {
+    assert(node->type() == Term || node->type() == TermSet);
+    if (node->type() == TermSet)
+    {
+      return true;
+    }
+
+    Node value = node->front();
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+      return value->type() != JSONFalse;
+    }
+
+    if (
+      value->type() == Object || value->type() == Array || value->type() == Set)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool is_undefined(const Node& node)
+  {
+    if (node->type() == DataModule)
+    {
+      return false;
+    }
+
+    if (node->type() == Undefined)
+    {
+      return true;
+    }
+
+    for (auto& child : *node)
+    {
+      if (is_undefined(child))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool is_falsy(const Node& node)
+  {
+    Node value = node;
+    if (value->type() == Term)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == JSONFalse)
+    {
+      return true;
+    }
+
+    if (is_undefined(value))
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  std::string type_name(const Token& type, bool specify_number)
+  {
+    if (type == JSONInt)
+    {
+      if (specify_number)
+      {
+        return "integer number";
+      }
+      return "number";
+    }
+
+    if (type == JSONFloat)
+    {
+      if (specify_number)
+      {
+        return "floating-point number";
+      }
+      return "number";
+    }
+
+    if (type == JSONString)
+    {
+      return "string";
+    }
+
+    if (type == JSONTrue || type == JSONFalse)
+    {
+      return "boolean";
+    }
+
+    return std::string(type.str());
+  }
+
+  std::string type_name(const Node& node, bool specify_number)
+  {
+    Node value = node;
+    if (value->type() == Term)
+    {
+      value = value->front();
+    }
+
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+    }
+
+    return type_name(value->type(), specify_number);
+  }
+
+  Node unwrap_arg(const Nodes& args, const UnwrapOpt& options)
+  {
+    return options.unwrap(args);
+  }
+
+  Node UnwrapOpt::unwrap(const Nodes& args) const
+  {
+    Node node = args[m_index];
+    auto result = rego::unwrap(node, std::set(m_types.begin(), m_types.end()));
+    if (result.success)
+    {
+      return result.node;
+    }
+
+    if (!m_message.empty())
+    {
+      return err(node, m_message, m_code);
+    }
+
+    std::ostringstream error;
+    if (!m_func.empty())
+    {
+      error << m_func << ": ";
+    }
+
+    if (m_prefix.empty())
+    {
+      error << "operand " << m_index + 1 << " ";
+      if (m_types.size() > 1)
+      {
+        error << "must be one of {";
+        std::string sep = "";
+        for (auto& type : m_types)
+        {
+          error << sep << type_name(type, m_specify_number);
+          sep = ", ";
+        }
+        error << "}";
+      }
+      else if(m_types.size() == 1)
+      {
+        error << "must be " << type_name(m_types[0], m_specify_number);
+      }else{
+        error << "must be <type unspecified>";
+      }
+    }
+
+    if (!m_exclude_got)
+    {
+      error << " but got " << type_name(result.node->type(), m_specify_number);
+    }
+    return err(node, error.str(), m_code);
+  }
+
+  UnwrapResult unwrap(const Node& node, const std::set<Token>& types)
+  {
+    Node value = node;
+    if(types.contains(value->type())){
+      return {value, true};
+    }
+
+    if(value->type() == Term){
+      value = value->front();
+    }
+
+    if(types.contains(value->type())){
+      return {value, true};
+    }
+
+    if(value->type() == Scalar){
+      value = value->front();
+    }
+
+    if (types.contains(value->type()))
+    {
+      return {value, true};
+    }
+
+    return {value, false};
+  }
+
+  bool is_instance(const Node& value, const std::set<Token>& types)
+  {
+    return unwrap(value, types).success;
+  }
+
+  UnwrapOpt::UnwrapOpt(std::size_t index) :
+    m_exclude_got(false),
+    m_specify_number(false),
+    m_code(EvalTypeError),
+    m_index(index)
+  {}
+
+  bool UnwrapOpt::exclude_got() const
+  {
+    return m_exclude_got;
+  }
+
+  UnwrapOpt& UnwrapOpt::exclude_got(bool exclude_got)
+  {
+    m_exclude_got = exclude_got;
+    return *this;
+  }
+
+  bool UnwrapOpt::specify_number() const
+  {
+    return m_specify_number;
+  }
+
+  UnwrapOpt& UnwrapOpt::specify_number(bool specify_number)
+  {
+    m_specify_number = specify_number;
+    return *this;
+  }
+
+  const std::string& UnwrapOpt::code() const
+  {
+    return m_code;
+  }
+
+  UnwrapOpt& UnwrapOpt::code(const std::string& code)
+  {
+    m_code = code;
+    return *this;
+  }
+
+  const std::string& UnwrapOpt::pre() const
+  {
+    return m_prefix;
+  }
+
+  UnwrapOpt& UnwrapOpt::pre(const std::string& prefix)
+  {
+    m_prefix = prefix;
+    return *this;
+  }
+
+  const std::string& UnwrapOpt::message() const
+  {
+    return m_message;
+  }
+
+  UnwrapOpt& UnwrapOpt::message(const std::string& message)
+  {
+    m_message = message;
+    return *this;
+  }
+
+  UnwrapOpt& UnwrapOpt::type(const Token& type)
+  {
+    m_types.clear();
+    m_types.push_back(type);
+    return *this;
+  }
+
+  const std::vector<Token>& UnwrapOpt::types() const
+  {
+    return m_types;
+  }
+
+  UnwrapOpt& UnwrapOpt::types(const std::vector<Token>& types)
+  {
+    m_types.insert(m_types.end(), types.begin(), types.end());
+    return *this;
+  }
+
+  const std::string& UnwrapOpt::func() const
+  {
+    return m_func;
+  }
+
+  UnwrapOpt& UnwrapOpt::func(const std::string& func)
+  {
+    m_func = func;
+    return *this;
   }
 }

@@ -40,26 +40,21 @@ namespace
 
   Node filter(const Nodes& args)
   {
-    Node object = Resolver::unwrap(
-      args[0], Object, "object.filter: operand 1 ", EvalTypeError);
+    Node object =
+      unwrap_arg(args, UnwrapOpt(0).func("object.filter").type(Object));
     if (object->type() == Error)
     {
       return object;
     }
 
-    auto maybe_keys = Resolver::maybe_unwrap(args[1], {Array, Set, Object});
-    if (!maybe_keys.has_value())
+    Node keys_node = unwrap_arg(
+      args, UnwrapOpt(1).func("object.filter").types({Object, Set, Array}));
+    if (keys_node->type() == Error)
     {
-      std::string name = Resolver::type_name(args[1]);
-      return err(
-        args[1],
-        "object.filter: operand 2 must be one of {object, set, array} but "
-        "got " +
-          name,
-        EvalTypeError);
+      return keys_node;
     }
 
-    auto keys = get_key_set(maybe_keys.value());
+    auto keys = get_key_set(keys_node);
     Node filtered = NodeDef::create(Object);
     for (auto& item : *object)
     {
@@ -81,13 +76,13 @@ namespace
       return node;
     }
 
-    auto maybe_collection = Resolver::maybe_unwrap(node, {Array, Object});
-    if (!maybe_collection.has_value())
+    auto maybe_collection = unwrap(node, {Array, Object});
+    if (!maybe_collection.success)
     {
       return std::nullopt;
     }
 
-    Node collection = maybe_collection.value();
+    Node collection = maybe_collection.node;
     if (collection->type() == Object)
     {
       Node key = keys->at(index);
@@ -102,13 +97,13 @@ namespace
     }
     else if (collection->type() == Array)
     {
-      auto maybe_key = Resolver::maybe_unwrap_int(keys->at(index));
-      if (!maybe_key.has_value())
+      auto maybe_key = unwrap(keys->at(index), {JSONInt});
+      if (!maybe_key.success)
       {
         return std::nullopt;
       }
 
-      Node key = maybe_key.value();
+      Node key = maybe_key.node;
       std::size_t i = BigInt(key->location()).to_size();
       return get_key(collection->at(i), keys, index + 1);
     }
@@ -118,8 +113,8 @@ namespace
 
   Node get(const Nodes& args)
   {
-    Node object = Resolver::unwrap(
-      args[0], Object, "object.get: operand 1 ", EvalTypeError);
+    Node object =
+      unwrap_arg(args, UnwrapOpt(0).func("object.get").type(Object));
     if (object->type() == Error)
     {
       return object;
@@ -142,8 +137,8 @@ namespace
 
   Node keys(const Nodes& args)
   {
-    Node object = Resolver::unwrap(
-      args[0], Object, "object.keys: operand 1 ", EvalTypeError);
+    Node object =
+      unwrap_arg(args, UnwrapOpt(0).func("object.keys").type(Object));
     if (object->type() == Error)
     {
       return object;
@@ -160,26 +155,21 @@ namespace
 
   Node remove(const Nodes& args)
   {
-    Node object = Resolver::unwrap(
-      args[0], Object, "object.remove: operand 1 ", EvalTypeError);
+    Node object =
+      unwrap_arg(args, UnwrapOpt(0).func("object.remove").type(Object));
     if (object->type() == Error)
     {
       return object;
     }
 
-    auto maybe_keys = Resolver::maybe_unwrap(args[1], {Array, Set, Object});
-    if (!maybe_keys.has_value())
+    Node keys_node = unwrap_arg(
+      args, UnwrapOpt(1).func("object.remove").types({Object, Set, Array}));
+    if (keys_node->type() == Error)
     {
-      std::string name = Resolver::type_name(args[1]);
-      return err(
-        args[1],
-        "object.remove: operand 2 must be one of {object, set, array} but "
-        "got " +
-          name,
-        EvalTypeError);
+      return keys_node;
     }
 
-    auto keys = get_key_set(maybe_keys.value());
+    auto keys = get_key_set(keys_node);
     Node output = NodeDef::create(Object);
     for (auto& item : *object)
     {
@@ -364,32 +354,19 @@ namespace
 
   Node subset(const Nodes& args)
   {
-    auto maybe_super = Resolver::maybe_unwrap(args[0], {Array, Set, Object});
-    if (!maybe_super.has_value())
+    Node super = unwrap_arg(
+      args, UnwrapOpt(0).func("object.subset").types({Object, Set, Array}));
+    if (super->type() == Error)
     {
-      std::string name = Resolver::type_name(args[0]);
-      return err(
-        args[0],
-        "object.subset: operand 1 must be one of {object, set, array} but "
-        "got " +
-          name,
-        EvalTypeError);
+      return super;
     }
 
-    auto maybe_sub = Resolver::maybe_unwrap(args[1], {Array, Set, Object});
-    if (!maybe_sub.has_value())
+    Node sub = unwrap_arg(
+      args, UnwrapOpt(1).func("object.subset").types({Object, Set, Array}));
+    if (sub->type() == Error)
     {
-      std::string name = Resolver::type_name(args[0]);
-      return err(
-        args[1],
-        "object.subset: operand 2 must be one of {object, set, array} but "
-        "got " +
-          name,
-        EvalTypeError);
+      return sub;
     }
-
-    Node super = *maybe_super;
-    Node sub = *maybe_sub;
 
     if (is_subset(super, sub))
     {
@@ -417,15 +394,13 @@ namespace
 
   Node union_(const Nodes& args)
   {
-    Node a = Resolver::unwrap(
-      args[0], Object, "object.union: operand 1 ", EvalTypeError);
+    Node a = unwrap_arg(args, UnwrapOpt(0).func("object.union").type(Object));
     if (a->type() == Error)
     {
       return a;
     }
 
-    Node b = Resolver::unwrap(
-      args[1], Object, "object.union: operand 2 ", EvalTypeError);
+    Node b = unwrap_arg(args, UnwrapOpt(1).func("object.union").type(Object));
     if (b->type() == Error)
     {
       return b;
@@ -436,8 +411,8 @@ namespace
 
   Node union_n(const Nodes& args)
   {
-    Node objects = Resolver::unwrap(
-      args[0], Array, "object.union_n: operand 1 ", EvalTypeError);
+    Node objects =
+      unwrap_arg(args, UnwrapOpt(0).func("object.union_n").type(Array));
     if (objects->type() == Error)
     {
       return objects;
@@ -446,8 +421,7 @@ namespace
     Node output = NodeDef::create(Object);
     for (auto& item : *objects)
     {
-      Node object = Resolver::unwrap(
-        item, Object, "object.union_n: operand 1 ", EvalTypeError);
+      Node object = unwrap_arg({item}, UnwrapOpt(0).type(Object).func("object.union_n"));
       if (object->type() == Error)
       {
         return object;

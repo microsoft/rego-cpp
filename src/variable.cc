@@ -2,7 +2,6 @@
 
 #include "helpers.h"
 #include "log.h"
-#include "resolver.h"
 
 namespace rego
 {
@@ -119,7 +118,7 @@ namespace rego
         return node;
       }
 
-      if (Resolver::is_undefined(node))
+      if (is_undefined(node))
       {
         continue;
       }

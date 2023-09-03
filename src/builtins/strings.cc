@@ -14,12 +14,13 @@ namespace
   {
     for (auto term : *collection)
     {
-      auto maybe_item = Resolver::maybe_unwrap_string(term);
-      if (!maybe_item.has_value())
+      auto maybe_item = unwrap(term, {JSONString});
+      if (!maybe_item.success)
       {
-        return term;
+        return maybe_item.node;
       }
-      items.push_back(Resolver::get_string(*maybe_item));
+
+      items.push_back(get_string(maybe_item.node));
     }
 
     return {};
@@ -27,22 +28,21 @@ namespace
 
   Node concat(const Nodes& args)
   {
-    Node delimiter = Resolver::unwrap(
-      args[0], JSONString, "concat: operand 1 ", EvalTypeError);
+    Node delimiter =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("concat"));
     if (delimiter->type() == Error)
     {
       return delimiter;
     }
 
-    auto maybe_collection = Resolver::maybe_unwrap(args[1], {Array, Set});
-    if (!maybe_collection.has_value())
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(1).types({Array, Set}).func("concat"));
+    if (collection->type() == Error)
     {
-      return Undefined;
+      return collection;
     }
 
-    Node collection = *maybe_collection;
-
-    auto delim_str = Resolver::get_string(delimiter);
+    auto delim_str = get_string(delimiter);
     std::vector<std::string> items;
     Node bad_term = unwrap_strings(collection, items);
     if (bad_term)
@@ -50,7 +50,7 @@ namespace
       return err(
         bad_term,
         "concat: operand 2 must be array of strings but got array containing " +
-          Resolver::type_name(bad_term),
+          type_name(bad_term),
         EvalTypeError);
     }
 
@@ -67,84 +67,95 @@ namespace
 
   Node startswith(const Nodes& args)
   {
-    auto maybe_search = Resolver::maybe_unwrap_string(args[0]);
-    auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
-    if (!maybe_search.has_value() || !maybe_base.has_value())
+    Node search_node =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("startswith"));
+    if (search_node->type() == Error)
     {
-      return err(
-        args[0], "startswith: expected string arguments", EvalTypeError);
+      return search_node;
     }
 
-    std::string search = Resolver::get_string(*maybe_search);
-    std::string base = Resolver::get_string(*maybe_base);
+    Node base_node =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("startswith"));
+    if (base_node->type() == Error)
+    {
+      return base_node;
+    }
+
+    std::string search = get_string(search_node);
+    std::string base = get_string(base_node);
     return Resolver::scalar(search.starts_with(base));
   }
 
   Node endswith(const Nodes& args)
   {
-    auto maybe_search = Resolver::maybe_unwrap_string(args[0]);
-    auto maybe_base = Resolver::maybe_unwrap_string(args[1]);
-    if (!maybe_search.has_value() || !maybe_base.has_value())
+    Node search_node =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("startswith"));
+    if (search_node->type() == Error)
     {
-      return err(args[0], "endswith: expected string arguments", EvalTypeError);
+      return search_node;
     }
 
-    std::string search = Resolver::get_string(*maybe_search);
-    std::string base = Resolver::get_string(*maybe_base);
+    Node base_node =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("startswith"));
+    if (base_node->type() == Error)
+    {
+      return base_node;
+    }
+
+    std::string search = get_string(search_node);
+    std::string base = get_string(base_node);
+
     return Resolver::scalar(search.ends_with(base));
   }
 
   Node contains(const Nodes& args)
   {
-    Node haystack = Resolver::unwrap(
-      args[0], JSONString, "contains: operand 1 ", EvalTypeError);
+    Node haystack =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("contains"));
     if (haystack->type() == Error)
     {
       return haystack;
     }
 
-    Node needle = Resolver::unwrap(
-      args[1], JSONString, "contains: operand 2 ", EvalTypeError);
+    Node needle =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("contains"));
     if (needle->type() == Error)
     {
       return needle;
     }
 
-    std::string haystack_str = Resolver::get_string(haystack);
-    std::string needle_str = Resolver::get_string(needle);
+    std::string haystack_str = get_string(haystack);
+    std::string needle_str = get_string(needle);
     return Resolver::scalar(haystack_str.find(needle_str) != std::string::npos);
   }
 
   Node format_int(const Nodes& args)
   {
-    auto maybe_number = Resolver::maybe_unwrap_number(args[0]);
-    if (!maybe_number.has_value())
+    Node number = unwrap_arg(
+      args, UnwrapOpt(0).types({JSONInt, JSONFloat}).func("format_int"));
+    if (number->type() == Error)
     {
-      return err(
-        args[0], "format_int: expected number argument", EvalTypeError);
+      return number;
     }
 
-    auto base = Resolver::unwrap(
-      args[1], JSONInt, "format_int: operand 2 ", EvalTypeError);
+    Node base = unwrap_arg(args, UnwrapOpt(1).type(JSONInt).func("format_int"));
     if (base->type() == Error)
     {
       return base;
     }
 
-    Node number = *maybe_number;
     std::int64_t value;
     if (number->type() == JSONFloat)
     {
-      value =
-        static_cast<std::int64_t>(std::floor(Resolver::get_double(number)));
+      value = static_cast<std::int64_t>(std::floor(get_double(number)));
     }
     else
     {
-      value = Resolver::get_int(number).to_int();
+      value = get_int(number).to_int();
     }
 
     std::ostringstream result;
-    std::size_t base_size = Resolver::get_int(base).to_size();
+    std::size_t base_size = get_int(base).to_size();
     switch (base_size)
     {
       case 2:
@@ -169,23 +180,22 @@ namespace
 
   Node indexof(const Nodes& args)
   {
-    Node haystack = Resolver::unwrap(
-      args[0], JSONString, "indexof: operand 1 ", EvalTypeError);
+    Node haystack =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("indexof"));
     if (haystack->type() == Error)
     {
       return haystack;
     }
 
-    Node needle = Resolver::unwrap(
-      args[1], JSONString, "indexof: operand 2 ", EvalTypeError);
+    Node needle =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("indexof"));
     if (needle->type() == Error)
     {
       return needle;
     }
 
-    runestring haystack_runes =
-      utf8_to_runestring(Resolver::get_string(haystack));
-    runestring needle_runes = utf8_to_runestring(Resolver::get_string(needle));
+    runestring haystack_runes = utf8_to_runestring(get_string(haystack));
+    runestring needle_runes = utf8_to_runestring(get_string(needle));
     auto pos = haystack_runes.find(needle_runes);
     if (pos == haystack_runes.npos)
     {
@@ -197,23 +207,22 @@ namespace
 
   Node indexof_n(const Nodes& args)
   {
-    Node haystack = Resolver::unwrap(
-      args[0], JSONString, "indexof: operand 1 ", EvalTypeError);
+    Node haystack =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("indexof_n"));
     if (haystack->type() == Error)
     {
       return haystack;
     }
 
-    Node needle = Resolver::unwrap(
-      args[1], JSONString, "indexof: operand 2 ", EvalTypeError);
+    Node needle =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("indexof_n"));
     if (needle->type() == Error)
     {
       return needle;
     }
 
-    runestring haystack_runes =
-      utf8_to_runestring(Resolver::get_string(haystack));
-    runestring needle_runes = utf8_to_runestring(Resolver::get_string(needle));
+    runestring haystack_runes = utf8_to_runestring(get_string(haystack));
+    runestring needle_runes = utf8_to_runestring(get_string(needle));
     Node array = NodeDef::create(Array);
     auto pos = haystack_runes.find(needle_runes);
     while (pos != haystack_runes.npos)
@@ -227,14 +236,13 @@ namespace
 
   Node lower(const Nodes& args)
   {
-    Node x =
-      Resolver::unwrap(args[0], JSONString, "lower: operand 1 ", EvalTypeError);
+    Node x = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("lower"));
     if (x->type() == Error)
     {
       return x;
     }
 
-    std::string x_str = Resolver::get_string(x);
+    std::string x_str = get_string(x);
     std::transform(
       x_str.begin(), x_str.end(), x_str.begin(), [](const char& c) {
         return static_cast<char>(std::tolower(c));
@@ -244,14 +252,13 @@ namespace
 
   Node upper(const Nodes& args)
   {
-    Node x =
-      Resolver::unwrap(args[0], JSONString, "upper: operand 1 ", EvalTypeError);
+    Node x = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("upper"));
     if (x->type() == Error)
     {
       return x;
     }
 
-    std::string x_str = Resolver::get_string(x);
+    std::string x_str = get_string(x);
     std::transform(
       x_str.begin(), x_str.end(), x_str.begin(), [](const char& c) {
         return static_cast<char>(std::toupper(c));
@@ -271,30 +278,27 @@ namespace
 
   Node replace(const Nodes& args)
   {
-    Node x = Resolver::unwrap(
-      args[0], JSONString, "replace: operand 1 ", EvalTypeError);
+    Node x = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("replace"));
     if (x->type() == Error)
     {
       return x;
     }
 
-    Node old = Resolver::unwrap(
-      args[1], JSONString, "replace: operand 2 ", EvalTypeError);
+    Node old = unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("replace"));
     if (old->type() == Error)
     {
       return old;
     }
 
-    Node new_ = Resolver::unwrap(
-      args[2], JSONString, "replace: operand 3 ", EvalTypeError);
+    Node new_ = unwrap_arg(args, UnwrapOpt(2).type(JSONString).func("replace"));
     if (new_->type() == Error)
     {
       return new_;
     }
 
-    std::string x_str = Resolver::get_string(x);
-    std::string old_str = Resolver::get_string(old);
-    std::string new_str = Resolver::get_string(new_);
+    std::string x_str = get_string(x);
+    std::string old_str = get_string(old);
+    std::string new_str = get_string(new_);
     replace(x_str, old_str, new_str);
 
     return Resolver::scalar(x_str);
@@ -302,22 +306,21 @@ namespace
 
   Node split(const Nodes& args)
   {
-    Node x =
-      Resolver::unwrap(args[0], JSONString, "split: operand 1 ", EvalTypeError);
+    Node x = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("split"));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node delimiter =
-      Resolver::unwrap(args[1], JSONString, "split: operand 2 ", EvalTypeError);
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("split"));
     if (delimiter->type() == Error)
     {
       return delimiter;
     }
 
-    std::string x_str = Resolver::get_string(x);
-    std::string delimiter_str = Resolver::get_string(delimiter);
+    std::string x_str = get_string(x);
+    std::string delimiter_str = get_string(delimiter);
     Node array = NodeDef::create(Array);
     std::size_t start = 0;
     std::size_t pos = x_str.find(delimiter_str);
@@ -433,21 +436,21 @@ namespace
 
   Node sprintf(const Nodes& args)
   {
-    Node format = Resolver::unwrap(
-      args[0], JSONString, "sprintf: operand 1 ", EvalTypeError);
+    Node format =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("sprintf"));
     if (format->type() == Error)
     {
       return format;
     }
 
     Node values =
-      Resolver::unwrap(args[1], Array, "sprintf: operand 2 ", EvalTypeError);
+      unwrap_arg(args, UnwrapOpt(1).types({Array, Set}).func("sprintf"));
     if (values->type() == Error)
     {
       return values;
     }
 
-    std::string format_str = Resolver::get_string(format);
+    std::string format_str = get_string(format);
     std::vector<PrintVerb> verbs = parse_format(format_str);
     std::ostringstream result;
     auto it = values->begin();
@@ -476,45 +479,37 @@ namespace
           break;
 
         case PrintVerbType::Boolean:
-          result << std::boolalpha << Resolver::is_truthy(node);
+          result << std::boolalpha << is_truthy(node);
           break;
 
         case PrintVerbType::Binary:
-          result << std::bitset<8>(Resolver::get_int(values).to_int());
+          result << std::bitset<8>(get_int(values).to_int());
           break;
 
         case PrintVerbType::Integer:
-          node = Resolver::unwrap(
-            node, JSONInt, "sprintf: integer argument ", EvalTypeError);
+          node = unwrap_arg({node}, UnwrapOpt(0).type(JSONInt).func("sprintf"));
           if (node->type() == Error)
           {
             return node;
           }
           std::snprintf(
-            buf,
-            buf_size,
-            verb.format.c_str(),
-            Resolver::get_int(node).to_int());
+            buf, buf_size, verb.format.c_str(), get_int(node).to_int());
           result << buf;
           break;
 
         case PrintVerbType::Double:
-          node = Resolver::unwrap(
-            node,
-            JSONFloat,
-            "sprintf: floating-point argument ",
-            EvalTypeError);
+          node = unwrap_arg(
+            {node}, UnwrapOpt(0).types({JSONInt, JSONFloat}).func("sprintf"));
           if (node->type() == Error)
           {
             return node;
           }
-          std::snprintf(
-            buf, buf_size, verb.format.c_str(), Resolver::get_double(node));
+          std::snprintf(buf, buf_size, verb.format.c_str(), get_double(node));
           result << buf;
           break;
 
         case PrintVerbType::String:
-          result << Resolver::get_string(node);
+          result << get_string(node);
           break;
 
         case PrintVerbType::Literal:
@@ -528,36 +523,26 @@ namespace
 
   Node any_prefix_match(const Nodes& args)
   {
-    auto maybe_search =
-      Resolver::maybe_unwrap(args[0], {JSONString, Array, Set});
-    if (!maybe_search.has_value())
+    Node search = unwrap_arg(
+      args,
+      UnwrapOpt(0).types({JSONString, Set, Array}).func("any_prefix_match"));
+    if (search->type() == Error)
     {
-      std::string type_name = Resolver::type_name(args[0]);
-      return err(
-        args[0],
-        "strings.any_prefix_match: operand 1 must be one of {string, set, "
-        "array} but got " +
-          type_name,
-        EvalTypeError);
+      return search;
     }
 
-    auto maybe_base = Resolver::maybe_unwrap(args[1], {JSONString, Array, Set});
-    if (!maybe_base.has_value())
+    Node base = unwrap_arg(
+      args,
+      UnwrapOpt(1).types({JSONString, Set, Array}).func("any_prefix_match"));
+    if (base->type() == Error)
     {
-      std::string type_name = Resolver::type_name(args[1]);
-      return err(
-        args[1],
-        "strings.any_prefix_match: operand 2 must be one of {string, set, "
-        "array} but got " +
-          type_name,
-        EvalTypeError);
+      return base;
     }
 
-    Node search = *maybe_search;
     std::vector<std::string> search_strings;
     if (search->type() == JSONString)
     {
-      search_strings.push_back(Resolver::get_string(search));
+      search_strings.push_back(get_string(search));
     }
     else
     {
@@ -568,16 +553,15 @@ namespace
           bad_term,
           "strings.any_prefix_match: operand 1 must be array of strings but "
           "got array containing " +
-            Resolver::type_name(bad_term),
+            type_name(bad_term),
           EvalTypeError);
       }
     }
 
-    Node base = *maybe_base;
     std::vector<std::string> base_strings;
     if (base->type() == JSONString)
     {
-      base_strings.push_back(Resolver::get_string(base));
+      base_strings.push_back(get_string(base));
     }
     else
     {
@@ -588,7 +572,7 @@ namespace
           bad_term,
           "strings.any_prefix_match: operand 2 must be array of strings but "
           "got array containing " +
-            Resolver::type_name(bad_term),
+            type_name(bad_term),
           EvalTypeError);
       }
     }
@@ -609,36 +593,26 @@ namespace
 
   Node any_suffix_match(const Nodes& args)
   {
-    auto maybe_search =
-      Resolver::maybe_unwrap(args[0], {JSONString, Array, Set});
-    if (!maybe_search.has_value())
+    Node search = unwrap_arg(
+      args,
+      UnwrapOpt(0).types({JSONString, Set, Array}).func("any_suffix_match"));
+    if (search->type() == Error)
     {
-      std::string type_name = Resolver::type_name(args[0]);
-      return err(
-        args[0],
-        "strings.any_suffix_match: operand 1 must be one of {string, set, "
-        "array} but got " +
-          type_name,
-        EvalTypeError);
+      return search;
     }
 
-    auto maybe_base = Resolver::maybe_unwrap(args[1], {JSONString, Array, Set});
-    if (!maybe_base.has_value())
+    Node base = unwrap_arg(
+      args,
+      UnwrapOpt(1).types({JSONString, Set, Array}).func("any_suffix_match"));
+    if (base->type() == Error)
     {
-      std::string type_name = Resolver::type_name(args[1]);
-      return err(
-        args[1],
-        "strings.any_suffix_match: operand 2 must be one of {string, set, "
-        "array} but got " +
-          type_name,
-        EvalTypeError);
+      return base;
     }
 
-    Node search = *maybe_search;
     std::vector<std::string> search_strings;
     if (search->type() == JSONString)
     {
-      search_strings.push_back(Resolver::get_string(search));
+      search_strings.push_back(get_string(search));
     }
     else
     {
@@ -649,16 +623,15 @@ namespace
           bad_term,
           "strings.any_suffix_match: operand 1 must be array of strings but "
           "got array containing " +
-            Resolver::type_name(bad_term),
+            type_name(bad_term),
           EvalTypeError);
       }
     }
 
-    Node base = *maybe_base;
     std::vector<std::string> base_strings;
     if (base->type() == JSONString)
     {
-      base_strings.push_back(Resolver::get_string(base));
+      base_strings.push_back(get_string(base));
     }
     else
     {
@@ -669,7 +642,7 @@ namespace
           bad_term,
           "strings.any_suffix_match: operand 2 must be array of strings but "
           "got array containing " +
-            Resolver::type_name(bad_term),
+            type_name(bad_term),
           EvalTypeError);
       }
     }
@@ -690,44 +663,39 @@ namespace
 
   Node replace_n(const Nodes& args)
   {
-    Node patterns = Resolver::unwrap(
-      args[0], Object, "strings.replace_n: operand 1 ", EvalTypeError);
+    Node patterns =
+      unwrap_arg(args, UnwrapOpt(0).type(Object).func("strings.replace_n"));
     if (patterns->type() == Error)
     {
       return patterns;
     }
 
-    Node value = Resolver::unwrap(
-      args[1], JSONString, "strings.replace_n: operand 2 ", EvalTypeError);
+    Node value =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("strings.replace_n"));
     if (value->type() == Error)
     {
       return value;
     }
 
-    std::string value_str = Resolver::get_string(value);
+    std::string value_str = get_string(value);
     for (auto& item : *patterns)
     {
-      auto maybe_old = Resolver::maybe_unwrap_string(item / Key);
-      if (!maybe_old.has_value())
+      Node old_node = unwrap_arg(
+        {item / Key}, UnwrapOpt(0).type(JSONString).func("strings.replace_n").message("operand 1 non-string key found in pattern object"));
+      if (old_node->type() == Error)
       {
-        return err(
-          item / Key,
-          "strings.replace_n: operand 1 non-string key found in pattern object",
-          EvalTypeError);
+        return old_node;
       }
 
-      auto maybe_new = Resolver::maybe_unwrap_string(item / Val);
-      if (!maybe_new.has_value())
+      Node new_node = unwrap_arg(
+        {item / Val}, UnwrapOpt(0).type(JSONString).func("strings.replace_n").message("operand 1 non-string value found in pattern object"));
+      if (new_node->type() == Error)
       {
-        return err(
-          item / Val,
-          "strings.replace_n: operand 1 non-string value found in pattern "
-          "object",
-          EvalTypeError);
+        return new_node;
       }
 
-      std::string old_str = Resolver::get_string(*maybe_old);
-      std::string new_str = Resolver::get_string(*maybe_new);
+      std::string old_str = get_string(old_node);
+      std::string new_str = get_string(new_node);
       replace(value_str, old_str, new_str);
     }
 
@@ -736,14 +704,13 @@ namespace
 
   Node reverse(const Nodes& args)
   {
-    Node x = Resolver::unwrap(
-      args[0], JSONString, "reverse: operand 1 ", EvalTypeError);
+    Node x = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("reverse"));
     if (x->type() == Error)
     {
       return x;
     }
 
-    std::string x_str = Resolver::get_string(x);
+    std::string x_str = get_string(x);
     std::vector<rune> x_runes = utf8_to_runes(x_str);
     std::reverse(x_runes.begin(), x_runes.end());
     std::ostringstream y;
@@ -756,28 +723,28 @@ namespace
 
   Node substring(const Nodes& args)
   {
-    Node value = Resolver::unwrap(
-      args[0], JSONString, "substring: operand 1 ", EvalTypeError);
+    Node value =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("substring"));
     if (value->type() == Error)
     {
       return value;
     }
-    Node offset = Resolver::unwrap(
-      args[1], JSONInt, "substring: operand 2 ", EvalTypeError);
+    Node offset =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONInt).func("substring"));
     if (offset->type() == Error)
     {
       return offset;
     }
-    Node length = Resolver::unwrap(
-      args[2], JSONInt, "substring: operand 3 ", EvalTypeError);
+    Node length =
+      unwrap_arg(args, UnwrapOpt(2).type(JSONInt).func("substring"));
     if (length->type() == Error)
     {
       return length;
     }
 
-    std::string value_str = Resolver::get_string(value);
+    std::string value_str = get_string(value);
     std::vector<rune> value_runes = utf8_to_runes(value_str);
-    std::int64_t offset_int = Resolver::get_int(offset).to_int();
+    std::int64_t offset_int = get_int(offset).to_int();
     if (offset_int < 0)
     {
       return err(args[1], "negative offset", EvalBuiltInError);
@@ -789,7 +756,7 @@ namespace
       return JSONString ^ "";
     }
 
-    std::int64_t length_int = Resolver::get_int(length).to_int();
+    std::int64_t length_int = get_int(length).to_int();
     std::size_t length_size;
     if (length_int < 0)
     {
@@ -853,100 +820,87 @@ namespace
 
   Node trim(const Nodes& args)
   {
+    Node value = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("trim"));
+    if (value->type() == Error)
+    {
+      return value;
+    }
+    Node cutset = unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("trim"));
+    if (cutset->type() == Error)
+    {
+      return cutset;
+    }
+
+    return JSONString ^ trim(get_string(value), get_string(cutset), true, true);
+  }
+
+  Node trim_left(const Nodes& args)
+  {
     Node value =
-      Resolver::unwrap(args[0], JSONString, "trim: operand 1 ", EvalTypeError);
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("trim_left"));
     if (value->type() == Error)
     {
       return value;
     }
     Node cutset =
-      Resolver::unwrap(args[1], JSONString, "trim: operand 2 ", EvalTypeError);
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("trim_left"));
     if (cutset->type() == Error)
     {
       return cutset;
     }
 
     return JSONString ^
-      trim(Resolver::get_string(value),
-           Resolver::get_string(cutset),
-           true,
-           true);
-  }
-
-  Node trim_left(const Nodes& args)
-  {
-    Node value = Resolver::unwrap(
-      args[0], JSONString, "trim_left: operand 1 ", EvalTypeError);
-    if (value->type() == Error)
-    {
-      return value;
-    }
-    Node cutset = Resolver::unwrap(
-      args[1], JSONString, "trim_left: operand 2 ", EvalTypeError);
-    if (cutset->type() == Error)
-    {
-      return cutset;
-    }
-
-    return JSONString ^
-      trim(Resolver::get_string(value),
-           Resolver::get_string(cutset),
-           true,
-           false);
+      trim(get_string(value), get_string(cutset), true, false);
   }
 
   Node trim_right(const Nodes& args)
   {
-    Node value = Resolver::unwrap(
-      args[0], JSONString, "trim_right: operand 1 ", EvalTypeError);
+    Node value =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("trim_right"));
     if (value->type() == Error)
     {
       return value;
     }
-    Node cutset = Resolver::unwrap(
-      args[1], JSONString, "trim_right: operand 2 ", EvalTypeError);
+    Node cutset =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("trim_right"));
     if (cutset->type() == Error)
     {
       return cutset;
     }
 
     return JSONString ^
-      trim(Resolver::get_string(value),
-           Resolver::get_string(cutset),
-           false,
-           true);
+      trim(get_string(value), get_string(cutset), false, true);
   }
 
   Node trim_space(const Nodes& args)
   {
-    Node value = Resolver::unwrap(
-      args[0], JSONString, "trim_space: operand 1 ", EvalTypeError);
+    Node value =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("trim_space"));
     if (value->type() == Error)
     {
       return value;
     }
 
-    return JSONString ^
-      trim(Resolver::get_string(value), " \t\n\r\v\f", true, true);
+    return JSONString ^ trim(get_string(value), " \t\n\r\v\f", true, true);
   }
 
   Node trim_prefix(const Nodes& args)
   {
-    Node value = Resolver::unwrap(
-      args[0], JSONString, "trim_prefix: operand 1 ", EvalTypeError);
+    Node value =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("trim_prefix"));
     if (value->type() == Error)
     {
       return value;
     }
-    Node prefix = Resolver::unwrap(
-      args[1], JSONString, "trim_prefix: operand 2 ", EvalTypeError);
+    Node prefix =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("trim_prefix"));
     if (prefix->type() == Error)
     {
       return prefix;
     }
 
-    std::string value_str = Resolver::get_string(value);
-    std::string prefix_str = Resolver::get_string(prefix);
+    std::string value_str = get_string(value);
+    std::string prefix_str = get_string(prefix);
     if (value_str.starts_with(prefix_str))
     {
       return JSONString ^ value_str.substr(prefix_str.size());
@@ -957,21 +911,21 @@ namespace
 
   Node trim_suffix(const Nodes& args)
   {
-    Node value = Resolver::unwrap(
-      args[0], JSONString, "trim_suffix: operand 1 ", EvalTypeError);
+    Node value =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("trim_suffix"));
     if (value->type() == Error)
     {
       return value;
     }
-    Node suffix = Resolver::unwrap(
-      args[1], JSONString, "trim_suffix: operand 2 ", EvalTypeError);
+    Node suffix =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("trim_suffix"));
     if (suffix->type() == Error)
     {
       return suffix;
     }
 
-    std::string value_str = Resolver::get_string(value);
-    std::string suffix_str = Resolver::get_string(suffix);
+    std::string value_str = get_string(value);
+    std::string suffix_str = get_string(suffix);
     if (value_str.ends_with(suffix_str))
     {
       return JSONString ^

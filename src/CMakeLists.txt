@@ -13,7 +13,7 @@ resolver.cc
 variable.cc
 wf.cc
 builtins.cc
-utils.cc
+helpers.cc
 passes/input_data.cc
 passes/modules.cc
 passes/lists.cc
@@ -51,6 +51,7 @@ passes/unify.cc
 passes/query.cc
 builtins/aggregates.cc
 builtins/arrays.cc
+builtins/casts.cc
 builtins/encoding.cc
 builtins/numbers.cc
 builtins/objects.cc
@@ -58,6 +59,7 @@ builtins/semver.cc
 builtins/sets.cc
 builtins/strings.cc
 builtins/time.cc
+builtins/types.cc
 builtins/units.cc
 builtins/utf8.cc
 # third-party

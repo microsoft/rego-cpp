@@ -1,5 +1,6 @@
 #include "bigint.h"
 #include "errors.h"
+#include "helpers.h"
 #include "register.h"
 #include "resolver.h"
 
@@ -116,7 +117,7 @@ namespace
 
     if (num->type() == JSONFloat)
     {
-      double result = Resolver::get_double(num) * scale.to_int();
+      double result = get_double(num) * scale.to_int();
       if (round)
       {
         result = std::round(result);
@@ -134,7 +135,7 @@ namespace
   {
     if (num->type() == JSONFloat || num->type() == JSONInt)
     {
-      return Resolver::scalar(Resolver::get_double(num) * scale);
+      return Resolver::scalar(get_double(num) * scale);
     }
 
     return err(num, "scale: expected number argument", EvalBuiltInError);
@@ -222,14 +223,14 @@ namespace
 
   Node parse(const Nodes& args)
   {
-    Node x = Resolver::unwrap(
-      args[0], JSONString, "units.parse: operand 1 ", EvalTypeError);
+    Node x =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("units.parse"));
     if (x->type() == Error)
     {
       return x;
     }
 
-    std::string x_str = strip_escaped_quotes(Resolver::get_string(x));
+    std::string x_str = strip_escaped_quotes(get_string(x));
     return do_parse(
       {"units.parse: no amount provided",
        "units.parse: could not parse amount to a number",
@@ -242,14 +243,14 @@ namespace
 
   Node parse_bytes(const Nodes& args)
   {
-    Node x = Resolver::unwrap(
-      args[0], JSONString, "units.parse_bytes: operand 1 ", EvalTypeError);
+    Node x =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("units.parse_bytes"));
     if (x->type() == Error)
     {
       return x;
     }
 
-    std::string x_str = strip_escaped_quotes(Resolver::get_string(x));
+    std::string x_str = strip_escaped_quotes(get_string(x));
     if (x_str.ends_with("b") || x_str.ends_with("B"))
     {
       x_str = x_str.substr(0, x_str.size() - 1);

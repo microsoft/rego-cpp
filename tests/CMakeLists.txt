@@ -29,6 +29,7 @@ if(REGOCPP_OPA_TESTS)
   array
   assignments
   baseandvirtualdocs
+  casts
   comparisonexpr
   completedoc
   compositebasedereference
@@ -88,6 +89,8 @@ if(REGOCPP_OPA_TESTS)
   trimspace
   trimsuffix
   type
+  typebuiltin
+  typenamebuiltin
   undos
   union
   units

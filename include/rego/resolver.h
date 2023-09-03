@@ -21,8 +21,6 @@ namespace rego
       std::string str() const;
     };
 
-    static BigInt get_int(const Node& node);
-
     static Node scalar(BigInt value);
     static Node scalar(double value);
     static Node scalar(bool value);
@@ -35,9 +33,6 @@ namespace rego
     static Node term(const char* value);
     static Node term(const std::string& value);
     static Node term();
-    static double get_double(const Node& node);
-    static std::string get_string(const Node& node);
-    static bool get_bool(const Node& node);
     static Node resolve_query(const Node& query, const BuiltIns& builtins);
     static NodePrinter stmt_str(const Node& stmt);
     static NodePrinter func_str(const Node& func);
@@ -65,23 +60,6 @@ namespace rego
     static Node set_union(const Node& lhs, const Node& rhs);
     static Node set_difference(const Node& lhs, const Node& rhs);
     static Nodes resolve_varseq(const Node& varseq);
-    static Node unwrap(
-      const Node& term,
-      const Token& type,
-      const std::string& error_prefix,
-      const std::string& error_code,
-      bool specify_number = false);
-    static std::optional<Node> maybe_unwrap(
-      const Node& term, const std::set<Token>& types);
-    static std::optional<Node> maybe_unwrap_number(const Node& term);
-    static std::optional<Node> maybe_unwrap_int(const Node& term);
-    static std::optional<Node> maybe_unwrap_string(const Node& term);
-    static std::optional<Node> maybe_unwrap_bool(const Node& term);
-    static std::optional<Node> maybe_unwrap_array(const Node& term);
-    static std::optional<Node> maybe_unwrap_set(const Node& term);
-    static bool is_falsy(const Node& node);
-    static bool is_truthy(const Node& node);
-    static bool is_undefined(const Node& node);
     static Nodes object_lookdown(const Node& object, const Node& query);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
     static Node membership(
@@ -91,9 +69,6 @@ namespace rego
       const Node& array, const std::string& search);
     static std::vector<std::string> object_find(
       const Node& object, const std::string& search);
-    static std::string type_name(
-      const Token& type, bool specify_number = false);
-    static std::string type_name(const Node& node, bool specify_number = false);
     static Node to_term(const Node& value);
     static void flatten_terms_into(const Node& termset, Node& terms);
     static void flatten_items_into(const Node& termset, Node& terms);
