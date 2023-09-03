@@ -421,7 +421,8 @@ namespace
     Node output = NodeDef::create(Object);
     for (auto& item : *objects)
     {
-      Node object = unwrap_arg({item}, UnwrapOpt(0).type(Object).func("object.union_n"));
+      Node object =
+        unwrap_arg({item}, UnwrapOpt(0).type(Object).func("object.union_n"));
       if (object->type() == Error)
       {
         return object;

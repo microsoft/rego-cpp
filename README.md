@@ -150,22 +150,23 @@ all the standard builtins. The following builtins are currently supported:
 
 - `aggregates`
 - `arrays`
+- `bits`
+- `casts`
 - `numbers`
 - `objects`
+- `regex`
 - `semver`
 - `sets`
 - `strings`
+- `types`
 - `units`
 - miscellaneous
     * `base64_encode`
     * `base64_decode`
-    * `cast_array`
-    * `cast_set`
     * `json.marshal`
     * `opa.runtime`
     * `print`
     * `time.now_ns`
-    * `to_number`
 
 ### Compatibility with the OPA Rego Go implementation
 
@@ -180,8 +181,6 @@ To build with the OPA tests available for testing, use one of the following pres
 
 At present, we are **NOT** passing the following test suites in full:
 - `base64*`
-- `bits*`
-- `casts`
 - `crypto*`
 - `glob*`
 - `graphql`
@@ -192,9 +191,6 @@ At present, we are **NOT** passing the following test suites in full:
 - `planner-ir`
 - `providers-aws`
 - `reachable`
-- `regex*`
-- `typebuiltin`
-- `typenamebuiltin`
 - `urlbuiltins`
 - `walkbuiltin`
 

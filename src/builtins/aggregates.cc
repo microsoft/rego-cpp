@@ -181,7 +181,9 @@ namespace
         {
           return JSONFalse ^ "false";
         }
-      }else{
+      }
+      else
+      {
         return JSONFalse ^ "false";
       }
     }

@@ -420,7 +420,7 @@ namespace rego_test
         test_case.want_result(want_result << result);
       }
 
-      if(test_case.note() == "regexmatch/re_match: bad pattern err")
+      if (test_case.note() == "regexmatch/re_match: bad pattern err")
       {
         // the C++ interface to RE2 uses a slightly different error syntax
         test_case.want_error("error parsing regexp: missing closing ]");

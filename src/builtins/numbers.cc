@@ -100,14 +100,16 @@ namespace
   Node numbers_range(const Nodes& args)
   {
     Node lhs_number = unwrap_arg(
-      args, UnwrapOpt(0).type(JSONInt).func("numbers.range").specify_number(true));
+      args,
+      UnwrapOpt(0).type(JSONInt).func("numbers.range").specify_number(true));
     if (lhs_number->type() == Error)
     {
       return lhs_number;
     }
 
     Node rhs_number = unwrap_arg(
-      args, UnwrapOpt(1).type(JSONInt).func("numbers.range").specify_number(true));
+      args,
+      UnwrapOpt(1).type(JSONInt).func("numbers.range").specify_number(true));
     if (rhs_number->type() == Error)
     {
       return rhs_number;

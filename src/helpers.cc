@@ -755,10 +755,12 @@ namespace rego
         }
         error << "}";
       }
-      else if(m_types.size() == 1)
+      else if (m_types.size() == 1)
       {
         error << "must be " << type_name(m_types[0], m_specify_number);
-      }else{
+      }
+      else
+      {
         error << "must be <type unspecified>";
       }
     }
@@ -773,19 +775,23 @@ namespace rego
   UnwrapResult unwrap(const Node& node, const std::set<Token>& types)
   {
     Node value = node;
-    if(types.contains(value->type())){
+    if (types.contains(value->type()))
+    {
       return {value, true};
     }
 
-    if(value->type() == Term){
+    if (value->type() == Term)
+    {
       value = value->front();
     }
 
-    if(types.contains(value->type())){
+    if (types.contains(value->type()))
+    {
       return {value, true};
     }
 
-    if(value->type() == Scalar){
+    if (value->type() == Scalar)
+    {
       value = value->front();
     }
 

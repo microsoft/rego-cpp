@@ -681,14 +681,22 @@ namespace
     for (auto& item : *patterns)
     {
       Node old_node = unwrap_arg(
-        {item / Key}, UnwrapOpt(0).type(JSONString).func("strings.replace_n").message("operand 1 non-string key found in pattern object"));
+        {item / Key},
+        UnwrapOpt(0)
+          .type(JSONString)
+          .func("strings.replace_n")
+          .message("operand 1 non-string key found in pattern object"));
       if (old_node->type() == Error)
       {
         return old_node;
       }
 
       Node new_node = unwrap_arg(
-        {item / Val}, UnwrapOpt(0).type(JSONString).func("strings.replace_n").message("operand 1 non-string value found in pattern object"));
+        {item / Val},
+        UnwrapOpt(0)
+          .type(JSONString)
+          .func("strings.replace_n")
+          .message("operand 1 non-string value found in pattern object"));
       if (new_node->type() == Error)
       {
         return new_node;

@@ -9,7 +9,8 @@ namespace
 
   Node cast_array(const Nodes& args)
   {
-    auto items = unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).exclude_got(true));
+    auto items =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).exclude_got(true));
     if (items->type() == Error)
     {
       return items;
@@ -20,7 +21,8 @@ namespace
 
   Node cast_set(const Nodes& args)
   {
-    auto items = unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).exclude_got(true));
+    auto items =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).exclude_got(true));
     if (items->type() == Error)
     {
       return items;
