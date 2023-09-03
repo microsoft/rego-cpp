@@ -172,6 +172,8 @@ namespace
           "error parsing regexp: not enough memory",
           EvalBuiltInError);
     }
+
+    return err(pattern_node, "error parsing regexp", EvalBuiltInError);
   }
 
   Node match(const Nodes& args)

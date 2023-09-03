@@ -422,8 +422,9 @@ namespace rego_test
 
       if (test_case.note() == "regexmatch/re_match: bad pattern err")
       {
-        // the C++ interface to RE2 uses a slightly different error syntax
-        test_case.want_error("error parsing regexp: missing closing ]");
+        // the std::regex uses a slightly different error syntax than Go, and
+        // reproducing the exact error is out of scope at this present time.
+        test_case.want_error("");
       }
 
       return test_case;

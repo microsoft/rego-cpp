@@ -61,7 +61,7 @@ namespace
         EvalTypeError);
     }
 
-    const std::size_t scale = 1 << s_int;
+    const std::size_t scale = static_cast<std::size_t>(1) << s_int;
 
     return Resolver::scalar(x_int * scale);
   }
