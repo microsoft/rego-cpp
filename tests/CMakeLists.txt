@@ -73,6 +73,12 @@ if(REGOCPP_OPA_TESTS)
   rand
   replacen
   refheads
+  regexfind
+  regexfindallstringsubmatch
+  regexisvalid
+  regexmatch
+  regexreplace
+  regexsplit
   semvercompare
   semverisvalid
   sets

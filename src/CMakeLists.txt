@@ -55,6 +55,7 @@ builtins/casts.cc
 builtins/encoding.cc
 builtins/numbers.cc
 builtins/objects.cc
+builtins/regex.cc
 builtins/semver.cc
 builtins/sets.cc
 builtins/strings.cc

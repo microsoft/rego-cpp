@@ -404,7 +404,10 @@ namespace rego_test
         .sort_bindings(get_bool(test_case_map, "sort_bindings"))
         .strict_error(get_bool(test_case_map, "strict_error"));
 
-      // special cases
+      // --- Special Cases --- //
+      // these test cases require some modification due to differences between
+      // C++ and Go, or due to issues with the testcases themselves.
+
       if (test_case.note() == "withkeyword/builtin-builtin: arity 0")
       {
         // as written, this test case can never pass (the result is the
@@ -415,6 +418,12 @@ namespace rego_test
         result << (rego::Var ^ "x");
         result << (rego::Term << rego::version());
         test_case.want_result(want_result << result);
+      }
+
+      if(test_case.note() == "regexmatch/re_match: bad pattern err")
+      {
+        // the C++ interface to RE2 uses a slightly different error syntax
+        test_case.want_error("error parsing regexp: missing closing ]");
       }
 
       return test_case;

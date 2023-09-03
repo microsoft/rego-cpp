@@ -346,6 +346,13 @@ namespace rego_test
             m.mode("string");
           },
 
+        // Also not a number
+        R"(\-[[:digit:]\.]+\-)" >>
+          [](auto& m) {
+            m.add(String);
+            m.mode("string");
+          },
+
         // String
         R"([[:digit:]\.]*[^[:digit:]^\.,\-\[\]\{\}[:blank:]\r\n])" >>
           [](auto& m) {
