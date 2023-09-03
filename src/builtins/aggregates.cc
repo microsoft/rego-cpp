@@ -10,8 +10,8 @@ namespace
 
   Node count(const Nodes& args)
   {
-    Node collection = unwrap_arg(
-      args, UnwrapOpt(0).types({Array, Object, Set, JSONString}));
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Object, Set, JSONString}));
     if (collection->type() == Error)
     {
       return collection;
@@ -138,6 +138,57 @@ namespace
 
     return err(args[0], "sum: expected collection");
   }
+
+  Node any(const Nodes& args)
+  {
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).func("any").types({Array, Set}));
+    if (collection->type() == Error)
+    {
+      return collection;
+    }
+
+    for (const Node& item : *collection)
+    {
+      auto maybe_boolean = unwrap(item, {JSONTrue, JSONFalse});
+      if (maybe_boolean.success)
+      {
+        if (maybe_boolean.node->type() == JSONTrue)
+        {
+          return JSONTrue ^ "true";
+        }
+      }
+    }
+
+    return JSONFalse ^ "false";
+  }
+
+  Node all(const Nodes& args)
+  {
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).func("all").types({Array, Set}));
+    if (collection->type() == Error)
+    {
+      return collection;
+    }
+
+    for (const Node& item : *collection)
+    {
+      auto maybe_boolean = unwrap(item, {JSONTrue, JSONFalse});
+      if (maybe_boolean.success)
+      {
+        if (maybe_boolean.node->type() == JSONFalse)
+        {
+          return JSONFalse ^ "false";
+        }
+      }else{
+        return JSONFalse ^ "false";
+      }
+    }
+
+    return JSONTrue ^ "true";
+  }
+
 }
 
 namespace rego
@@ -147,12 +198,15 @@ namespace rego
     std::vector<BuiltIn> aggregates()
     {
       return std::vector<BuiltIn>{
+        BuiltInDef::create(Location("all"), 1, all),
+        BuiltInDef::create(Location("any"), 1, any),
         BuiltInDef::create(Location("count"), 1, count),
         BuiltInDef::create(Location("max"), 1, max),
         BuiltInDef::create(Location("min"), 1, min),
+        BuiltInDef::create(Location("product"), 1, product),
         BuiltInDef::create(Location("sort"), 1, sort),
         BuiltInDef::create(Location("sum"), 1, sum),
-        BuiltInDef::create(Location("product"), 1, product)};
+      };
     }
   }
 }

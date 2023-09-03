@@ -25,6 +25,8 @@ add_custom_command(TARGET rego_test POST_BUILD
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS
   aggregates
+  all
+  any
   arithmetic
   array
   assignments
