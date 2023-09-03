@@ -51,10 +51,10 @@ namespace
 
     for (auto item : *lhs)
     {
-      auto key = (item / Key)->front()->clone();
-      if (key->type() == Term)
+      Node key = (item / Key);
+      if (key->front()->type() == Term)
       {
-        key = key->front();
+        key = key->front()->front();
       }
       auto lhsval = (item / Val)->front()->clone();
       if (is_constant(key))
@@ -71,8 +71,8 @@ namespace
         }
         else
         {
-          rhsval =
-            RefTerm << (SimpleRef << (Var ^ obj) << (RefArgBrack << key));
+          rhsval = RefTerm
+            << (SimpleRef << (Var ^ obj) << (RefArgBrack << key->clone()));
         }
 
         if (lhs_init_vars->size() > 0)
@@ -235,10 +235,10 @@ namespace rego
             for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
             {
               Node item = _(Lhs)->at(i);
-              Node key = (item / Key)->front();
-              if (key->type() == Term)
+              Node key = (item / Key);
+              if (key->front()->type() == Term)
               {
-                key = key->front();
+                key = key->front()->front();
               }
 
               Node val = (item / Val)->front();

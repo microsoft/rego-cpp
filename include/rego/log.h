@@ -1,7 +1,5 @@
 #pragma once
 
-#include "unifier.h"
-
 #include <functional>
 #include <iostream>
 #include <map>
