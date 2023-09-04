@@ -19,7 +19,7 @@ namespace rego
 
       In(Rego) * (T(Input) << T(Undefined)) >>
         [](Match&) { return Input << (Key ^ "input") << Undefined; },
-      
+
       // errors
       In(Input) * T(File)[File] >>
         [](Match& _) { return err(_(File), "Invalid JSON file for input"); },

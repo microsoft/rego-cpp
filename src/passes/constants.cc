@@ -58,6 +58,9 @@ namespace rego
       In(DataTerm) * T(Object)[Object] >>
         [](Match& _) { return DataObject << *_[Object]; },
 
+      (In(DataArray) / In(DataSet)) * (T(Expr) << T(Expr)[Expr]) >>
+        [](Match& _) { return _(Expr); },
+
       (In(DataArray) / In(DataSet)) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return DataTerm << _(Term)->front(); },
 

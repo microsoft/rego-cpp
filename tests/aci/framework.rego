@@ -646,7 +646,7 @@ exec_in_container := {"metadata": [updateMatches],
 
 default shutdown_container := {"allowed": false}
 
-shutdown_container := {"started": remove, "metadata": [remove], "allowed": true} {
+shutdown_container := {"metadata": [remove], "allowed": true} {
     container_started
     remove := {
         "name": "matches",

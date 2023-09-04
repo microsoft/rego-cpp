@@ -151,7 +151,8 @@ namespace rego_test
     return false;
   }
 
-  std::vector<std::string> TestCase::get_modules(const std::filesystem::path& dir, const Node& mapping)
+  std::vector<std::string> TestCase::get_modules(
+    const std::filesystem::path& dir, const Node& mapping)
   {
     Location loc("modules");
     Nodes defs = mapping->lookdown(loc);
@@ -174,13 +175,16 @@ namespace rego_test
         std::string code = std::string(module->location().view());
         if (code.ends_with(".rego"))
         {
-          if(std::filesystem::exists(dir / code)){
-          std::ifstream f(dir / code);
-          std::string str(
-            (std::istreambuf_iterator<char>(f)),
-            std::istreambuf_iterator<char>());
-          modules.push_back(str);
-          }else{
+          if (std::filesystem::exists(dir / code))
+          {
+            std::ifstream f(dir / code);
+            std::string str(
+              (std::istreambuf_iterator<char>(f)),
+              std::istreambuf_iterator<char>());
+            modules.push_back(str);
+          }
+          else
+          {
             std::cerr << "Could not find module " << code << std::endl;
           }
         }
@@ -374,7 +378,8 @@ namespace rego_test
     return test_cases;
   }
 
-  std::optional<TestCase> TestCase::create_from_node(const std::filesystem::path& filename, const Node& test_case_map)
+  std::optional<TestCase> TestCase::create_from_node(
+    const std::filesystem::path& filename, const Node& test_case_map)
   {
     try
     {

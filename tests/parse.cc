@@ -347,7 +347,7 @@ namespace rego_test
           },
 
         // Also not a number
-        R"(\-[[:digit:]\.]+\-)" >>
+        R"(\-[[:digit:]\.]*\-)" >>
           [](auto& m) {
             m.add(String);
             m.mode("string");
