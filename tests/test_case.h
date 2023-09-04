@@ -106,10 +106,12 @@ namespace rego_test
     static std::string get_string(const Node& mapping, const std::string& name);
     static Node get_node(const Node& mapping, const std::string& name);
     static bool get_bool(const Node& mapping, const std::string& name);
-    static std::vector<std::string> get_modules(const Node& mapping);
+    static std::vector<std::string> get_modules(
+      const std::filesystem::path& dir, const Node& mapping);
     static void diff(
       const std::string& actual, const std::string& wanted, std::ostream& os);
-    static std::optional<TestCase> create_from_node(const Node& test_case_map);
+    static std::optional<TestCase> create_from_node(
+      const std::filesystem::path& filename, const Node& test_case_map);
 
     std::filesystem::path m_filename;
     std::string m_note;

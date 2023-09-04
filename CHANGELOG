@@ -1,6 +1,18 @@
 # Changelog
 
-## 2023-09-03 - Version 0.3.1
+## 2023-09-03 - Version 0.3.2
+Adding tests based upon the Confidential ACI Rego framework.
+
+**New Features**
+- `aci.yaml` test suite
+- Test cases can now specify modules using filenames
+
+**Bug fixes**
+- Long arithmetic expressions which are split over multiple lines are now
+  correctly parsed.
+- A few fuzzer errors have been resolved
+
+## 2023-09-03 - [Version 0.3.1](https://github.com/microsoft/scenepic/releases/tag/v0.3.1)
 Adding further builtins and test coverage, plus some minor
 refactoring.
 
@@ -41,7 +53,7 @@ add later along with the `globs` builtins.
   the expected error messages for type mismatch.
 - `unwrap` provides a set-based way to do optional unwrapping of terms.
 
-## 2023-09-02 - Version 0.3.0
+## 2023-09-02 - [Version 0.3.0](https://github.com/microsoft/scenepic/releases/tag/v0.3.0)
 Minor release. From this point the implementation passes the Rego
 test suite and can be considered a compatible Rego implementation.
 

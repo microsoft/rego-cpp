@@ -151,7 +151,8 @@ namespace rego_test
     return false;
   }
 
-  std::vector<std::string> TestCase::get_modules(const Node& mapping)
+  std::vector<std::string> TestCase::get_modules(
+    const std::filesystem::path& dir, const Node& mapping)
   {
     Location loc("modules");
     Nodes defs = mapping->lookdown(loc);
@@ -171,7 +172,26 @@ namespace rego_test
         assert(scalar->type() == rego_test::Scalar);
         Node module = scalar->front();
         assert(module->type() == rego_test::String);
-        modules.push_back(std::string(module->location().view()));
+        std::string code = std::string(module->location().view());
+        if (code.ends_with(".rego"))
+        {
+          if (std::filesystem::exists(dir / code))
+          {
+            std::ifstream f(dir / code);
+            std::string str(
+              (std::istreambuf_iterator<char>(f)),
+              std::istreambuf_iterator<char>());
+            modules.push_back(str);
+          }
+          else
+          {
+            std::cerr << "Could not find module " << code << std::endl;
+          }
+        }
+        else
+        {
+          modules.push_back(std::string(module->location().view()));
+        }
       }
     }
 
@@ -348,17 +368,18 @@ namespace rego_test
     Node case_seq = ast->front()->front()->back();
     for (Node entry : *case_seq)
     {
-      auto maybe_testcase = TestCase::create_from_node(entry->front());
+      auto maybe_testcase = TestCase::create_from_node(path, entry->front());
       if (maybe_testcase.has_value())
       {
-        test_cases.push_back(maybe_testcase->filename(path));
+        test_cases.push_back(maybe_testcase.value());
       }
     }
 
     return test_cases;
   }
 
-  std::optional<TestCase> TestCase::create_from_node(const Node& test_case_map)
+  std::optional<TestCase> TestCase::create_from_node(
+    const std::filesystem::path& filename, const Node& test_case_map)
   {
     try
     {
@@ -395,7 +416,8 @@ namespace rego_test
         test_case = test_case.input(*input);
       }
 
-      test_case.modules(get_modules(test_case_map))
+      test_case.filename(filename)
+        .modules(get_modules(filename.parent_path(), test_case_map))
         .input_term(get_string(test_case_map, "input_term"))
         .want_defined(get_bool(test_case_map, "want_defined"))
         .want_result(get_node(test_case_map, "want_result"))

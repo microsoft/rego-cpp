@@ -3,6 +3,28 @@
 #include "passes.h"
 #include "resolver.h"
 
+namespace
+{
+  using namespace rego;
+
+  const inline std::set<Token> Ops = {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulo,
+    Equals,
+    NotEquals,
+    GreaterThan,
+    LessThan,
+    GreaterThanOrEquals,
+    LessThanOrEquals,
+    And,
+    Or,
+    Assign,
+    Unify};
+}
+
 namespace rego
 {
   // Modify the AST to resemble the target Rego syntax as much as possible.
@@ -11,7 +33,16 @@ namespace rego
   // unification.
   PassDef structure()
   {
-    return {
+    PassDef structure = {
+      In(UnifyBody) *
+          (T(Group)[Lhs]([](auto& n) {
+             // test if there was a newline inside an expression
+             Node node = *n.first;
+             return Ops.contains(node->back()->type());
+           }) *
+           T(Group)[Rhs]) >>
+        [](Match& _) { return Group << *_[Lhs] << *_[Rhs]; },
+
       In(Query) * T(Group)[Group] >>
         [](Match& _) { return Literal << (Expr << *_[Group]); },
 
@@ -278,8 +309,14 @@ namespace rego
             return SomeExpr << Undefined << _(VarSeq)->front()
                             << (IsIn << (Expr << _[Expr]));
           }
-
-          return SomeExpr << *_[VarSeq] << (IsIn << (Expr << _[Expr]));
+          else if (_(VarSeq)->size() == 2)
+          {
+            return SomeExpr << *_[VarSeq] << (IsIn << (Expr << _[Expr]));
+          }
+          else
+          {
+            return err(_(VarSeq), "Invalid some expression");
+          }
         },
 
       In(SomeExpr) * T(Group)[Group] >>
@@ -369,5 +406,7 @@ namespace rego
       In(Set) * T(SomeDecl)[SomeDecl] >>
         [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
     };
+
+    return structure;
   }
 }

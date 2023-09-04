@@ -18,9 +18,13 @@ target_link_libraries(yaml_trieste
 add_test(NAME rego_trieste COMMAND rego_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_trieste>)
 add_test(NAME yaml_trieste COMMAND yaml_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:yaml_trieste>)
 add_test(NAME rego_test COMMAND rego_test regocpp.yaml WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+add_test(NAME rego_test_aci COMMAND rego_test aci/aci.yaml WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+set_tests_properties(rego_test_aci PROPERTIES TIMEOUT 300)
 
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/regocpp.yaml $<TARGET_FILE_DIR:rego_test>/regocpp.yaml)
+add_custom_command(TARGET rego_test POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/aci $<TARGET_FILE_DIR:rego_test>/aci)
 
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS

@@ -163,6 +163,7 @@ endif()
 if (REGOCPP_BUILD_TESTS)
   install(TARGETS rego_test yaml_trieste RUNTIME)
   install(FILES tests/regocpp.yaml tests/bigint.yaml DESTINATION tests)
+  install(DIRECTORY tests/aci DESTINATION tests)
 endif()
 
 export(EXPORT ${PROJECT_NAME}_Targets
