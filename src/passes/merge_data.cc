@@ -4,7 +4,8 @@
 
 namespace rego
 {
-  // Merges all the Data nodes in DataSeq into a single Data node.
+  // Merges all the Data nodes in DataSeq into a single Data node with
+  // hierarchical structure.
   PassDef merge_data()
   {
     return {

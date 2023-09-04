@@ -26,6 +26,9 @@ namespace
     }
   }
 
+  // This function analyzes the object structures and variables on both
+  // sides and produces the necessary LiteralInit and BoolInfix nodes
+  // that represent the unification.
   void add_object_comparisons(
     const Location& obj,
     const Node& lhs,
@@ -35,8 +38,7 @@ namespace
     Nodes& literalinits,
     Nodes& boolinfixes)
   {
-    // for constant key values (which are shared) we can create simple
-    // assignments and comparisons
+    // this enables us to find values with constant keys
     std::map<std::string, Node> rhsmap;
     for (auto item : *rhs)
     {
@@ -59,18 +61,25 @@ namespace
       auto lhsval = (item / Val)->front()->clone();
       if (is_constant(key))
       {
+        // constant keys have values that can be determined at compile time
         std::string key_str = to_json(key);
+
+        // gather variables to initialization from the lvalue
         Node lhs_init_vars = NodeDef::create(VarSeq);
         find_locs_from(lhsval, lhs_vars, lhs_init_vars);
         Node rhsval;
         Node rhs_init_vars = NodeDef::create(VarSeq);
         if (rhsmap.contains(key_str))
         {
+          // if the rvalue has a constant key, we can use that value
+          // and perform variable initialization analysis.
           rhsval = rhsmap[key_str];
           find_locs_from(rhsval, rhs_vars, rhs_init_vars);
         }
         else
         {
+          // we cannot know the rvalue at compile time, which means
+          // no initialization can take place.
           rhsval = RefTerm
             << (SimpleRef << (Var ^ obj) << (RefArgBrack << key->clone()));
         }
@@ -84,12 +93,16 @@ namespace
         }
         else
         {
+          // if nothing is being initialized, we just need to perform
+          // an equality check.
           boolinfixes.push_back(
             BoolInfix << (BoolArg << lhsval) << Equals << (BoolArg << rhsval));
         }
       }
       else
       {
+        // if the key is not constant, no initialization can take place
+        // so we simple perofrm an equality check.
         boolinfixes.push_back(
           BoolInfix << (BoolArg << lhsval) << Equals
                     << (BoolArg

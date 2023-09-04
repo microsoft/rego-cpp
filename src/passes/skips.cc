@@ -99,7 +99,9 @@ namespace
 
 namespace rego
 {
-  // Discovers skip paths in the AST to constant DataTerm nodes.
+  // Primes the skiplist with With locations, to cover the cases in which
+  // a With statement adds a path into the base document which does exist
+  // already. This ensures those paths are still in the symbol table.
   PassDef skips()
   {
     SkipMap skip_links = std::make_shared<std::map<std::string, Node>>();

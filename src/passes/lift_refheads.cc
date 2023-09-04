@@ -94,6 +94,10 @@ namespace
 
 namespace rego
 {
+  // This pass finds all complex, i.e. reference-based, rule heads and lifts
+  // them into their own modules which encode their prefix. For example, a rule
+  // called a.b.c.foo will be lifted into a new module with package a.b.c and
+  // rule foo.
   PassDef lift_refheads()
   {
     RefHeads refheads = std::make_shared<std::set<std::string>>();

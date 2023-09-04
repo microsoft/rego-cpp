@@ -12,6 +12,7 @@ namespace
 
 namespace rego
 {
+  // Builts RefTerm and RuleRef nodes up from their tokens.
   PassDef build_refs()
   {
     return {

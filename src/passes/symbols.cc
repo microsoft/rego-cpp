@@ -40,7 +40,8 @@ namespace
 namespace rego
 {
   // Process most nodes that will be referenced by symbols so that they can be
-  // appropriately indexed.
+  // appropriately indexed. Also processes some nodes into forms that will
+  // be easier to process for later passes.
   PassDef symbols()
   {
     return {

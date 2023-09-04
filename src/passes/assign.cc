@@ -123,9 +123,17 @@ namespace rego
           (T(Expr)
            << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
                  [func_arity, cache](auto& n) {
+                   // tests if this is a function call that has an extra
+                   // argument that should be unified with the result.
                    return needs_rewrite(n, func_arity, cache);
                  }))) >>
         [](Match& _) {
+          // A convention in the Golang implementation of Rego is
+          // that you can call any function with an additional argument
+          // that will be unified with its result. This is not documented
+          // anywhere but is expected behavior used in tests. This
+          // rewrite turns these back into the documented form which we
+          // expect.
           Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
@@ -146,6 +154,7 @@ namespace rego
                                is_in(*n.first, {UnifyBody});
                            })))))) >>
         [](Match& _) {
+          // see above comment.
           Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
           Node var = argseq->pop_back();
@@ -165,6 +174,8 @@ namespace rego
 
       In(Literal) * (T(Expr) << (AssignInfixArg[Arg] * End)) >>
         [](Match& _) {
+          // bare expressions are treated as unification requirements
+          // in non-query rules.
           std::string prefix = in_query(_(Arg)) ? "value" : "unify";
           Location temp = _.fresh({prefix});
           return Seq << (Lift << UnifyBody

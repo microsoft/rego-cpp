@@ -17,7 +17,7 @@ namespace rego
   {
     Location name;
     std::size_t arity;
-    Node (*behavior)(const Nodes&);
+    BuiltInBehavior behavior;
     static BuiltIn create(
       const Location& name, std::size_t arity, BuiltInBehavior behavior);
   };

@@ -7,7 +7,8 @@ namespace rego
   const inline auto AllOps =
     T(Add) / T(Subtract) / T(Multiply) / T(Divide) / T(Modulo) / T(Unify);
 
-  // Finds unary expressions
+  // Finds unary expressions by looking for patterns in which
+  // there is a stray Subtract token.
   PassDef unary()
   {
     return {
@@ -24,6 +25,7 @@ namespace rego
   const inline auto Ops = T(Multiply) / T(Divide) / T(Modulo);
 
   // Processes multiply, divide, and modulo operations into ArithInfix nodes.
+  // Also handles set intersection.
   PassDef multiply_divide()
   {
     return {
@@ -51,6 +53,7 @@ namespace rego
   }
 
   // Transforms addition, subtraction, and unary negation into ArithInfix Nodes.
+  // Also, handles set union and difference.
   PassDef add_subtract()
   {
     return {

@@ -7,11 +7,17 @@
 
 namespace rego
 {
+  /**
+   * The Args class provides an interable interface over the Cartesian product
+   * of all sets of arguments to a function. It will contain N sets of argument
+   * sources, and will produce s_0 * s_1 * ... * s_n arguments, where s_i is the
+   * size of the i-th argument source.
+   */
   class Args
   {
   public:
     Args();
-    void push_back(const Values& values);
+    void push_back_source(const Values& values);
     void mark_invalid(const std::set<Value>& active) const;
     void mark_invalid_except(const std::set<Value>& active) const;
     Values at(std::size_t index) const;

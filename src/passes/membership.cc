@@ -12,6 +12,7 @@ namespace
 
 namespace rego
 {
+  // Assembles tokens into Membership nodes.
   PassDef membership()
   {
     return {

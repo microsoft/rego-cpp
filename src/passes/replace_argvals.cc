@@ -78,6 +78,8 @@ namespace
 
 namespace rego
 {
+  // This pass replaces value argument constraints with variables and
+  // explicitly inserts the constraints into the body of the rule.
   PassDef replace_argvals()
   {
     return {

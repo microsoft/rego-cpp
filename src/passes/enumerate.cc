@@ -82,6 +82,8 @@ namespace rego
         [](Match& _) {
           auto temp = _.fresh({"enum"});
           auto itemseq = _.fresh({"itemseq"});
+          // all statements under the LiteralEnum node must be moved to its
+          // body, as they depend on the enumerated values.
           Node body = UnifyBody << _[Tail];
           if (body->size() == 0)
           {

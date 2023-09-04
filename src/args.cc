@@ -10,7 +10,7 @@ namespace rego
 
   Args::Args() : m_size(0) {}
 
-  void Args::push_back(const Values& values)
+  void Args::push_back_source(const Values& values)
   {
     m_values.push_back(values);
     for (auto& stride : m_stride)
@@ -115,7 +115,7 @@ namespace rego
     Args subargs;
     for (std::size_t i = start; i < m_values.size(); ++i)
     {
-      subargs.push_back(m_values[i]);
+      subargs.push_back_source(m_values[i]);
     }
 
     return subargs;

@@ -142,6 +142,8 @@ namespace
 
 namespace rego
 {
+  // This pass lifts enumerations, comprehensions, and every expressions into
+  // rules and replaces them with ExprCalls.
   PassDef lift_to_rule()
   {
     return {

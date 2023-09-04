@@ -539,7 +539,7 @@ namespace rego
         arg_values.push_back(ValueDef::create(Undefined));
       }
 
-      function_args.push_back(arg_values);
+      function_args.push_back_source(arg_values);
     }
 
     return function_args;
