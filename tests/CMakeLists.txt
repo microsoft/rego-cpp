@@ -21,6 +21,8 @@ add_test(NAME rego_test COMMAND rego_test regocpp.yaml WORKING_DIRECTORY $<TARGE
 
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/regocpp.yaml $<TARGET_FILE_DIR:rego_test>/regocpp.yaml)
+add_custom_command(TARGET rego_test POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/aci $<TARGET_FILE_DIR:rego_test>/aci)
 
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS

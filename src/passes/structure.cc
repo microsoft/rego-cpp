@@ -3,6 +3,16 @@
 #include "passes.h"
 #include "resolver.h"
 
+namespace {
+  using namespace rego;
+
+  const inline std::set<Token> Ops = {
+    Add, Subtract, Multiply, Divide, Modulo,
+    Equals, NotEquals, GreaterThan, LessThan, GreaterThanOrEquals, LessThanOrEquals,
+    And, Or, Assign, Unify
+  };
+}
+
 namespace rego
 {
   // Modify the AST to resemble the target Rego syntax as much as possible.
@@ -12,6 +22,13 @@ namespace rego
   PassDef structure()
   {
     return {
+      In(UnifyBody) * (T(Group)[Lhs]([](auto& n){
+        // test if there was a newline inside an expression
+        Node node = *n.first;
+        return Ops.contains(node->back()->type());
+      }) * T(Group)[Rhs]) >>
+        [](Match& _) { return Group << *_[Lhs] << *_[Rhs]; },
+
       In(Query) * T(Group)[Group] >>
         [](Match& _) { return Literal << (Expr << *_[Group]); },
 

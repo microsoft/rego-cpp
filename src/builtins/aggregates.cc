@@ -29,114 +29,101 @@ namespace
 
   Node max(const Nodes& args)
   {
-    Node collection = args[0];
-    if (collection->type() == Term)
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).func("max"));
+    if (collection->type() == Error)
     {
-      collection = collection->front();
+      return collection;
     }
 
-    if (collection->type() == Array || collection->type() == Set)
+    if (collection->size() == 0)
     {
-      auto it = std::max_element(
-        collection->begin(),
-        collection->end(),
-        [](const Node& a, const Node& b) { return to_json(a) < to_json(b); });
-
-      return *it;
+      return Undefined ^ "undefined";
     }
 
-    return err(args[0], "max: expected collection");
+    auto it = std::max_element(
+      collection->begin(), collection->end(), [](const Node& a, const Node& b) {
+        return to_json(a) < to_json(b);
+      });
+
+    return *it;
   }
 
   Node min(const Nodes& args)
   {
-    Node collection = args[0];
-    if (collection->type() == Term)
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).func("min"));
+    if (collection->type() == Error)
     {
-      collection = collection->front();
+      return collection;
     }
 
-    if (collection->type() == Array || collection->type() == Set)
+    if (collection->size() == 0)
     {
-      auto it = std::min_element(
-        collection->begin(),
-        collection->end(),
-        [](const Node& a, const Node& b) { return to_json(a) < to_json(b); });
-
-      return *it;
+      return Undefined ^ "undefined";
     }
 
-    return err(args[0], "max: expected collection");
+    auto it = std::min_element(
+      collection->begin(), collection->end(), [](const Node& a, const Node& b) {
+        return to_json(a) < to_json(b);
+      });
+
+    return *it;
   }
 
   Node sort(const Nodes& args)
   {
-    Node collection = args[0];
-    if (collection->type() == Term)
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).func("sort"));
+    if (collection->type() == Error)
     {
-      collection = collection->front();
+      return collection;
     }
 
-    if (collection->type() == Array || collection->type() == Set)
-    {
-      Node sorted = collection->clone();
-      std::sort(
-        sorted->begin(), sorted->end(), [](const Node& a, const Node& b) {
-          return to_json(a) < to_json(b);
-        });
+    Node sorted = collection->clone();
+    std::sort(sorted->begin(), sorted->end(), [](const Node& a, const Node& b) {
+      return to_json(a) < to_json(b);
+    });
 
-      return sorted;
-    }
-
-    return err(args[0], "max: expected collection");
+    return sorted;
   }
 
   Node sum(const Nodes& args)
   {
-    Node collection = args[0];
-    if (collection->type() == Term)
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).func("sum"));
+    if (collection->type() == Error)
     {
-      collection = collection->front();
+      return collection;
     }
 
-    if (collection->type() == Array || collection->type() == Set)
-    {
-      Node sum = std::accumulate(
-        collection->begin(),
-        collection->end(),
-        JSONInt ^ "0",
-        [](const Node& a, const Node& b) {
-          return Resolver::arithinfix(Add ^ "+", a, b);
-        });
-
-      return Term << (Scalar << sum);
-    }
-
-    return err(args[0], "sum: expected collection");
+    return std::accumulate(
+      collection->begin(),
+      collection->end(),
+      JSONInt ^ "0",
+      [](const Node& a, const Node& b) {
+        return Resolver::arithinfix(Add ^ "+", a, b);
+      });
   }
 
   Node product(const Nodes& args)
   {
-    Node collection = args[0];
-    if (collection->type() == Term)
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Set}).func("product"));
+    if (collection->type() == Error)
     {
-      collection = collection->front();
+      return collection;
     }
 
-    if (collection->type() == Array || collection->type() == Set)
-    {
-      Node sum = std::accumulate(
-        collection->begin(),
-        collection->end(),
-        JSONInt ^ "1",
-        [](const Node& a, const Node& b) {
-          return Resolver::arithinfix(Multiply ^ "*", a, b);
-        });
+    Node sum = std::accumulate(
+      collection->begin(),
+      collection->end(),
+      JSONInt ^ "1",
+      [](const Node& a, const Node& b) {
+        return Resolver::arithinfix(Multiply ^ "*", a, b);
+      });
 
-      return Term << (Scalar << sum);
-    }
-
-    return err(args[0], "sum: expected collection");
+    return Term << (Scalar << sum);
   }
 
   Node any(const Nodes& args)
