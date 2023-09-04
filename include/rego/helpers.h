@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bigint.h"
 #include "rego.h"
 #include "tokens.h"
 
@@ -33,6 +34,45 @@ namespace rego
   inline const std::set<Token> RuleTypes(
     {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
 
+  struct UnwrapResult
+  {
+    Node node;
+    bool success;
+  };
+
+  class UnwrapOpt
+  {
+  public:
+    UnwrapOpt(std::size_t index);
+    bool exclude_got() const;
+    UnwrapOpt& exclude_got(bool exclude_got);
+    bool specify_number() const;
+    UnwrapOpt& specify_number(bool specify_number);
+    const std::string& code() const;
+    UnwrapOpt& code(const std::string& value);
+    const std::string& pre() const;
+    UnwrapOpt& pre(const std::string& value);
+    const std::string& message() const;
+    UnwrapOpt& message(const std::string& value);
+    const std::string& func() const;
+    UnwrapOpt& func(const std::string& value);
+    const std::vector<Token>& types() const;
+    UnwrapOpt& types(const std::vector<Token>& value);
+    UnwrapOpt& type(const Token& value);
+
+    Node unwrap(const Nodes& args) const;
+
+  private:
+    bool m_exclude_got;
+    bool m_specify_number;
+    std::string m_code;
+    std::string m_prefix;
+    std::string m_message;
+    std::string m_func;
+    std::vector<Token> m_types;
+    std::size_t m_index;
+  };
+
   bool all_alnum(const std::string_view& str);
   bool contains_local(const Node& node);
   bool contains_ref(const Node& node);
@@ -41,5 +81,17 @@ namespace rego
   bool is_in(const Node& node, const std::set<Token>& token);
   bool in_query(const Node& node);
   bool is_constant(const Node& node);
+  bool is_instance(const Node& value, const std::set<Token>& types);
+  bool is_falsy(const Node& node);
+  bool is_truthy(const Node& node);
+  bool is_undefined(const Node& node);
   std::string strip_quotes(const std::string_view& str);
+  BigInt get_int(const Node& node);
+  double get_double(const Node& node);
+  std::string get_string(const Node& node);
+  bool get_bool(const Node& node);
+  std::string type_name(const Token& type, bool specify_number = false);
+  std::string type_name(const Node& node, bool specify_number = false);
+  Node unwrap_arg(const Nodes& args, const UnwrapOpt& options);
+  UnwrapResult unwrap(const Node& term, const std::set<Token>& types);
 }

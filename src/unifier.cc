@@ -319,7 +319,7 @@ namespace rego
             bool all_false = true;
             for (auto& value : values)
             {
-              if (!Resolver::is_falsy(value->node()))
+              if (!is_falsy(value->node()))
               {
                 all_false = false;
                 break;
@@ -450,7 +450,7 @@ namespace rego
             return JSONFalse ^ "false";
           }
         }
-        else if (var.is_unify() && Resolver::is_falsy(node))
+        else if (var.is_unify() && is_falsy(node))
         {
           LOG("> ", var.name().view(), ": false => false");
           return JSONFalse ^ "false";
@@ -460,7 +460,7 @@ namespace rego
           LOG("> ", var.name().view(), ": Term => true");
           return JSONTrue ^ "true";
         }
-        else if (var.is_user_var() && Resolver::is_undefined(node))
+        else if (var.is_user_var() && is_undefined(node))
         {
           LOG("> ", var.name().view(), ": undefined => false");
           return JSONFalse ^ "false";
@@ -539,7 +539,7 @@ namespace rego
         arg_values.push_back(ValueDef::create(Undefined));
       }
 
-      function_args.push_back(arg_values);
+      function_args.push_back_source(arg_values);
     }
 
     return function_args;
@@ -638,7 +638,7 @@ namespace rego
             bool all_valid = true;
             for (auto& arg : arglist)
             {
-              if (Resolver::is_undefined(arg->node()))
+              if (is_undefined(arg->node()))
               {
                 LOG("Undefined arg -> invalid");
                 all_valid = false;
@@ -1052,7 +1052,7 @@ namespace rego
     if (func_name == "not")
     {
       Node term = args[0]->to_term();
-      if (Resolver::is_truthy(term))
+      if (is_truthy(term))
       {
         return ValueDef::create(var, JSONFalse ^ "false", sources);
       }
@@ -1260,8 +1260,7 @@ namespace rego
   {
     if (node->type() == Function)
     {
-      std::string func_name =
-        strip_quotes(Resolver::get_string(node / JSONString));
+      std::string func_name = strip_quotes(get_string(node / JSONString));
       if (func_name != "call")
       {
         return false;
@@ -1528,7 +1527,7 @@ namespace rego
           return val;
         }
 
-        if (Resolver::is_undefined(val))
+        if (is_undefined(val))
         {
           continue;
         }

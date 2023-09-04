@@ -4,6 +4,14 @@
 
 namespace rego
 {
+  /**
+   * This is a basic, non-optimized implementation of a big integer using
+   * strings. In most circumstances this would be considerably slower than other
+   * approaches, but given the way in which Trieste nodes store their content as
+   * Location objects into a source document, and this class operates over those
+   * Locations, it is actual quite efficient when compared to parsing and
+   * serializing the Location into a vector of unsigned longs.
+   */
   class BigInt
   {
   public:

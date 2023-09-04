@@ -37,6 +37,8 @@ namespace
 
 namespace rego
 {
+  // Assembles tokens into a early form of what will become rule
+  // definitions.
   PassDef rules()
   {
     return {
@@ -56,6 +58,8 @@ namespace rego
            << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) * T(If) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
+          // this has the form of a set rule but the reference implementation
+          // interprets it as an object rule instead.
           return Rule << JSONFalse
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadObj

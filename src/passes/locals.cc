@@ -127,7 +127,7 @@ namespace
 
 namespace rego
 {
-  // Discovers undeclared local variables from rule bodies and the query and
+  // Discovers undeclared local variables from rule bodies and comprehensions
   // inserts Local nodes for them at the appropriate scope.
   PassDef body_locals(const BuiltIns& builtins)
   {

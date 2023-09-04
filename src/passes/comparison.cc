@@ -11,6 +11,7 @@ namespace rego
     T(Scalar) / T(Var) / T(Object) / T(Array) / T(Set);
 
   // Transforms boolean comparison operations into BoolInfix nodes.
+  // Also generates LiteralNot nodes for not expressions.
   PassDef comparison()
   {
     return {

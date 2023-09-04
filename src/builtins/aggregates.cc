@@ -10,41 +10,21 @@ namespace
 
   Node count(const Nodes& args)
   {
-    Node collection = args[0];
-    if (collection->type() == Term)
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).types({Array, Object, Set, JSONString}));
+    if (collection->type() == Error)
     {
-      collection = collection->front();
-    }
-
-    if (
-      collection->type() == Object || collection->type() == Array ||
-      collection->type() == Set)
-    {
-      return Resolver::scalar(BigInt(collection->size()));
-    }
-
-    if (collection->type() == Scalar)
-    {
-      collection = collection->front();
+      return collection;
     }
 
     if (collection->type() == JSONString)
     {
-      std::string collection_str = strip_quotes(collection->location().view());
+      std::string collection_str = get_string(collection);
       runestring collection_runes = utf8_to_runestring(collection_str);
       return Resolver::scalar(BigInt(collection_runes.size()));
     }
 
-    std::string collection_type = std::string(collection->type().str());
-    if (collection_type == "INT" || collection_type == "FLOAT")
-    {
-      collection_type = "number";
-    }
-    return err(
-      args[0],
-      "operand 1 must be one of {array, object, set, string} but got " +
-        collection_type,
-      EvalTypeError);
+    return Resolver::scalar(BigInt(collection->size()));
   }
 
   Node max(const Nodes& args)
@@ -158,6 +138,59 @@ namespace
 
     return err(args[0], "sum: expected collection");
   }
+
+  Node any(const Nodes& args)
+  {
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).func("any").types({Array, Set}));
+    if (collection->type() == Error)
+    {
+      return collection;
+    }
+
+    for (const Node& item : *collection)
+    {
+      auto maybe_boolean = unwrap(item, {JSONTrue, JSONFalse});
+      if (maybe_boolean.success)
+      {
+        if (maybe_boolean.node->type() == JSONTrue)
+        {
+          return JSONTrue ^ "true";
+        }
+      }
+    }
+
+    return JSONFalse ^ "false";
+  }
+
+  Node all(const Nodes& args)
+  {
+    Node collection =
+      unwrap_arg(args, UnwrapOpt(0).func("all").types({Array, Set}));
+    if (collection->type() == Error)
+    {
+      return collection;
+    }
+
+    for (const Node& item : *collection)
+    {
+      auto maybe_boolean = unwrap(item, {JSONTrue, JSONFalse});
+      if (maybe_boolean.success)
+      {
+        if (maybe_boolean.node->type() == JSONFalse)
+        {
+          return JSONFalse ^ "false";
+        }
+      }
+      else
+      {
+        return JSONFalse ^ "false";
+      }
+    }
+
+    return JSONTrue ^ "true";
+  }
+
 }
 
 namespace rego
@@ -167,12 +200,15 @@ namespace rego
     std::vector<BuiltIn> aggregates()
     {
       return std::vector<BuiltIn>{
+        BuiltInDef::create(Location("all"), 1, all),
+        BuiltInDef::create(Location("any"), 1, any),
         BuiltInDef::create(Location("count"), 1, count),
         BuiltInDef::create(Location("max"), 1, max),
         BuiltInDef::create(Location("min"), 1, min),
+        BuiltInDef::create(Location("product"), 1, product),
         BuiltInDef::create(Location("sort"), 1, sort),
         BuiltInDef::create(Location("sum"), 1, sum),
-        BuiltInDef::create(Location("product"), 1, product)};
+      };
     }
   }
 }

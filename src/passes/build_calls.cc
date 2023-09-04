@@ -4,6 +4,7 @@
 
 namespace rego
 {
+  // Builds function calls into ExprCall nodes.
   PassDef build_calls()
   {
     return {

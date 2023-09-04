@@ -77,7 +77,10 @@ namespace
 
 namespace rego
 {
-  // Merges all the Modules in ModuleSeq into the Data node.
+  // Merges all the Modules in ModuleSeq into the Data node. As part of this it
+  // will create submodules and preserve a single hierarhical structure, such
+  // that two packages a.b.c and a.b.d will be merged into a single module b,
+  // which is a child of a.
   PassDef merge_modules()
   {
     return {

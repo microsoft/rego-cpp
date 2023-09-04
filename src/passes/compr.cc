@@ -2,13 +2,6 @@
 #include "helpers.h"
 #include "passes.h"
 
-// TODO
-// Given the current design, there is no reason why the comprehension call
-// shouldn't live in the innermost enum and then be passed up the chain.
-// This will deal with the issue where nested enumerations mangle the output
-// value, i.e. the captured value passed up the lambda chain would already
-// be a valid Term.
-
 namespace rego
 {
   // Augments nested comprehension bodies to contain statements that set the
@@ -122,13 +115,18 @@ namespace rego
             (T(Expr)[Expr] * T(NestedBody)[NestedBody]) >>
           [](Match& _) {
             Location out = _.fresh({"out"});
-            Node tail = _(NestedBody) / Val;
-            while (tail->back()->type() == LiteralEnum ||
-                   tail->back()->type() == LiteralWith)
+
+            // the comprehension logic needs to live in the inner-most
+            // UnifyBody. As a enumeration call will always be the final
+            // statement in a UnifyBody, we can find them by checking
+            // the final statement.
+            Node innermost = _(NestedBody) / Val;
+            while (innermost->back()->type() == LiteralEnum ||
+                   innermost->back()->type() == LiteralWith)
             {
-              tail = tail->back() / UnifyBody;
+              innermost = innermost->back() / UnifyBody;
             }
-            tail
+            innermost
               << (Literal
                   << (Expr << (RefTerm << (Var ^ out)) << Unify << _(Expr)));
             (_(NestedBody) / Val)
@@ -140,14 +138,15 @@ namespace rego
             (T(Expr)[Key] * T(Expr)[Val] * T(NestedBody)[NestedBody]) >>
           [](Match& _) {
             Location out = _.fresh({"out"});
-            Node tail = _(NestedBody) / Val;
-            while (tail->back()->type() == LiteralEnum ||
-                   tail->back()->type() == LiteralWith)
+            Node innermost = _(NestedBody) / Val;
+            // see comment above
+            while (innermost->back()->type() == LiteralEnum ||
+                   innermost->back()->type() == LiteralWith)
             {
-              tail = tail->back() / UnifyBody;
+              innermost = innermost->back() / UnifyBody;
             }
 
-            tail
+            innermost
               << (Literal
                   << (Expr << (RefTerm << (Var ^ out)) << Unify
                            << (Expr << (Term << (Array << _(Key) << _(Val))))));

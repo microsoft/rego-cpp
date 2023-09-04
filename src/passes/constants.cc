@@ -6,6 +6,7 @@
 namespace rego
 {
   // Converts all rules with constant terms to be DataTerm nodes.
+  // Also reshapes ExprEvery nodes so they can be lifted later.
   PassDef constants()
   {
     return {
@@ -109,7 +110,6 @@ namespace rego
            << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
                (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
-          // lifts this every statement into a rule function
           Location item = _.fresh({"item"});
           Location every = _.fresh({"every"});
 
@@ -138,7 +138,6 @@ namespace rego
            << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
                T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
-          // lifts this every statement into a rule function
           Location item = _.fresh({"item"});
           Location every = _.fresh({"every"});
 

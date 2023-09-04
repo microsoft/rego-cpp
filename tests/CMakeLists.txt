@@ -25,10 +25,19 @@ add_custom_command(TARGET rego_test POST_BUILD
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS
   aggregates
+  all
+  any
   arithmetic
   array
   assignments
   baseandvirtualdocs
+  bitsand
+  bitsnegate
+  bitsor
+  bitsshiftleft
+  bitsshiftright
+  bitsxor
+  casts
   comparisonexpr
   completedoc
   compositebasedereference
@@ -72,6 +81,13 @@ if(REGOCPP_OPA_TESTS)
   rand
   replacen
   refheads
+  regexfind
+  regexfindallstringsubmatch
+  regexisvalid
+  regexmatch
+  regexreplace
+  regexsplit
+  regexmatchtemplate
   semvercompare
   semverisvalid
   sets
@@ -88,6 +104,8 @@ if(REGOCPP_OPA_TESTS)
   trimspace
   trimsuffix
   type
+  typebuiltin
+  typenamebuiltin
   undos
   union
   units

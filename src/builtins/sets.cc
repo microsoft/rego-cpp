@@ -9,31 +9,28 @@ namespace
 
   Node intersection(const Nodes& args)
   {
-    Node xs =
-      Resolver::unwrap(args[0], Set, "intersection: operand 1 ", EvalTypeError);
-    if (xs->type() == Error)
+    Node xs_node =
+      unwrap_arg(args, UnwrapOpt(0).type(Set).func("intersection"));
+    if (xs_node->type() == Error)
     {
-      return xs;
+      return xs_node;
     }
 
-    if (xs->size() == 0)
+    if (xs_node->size() == 0)
     {
       return NodeDef::create(Set);
     }
 
-    Node y = Resolver::unwrap(
-      xs->at(0), Set, "intersection: operand 1 is set of sets ", EvalTypeError);
+    Nodes xs(xs_node->begin(), xs_node->end());
+
+    Node y = unwrap_arg(xs, UnwrapOpt(0).type(Set).pre("is set of sets"));
     if (y->type() == Error)
     {
       return y;
     }
-    for (std::size_t i = 1; i < xs->size(); i++)
+    for (std::size_t i = 1; i < xs.size(); i++)
     {
-      Node x = Resolver::unwrap(
-        xs->at(i),
-        Set,
-        "intersection: operand 1 is set of sets ",
-        EvalTypeError);
+      Node x = unwrap_arg(xs, UnwrapOpt(i).type(Set).pre("is set of sets"));
       if (x->type() == Error)
       {
         return x;
@@ -46,8 +43,7 @@ namespace
 
   Node union_(const Nodes& args)
   {
-    Node xs =
-      Resolver::unwrap(args[0], Set, "union: operand 1 ", EvalTypeError);
+    Node xs = unwrap_arg(args, UnwrapOpt(0).func("union").type(Set));
     if (xs->type() == Error)
     {
       return xs;
@@ -56,8 +52,7 @@ namespace
     Node y = NodeDef::create(Set);
     for (Node x : *xs)
     {
-      x = Resolver::unwrap(
-        x, Set, "union: operand 1 is set of sets ", EvalTypeError);
+      x = unwrap_arg({x}, UnwrapOpt(0).func("union").type(Set));
       if (x->type() == Error)
       {
         return x;

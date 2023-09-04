@@ -1,7 +1,6 @@
 #include "errors.h"
 #include "helpers.h"
 #include "register.h"
-#include "resolver.h"
 
 namespace
 {
@@ -126,20 +125,20 @@ namespace
 
   Node compare(const Nodes& args)
   {
-    Node a = Resolver::unwrap(
-      args[0], JSONString, "semver.compare: operand 1 ", EvalTypeError);
+    Node a =
+      unwrap_arg(args, UnwrapOpt(0).func("semver.compare").type(JSONString));
     if (a->type() == Error)
     {
       return a;
     }
-    Node b = Resolver::unwrap(
-      args[1], JSONString, "semver.compare: operand 2 ", EvalTypeError);
+    Node b =
+      unwrap_arg(args, UnwrapOpt(1).func("semver.compare").type(JSONString));
     if (b->type() == Error)
     {
       return b;
     }
 
-    std::string a_str = Resolver::get_string(a);
+    std::string a_str = get_string(a);
     auto a_semver = parse_semver(a_str);
     if (!a_semver.has_value())
     {
@@ -150,7 +149,7 @@ namespace
         EvalBuiltInError);
     }
 
-    std::string b_str = Resolver::get_string(b);
+    std::string b_str = get_string(b);
     auto b_semver = parse_semver(b_str);
     if (!b_semver.has_value())
     {
@@ -174,13 +173,13 @@ namespace
 
   Node is_valid(const Nodes& args)
   {
-    auto vsn = Resolver::maybe_unwrap_string(args[0]);
-    if (!vsn.has_value())
+    auto vsn = unwrap(args[0], {JSONString});
+    if (!vsn.success)
     {
       return JSONFalse ^ "false";
     }
 
-    std::string vsn_str = Resolver::get_string(*vsn);
+    std::string vsn_str = get_string(vsn.node);
     auto semver = parse_semver(vsn_str);
     if (semver.has_value())
     {

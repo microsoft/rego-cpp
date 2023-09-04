@@ -1,7 +1,6 @@
 #include "errors.h"
 #include "helpers.h"
 #include "register.h"
-#include "resolver.h"
 
 namespace
 {
@@ -9,15 +8,13 @@ namespace
 
   Node concat(const Nodes& args)
   {
-    Node x = Resolver::unwrap(
-      args[0], Array, "array.concat: operand 1 ", EvalTypeError);
+    Node x = unwrap_arg(args, UnwrapOpt(0).func("array.concat").type(Array));
     if (x->type() == Error)
     {
       return x;
     }
 
-    Node y = Resolver::unwrap(
-      args[1], Array, "array.concat: operand 2 ", EvalTypeError);
+    Node y = unwrap_arg(args, UnwrapOpt(1).func("array.concat").type(Array));
     if (y->type() == Error)
     {
       return y;
@@ -31,8 +28,7 @@ namespace
 
   Node reverse(const Nodes& args)
   {
-    Node arr = Resolver::unwrap(
-      args[0], Array, "array.reverse: operand 1 ", EvalTypeError);
+    Node arr = unwrap_arg(args, UnwrapOpt(0).func("array.reverse").type(Array));
     if (arr->type() == Error)
     {
       return arr;
@@ -55,12 +51,11 @@ namespace
 
   Node slice(const Nodes& args)
   {
-    Node arr = Resolver::unwrap(
-      args[0], Array, "array.slice: operand 1 ", EvalTypeError);
-    Node start_number = Resolver::unwrap(
-      args[1], JSONInt, "array.slice: operand 2 ", EvalTypeError);
-    Node end_number = Resolver::unwrap(
-      args[2], JSONInt, "array.slice: operand 3 ", EvalTypeError);
+    Node arr = unwrap_arg(args, UnwrapOpt(0).func("array.slice").type(Array));
+    Node start_number =
+      unwrap_arg(args, UnwrapOpt(1).func("array.slice").type(JSONInt));
+    Node end_number =
+      unwrap_arg(args, UnwrapOpt(2).func("array.slice").type(JSONInt));
 
     std::int64_t raw_start = BigInt(start_number->location()).to_int();
     std::int64_t raw_end = BigInt(end_number->location()).to_int();

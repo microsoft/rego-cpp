@@ -114,7 +114,7 @@ namespace
 
 namespace rego
 {
-  // Elides references to skips for efficiency.
+  // Elides references to skips for efficiency. Includes built-ins.
   PassDef skip_refs(const BuiltIns& builtins)
   {
     SkipSet skips = std::make_shared<std::set<std::string>>();

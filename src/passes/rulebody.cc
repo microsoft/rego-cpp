@@ -2,7 +2,6 @@
 #include "helpers.h"
 #include "log.h"
 #include "passes.h"
-#include "resolver.h"
 
 namespace
 {
@@ -27,6 +26,9 @@ namespace
     }
   }
 
+  // This function analyzes the object structures and variables on both
+  // sides and produces the necessary LiteralInit and BoolInfix nodes
+  // that represent the unification.
   void add_object_comparisons(
     const Location& obj,
     const Node& lhs,
@@ -36,8 +38,7 @@ namespace
     Nodes& literalinits,
     Nodes& boolinfixes)
   {
-    // for constant key values (which are shared) we can create simple
-    // assignments and comparisons
+    // this enables us to find values with constant keys
     std::map<std::string, Node> rhsmap;
     for (auto item : *rhs)
     {
@@ -52,28 +53,35 @@ namespace
 
     for (auto item : *lhs)
     {
-      auto key = (item / Key)->front()->clone();
-      if (key->type() == Term)
+      Node key = (item / Key);
+      if (key->front()->type() == Term)
       {
-        key = key->front();
+        key = key->front()->front();
       }
       auto lhsval = (item / Val)->front()->clone();
       if (is_constant(key))
       {
+        // constant keys have values that can be determined at compile time
         std::string key_str = to_json(key);
+
+        // gather variables to initialization from the lvalue
         Node lhs_init_vars = NodeDef::create(VarSeq);
         find_locs_from(lhsval, lhs_vars, lhs_init_vars);
         Node rhsval;
         Node rhs_init_vars = NodeDef::create(VarSeq);
         if (rhsmap.contains(key_str))
         {
+          // if the rvalue has a constant key, we can use that value
+          // and perform variable initialization analysis.
           rhsval = rhsmap[key_str];
           find_locs_from(rhsval, rhs_vars, rhs_init_vars);
         }
         else
         {
-          rhsval =
-            RefTerm << (SimpleRef << (Var ^ obj) << (RefArgBrack << key));
+          // we cannot know the rvalue at compile time, which means
+          // no initialization can take place.
+          rhsval = RefTerm
+            << (SimpleRef << (Var ^ obj) << (RefArgBrack << key->clone()));
         }
 
         if (lhs_init_vars->size() > 0)
@@ -85,12 +93,16 @@ namespace
         }
         else
         {
+          // if nothing is being initialized, we just need to perform
+          // an equality check.
           boolinfixes.push_back(
             BoolInfix << (BoolArg << lhsval) << Equals << (BoolArg << rhsval));
         }
       }
       else
       {
+        // if the key is not constant, no initialization can take place
+        // so we simple perofrm an equality check.
         boolinfixes.push_back(
           BoolInfix << (BoolArg << lhsval) << Equals
                     << (BoolArg
@@ -236,10 +248,10 @@ namespace rego
             for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
             {
               Node item = _(Lhs)->at(i);
-              Node key = (item / Key)->front();
-              if (key->type() == Term)
+              Node key = (item / Key);
+              if (key->front()->type() == Term)
               {
-                key = key->front();
+                key = key->front()->front();
               }
 
               Node val = (item / Val)->front();

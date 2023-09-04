@@ -28,16 +28,6 @@ namespace
     return false;
   }
 
-  BigInt get_int(const Node& node)
-  {
-    return BigInt(node->location());
-  }
-
-  double get_double(const Node& node)
-  {
-    return std::stod(to_json(node));
-  }
-
   Node do_arith(const Node& op, BigInt lhs, BigInt rhs)
   {
     BigInt value;
@@ -251,21 +241,9 @@ namespace
 
 namespace rego
 {
-  BigInt Resolver::get_int(const Node& node)
-  {
-    assert(node->type() == JSONInt);
-    return ::get_int(node);
-  }
-
   Node Resolver::scalar(BigInt value)
   {
     return JSONInt ^ value.loc();
-  }
-
-  double Resolver::get_double(const Node& node)
-  {
-    assert(node->type() == JSONFloat || node->type() == JSONInt);
-    return ::get_double(node);
   }
 
   Node Resolver::scalar(double value)
@@ -311,27 +289,6 @@ namespace rego
     return Term << (Scalar << scalar());
   }
 
-  std::string Resolver::get_string(const Node& node)
-  {
-    Node value = node;
-    if (value->type() == Term)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == JSONString)
-    {
-      return strip_quotes(value->location().view());
-    }
-
-    return std::string(value->location().view());
-  }
-
   Node Resolver::scalar(const char* value)
   {
     return scalar(std::string(value));
@@ -340,12 +297,6 @@ namespace rego
   Node Resolver::scalar(const std::string& value)
   {
     return JSONString ^ ("\"" + value + "\"");
-  }
-
-  bool Resolver::get_bool(const Node& node)
-  {
-    assert(node->type() == JSONTrue || node->type() == JSONFalse);
-    return node->type() == JSONTrue;
   }
 
   Node Resolver::scalar(bool value)
@@ -396,13 +347,13 @@ namespace rego
       return rhs;
     }
 
-    auto maybe_lhs_number = maybe_unwrap_number(lhs);
-    auto maybe_rhs_number = maybe_unwrap_number(rhs);
+    auto maybe_lhs_number = unwrap(lhs, {JSONInt, JSONFloat});
+    auto maybe_rhs_number = unwrap(rhs, {JSONInt, JSONFloat});
 
-    if (maybe_lhs_number.has_value() && maybe_rhs_number.has_value())
+    if (maybe_lhs_number.success && maybe_rhs_number.success)
     {
-      Node lhs_number = maybe_lhs_number.value();
-      Node rhs_number = maybe_rhs_number.value();
+      Node lhs_number = maybe_lhs_number.node;
+      Node rhs_number = maybe_rhs_number.node;
       if (
         lhs_number->type() == JSONInt && rhs_number->type() == JSONInt &&
         op->type() != Divide)
@@ -416,14 +367,14 @@ namespace rego
     }
     else
     {
-      auto maybe_lhs_set = maybe_unwrap_set(lhs);
-      auto maybe_rhs_set = maybe_unwrap_set(rhs);
-      if (maybe_lhs_set.has_value() && maybe_rhs_set.has_value())
+      auto maybe_lhs_set = unwrap(lhs, {Set});
+      auto maybe_rhs_set = unwrap(rhs, {Set});
+      if (maybe_lhs_set.success && maybe_rhs_set.success)
       {
-        return bininfix(op, maybe_lhs_set.value(), maybe_rhs_set.value());
+        return bininfix(op, maybe_lhs_set.node, maybe_rhs_set.node);
       }
 
-      if (maybe_lhs_number.has_value() && maybe_rhs_set.has_value())
+      if (maybe_lhs_number.success && maybe_rhs_set.success)
       {
         return err(rhs, "operand 2 must be number but got set", EvalTypeError);
       }
@@ -436,22 +387,22 @@ namespace rego
 
   Node Resolver::bininfix(const Node& op, const Node& lhs, const Node& rhs)
   {
-    auto maybe_lhs_set = maybe_unwrap_set(lhs);
-    auto maybe_rhs_set = maybe_unwrap_set(rhs);
+    auto maybe_lhs_set = unwrap(lhs, {Set});
+    auto maybe_rhs_set = unwrap(rhs, {Set});
 
-    if (maybe_lhs_set.has_value() && maybe_rhs_set.has_value())
+    if (maybe_lhs_set.success && maybe_rhs_set.success)
     {
       if (op->type() == And)
       {
-        return set_intersection(maybe_lhs_set.value(), maybe_rhs_set.value());
+        return set_intersection(maybe_lhs_set.node, maybe_rhs_set.node);
       }
       if (op->type() == Or)
       {
-        return set_union(maybe_lhs_set.value(), maybe_rhs_set.value());
+        return set_union(maybe_lhs_set.node, maybe_rhs_set.node);
       }
       if (op->type() == Subtract)
       {
-        return set_difference(maybe_lhs_set.value(), maybe_rhs_set.value());
+        return set_difference(maybe_lhs_set.node, maybe_rhs_set.node);
       }
 
       return err(op, "Unsupported binary operator");
@@ -481,13 +432,13 @@ namespace rego
       return rhs;
     }
 
-    auto maybe_lhs_number = maybe_unwrap_number(lhs);
-    auto maybe_rhs_number = maybe_unwrap_number(rhs);
+    auto maybe_lhs_number = unwrap(lhs, {JSONInt, JSONFloat});
+    auto maybe_rhs_number = unwrap(rhs, {JSONInt, JSONFloat});
 
-    if (maybe_lhs_number.has_value() && maybe_rhs_number.has_value())
+    if (maybe_lhs_number.success && maybe_rhs_number.success)
     {
-      Node lhs_number = maybe_lhs_number.value();
-      Node rhs_number = maybe_rhs_number.value();
+      Node lhs_number = maybe_lhs_number.node;
+      Node rhs_number = maybe_rhs_number.node;
       if (lhs_number->type() == JSONInt && rhs_number->type() == JSONInt)
       {
         return do_bool(op, get_int(lhs_number), get_int(rhs_number));
@@ -501,146 +452,6 @@ namespace rego
     {
       return do_bool(op, to_json(lhs), to_json(rhs));
     }
-  }
-
-  std::optional<Node> Resolver::maybe_unwrap_string(const Node& node)
-  {
-    Node value;
-    if (node->type() == Term || node->type() == DataTerm)
-    {
-      value = node->front();
-    }
-    else
-    {
-      value = node;
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == JSONString)
-    {
-      return value;
-    }
-
-    return std::nullopt;
-  }
-
-  std::optional<Node> Resolver::maybe_unwrap_bool(const Node& node)
-  {
-    Node value;
-    if (node->type() == Term || node->type() == DataTerm)
-    {
-      value = node->front();
-    }
-    else
-    {
-      value = node;
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == JSONTrue || value->type() == JSONFalse)
-    {
-      return value;
-    }
-
-    return std::nullopt;
-  }
-
-  std::optional<Node> Resolver::maybe_unwrap_number(const Node& node)
-  {
-    Node value;
-    if (node->type() == Term || node->type() == DataTerm)
-    {
-      value = node->front();
-    }
-    else
-    {
-      value = node;
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == JSONInt || value->type() == JSONFloat)
-    {
-      return value;
-    }
-
-    return std::nullopt;
-  }
-
-  std::optional<Node> Resolver::maybe_unwrap_int(const Node& node)
-  {
-    Node value;
-    if (node->type() == Term || node->type() == DataTerm)
-    {
-      value = node->front();
-    }
-    else
-    {
-      value = node;
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == JSONInt)
-    {
-      return value;
-    }
-
-    return std::nullopt;
-  }
-
-  std::optional<Node> Resolver::maybe_unwrap_set(const Node& node)
-  {
-    Node value;
-    if (node->type() == Term || node->type() == DataTerm)
-    {
-      value = node->front();
-    }
-    else
-    {
-      value = node;
-    }
-
-    if (value->type() == Set)
-    {
-      return value;
-    }
-
-    return std::nullopt;
-  }
-
-  std::optional<Node> Resolver::maybe_unwrap_array(const Node& node)
-  {
-    Node value;
-    if (node->type() == Term || node->type() == DataTerm)
-    {
-      value = node->front();
-    }
-    else
-    {
-      value = node;
-    }
-
-    if (value->type() == Array)
-    {
-      return value;
-    }
-
-    return std::nullopt;
   }
 
   std::optional<Nodes> Resolver::apply_access(
@@ -832,10 +643,10 @@ namespace rego
 
   Node Resolver::unary(const Node& value)
   {
-    auto maybe_number = maybe_unwrap_number(value);
-    if (maybe_number)
+    auto maybe_number = unwrap(value, {JSONInt, JSONFloat});
+    if (maybe_number.success)
     {
-      return negate(maybe_number.value());
+      return negate(maybe_number.node);
     }
     else
     {
@@ -1247,79 +1058,6 @@ namespace rego
     return rulefunc;
   }
 
-  bool Resolver::is_truthy(const Node& node)
-  {
-    assert(node->type() == Term || node->type() == TermSet);
-    if (node->type() == TermSet)
-    {
-      return true;
-    }
-
-    Node value = node->front();
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-      return value->type() != JSONFalse;
-    }
-
-    if (
-      value->type() == Object || value->type() == Array || value->type() == Set)
-    {
-      return true;
-    }
-
-    return false;
-  }
-
-  bool Resolver::is_undefined(const Node& node)
-  {
-    if (node->type() == DataModule)
-    {
-      return false;
-    }
-
-    if (node->type() == Undefined)
-    {
-      return true;
-    }
-
-    for (auto& child : *node)
-    {
-      if (is_undefined(child))
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  bool Resolver::is_falsy(const Node& node)
-  {
-    Node value = node;
-    if (value->type() == Term)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == JSONFalse)
-    {
-      return true;
-    }
-
-    if (is_undefined(value))
-    {
-      return true;
-    }
-
-    return false;
-  }
-
   Nodes Resolver::object_lookdown(const Node& object, const Node& query)
   {
     Nodes terms;
@@ -1587,122 +1325,6 @@ namespace rego
     std::ostringstream buf;
     buf << *this;
     return buf.str();
-  }
-
-  Node Resolver::unwrap(
-    const Node& node,
-    const Token& type,
-    const std::string& error_prefix,
-    const std::string& error_code,
-    bool specify_number)
-  {
-    Node value;
-    if (node->type() == Term || node->type() == DataTerm)
-    {
-      value = node->front();
-    }
-    else
-    {
-      value = node;
-    }
-
-    if (value->type() == type)
-    {
-      return value;
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-      if (value->type() == type)
-      {
-        return value;
-      }
-    }
-
-    std::ostringstream error;
-    error << error_prefix << "must be " << type_name(type, specify_number)
-          << " but got " << type_name(value->type(), specify_number);
-    return err(node, error.str(), error_code);
-  }
-
-  std::optional<Node> Resolver::maybe_unwrap(
-    const Node& node, const std::set<Token>& types)
-  {
-    Node value;
-    if (node->type() == Term || node->type() == DataTerm)
-    {
-      value = node->front();
-    }
-    else
-    {
-      value = node;
-    }
-
-    if (types.contains(value->type()))
-    {
-      return value;
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-      if (types.contains(value->type()))
-      {
-        return value;
-      }
-    }
-
-    return std::nullopt;
-  }
-
-  std::string Resolver::type_name(const Token& type, bool specify_number)
-  {
-    if (type == JSONInt)
-    {
-      if (specify_number)
-      {
-        return "integer number";
-      }
-      return "number";
-    }
-
-    if (type == JSONFloat)
-    {
-      if (specify_number)
-      {
-        return "floating-point number";
-      }
-      return "number";
-    }
-
-    if (type == JSONString)
-    {
-      return "string";
-    }
-
-    if (type == JSONTrue || type == JSONFalse)
-    {
-      return "boolean";
-    }
-
-    return std::string(type.str());
-  }
-
-  std::string Resolver::type_name(const Node& node, bool specify_number)
-  {
-    Node value = node;
-    if (value->type() == Term)
-    {
-      value = value->front();
-    }
-
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-    }
-
-    return type_name(value->type(), specify_number);
   }
 
   Resolver::NodePrinter Resolver::body_str(const Node& unifybody)

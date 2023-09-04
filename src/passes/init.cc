@@ -2,7 +2,6 @@
 #include "helpers.h"
 #include "log.h"
 #include "passes.h"
-#include "resolver.h"
 
 namespace
 {
@@ -158,8 +157,11 @@ namespace rego
 {
   using namespace wf::ops;
 
-  // Convert all Literal nodes into UnifyExpr nodes of the form <var> = <expr>
-  // | <not-expr>.
+  // This pass performs initialization analysis on the program and finds
+  // all assignments which initialize a variable (as opposed to unifying it
+  // with an additional result). It wraps these in special LiteralInit nodes,
+  // which record which variables on both sides of the assignment are being
+  // initialized. These allow later passes to correctly handle these statements.
   PassDef init()
   {
     InitStatments init_stmts = std::make_shared<NodeMap<InitInfo>>();

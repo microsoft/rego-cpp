@@ -1,6 +1,6 @@
 #include "value_map.h"
 
-#include "resolver.h"
+#include "helpers.h"
 
 namespace rego
 {
@@ -195,7 +195,7 @@ namespace rego
   {
     for (auto& [_, value] : m_map)
     {
-      if (Resolver::is_falsy(value->to_term()))
+      if (is_falsy(value->to_term()))
       {
         value->mark_as_invalid();
       }
@@ -206,7 +206,7 @@ namespace rego
   {
     for (auto& [_, value] : m_map)
     {
-      if (include_falsy || !Resolver::is_falsy(value->node()))
+      if (include_falsy || !is_falsy(value->node()))
       {
         value->mark_as_valid();
       }
