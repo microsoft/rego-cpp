@@ -33,7 +33,7 @@ namespace rego
   // unification.
   PassDef structure()
   {
-    return {
+    PassDef structure = {
       In(UnifyBody) *
           (T(Group)[Lhs]([](auto& n) {
              // test if there was a newline inside an expression
@@ -309,8 +309,14 @@ namespace rego
             return SomeExpr << Undefined << _(VarSeq)->front()
                             << (IsIn << (Expr << _[Expr]));
           }
-
-          return SomeExpr << *_[VarSeq] << (IsIn << (Expr << _[Expr]));
+          else if (_(VarSeq)->size() == 2)
+          {
+            return SomeExpr << *_[VarSeq] << (IsIn << (Expr << _[Expr]));
+          }
+          else
+          {
+            return err(_(VarSeq), "Invalid some expression");
+          }
         },
 
       In(SomeExpr) * T(Group)[Group] >>
@@ -397,14 +403,10 @@ namespace rego
       In(UnifyBody) * T(SomeDecl)[SomeDecl] >>
         [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
 
-      In(SomeExpr) * (Any[Val] * End) >>
-        [](Match& _) { return err(_(Val), "Invalid some expression"); },
-
-      In(SomeExpr) * (Any[Val] * Any * End) >>
-        [](Match& _) { return err(_(Val), "Invalid some expression"); },
-
       In(Set) * T(SomeDecl)[SomeDecl] >>
         [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
     };
+
+    return structure;
   }
 }
