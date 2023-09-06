@@ -1,6 +1,7 @@
 #pragma once
 
 #include "builtins.h"
+#include "wrapper.h"
 
 #include <string>
 #include <trieste/parse.h>
@@ -36,6 +37,10 @@ namespace rego
     const BuiltIns& builtins() const;
 
   private:
+    friend const char* ::regoGetError(regoInterpreter* rego);
+    friend void setError(regoInterpreter* rego, const std::string& error);
+    friend const char* ::regoQuery(regoInterpreter* rego, const char* query_expr);
+
     void write_ast(
       std::size_t index, const std::string& pass, const Node& ast) const;
     Node get_errors(const Node& ast) const;
@@ -48,5 +53,8 @@ namespace rego
     bool m_debug_enabled;
     bool m_well_formed_checks_enabled;
     BuiltIns m_builtins;
+
+    std::string m_c_error;
+    std::string m_c_result;
   };
 }

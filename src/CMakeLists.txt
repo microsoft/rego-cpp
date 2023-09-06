@@ -14,6 +14,7 @@ variable.cc
 wf.cc
 builtins.cc
 helpers.cc
+wrapper.cc
 passes/input_data.cc
 passes/modules.cc
 passes/lists.cc
