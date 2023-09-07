@@ -4,6 +4,8 @@
 #ifndef _REGOCPP_WRAPPER_H_
 #define _REGOCPP_WRAPPER_H_
 
+#include "version.h"
+
 typedef void regoInterpreter;
 typedef void regoNode;
 typedef void regoResult;

@@ -336,7 +336,9 @@ extern "C"
 
   void regoNodeValue(regoNode* node, char* buffer, regoSize size)
   {
-    reinterpret_cast<trieste::NodeDef*>(node)->location().view().copy(buffer, size);
+    std::string_view view = reinterpret_cast<trieste::NodeDef*>(node)->location().view();
+    view.copy(buffer, size);
+    buffer[view.size()] = '\0';
   }
 
   regoSize regoNodeSize(regoNode* node)
