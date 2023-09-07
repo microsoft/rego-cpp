@@ -10,11 +10,11 @@ namespace rego
   PassDef constants()
   {
     return {
-      (In(RuleComp) / In(RuleFunc) / In(RuleSet) / In(DefaultRule)) *
+      In(RuleComp, RuleFunc, RuleSet, DefaultRule) *
           T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) >>
         [](Match& _) { return DataTerm << *_[Term]; },
 
-      (In(RuleComp) / In(RuleFunc)) *
+      In(RuleComp, RuleFunc) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>
         [](Match& _) {
           Location value = _.fresh({"value"});
@@ -58,16 +58,16 @@ namespace rego
       In(DataTerm) * T(Object)[Object] >>
         [](Match& _) { return DataObject << *_[Object]; },
 
-      (In(DataArray) / In(DataSet)) * (T(Expr) << T(Expr)[Expr]) >>
+      In(DataArray, DataSet) * (T(Expr) << T(Expr)[Expr]) >>
         [](Match& _) { return _(Expr); },
 
-      (In(DataArray) / In(DataSet)) * (T(Expr) << T(Term)[Term]) >>
+      In(DataArray, DataSet) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return DataTerm << _(Term)->front(); },
 
-      (In(DataArray) / In(DataSet)) * (T(Expr) << T(Set)[Set]) >>
+      In(DataArray, DataSet) * (T(Expr) << T(Set)[Set]) >>
         [](Match& _) { return DataTerm << _(Set); },
 
-      (In(DataArray) / In(DataSet)) * (T(Expr) << T(NumTerm)[NumTerm]) >>
+      In(DataArray, DataSet) * (T(Expr) << T(NumTerm)[NumTerm]) >>
         [](Match& _) { return DataTerm << (Scalar << _(NumTerm)->front()); },
 
       In(DataObject) *

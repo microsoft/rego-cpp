@@ -16,13 +16,13 @@ namespace rego
           ([](Match&) -> Node { return Term << (Scalar << JSONNull); }),
         In(Data) * T(DataModule) >> ([](Match&) -> Node { return DataModule; }),
         In(Rego) * T(SkipSeq) >> ([](Match&) -> Node { return SkipSeq; }),
-        (In(Query) / In(Array) / In(Set) / In(ObjectItem)) *
+        In(Query, Array, Set, ObjectItem) *
             (ScalarToken / T(JSONString))[Scalar] >>
           [](Match& _) { return Term << (Scalar << _(Scalar)); },
-        (In(Query) / In(Array) / In(Set) / In(ObjectItem)) *
+        In(Query, Array, Set, ObjectItem) *
             (T(Object) / T(Array) / T(Set) / T(Scalar))[Term] >>
           [](Match& _) { return Term << _(Term); },
-        (In(Query) / In(Array) / In(Set) / In(ObjectItem)) *
+        In(Query, Array, Set, ObjectItem) *
             T(DataTerm)[DataTerm] >>
           [](Match& _) { return Term << _(DataTerm)->front(); },
         In(Term) * T(DataArray)[DataArray] >>

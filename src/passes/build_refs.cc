@@ -42,7 +42,7 @@ namespace rego
                      << (RefArgSeq << (RefArgBrack << _(Arg)));
         },
 
-      (In(Group) / In(RuleRef)) *
+      In(Group, RuleRef) *
           ((T(Ref) << (T(RefHead)[RefHead] * T(RefArgSeq)[RefArgSeq])) *
            T(Dot) * T(Var)[Rhs]) >>
         [](Match& _) {

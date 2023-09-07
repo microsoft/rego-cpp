@@ -663,7 +663,7 @@ namespace rego
             return err(_(BoolInfix), "Invalid boolean expression");
           },
 
-        (In(Term) / In(BinArg)) * T(SetCompr)[SetCompr] >>
+        In(Term, BinArg) * T(SetCompr)[SetCompr] >>
           [](Match& _) {
             return err(_(SetCompr), "Invalid set comprehension");
           },

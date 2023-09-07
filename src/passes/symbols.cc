@@ -286,7 +286,7 @@ namespace rego
                                                      << (JSONInt ^ "1"))))))));
         },
 
-      (In(UnifyBody) / In(LiteralWith)) *
+      In(UnifyBody, LiteralWith) *
           (T(Literal)
            << (T(Expr) << (LocalToken++[Head] * T(Assign) * Any++[Tail]))) >>
         [](Match& _) {
@@ -309,13 +309,13 @@ namespace rego
       In(Policy) * (T(Import) << (T(Ref)[Ref] * T(As) * T(Var)[Var])) >>
         [](Match& _) { return Import << _(Var) << _(Ref); },
 
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
+      In(RuleComp, RuleFunc, RuleObj, RuleSet) *
           (T(Expr)
            << (T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) *
                End)) >>
         [](Match& _) { return _(Term); },
 
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet)) *
+      In(RuleComp, RuleFunc, RuleObj, RuleSet) *
           (T(Expr) << (T(NumTerm)[NumTerm] * End)) >>
         [](Match& _) {
           Node number = _(NumTerm)->front();
@@ -328,7 +328,7 @@ namespace rego
           return NumTerm << number;
         },
 
-      (In(RuleComp) / In(RuleFunc)) * (T(Empty) * T(Expr)[Expr]) >>
+      In(RuleComp, RuleFunc) * (T(Empty) * T(Expr)[Expr]) >>
         [](Match& _) {
           Location out = _.fresh({"out"});
           Location value = _.fresh({"value"});
@@ -342,7 +342,7 @@ namespace rego
                                       << (RefTerm << (Var ^ out)))));
         },
 
-      (In(RuleComp) / In(RuleFunc)) * T(Expr)[Expr] >>
+      In(RuleComp, RuleFunc) * T(Expr)[Expr] >>
         [](Match& _) {
           Location value = _.fresh({"value"});
           return UnifyBody
@@ -350,7 +350,7 @@ namespace rego
                 << (Expr << (RefTerm << (Var ^ value)) << Unify << *_[Expr]));
         },
 
-      (In(ObjectCompr) / In(SetCompr) / In(ArrayCompr)) *
+      In(ObjectCompr, SetCompr, ArrayCompr) *
           T(UnifyBody)[UnifyBody] >>
         [](Match& _) {
           std::string prefix;

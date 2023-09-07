@@ -171,7 +171,7 @@ namespace rego
       In(Group) * (T(Square) << (T(List)[List] * End)) >>
         [](Match& _) { return Array << *_[List]; },
 
-      (In(Group) / In(ImportRef)) * (T(Square) << T(Group)[Group]) >>
+      In(Group, ImportRef) * (T(Square) << T(Group)[Group]) >>
         [](Match& _) { return Array << _(Group); },
 
       T(List)
@@ -372,10 +372,10 @@ namespace rego
           return err(_(Rhs), "Invalid second node in some declaration");
         },
 
-      (In(ObjectItemSeq) / In(Object)) * T(Group)[Group] >>
+      In(ObjectItemSeq, Object) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid object key/value"); },
 
-      (In(Array) / In(Set) / In(List)) * T(ObjectItem)[ObjectItem] >>
+      In(Array, Set, List) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) { return err(_(ObjectItem), "Invalid item"); },
 
       In(Group) * T(Group)[Group] >>
@@ -398,7 +398,7 @@ namespace rego
                        })) >>
         [](Match& _) { return err(_(EverySeq), "Missing body of every"); },
 
-      (In(ArrayCompr) / In(SetCompr) / In(ObjectCompr)) *
+      In(ArrayCompr, SetCompr, ObjectCompr) *
           (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Invalid comprehension"); },
 

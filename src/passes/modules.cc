@@ -28,7 +28,7 @@ namespace rego
                         << (Policy << _[Policy]);
         },
 
-      (In(List) / In(Compr)) *
+      In(List, Compr) *
           (T(Group) << (KeyToken++[Key] * T(Colon) * Any++[Val])) >>
         [](Match& _) {
           return ObjectItem << (Group << _[Key]) << (Group << _[Val]);
@@ -111,7 +111,7 @@ namespace rego
       In(Group) * (T(Import)[Import] << End) >>
         [](Match& _) { return err(_(Import), "Invalid import"); },
 
-      (In(Import) / In(Package)) * (T(Group)[Group] << End) >>
+      In(Import, Package) * (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Invalid import"); },
     };
   }
