@@ -1,6 +1,8 @@
 #include "rego_c.h"
 
 #include "interpreter.h"
+#include "log.h"
+#include "helpers.h"
 
 namespace rego
 {
@@ -138,11 +140,6 @@ extern "C"
     reinterpret_cast<rego::Interpreter*>(rego)->debug_path(path);
   }
 
-  const char* regoGetDebugPath(regoInterpreter* rego)
-  {
-    return reinterpret_cast<rego::Interpreter*>(rego)->debug_path().c_str();
-  }
-
   void regoSetWellFormedChecksEnabled(
     regoInterpreter* rego, regoBoolean enabled)
   {
@@ -159,11 +156,6 @@ extern "C"
   void regoSetExecutable(regoInterpreter* rego, const char* path)
   {
     reinterpret_cast<rego::Interpreter*>(rego)->executable(path);
-  }
-
-  const char* regoGetExecutable(regoInterpreter* rego)
-  {
-    return reinterpret_cast<rego::Interpreter*>(rego)->executable().c_str();
   }
 
   regoResult* regoQuery(regoInterpreter* rego, const char* query_expr)

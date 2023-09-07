@@ -58,11 +58,9 @@ extern "C"
   void regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetDebugEnabled(regoInterpreter* rego);
   void regoSetDebugPath(regoInterpreter* rego, const char* path);
-  const char* regoGetDebugPath(regoInterpreter* rego);
   void regoSetWellFormedChecksEnabled(regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego);
   void regoSetExecutable(regoInterpreter* rego, const char* path);
-  const char* regoGetExecutable(regoInterpreter* rego);
   regoResult* regoQuery(regoInterpreter* rego, const char* query_expr);
   const char* regoGetError(regoInterpreter* rego);
 

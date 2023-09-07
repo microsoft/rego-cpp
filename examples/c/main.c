@@ -64,7 +64,7 @@ struct regoc_configuration
 
 bool is_json(const char* file)
 {
-  int len;
+  size_t len;
 
   len = strlen(file);
   if (

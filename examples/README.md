@@ -15,6 +15,7 @@ To build it on Linux:
 ```bash
 cd examples/c
 mkdir build
+cd build
 cmake .. --preset release-clang
 ninja install
 ```
@@ -24,6 +25,7 @@ and on Windows:
 ```cmd
 cd examples\c
 mkdir build
+cd build
 cmake .. --preset release
 cmake --build . --config Release --target INSTALL
 ```
