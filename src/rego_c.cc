@@ -33,7 +33,7 @@ extern "C"
     return reinterpret_cast<regoInterpreter*>(new rego::Interpreter());
   }
 
-  void regoDelete(regoInterpreter* rego)
+  void regoFree(regoInterpreter* rego)
   {
     delete reinterpret_cast<rego::Interpreter*>(rego);
   }
@@ -221,7 +221,7 @@ extern "C"
     return reinterpret_cast<rego::RegoResult*>(result)->value.c_str();
   }
 
-  void regoResultDelete(regoResult* result)
+  void regoFreeResult(regoResult* result)
   {
     delete reinterpret_cast<rego::RegoResult*>(result);
   }

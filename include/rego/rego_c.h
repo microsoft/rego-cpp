@@ -46,7 +46,7 @@ extern "C"
   // Interpreter functions
   void regoSetLoggingEnabled(regoBoolean enabled);
   regoInterpreter* regoNew();
-  void regoDelete(regoInterpreter* rego);
+  void regoFree(regoInterpreter* rego);
   regoEnum regoAddModuleFile(regoInterpreter* rego, const char* path);
   regoEnum regoAddModule(regoInterpreter* rego, const char* name, const char* contents);
   regoEnum regoAddDataJSONFile(regoInterpreter* rego, const char* path);
@@ -69,7 +69,7 @@ extern "C"
   regoNode* regoResultNode(regoResult* result);
   regoNode* regoResultBinding(regoResult* result, const char* name);
   const char* regoResultString(regoResult* result);
-  void regoResultDelete(regoResult* result);
+  void regoFreeResult(regoResult* result);
 
   // Node functions
   regoEnum regoNodeType(regoNode* node);
