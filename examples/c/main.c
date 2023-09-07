@@ -77,11 +77,47 @@ bool is_json(const char* file)
   return true;
 }
 
-void print_node(regoNode* node, unsigned int indent)
+void print_value(regoNode* node, const char* name)
 {
   char value[MAX_VALUE_LENGTH];
-  unsigned int i;
-  unsigned int size;
+  regoSize value_size;
+  char* big_value;
+  regoEnum err;
+
+  value_size = regoNodeValueSize(node);
+  if (value_size > MAX_VALUE_LENGTH)
+  {
+    big_value = malloc(value_size);
+    if (big_value == NULL)
+    {
+      printf("Out of memory\n");
+      exit(1);
+    }
+    err = regoNodeValue(node, big_value, value_size);
+    if (err != REGO_OK)
+    {
+      printf("Unable to get node value\n");
+      exit(1);
+    }
+    printf("(var %s)\n", big_value);
+    free(big_value);
+  }
+  else
+  {
+    err = regoNodeValue(node, value, MAX_VALUE_LENGTH);
+    if (err != REGO_OK)
+    {
+      printf("Unable to get node value\n");
+      exit(1);
+    }
+    printf("(%s %s)\n", name, value);
+  }
+}
+
+void print_node(regoNode* node, unsigned int indent)
+{
+  regoSize i;
+  regoSize size;
   regoEnum type;
 
   for (i = 0; i < indent; ++i)
@@ -99,19 +135,16 @@ void print_node(regoNode* node, unsigned int indent)
   switch (type)
   {
     case REGO_NODE_VAR:
-      regoNodeValue(node, value, MAX_VALUE_LENGTH);
-      printf("(var %s)\n", value);
+      print_value(node, "var");
       return;
 
     case REGO_NODE_INT:
     case REGO_NODE_FLOAT:
-      regoNodeValue(node, value, MAX_VALUE_LENGTH);
-      printf("(number %s)\n", value);
+      print_value(node, "number");
       return;
 
     case REGO_NODE_STRING:
-      regoNodeValue(node, value, MAX_VALUE_LENGTH);
-      printf("(string %s)\n", value);
+      print_value(node, "string");
       return;
 
     case REGO_NODE_TRUE:
