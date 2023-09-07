@@ -1,6 +1,10 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 #pragma once
 
 #include "builtins.h"
+#include "rego_c.h"
 
 #include <string>
 #include <trieste/parse.h>
@@ -36,6 +40,12 @@ namespace rego
     const BuiltIns& builtins() const;
 
   private:
+    friend const char* ::regoGetError(regoInterpreter* rego);
+    friend void setError(regoInterpreter* rego, const std::string& error);
+    friend regoResult* ::regoQuery(
+      regoInterpreter* rego, const char* query_expr);
+
+    std::string result_to_string(const Node& result) const;
     void write_ast(
       std::size_t index, const std::string& pass, const Node& ast) const;
     Node get_errors(const Node& ast) const;
@@ -48,5 +58,7 @@ namespace rego
     bool m_debug_enabled;
     bool m_well_formed_checks_enabled;
     BuiltIns m_builtins;
+
+    std::string m_c_error;
   };
 }

@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-#pragma once
+#ifndef _REGO_VERSION_H_
+#define _REGO_VERSION_H_
 
 #define REGOCPP_VERSION_MAJOR @REGOCPP_VERSION_MAJOR@
 #define REGOCPP_VERSION_MINOR @REGOCPP_VERSION_MINOR@
@@ -9,3 +10,18 @@
 #define REGOCPP_OPA_VERSION "@REGOCPP_OPA_VERSION@"
 #define REGOCPP_VERSION "@REGOCPP_VERSION@"
 #define REGOCPP_GIT_HASH "@REGOCPP_GIT_HASH@"
+#define REGOCPP_BUILD_NAME "@REGOCPP_GIT_BRANCH@:@REGOCPP_GIT_SHORT_HASH@"
+#define REGOCPP_BUILD_DATE "@REGOCPP_BUILD_DATE@"
+#define REGOCPP_BUILD_TOOLCHAIN "@REGOCPP_BUILD_TOOLCHAIN@"
+
+#ifdef _WIN32
+#define REGOCPP_PLATFORM "windows"
+#elif __APPLE__
+#define REGOCPP_PLATFORM "macos"
+#elif __linux__
+#define REGOCPP_PLATFORM "linux"
+#else
+#define REGOCPP_PLATFORM "other"
+#endif
+
+#endif

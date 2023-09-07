@@ -1,8 +1,7 @@
 #pragma once
 
-#include "rego.h"
-
 #include <optional>
+#include <rego/rego.h>
 #include <string>
 #include <vector>
 

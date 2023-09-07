@@ -19,6 +19,12 @@ set ( REGOCPP_OPA_VERSION 0.55.0 )
 
 set( REGOCPP_VERSION ${REGOCPP_VERSION_MAJOR}.${REGOCPP_VERSION_MINOR}.${REGOCPP_VERSION_REVISION} )
 
+message("Configure REGOCPP_VERSION at ${REGOCPP_VERSION}")
+
+project( regocpp VERSION ${REGOCPP_VERSION} LANGUAGES CXX)
+
+# -------------------- Get version info --------------------------
+
 find_package(Git REQUIRED)
 
 execute_process(
@@ -28,9 +34,28 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-message("Configure REGOCPP_VERSION at ${REGOCPP_VERSION}")
+execute_process(
+  COMMAND git rev-parse --abbrev-ref HEAD
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+  OUTPUT_VARIABLE REGOCPP_GIT_BRANCH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
-project( regocpp VERSION ${REGOCPP_VERSION} LANGUAGES CXX)
+execute_process(
+  COMMAND git log -1 --format=%h
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+  OUTPUT_VARIABLE REGOCPP_GIT_SHORT_HASH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+execute_process(
+  COMMAND git log -1 --format=%aD
+  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+  OUTPUT_VARIABLE REGOCPP_BUILD_DATE
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+set(REGOCPP_BUILD_TOOLCHAIN "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -41,6 +66,7 @@ option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" O
 option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
 option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
+option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
 
 # -------------------- Find packages --------------------------
 
@@ -87,6 +113,7 @@ else()
         tools/*.cc
         tests/*.cc
         tests/*.h
+        examples/c/main.c
   )
 
   add_custom_target(regocpp_format
@@ -157,6 +184,9 @@ install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
 
 if (REGOCPP_BUILD_TOOLS)
   install(TARGETS rego_interpreter rego_trieste RUNTIME)
+endif()
+
+if (REGOCPP_COPY_EXAMPLES)
   install(DIRECTORY tools/examples DESTINATION .)
 endif()
 

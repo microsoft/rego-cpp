@@ -2,7 +2,7 @@
 
 #include "errors.h"
 #include "helpers.h"
-#include "trieste/ast.h"
+#include "rego.h"
 #include "wf.h"
 
 #include <iostream>
@@ -215,7 +215,11 @@ namespace rego
 
   std::string Interpreter::query(const std::string& query_expr) const
   {
-    Node ast = raw_query(query_expr);
+    return result_to_string(raw_query(query_expr));
+  }
+
+  std::string Interpreter::result_to_string(const Node& ast) const
+  {
     std::ostringstream result_buf;
     if (ast->type() == ErrorSeq)
     {

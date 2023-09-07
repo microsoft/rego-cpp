@@ -1,9 +1,13 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 #pragma once
 
 #include <functional>
 #include <iostream>
 #include <map>
 #include <string>
+#include <trieste/source.h>
 #include <vector>
 
 namespace rego

@@ -1,8 +1,9 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 #pragma once
 
-#include "builtins.h"
-
-#include <trieste/token.h>
+#include <trieste/driver.h>
 
 namespace rego
 {

@@ -1,7 +1,10 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 #pragma once
 
 #include "bigint.h"
-#include "rego.h"
+#include "encoding.h"
 #include "tokens.h"
 
 namespace rego

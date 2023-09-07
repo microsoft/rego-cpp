@@ -1,9 +1,8 @@
 #include "log.h"
 #include "passes.h"
+#include "rego.h"
 #include "tokens.h"
 #include "wf.h"
-
-#include <charconv>
 
 namespace rego
 {

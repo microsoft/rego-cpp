@@ -14,6 +14,8 @@ variable.cc
 wf.cc
 builtins.cc
 helpers.cc
+rego_c.cc
+encoding.cc
 passes/input_data.cc
 passes/modules.cc
 passes/lists.cc
@@ -83,7 +85,9 @@ target_link_libraries(rego
 
 target_precompile_headers(rego
   PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/rego.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/errors.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/helpers.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/passes.h
 )
 
 
@@ -95,8 +99,9 @@ endif()
 target_include_directories( rego
   PUBLIC
     $<INSTALL_INTERFACE:include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/rego>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/rego>
 )
