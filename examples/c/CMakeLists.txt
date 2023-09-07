@@ -11,8 +11,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FetchContent_Declare(
   regocpp
-  GIT_REPOSITORY https://github.com/matajoh/rego-cpp
-  GIT_TAG        46101f7e89ca36b8b2c79f12ea411cb74827bb72
+  GIT_REPOSITORY https://github.com/microsoft/rego-cpp
+  GIT_TAG        main
 )
 
 FetchContent_Declare(
@@ -30,3 +30,11 @@ add_executable(regoc main.c)
 target_link_libraries(regoc PRIVATE regocpp::rego cargs)
 
 install(TARGETS regoc DESTINATION bin)
+
+enable_testing()
+add_test(
+  NAME regoc
+  COMMAND bin/regoc -d examples/data0.json -d examples/data1.json -i examples/input0.json -d examples/objects.rego -q data.objects.sites[1] 
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist
+)
+set_tests_properties(regoc PROPERTIES PASS_REGULAR_EXPRESSION "{\"name\":\"smoke1\"}")
