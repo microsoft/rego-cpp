@@ -8,6 +8,12 @@ namespace rego
   {
     reinterpret_cast<rego::Interpreter*>(rego)->m_c_error = error;
   }
+
+  struct RegoResult
+  {
+    Node node;
+    std::string value;
+  };
 }
 
 extern "C"
@@ -160,13 +166,16 @@ extern "C"
     return reinterpret_cast<rego::Interpreter*>(rego)->executable().c_str();
   }
 
-  regoNode* regoRawQuery(regoInterpreter* rego, const char* query_expr)
+  regoResult* regoQuery(regoInterpreter* rego, const char* query_expr)
   {
     try
     {
-      rego::Node result =
-        reinterpret_cast<rego::Interpreter*>(rego)->raw_query(query_expr);
-      return reinterpret_cast<regoNode*>(result.get());
+      auto interpreter = reinterpret_cast<rego::Interpreter*>(rego);
+      rego::RegoResult* result = new rego::RegoResult();
+      result->node = interpreter->raw_query(query_expr);
+      result->value = interpreter->result_to_string(result->node);
+
+      return reinterpret_cast<regoResult*>(result);
     }
     catch (const std::exception& e)
     {
@@ -175,19 +184,46 @@ extern "C"
     }
   }
 
-  const char* regoQuery(regoInterpreter* rego, const char* query_expr)
+  // Result functions
+  regoBoolean regoResultOk(regoResult* result)
   {
-    try
-    {
-      auto interpreter = reinterpret_cast<rego::Interpreter*>(rego);
-      interpreter->m_c_result = interpreter->query(query_expr);
-      return interpreter->m_c_result.c_str();
-    }
-    catch (const std::exception& e)
-    {
-      rego::setError(rego, e.what());
+    return reinterpret_cast<rego::RegoResult*>(result)->node->type() !=
+      rego::ErrorSeq;
+  }
+
+  regoNode* regoResultNode(regoResult* result)
+  {
+    return reinterpret_cast<regoNode*>(
+      reinterpret_cast<rego::RegoResult*>(result)->node.get());
+  }
+
+  regoNode* regoResultBinding(regoResult* result, const char* name)
+  {
+    auto result_ptr = reinterpret_cast<rego::RegoResult*>(result);
+    auto node_ptr = reinterpret_cast<trieste::NodeDef*>(result_ptr->node.get());
+    if(node_ptr->type() == rego::ErrorSeq){
       return nullptr;
     }
+
+    for(auto binding : *node_ptr){
+      rego::Node var = binding / rego::Var;
+      if(var->location().view() == name){
+        rego::Node val = binding / rego::Term;
+        return reinterpret_cast<regoNode*>(val.get());
+      }
+    }
+
+    return nullptr;
+  }
+
+  const char* regoResultString(regoResult* result)
+  {
+    return reinterpret_cast<rego::RegoResult*>(result)->value.c_str();
+  }
+
+  void regoResultDelete(regoResult* result)
+  {
+    delete reinterpret_cast<rego::RegoResult*>(result);
   }
 
   // Node functions

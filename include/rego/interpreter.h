@@ -42,8 +42,9 @@ namespace rego
   private:
     friend const char* ::regoGetError(regoInterpreter* rego);
     friend void setError(regoInterpreter* rego, const std::string& error);
-    friend const char* ::regoQuery(regoInterpreter* rego, const char* query_expr);
+    friend regoResult* ::regoQuery(regoInterpreter* rego, const char* query_expr);
 
+    std::string result_to_string(const Node& result) const;
     void write_ast(
       std::size_t index, const std::string& pass, const Node& ast) const;
     Node get_errors(const Node& ast) const;
@@ -58,6 +59,5 @@ namespace rego
     BuiltIns m_builtins;
 
     std::string m_c_error;
-    std::string m_c_result;
   };
 }
