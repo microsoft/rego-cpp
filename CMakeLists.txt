@@ -162,7 +162,7 @@ if (REGOCPP_BUILD_TOOLS)
 endif()
 
 if (REGOCPP_COPY_EXAMPLES)
-  install(DIRECTORY examples DESTINATION .)
+  install(DIRECTORY tools/examples DESTINATION .)
 endif()
 
 if (REGOCPP_BUILD_TESTS)
