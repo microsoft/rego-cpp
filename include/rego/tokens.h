@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "builtins.h"
-
 #include <trieste/token.h>
 
 namespace rego

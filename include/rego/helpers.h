@@ -4,7 +4,6 @@
 #pragma once
 
 #include "bigint.h"
-#include "rego.h"
 #include "tokens.h"
 
 namespace rego
