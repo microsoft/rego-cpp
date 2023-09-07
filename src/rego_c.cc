@@ -298,9 +298,9 @@ extern "C"
     return reinterpret_cast<trieste::NodeDef*>(node)->type().str();
   }
 
-  const char* regoNodeValue(regoNode* node)
+  void regoNodeValue(regoNode* node, char* buffer, regoSize size)
   {
-    return reinterpret_cast<trieste::NodeDef*>(node)->location().view().data();
+    reinterpret_cast<trieste::NodeDef*>(node)->location().view().copy(buffer, size);
   }
 
   regoSize regoNodeSize(regoNode* node)
