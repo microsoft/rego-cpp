@@ -1,8 +1,12 @@
-#include <rego/rego.h>
 #include <CLI/CLI.hpp>
+#include <rego/rego.h>
 
 int main(int argc, char** argv)
 {
+  std::cout << "rego " << REGOCPP_VERSION << " (" << REGOCPP_BUILD_NAME << ", "
+            << REGOCPP_BUILD_DATE << ")"
+            << "[" << REGOCPP_BUILD_TOOLCHAIN << "] on " << REGOCPP_PLATFORM
+            << std::endl;
   CLI::App app;
 
   app.set_help_all_flag("--help-all", "Expand all help");
