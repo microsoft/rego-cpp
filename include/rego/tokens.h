@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <trieste/token.h>
+#include <trieste/driver.h>
 
 namespace rego
 {

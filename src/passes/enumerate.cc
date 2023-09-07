@@ -142,15 +142,16 @@ namespace rego
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
-          if (
-            idx->type() == Expr && idx->size() == 1 &&
-            is_constant(idx->front()))
+          if (idx->type() == Expr)
           {
-            idx = idx->front();
-          }
-          else
-          {
-            return err(idx, "Invalid index for enumeration");
+            if (idx->size() == 1 && is_constant(idx->front()))
+            {
+              idx = idx->front();
+            }
+            else
+            {
+              return err(idx, "Invalid index for enumeration");
+            }
           }
 
           if (idx->type() == NumTerm)
@@ -218,15 +219,16 @@ namespace rego
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
-          if (
-            idx->type() == Expr && idx->size() == 1 &&
-            is_constant(idx->front()))
+          if (idx->type() == Expr)
           {
-            idx = idx->front();
-          }
-          else
-          {
-            return err(idx, "Invalid index for enumeration");
+            if (idx->size() == 1 && is_constant(idx->front()))
+            {
+              idx = idx->front();
+            }
+            else
+            {
+              return err(idx, "Invalid index for enumeration");
+            }
           }
 
           if (idx->type() == NumTerm)

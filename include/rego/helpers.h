@@ -5,6 +5,7 @@
 
 #include "bigint.h"
 #include "tokens.h"
+#include "encoding.h"
 
 namespace rego
 {

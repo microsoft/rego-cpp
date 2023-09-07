@@ -4,6 +4,7 @@
 #pragma once
 
 #include <trieste/pass.h>
+#include "builtins.h"
 
 namespace rego
 {

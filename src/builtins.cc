@@ -5,6 +5,7 @@
 #include "helpers.h"
 #include "resolver.h"
 #include "version.h"
+#include "rego.h"
 
 namespace
 {

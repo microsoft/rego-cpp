@@ -2,6 +2,7 @@
 #include "passes.h"
 #include "tokens.h"
 #include "wf.h"
+#include "rego.h"
 
 namespace rego
 {

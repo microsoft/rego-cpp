@@ -7,6 +7,7 @@
 
 namespace rego
 {
+  using namespace trieste;
   /**
    * This is a basic, non-optimized implementation of a big integer using
    * strings. In most circumstances this would be considerably slower than other
