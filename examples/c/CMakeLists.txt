@@ -7,10 +7,12 @@ include(FetchContent)
 
 project( regoc VERSION 0.1.0 LANGUAGES C CXX )
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 FetchContent_Declare(
   regocpp
   GIT_REPOSITORY https://github.com/matajoh/rego-cpp
-  GIT_TAG        6eabe342477d5638e9e82911576082a7f7c76fe4
+  GIT_TAG        1b54905422dc6f68eef9d635d732dbe689c6b83a
 )
 
 FetchContent_Declare(

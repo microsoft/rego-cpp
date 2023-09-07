@@ -42,7 +42,8 @@ namespace rego
   private:
     friend const char* ::regoGetError(regoInterpreter* rego);
     friend void setError(regoInterpreter* rego, const std::string& error);
-    friend regoResult* ::regoQuery(regoInterpreter* rego, const char* query_expr);
+    friend regoResult* ::regoQuery(
+      regoInterpreter* rego, const char* query_expr);
 
     std::string result_to_string(const Node& result) const;
     void write_ast(

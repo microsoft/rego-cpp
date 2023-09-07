@@ -1,8 +1,8 @@
 #include "rego_c.h"
 
+#include "helpers.h"
 #include "interpreter.h"
 #include "log.h"
-#include "helpers.h"
 
 namespace rego
 {
@@ -193,13 +193,16 @@ extern "C"
   {
     auto result_ptr = reinterpret_cast<rego::RegoResult*>(result);
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(result_ptr->node.get());
-    if(node_ptr->type() == rego::ErrorSeq){
+    if (node_ptr->type() == rego::ErrorSeq)
+    {
       return nullptr;
     }
 
-    for(auto binding : *node_ptr){
+    for (auto binding : *node_ptr)
+    {
       rego::Node var = binding / rego::Var;
-      if(var->location().view() == name){
+      if (var->location().view() == name)
+      {
         rego::Node val = binding / rego::Term;
         return reinterpret_cast<regoNode*>(val.get());
       }
@@ -328,7 +331,8 @@ extern "C"
 
   void regoNodeValue(regoNode* node, char* buffer, regoSize size)
   {
-    std::string_view view = reinterpret_cast<trieste::NodeDef*>(node)->location().view();
+    std::string_view view =
+      reinterpret_cast<trieste::NodeDef*>(node)->location().view();
     view.copy(buffer, size);
     buffer[view.size()] = '\0';
   }

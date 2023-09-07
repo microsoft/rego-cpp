@@ -50,7 +50,8 @@ extern "C"
   regoInterpreter* regoNew();
   void regoFree(regoInterpreter* rego);
   regoEnum regoAddModuleFile(regoInterpreter* rego, const char* path);
-  regoEnum regoAddModule(regoInterpreter* rego, const char* name, const char* contents);
+  regoEnum regoAddModule(
+    regoInterpreter* rego, const char* name, const char* contents);
   regoEnum regoAddDataJSONFile(regoInterpreter* rego, const char* path);
   regoEnum regoAddDataJSON(regoInterpreter* rego, const char* contents);
   regoEnum regoAddInputJSONFile(regoInterpreter* rego, const char* path);
@@ -58,7 +59,8 @@ extern "C"
   void regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetDebugEnabled(regoInterpreter* rego);
   void regoSetDebugPath(regoInterpreter* rego, const char* path);
-  void regoSetWellFormedChecksEnabled(regoInterpreter* rego, regoBoolean enabled);
+  void regoSetWellFormedChecksEnabled(
+    regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego);
   void regoSetExecutable(regoInterpreter* rego, const char* path);
   regoResult* regoQuery(regoInterpreter* rego, const char* query_expr);

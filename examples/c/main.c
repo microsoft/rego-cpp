@@ -148,7 +148,13 @@ void print_node(regoNode* node, unsigned int indent)
 
 int main(int argc, char** argv)
 {
-  printf("regoc %s\n", REGOCPP_VERSION);
+  printf(
+    "regoc %s (%s, %s) [%s] on %s\n",
+    REGOCPP_VERSION,
+    REGOCPP_BUILD_NAME,
+    REGOCPP_BUILD_DATE,
+    REGOCPP_BUILD_TOOLCHAIN,
+    REGOCPP_PLATFORM);
   char identifier;
   cag_option_context context;
   struct regoc_configuration config = {
