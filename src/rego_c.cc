@@ -352,7 +352,8 @@ extern "C"
 
   regoSize regoNodeSize(regoNode* node)
   {
-    return reinterpret_cast<trieste::NodeDef*>(node)->size();
+    std::size_t size = reinterpret_cast<trieste::NodeDef*>(node)->size();
+    return static_cast<regoSize>(size);
   }
 
   regoNode* regoNodeGet(regoNode* node, regoSize index)
