@@ -66,6 +66,7 @@ extern "C"
 
   // Node functions
   regoEnum regoNodeType(regoNode* node);
+  const char* regoNodeTypeName(regoNode* node);
   const char* regoNodeValue(regoNode* node);
   regoSize regoNodeSize(regoNode* node);
   regoNode* regoNodeGet(regoNode* node, regoSize index);

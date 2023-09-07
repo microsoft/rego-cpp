@@ -293,6 +293,11 @@ extern "C"
     return REGO_NODE_INTERNAL;
   }
 
+  const char* regoNodeTypeName(regoNode* node)
+  {
+    return reinterpret_cast<trieste::NodeDef*>(node)->type().str();
+  }
+
   const char* regoNodeValue(regoNode* node)
   {
     return reinterpret_cast<trieste::NodeDef*>(node)->location().view().data();

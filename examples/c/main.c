@@ -17,6 +17,12 @@ static struct cag_option options[] = {
    .value_name = NULL,
    .description = "Enable logging"},
 
+  {.identifier = 'r',
+   .access_letters = "r",
+   .access_name = "raw",
+   .value_name = NULL,
+   .description = "Use the raw query interface (print node objects)"},
+
   {.identifier = 'q',
    .access_letters = "q",
    .access_name = "query",
@@ -48,6 +54,7 @@ static struct cag_option options[] = {
 struct regoc_configuration
 {
   bool logging_enabled;
+  bool use_raw_query;
   const char* data_files[MAX_DATA_FILES];
   unsigned int data_files_count;
   const char* input_file;
@@ -69,18 +76,29 @@ bool is_json(const char* file)
   return true;
 }
 
+void print_node(regoNode* node, unsigned int indent)
+{
+  unsigned int i;
+
+  for(i=0; i<indent; ++i)
+  {
+
+  }
+}
+
 int main(int argc, char** argv)
 {
   char identifier;
   cag_option_context context;
   struct regoc_configuration config = {
     .logging_enabled = false,
+    .use_raw_query = false,
     .data_files_count = 0,
     .input_file = NULL,
     .query = NULL};
   unsigned int data_index;
   regoInterpreter* rego;
-  // regoNode* node;
+  regoNode* node;
   int rc = EXIT_SUCCESS;
   regoEnum err;
   const char* result;
@@ -93,6 +111,10 @@ int main(int argc, char** argv)
     {
       case 'l':
         config.logging_enabled = true;
+        break;
+
+      case 'r':
+        config.use_raw_query = true;
         break;
 
       case 'd':
@@ -137,7 +159,7 @@ int main(int argc, char** argv)
     regoSetLoggingEnabled(true);
   }
 
-  regoSetExecutable(rego, "regoc");
+  regoSetExecutable(rego, argv[0]);
 
   for (data_index = 0; data_index < config.data_files_count; data_index++)
   {
@@ -165,17 +187,31 @@ int main(int argc, char** argv)
     }
   }
 
-  result = regoQuery(rego, config.query);
-  if (result == NULL)
+  if (config.use_raw_query)
   {
-    goto error;
+    node = regoRawQuery(rego, config.query);
+    if (node == NULL)
+    {
+      goto error;
+    }
+
+    print_node(node, 0);
+    goto exit;
+  }
+  else
+  {
+    result = regoQuery(rego, config.query);
+    if (result == NULL)
+    {
+      goto error;
+    }
+
+    printf("%s\n", result);
+    goto exit;
   }
 
-  printf("%s\n", result);
-  goto exit;
-
 error:
-  printf("Error received: %s", regoGetError(rego));
+  printf("%s\n", regoGetError(rego));
   rc = EXIT_FAILURE;
 
 exit:
