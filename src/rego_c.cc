@@ -194,6 +194,27 @@ extern "C"
   regoEnum regoNodeType(regoNode* node_ptr)
   {
     auto node = reinterpret_cast<trieste::NodeDef*>(node_ptr);
+
+    if (node->type() == rego::Binding)
+    {
+      return REGO_NODE_BINDING;
+    }
+
+    if (node->type() == rego::Var)
+    {
+      return REGO_NODE_VAR;
+    }
+
+    if (node->type() == rego::Term)
+    {
+      return REGO_NODE_TERM;
+    }
+
+    if (node->type() == rego::Scalar)
+    {
+      return REGO_NODE_SCALAR;
+    }
+
     if (node->type() == rego::Array)
     {
       return REGO_NODE_ARRAY;
