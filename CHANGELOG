@@ -1,5 +1,20 @@
 # Changelog
 
+## 2023-09-07 - Version 0.3.3
+Adding a C API.
+
+**New Features**
+- `rego_c.h` contains a C API for the library
+- `examples/c` contains an example that builds an interpreter using the C API
+
+**Breaking Change**
+The project was incorrectly configured to set the PUBLIC CMake build directory
+to `include/rego` instead of `include`. This meant that projects consuming the
+library using CMake FetchContent would include header files without a `rego/`
+prefix, which would cause problems long term. This has been fixed, but as a result
+any projects using the library via CMake FetchContent will need to update their
+`#include` statements to include the `rego/` prefix.
+
 ## 2023-09-03 - Version 0.3.2
 Adding tests based upon the Confidential ACI Rego framework.
 
