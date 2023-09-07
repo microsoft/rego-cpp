@@ -1,7 +1,10 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 #pragma once
 
 #include "builtins.h"
-#include "wrapper.h"
+#include "rego_c.h"
 
 #include <string>
 #include <trieste/parse.h>

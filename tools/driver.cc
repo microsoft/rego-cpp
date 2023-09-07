@@ -1,4 +1,4 @@
-#include "rego.h"
+#include <rego/rego.h>
 
 int main(int argc, char** argv)
 {

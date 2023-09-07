@@ -14,7 +14,7 @@ variable.cc
 wf.cc
 builtins.cc
 helpers.cc
-wrapper.cc
+rego_c.cc
 passes/input_data.cc
 passes/modules.cc
 passes/lists.cc
@@ -96,8 +96,9 @@ endif()
 target_include_directories( rego
   PUBLIC
     $<INSTALL_INTERFACE:include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/rego>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/rego>
 )

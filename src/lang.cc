@@ -3,8 +3,6 @@
 #include "tokens.h"
 #include "wf.h"
 
-#include <charconv>
-
 namespace rego
 {
   bool Logger::enabled = false;

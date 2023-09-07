@@ -1,6 +1,10 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 #pragma once
 
 #include <string>
+#include <trieste/ast.h>
 
 namespace rego
 {

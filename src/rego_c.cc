@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "rego_c.h"
 
 #include "interpreter.h"
 
@@ -15,6 +15,11 @@ extern "C"
   const char* regoGetError(regoInterpreter* rego)
   {
     return reinterpret_cast<rego::Interpreter*>(rego)->m_c_error.c_str();
+  }
+
+  void regoSetLoggingEnabled(regoBoolean enabled)
+  {
+    rego::Logger::enabled = enabled;
   }
 
   regoInterpreter* regoNew()

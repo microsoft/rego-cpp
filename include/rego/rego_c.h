@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 #ifndef _REGOCPP_WRAPPER_H_
 #define _REGOCPP_WRAPPER_H_
 
@@ -35,6 +38,7 @@ extern "C"
 {
 #endif
   // Interpreter functions
+  void regoSetLoggingEnabled(regoBoolean enabled);
   regoInterpreter* regoNew();
   void regoDelete(regoInterpreter* rego);
   regoEnum regoAddModuleFile(regoInterpreter* rego, const char* path);
