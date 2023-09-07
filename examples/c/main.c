@@ -6,6 +6,7 @@
 #include <string.h>
 
 #define MAX_DATA_FILES 128
+#define MAX_VALUE_LENGTH 256
 
 /**
  * This is the main configuration of all options available.
@@ -78,16 +79,76 @@ bool is_json(const char* file)
 
 void print_node(regoNode* node, unsigned int indent)
 {
+  char value[MAX_VALUE_LENGTH];
   unsigned int i;
+  unsigned int size;
+  regoEnum type;
 
-  for(i=0; i<indent; ++i)
+  for (i = 0; i < indent; ++i)
   {
+    printf(" ");
+  }
 
+  if (node == NULL)
+  {
+    printf("<null>\n");
+    return;
+  }
+
+  type = regoNodeType(node);
+  switch (type)
+  {
+    case REGO_NODE_VAR:
+      regoNodeValue(node, value, MAX_VALUE_LENGTH);
+      printf("(var %s)\n", value);
+      return;
+
+    case REGO_NODE_INT:
+    case REGO_NODE_FLOAT:
+      regoNodeValue(node, value, MAX_VALUE_LENGTH);
+      printf("(number %s)\n", value);
+      return;
+
+    case REGO_NODE_STRING:
+      regoNodeValue(node, value, MAX_VALUE_LENGTH);
+      printf("(string %s)\n", value);
+      return;
+
+    case REGO_NODE_TRUE:
+      printf("(boolean true)\n");
+      return;
+
+    case REGO_NODE_FALSE:
+      printf("(boolean false)\n");
+      return;
+
+    case REGO_NODE_NULL:
+      printf("(null)\n");
+      return;
+
+    default:
+      printf("(%s", regoNodeTypeName(node));
+      break;
+  }
+
+  size = regoNodeSize(node);
+
+  printf("\n");
+  for (i = 0; i < size; ++i)
+  {
+    print_node(regoNodeGet(node, i), indent + 2);
+  }
+
+  if (size == 0)
+  {
+    printf(")\n");
+    return;
   }
 }
 
 int main(int argc, char** argv)
 {
+  printf("regoc %s\n", REGOCPP_VERSION);
   char identifier;
   cag_option_context context;
   struct regoc_configuration config = {
@@ -97,11 +158,10 @@ int main(int argc, char** argv)
     .input_file = NULL,
     .query = NULL};
   unsigned int data_index;
-  regoInterpreter* rego;
-  regoNode* node;
+  regoInterpreter* rego = NULL;
+  regoResult* result = NULL;
   int rc = EXIT_SUCCESS;
   regoEnum err;
-  const char* result;
 
   cag_option_prepare(&context, options, CAG_ARRAY_SIZE(options), argc, argv);
   while (cag_option_fetch(&context))
@@ -187,26 +247,19 @@ int main(int argc, char** argv)
     }
   }
 
+  result = regoQuery(rego, config.query);
+  if (result == NULL)
+  {
+    goto error;
+  }
   if (config.use_raw_query)
   {
-    node = regoRawQuery(rego, config.query);
-    if (node == NULL)
-    {
-      goto error;
-    }
-
-    print_node(node, 0);
+    print_node(regoResultNode(result), 0);
     goto exit;
   }
   else
   {
-    result = regoQuery(rego, config.query);
-    if (result == NULL)
-    {
-      goto error;
-    }
-
-    printf("%s\n", result);
+    printf("%s\n", regoResultString(result));
     goto exit;
   }
 
@@ -215,6 +268,15 @@ error:
   rc = EXIT_FAILURE;
 
 exit:
-  regoDelete(rego);
+  if (result != NULL)
+  {
+    regoFreeResult(result);
+  }
+
+  if (rego != NULL)
+  {
+    regoFree(rego);
+  }
+
   return rc;
 }

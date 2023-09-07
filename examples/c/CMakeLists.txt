@@ -10,7 +10,7 @@ project( regoc VERSION 0.1.0 LANGUAGES C CXX )
 FetchContent_Declare(
   regocpp
   GIT_REPOSITORY https://github.com/matajoh/rego-cpp
-  GIT_TAG        a33dad922de61eca609345ebcbcc1d3d4cd2743b
+  GIT_TAG        6eabe342477d5638e9e82911576082a7f7c76fe4
 )
 
 FetchContent_Declare(
