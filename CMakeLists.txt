@@ -41,6 +41,7 @@ option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" O
 option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
 option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
+option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
 
 # -------------------- Find packages --------------------------
 
@@ -87,6 +88,7 @@ else()
         tools/*.cc
         tests/*.cc
         tests/*.h
+        examples/c/main.c
   )
 
   add_custom_target(regocpp_format
@@ -157,7 +159,10 @@ install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
 
 if (REGOCPP_BUILD_TOOLS)
   install(TARGETS rego_interpreter rego_trieste RUNTIME)
-  install(DIRECTORY tools/examples DESTINATION .)
+endif()
+
+if (REGOCPP_COPY_EXAMPLES)
+  install(DIRECTORY examples DESTINATION .)
 endif()
 
 if (REGOCPP_BUILD_TESTS)

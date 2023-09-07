@@ -10,7 +10,8 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
         "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
+        "CMAKE_CXX_COMPILER": "clang++",
+        "REGOCPP_COPY_EXAMPLES": "ON"
       }
     },
     {
@@ -19,7 +20,8 @@
       "description": "Sets up a debug build that uses the default compiler and generator",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_COPY_EXAMPLES": "ON"
       }
     },
     {
@@ -31,7 +33,8 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
         "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
+        "CMAKE_CXX_COMPILER": "clang++",
+        "REGOCPP_COPY_EXAMPLES": "ON"
       }
     },
     {
@@ -40,7 +43,8 @@
       "description": "Sets up a release build that uses the default compiler and generator",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_COPY_EXAMPLES": "ON"
       }
     }
   ]
