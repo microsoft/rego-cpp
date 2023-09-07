@@ -142,9 +142,15 @@ namespace rego
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
-          if (idx->type() == Expr)
+          if (
+            idx->type() == Expr && idx->size() == 1 &&
+            is_constant(idx->front()))
           {
             idx = idx->front();
+          }
+          else
+          {
+            return err(idx, "Invalid index for enumeration");
           }
 
           if (idx->type() == NumTerm)
@@ -212,7 +218,25 @@ namespace rego
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
-          if (idx->type() != RefTerm)
+          if (
+            idx->type() == Expr && idx->size() == 1 &&
+            is_constant(idx->front()))
+          {
+            idx = idx->front();
+          }
+          else
+          {
+            return err(idx, "Invalid index for enumeration");
+          }
+
+          if (idx->type() == NumTerm)
+          {
+            idx = Term << (Scalar << idx->front());
+          }
+
+          std::set<Token> term_types = {
+            Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
+          if (term_types.contains(idx->type()))
           {
             idx = Term << idx;
           }
