@@ -4,8 +4,8 @@
 #pragma once
 
 #include "bigint.h"
-#include "tokens.h"
 #include "encoding.h"
+#include "tokens.h"
 
 namespace rego
 {

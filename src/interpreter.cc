@@ -2,8 +2,8 @@
 
 #include "errors.h"
 #include "helpers.h"
-#include "wf.h"
 #include "rego.h"
+#include "wf.h"
 
 #include <iostream>
 #include <sstream>

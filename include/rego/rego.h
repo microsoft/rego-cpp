@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include "encoding.h"
 #include "interpreter.h"
 #include "log.h"
 #include "tokens.h"
-#include "encoding.h"
 
 #include <trieste/driver.h>
 

@@ -1,4 +1,5 @@
 #include "encoding.h"
+
 #include "helpers.h"
 
 namespace rego
@@ -179,5 +180,5 @@ namespace rego
     }
 
     return buf.str();
-  }  
+  }
 }

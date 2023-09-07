@@ -3,9 +3,9 @@
 #include "builtins/register.h"
 #include "errors.h"
 #include "helpers.h"
+#include "rego.h"
 #include "resolver.h"
 #include "version.h"
-#include "rego.h"
 
 namespace
 {
