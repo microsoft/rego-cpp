@@ -64,12 +64,12 @@ namespace rego_test
           return String ^ buf.str();
         },
 
-      (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
+      (In(LiteralString, FoldedString, SingleQuoteString) /
        In(DoubleQuoteString)) *
           (T(Group) << T(String)[String]) >>
         [](Match& _) { return _(String); },
 
-      (In(LiteralString) / In(FoldedString) / In(SingleQuoteString) /
+      (In(LiteralString, FoldedString, SingleQuoteString) /
        In(DoubleQuoteString)) *
           (T(Group) << T(Blank)) >>
         [](Match&) { return String ^ ""; },
@@ -80,7 +80,7 @@ namespace rego_test
       In(Group) * T(Blank)[Blank] >>
         [](Match& _) { return err(_(Blank), "Invalid blank line."); },
 
-      (In(Entry) / In(Block)) * (T(Group)[Group] << End) >>
+      In(Entry, Block) * (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
 
       In(Group) * T(Hyphen)[Hyphen] >>
@@ -174,7 +174,7 @@ namespace rego_test
   PassDef keyvalue()
   {
     return {
-      (In(Entry) / In(Block)) *
+      In(Entry, Block) *
           (T(Group) << ((T(Scalar) << T(String))[Key] * T(Colon) * Any[Val])) >>
         [](Match& _) {
           Location key_loc = _(Key)->location();
@@ -188,7 +188,7 @@ namespace rego_test
           return KeyValue << (Key ^ key_loc) << (Group << _(Val));
         },
 
-      (In(Entry) / In(Block)) *
+      In(Entry, Block) *
           ((T(Group) << ((T(Scalar) << T(String))[Key] * T(Colon) * End)) *
            T(Group)[Val]) >>
         [](Match& _) {
@@ -203,7 +203,7 @@ namespace rego_test
           return KeyValue << (Key ^ key_loc) << _(Val);
         },
 
-      (In(Entry) / In(Block)) *
+      In(Entry, Block) *
           ((T(Group) << ((T(Scalar) << T(String))[Key] * End)) *
            (T(Group) << (T(Colon) * Any[Val]))) >>
         [](Match& _) {
@@ -218,7 +218,7 @@ namespace rego_test
           return KeyValue << (Key ^ key_loc) << (Group << _[Val]);
         },
 
-      (In(Entry) / In(Block)) *
+      In(Entry, Block) *
           ((T(Group) << ((T(Scalar) << T(String))[Key] * T(Colon))) * End) >>
         [](Match& _) {
           Location key_loc = _(Key)->location();
@@ -259,7 +259,7 @@ namespace rego_test
         [](Match& _) { return Mapping ^ _(EmptyMapping); },
 
       // errors
-      (In(Entry) / In(Group)) * T(Block)[Block] >>
+      In(Entry, Group) * T(Block)[Block] >>
         [](Match& _) { return err(_(Block), "Invalid indented block"); },
 
       In(Group) * T(KeyValue)[KeyValue] >>
@@ -346,26 +346,26 @@ namespace rego_test
           return rego::JSONString ^ key_str;
         },
 
-      (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(String)[String]) >>
+      In(rego::Scalar, Group) * (T(Scalar) << T(String)[String]) >>
         [](Match& _) {
           std::string str =
             "\"" + std::string(_(String)->location().view()) + "\"";
           return rego::JSONString ^ str;
         },
 
-      (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(Integer)[Integer]) >>
+      In(rego::Scalar, Group) * (T(Scalar) << T(Integer)[Integer]) >>
         [](Match& _) { return rego::JSONInt ^ _(Integer); },
 
-      (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(Float)[Float]) >>
+      In(rego::Scalar, Group) * (T(Scalar) << T(Float)[Float]) >>
         [](Match& _) { return rego::JSONFloat ^ _(Float); },
 
-      (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(True)[True]) >>
+      In(rego::Scalar, Group) * (T(Scalar) << T(True)[True]) >>
         [](Match& _) { return rego::JSONTrue ^ _(True); },
 
-      (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(False)[False]) >>
+      In(rego::Scalar, Group) * (T(Scalar) << T(False)[False]) >>
         [](Match& _) { return rego::JSONFalse ^ _(False); },
 
-      (In(rego::Scalar) / In(Group)) * (T(Scalar) << T(Null)[Null]) >>
+      In(rego::Scalar, Group) * (T(Scalar) << T(Null)[Null]) >>
         [](Match& _) { return rego::JSONNull ^ _(Null); },
 
       In(Group) * T(Mapping)[Mapping] >>

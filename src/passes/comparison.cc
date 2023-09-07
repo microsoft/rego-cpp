@@ -47,7 +47,7 @@ namespace rego
       In(RefArgBrack) * (T(Term) << RefArgBrackArg[Arg]) >>
         [](Match& _) { return _(Arg); },
 
-      (In(ArithArg) / In(BoolArg)) * (T(Expr) << ArithInfixArg[Val]) >>
+      In(ArithArg, BoolArg) * (T(Expr) << ArithInfixArg[Val]) >>
         [](Match& _) { return _(Val); },
 
       // errors

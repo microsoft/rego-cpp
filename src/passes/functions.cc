@@ -22,13 +22,13 @@ namespace rego
       In(Input) * T(DataTerm)[DataTerm] >>
         [](Match& _) { return Term << *_[DataTerm]; },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Expr) << Any[Val]) >>
+      In(UnifyExpr, ArgSeq) * (T(Expr) << Any[Val]) >>
         [](Match& _) { return _(Val); },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Term) << T(Scalar)[Scalar]) >>
+      In(UnifyExpr, ArgSeq) * (T(Term) << T(Scalar)[Scalar]) >>
         [](Match& _) { return _(Scalar); },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Term) << T(Object)[Object]) >>
+      In(UnifyExpr, ArgSeq) * (T(Term) << T(Object)[Object]) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"obj"});
@@ -47,15 +47,15 @@ namespace rego
 
       In(ArgSeq) * T(Set)[Set] >> [](Match& _) { return Term << _(Set); },
 
-      (In(UnifyExpr) / In(ArgSeq)) * T(ObjectItem)[ObjectItem] >>
+      In(UnifyExpr, ArgSeq) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) { return Seq << *_[ObjectItem]; },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Enumerate) << T(Expr)[Expr]) >>
+      In(UnifyExpr, ArgSeq) * (T(Enumerate) << T(Expr)[Expr]) >>
         [](Match& _) {
           return Function << (JSONString ^ "enumerate") << (ArgSeq << _(Expr));
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(Membership)
            << (T(Expr)[Idx] * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
         [](Match& _) {
@@ -63,7 +63,7 @@ namespace rego
                           << (ArgSeq << _(Idx) << _(Item) << _(ItemSeq));
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(Membership)
            << (T(Undefined) * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
         [](Match& _) {
@@ -71,7 +71,7 @@ namespace rego
                           << (ArgSeq << _(Item) << _(ItemSeq));
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Term) << T(Array)[Array]) >>
+      In(UnifyExpr, ArgSeq) * (T(Term) << T(Array)[Array]) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"array"});
@@ -85,7 +85,7 @@ namespace rego
           return seq;
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Term) << T(Set)[Set]) >>
+      In(UnifyExpr, ArgSeq) * (T(Term) << T(Set)[Set]) >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"set"});
@@ -99,7 +99,7 @@ namespace rego
           return seq;
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] >>
         [](Match& _) {
           std::string name = _(Compr)->type().str();
@@ -112,7 +112,7 @@ namespace rego
           ;
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(Term) << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr)))[Compr] >>
         [](Match& _) {
           std::string name = _(Compr)->type().str();
@@ -125,12 +125,12 @@ namespace rego
           ;
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Merge) << T(Var)[Var]) >>
+      In(UnifyExpr, ArgSeq) * (T(Merge) << T(Var)[Var]) >>
         [](Match& _) {
           return Function << (JSONString ^ "merge") << (ArgSeq << _(Var));
         },
 
-      (In(UnifyExpr) / In(ArgSeq) * T(NumTerm)[NumTerm]) >>
+      (In(UnifyExpr, ArgSeq) * T(NumTerm)[NumTerm]) >>
         [](Match& _) { return Scalar << _(NumTerm)->front(); },
 
       In(ArgSeq) * T(Function)[Function]([](auto& n) {
@@ -148,18 +148,18 @@ namespace rego
           return seq;
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(Not) << T(Expr)[Expr]) >>
+      In(UnifyExpr, ArgSeq) * (T(Not) << T(Expr)[Expr]) >>
         [](Match& _) {
           return Function << (JSONString ^ "not") << (ArgSeq << _(Expr));
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
+      In(UnifyExpr, ArgSeq) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
         [](Match& _) {
           return Function << (JSONString ^ "unary")
                           << (ArgSeq << _(ArithArg)->front());
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(ArithInfix) << (T(ArithArg)[Lhs] * Any[Op] * T(ArithArg)[Rhs])) >>
         [](Match& _) {
           return Function << (JSONString ^ "arithinfix")
@@ -167,7 +167,7 @@ namespace rego
                                      << _(Rhs)->front());
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(BinInfix) << (T(BinArg)[Lhs] * Any[Op] * T(BinArg)[Rhs])) >>
         [](Match& _) {
           return Function << (JSONString ^ "bininfix")
@@ -175,7 +175,7 @@ namespace rego
                                      << _(Rhs)->front());
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(BoolInfix) << (T(BoolArg)[Lhs] * Any[Op] * T(BoolArg)[Rhs])) >>
         [](Match& _) {
           return Function << (JSONString ^ "boolinfix")
@@ -183,10 +183,10 @@ namespace rego
                                      << _(Rhs)->front());
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(RefTerm) << T(Var)[Var]) >>
+      In(UnifyExpr, ArgSeq) * (T(RefTerm) << T(Var)[Var]) >>
         [](Match& _) { return _(Var); },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(RefTerm)
            << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
         [](Match& _) {
@@ -196,7 +196,7 @@ namespace rego
                           << (ArgSeq << _(Var) << arg);
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(RefTerm)
            << (T(SimpleRef)
                << (T(Var)[Var] * (T(RefArgBrack)[RefArgBrack])))) >>
@@ -215,21 +215,20 @@ namespace rego
           }
         },
 
-      (In(UnifyExpr) / In(ArgSeq)) *
+      In(UnifyExpr, ArgSeq) *
           (T(ExprCall) << (T(Var)[Var] * T(ArgSeq)[ArgSeq])) >>
         [](Match& _) {
           return Function << (JSONString ^ "call")
                           << (ArgSeq << _(Var) << *_[ArgSeq]);
         },
 
-      (In(Array) / In(Set) / In(ObjectItem)) * (T(Expr) << T(Term)[Term]) >>
+      In(Array, Set, ObjectItem) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return _(Term); },
 
-      (In(Array) / In(Set) / In(ObjectItem)) *
-          (T(Expr) << T(NumTerm)[NumTerm]) >>
+      In(Array, Set, ObjectItem) * (T(Expr) << T(NumTerm)[NumTerm]) >>
         [](Match& _) { return Term << (Scalar << *_[NumTerm]); },
 
-      (In(RuleComp) / In(RuleFunc) / In(RuleObj) / In(RuleSet) / In(DataItem)) *
+      In(RuleComp, RuleFunc, RuleObj, RuleSet, DataItem) *
           T(DataTerm)[DataTerm] >>
         [](Match& _) { return Term << *_[DataTerm]; },
 
@@ -245,7 +244,7 @@ namespace rego
       In(Object) * T(DataObjectItem)[DataObjectItem] >>
         [](Match& _) { return ObjectItem << *_[DataObjectItem]; },
 
-      (In(ObjectItem) / In(Array) / In(Set)) * T(DataTerm)[DataTerm] >>
+      In(ObjectItem, Array, Set) * T(DataTerm)[DataTerm] >>
         [](Match& _) { return Term << *_[DataTerm]; },
 
       // errors
@@ -256,7 +255,7 @@ namespace rego
       In(Expr) * Any[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid expression"); },
 
-      (In(UnifyExpr) / In(ArgSeq)) * (T(RefTerm) << T(Ref)[Ref]) >>
+      In(UnifyExpr, ArgSeq) * (T(RefTerm) << T(Ref)[Ref]) >>
         [](Match& _) { return err(_(Ref), "Invalid reference"); },
 
       In(Array) * T(Expr)[Expr] >>

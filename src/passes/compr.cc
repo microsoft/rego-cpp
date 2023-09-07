@@ -111,7 +111,7 @@ namespace rego
                                                        << body))))));
           },
 
-        (In(ArrayCompr) / In(SetCompr)) *
+        In(ArrayCompr, SetCompr) *
             (T(Expr)[Expr] * T(NestedBody)[NestedBody]) >>
           [](Match& _) {
             Location out = _.fresh({"out"});

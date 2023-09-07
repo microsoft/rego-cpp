@@ -53,7 +53,7 @@ namespace rego
       In(DataTerm) * T(Object)[Object] >>
         [](Match& _) { return DataObject << *_[Object]; },
 
-      (In(DataArray) / In(DataSet)) * (T(Expr) << T(Term)[Term]) >>
+      In(DataArray, DataSet) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return DataTerm << _(Term)->front(); },
 
       In(Rego) * (T(DataSeq) << (T(DataModule)[DataModule] * End)) >>
@@ -91,7 +91,7 @@ namespace rego
           return err(_(Compr), "Syntax error: unexpected comprehension");
         },
 
-      (In(DataArray) / In(DataSet)) * T(Expr)[Expr] >>
+      In(DataArray, DataSet) * T(Expr)[Expr] >>
         [](Match& _) {
           return err(_(Expr), "Syntax error: unexpected expression");
         },

@@ -96,18 +96,17 @@ namespace rego
                                           << _(Val));
         },
 
-      (In(RuleHeadComp) / In(RuleHeadFunc) / In(RuleHeadSet) /
-       In(RuleHeadObj)) *
+      In(RuleHeadComp, RuleHeadFunc, RuleHeadSet, RuleHeadObj) *
           T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
-      (In(ObjectItemSeq) / In(Object)) *
+      In(ObjectItemSeq, Object) *
           (T(ObjectItem) << T(Group)[Key] * T(Group)[Val]) >>
         [](Match& _) {
           return ObjectItem << (Expr << *_[Key]) << (Expr << *_[Val]);
         },
 
-      (In(ArrayCompr) / In(ObjectCompr) / In(SetCompr)) * T(Group)[Group] >>
+      In(ArrayCompr, ObjectCompr, SetCompr) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
       In(Package) * (T(Group) << (T(Var)[Var] * End)) >>
@@ -194,7 +193,7 @@ namespace rego
       In(RefArgBrack) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
-      (In(Array) / In(Set)) * T(Group)[Group] >>
+      In(Array, Set) * T(Group)[Group] >>
         [](Match& _) { return Expr << *_[Group]; },
 
       In(UnifyBody) *
@@ -336,14 +335,13 @@ namespace rego
       In(Package) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid package name"); },
 
-      (In(ExprCall) / In(ExprEvery) / In(SomeDecl)) *
-          (T(VarSeq)[VarSeq] << End) >>
+      In(ExprCall, ExprEvery, SomeDecl) * (T(VarSeq)[VarSeq] << End) >>
         [](Match& _) { return err(_(VarSeq), "Missing variables"); },
 
       In(DefaultRule) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid default rule"); },
 
-      (In(ObjectCompr) / In(ArrayCompr) / In(SetCompr)) * T(Group)[Group] >>
+      In(ObjectCompr, ArrayCompr, SetCompr) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid comprehension"); },
 
       In(Expr) * T(Contains)[Contains] >>
@@ -370,7 +368,7 @@ namespace rego
       T(Expr)[Expr] << End >>
         [](Match& _) { return err(_(Expr), "Empty expression"); },
 
-      (In(UnifyBody) / In(Expr)) * T(SomeDecl)[SomeDecl] >>
+      In(UnifyBody, Expr) * T(SomeDecl)[SomeDecl] >>
         [](Match& _) { return err(_(SomeDecl), "Invalid some"); },
 
       In(Expr) * T(UnifyBody)[UnifyBody] >>
