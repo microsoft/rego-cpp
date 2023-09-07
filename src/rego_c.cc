@@ -331,14 +331,16 @@ extern "C"
 
   regoSize regoNodeValueSize(regoNode* node)
   {
-    return reinterpret_cast<trieste::NodeDef*>(node)->location().view().size() + 1;
+    std::size_t size =
+      reinterpret_cast<trieste::NodeDef*>(node)->location().view().size();
+    return static_cast<regoSize>(size + 1);
   }
 
   regoEnum regoNodeValue(regoNode* node, char* buffer, regoSize size)
   {
     std::string_view view =
       reinterpret_cast<trieste::NodeDef*>(node)->location().view();
-    if(size < view.size() + 1)
+    if (size < view.size() + 1)
     {
       return REGO_ERROR_BUFFER_TOO_SMALL;
     }
@@ -364,14 +366,14 @@ extern "C"
   {
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     std::string json = rego::to_json(node_ptr->shared_from_this());
-    return json.size() + 1;
+    return static_cast<regoSize>(json.size() + 1);
   }
 
   regoEnum regoNodeJSON(regoNode* node, char* buffer, regoSize size)
   {
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     std::string json = rego::to_json(node_ptr->shared_from_this());
-    if(size < json.size() + 1)
+    if (size < json.size() + 1)
     {
       return REGO_ERROR_BUFFER_TOO_SMALL;
     }
