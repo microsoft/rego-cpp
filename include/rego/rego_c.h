@@ -16,6 +16,7 @@ typedef unsigned int regoSize;
 // error codes
 #define REGO_OK 0
 #define REGO_ERROR 1
+#define REGO_ERROR_BUFFER_TOO_SMALL 2
 
 // term node types
 #define REGO_NODE_BINDING 1000
@@ -76,10 +77,12 @@ extern "C"
   // Node functions
   regoEnum regoNodeType(regoNode* node);
   const char* regoNodeTypeName(regoNode* node);
-  void regoNodeValue(regoNode* node, char* buffer, regoSize size);
+  regoSize regoNodeValueSize(regoNode* node);
+  regoEnum regoNodeValue(regoNode* node, char* buffer, regoSize size);
   regoSize regoNodeSize(regoNode* node);
   regoNode* regoNodeGet(regoNode* node, regoSize index);
-  void regoNodeToJSON(regoNode* node, char* buffer, regoSize size);
+  regoSize regoNodeJSONSize(regoNode* node);
+  regoEnum regoNodeJSON(regoNode* node, char* buffer, regoSize size);
 
 #ifdef __cplusplus
 }
