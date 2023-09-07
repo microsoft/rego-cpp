@@ -225,8 +225,7 @@ namespace rego
       In(Array, Set, ObjectItem) * (T(Expr) << T(Term)[Term]) >>
         [](Match& _) { return _(Term); },
 
-      In(Array, Set, ObjectItem) *
-          (T(Expr) << T(NumTerm)[NumTerm]) >>
+      In(Array, Set, ObjectItem) * (T(Expr) << T(NumTerm)[NumTerm]) >>
         [](Match& _) { return Term << (Scalar << *_[NumTerm]); },
 
       In(RuleComp, RuleFunc, RuleObj, RuleSet, DataItem) *

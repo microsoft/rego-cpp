@@ -398,8 +398,7 @@ namespace rego
                        })) >>
         [](Match& _) { return err(_(EverySeq), "Missing body of every"); },
 
-      In(ArrayCompr, SetCompr, ObjectCompr) *
-          (T(Group)[Group] << End) >>
+      In(ArrayCompr, SetCompr, ObjectCompr) * (T(Group)[Group] << End) >>
         [](Match& _) { return err(_(Group), "Invalid comprehension"); },
 
       In(UnifyBody) * T(ObjectItem)[ObjectItem] >>

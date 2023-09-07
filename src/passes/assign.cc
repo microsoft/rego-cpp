@@ -196,8 +196,7 @@ namespace rego
       In(Expr) * T(Unify)[Unify] >>
         [](Match& _) { return err(_(Unify), "Invalid assignment"); },
 
-      In(RuleComp, RuleFunc, RuleSet, RuleObj) *
-          T(Expr)[Expr] >>
+      In(RuleComp, RuleFunc, RuleSet, RuleObj) * T(Expr)[Expr] >>
         [](Match& _) { return err(_(Expr), "Invalid rule value"); },
 
       In(Expr) * (T(Set) / T(SetCompr))[Set] >>

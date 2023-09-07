@@ -350,8 +350,7 @@ namespace rego
                 << (Expr << (RefTerm << (Var ^ value)) << Unify << *_[Expr]));
         },
 
-      In(ObjectCompr, SetCompr, ArrayCompr) *
-          T(UnifyBody)[UnifyBody] >>
+      In(ObjectCompr, SetCompr, ArrayCompr) * T(UnifyBody)[UnifyBody] >>
         [](Match& _) {
           std::string prefix;
           auto& parent_type = _(UnifyBody)->parent()->type();

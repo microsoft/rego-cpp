@@ -335,8 +335,7 @@ namespace rego
       In(Package) * T(Group)[Group] >>
         [](Match& _) { return err(_(Group), "Invalid package name"); },
 
-      In(ExprCall, ExprEvery, SomeDecl) *
-          (T(VarSeq)[VarSeq] << End) >>
+      In(ExprCall, ExprEvery, SomeDecl) * (T(VarSeq)[VarSeq] << End) >>
         [](Match& _) { return err(_(VarSeq), "Missing variables"); },
 
       In(DefaultRule) * T(Group)[Group] >>

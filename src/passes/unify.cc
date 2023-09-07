@@ -22,8 +22,7 @@ namespace rego
         In(Query, Array, Set, ObjectItem) *
             (T(Object) / T(Array) / T(Set) / T(Scalar))[Term] >>
           [](Match& _) { return Term << _(Term); },
-        In(Query, Array, Set, ObjectItem) *
-            T(DataTerm)[DataTerm] >>
+        In(Query, Array, Set, ObjectItem) * T(DataTerm)[DataTerm] >>
           [](Match& _) { return Term << _(DataTerm)->front(); },
         In(Term) * T(DataArray)[DataArray] >>
           [](Match& _) { return Array << *_[DataArray]; },
