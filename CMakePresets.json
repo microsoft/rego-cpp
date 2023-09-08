@@ -108,6 +108,28 @@
         "REGOCPP_COPY_EXAMPLES": "ON",
         "REGOCPP_OPA_TESTS": "ON"
       }
+    },
+    {
+      "name": "release-rust-clang",
+      "displayName": "Release Build using clang for Rust",
+      "description": "Sets up a release build that uses Clang++ and is installed into the Rust wrapper build directory",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/wrappers/rust/regorust/rego",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "REGOCPP_COPY_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "release-rust",
+      "displayName": "Release Build for Rust",
+      "description": "Sets up a release build that using the default compiler and is installed into the Rust wrapper build directory",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/wrappers/rust/regorust/rego",
+        "REGOCPP_COPY_EXAMPLES": "ON"
+      }
     }
   ]
 }

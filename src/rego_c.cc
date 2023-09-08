@@ -135,9 +135,23 @@ extern "C"
     return reinterpret_cast<rego::Interpreter*>(rego)->debug_enabled();
   }
 
-  void regoSetDebugPath(regoInterpreter* rego, const char* path)
+  const char* regoGetDebugPath(regoInterpreter* rego)
   {
-    reinterpret_cast<rego::Interpreter*>(rego)->debug_path(path);
+    return reinterpret_cast<rego::Interpreter*>(rego)->debug_path().c_str();
+  }
+
+  regoEnum regoSetDebugPath(regoInterpreter* rego, const char* path)
+  {
+    try
+    {
+      reinterpret_cast<rego::Interpreter*>(rego)->debug_path(path);
+      return REGO_OK;
+    }
+    catch (const std::exception& e)
+    {
+      rego::setError(rego, e.what());
+      return REGO_ERROR;
+    }
   }
 
   void regoSetWellFormedChecksEnabled(
@@ -151,11 +165,6 @@ extern "C"
   {
     return reinterpret_cast<rego::Interpreter*>(rego)
       ->well_formed_checks_enabled();
-  }
-
-  void regoSetExecutable(regoInterpreter* rego, const char* path)
-  {
-    reinterpret_cast<rego::Interpreter*>(rego)->executable(path);
   }
 
   regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr)
@@ -356,10 +365,14 @@ extern "C"
     return static_cast<regoSize>(size);
   }
 
-  regoNode* regoNodeGet(regoNode* node, regoSize index)
+  regoNode* regoNodeGet(regoNode* node_ptr, regoSize index)
   {
-    trieste::NodeDef* child =
-      reinterpret_cast<trieste::NodeDef*>(node)->at(index).get();
+    trieste::NodeDef* node = reinterpret_cast<trieste::NodeDef*>(node_ptr);
+    if (index >= node->size())
+    {
+      return nullptr;
+    }
+    trieste::NodeDef* child = node->at(index).get();
     return reinterpret_cast<regoNode*>(child);
   }
 
