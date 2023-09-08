@@ -8,7 +8,7 @@
 
 typedef void regoInterpreter;
 typedef void regoNode;
-typedef void regoResult;
+typedef void regoOutput;
 typedef unsigned int regoEnum;
 typedef unsigned char regoBoolean;
 typedef unsigned int regoSize;
@@ -64,15 +64,15 @@ extern "C"
     regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego);
   void regoSetExecutable(regoInterpreter* rego, const char* path);
-  regoResult* regoQuery(regoInterpreter* rego, const char* query_expr);
+  regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr);
   const char* regoGetError(regoInterpreter* rego);
 
-  // Result functions
-  regoBoolean regoResultOk(regoResult* result);
-  regoNode* regoResultNode(regoResult* result);
-  regoNode* regoResultBinding(regoResult* result, const char* name);
-  const char* regoResultString(regoResult* result);
-  void regoFreeResult(regoResult* result);
+  // Output functions
+  regoBoolean regoOutputOk(regoOutput* output);
+  regoNode* regoOutputNode(regoOutput* output);
+  regoNode* regoOutputBinding(regoOutput* output, const char* name);
+  const char* regoOutputString(regoOutput* output);
+  void regoFreeOutput(regoOutput* output);
 
   // Node functions
   regoEnum regoNodeType(regoNode* node);

@@ -215,36 +215,36 @@ namespace rego
 
   std::string Interpreter::query(const std::string& query_expr) const
   {
-    return result_to_string(raw_query(query_expr));
+    return output_to_string(raw_query(query_expr));
   }
 
-  std::string Interpreter::result_to_string(const Node& ast) const
+  std::string Interpreter::output_to_string(const Node& ast) const
   {
-    std::ostringstream result_buf;
+    std::ostringstream output_buf;
     if (ast->type() == ErrorSeq)
     {
-      result_buf << "errors:" << std::endl;
+      output_buf << "errors:" << std::endl;
 
       for (auto& error : *ast)
       {
         Node error_ast = error / ErrorAst;
-        result_buf << "---" << std::endl;
-        result_buf << "error: " << (error / ErrorMsg)->location().view()
+        output_buf << "---" << std::endl;
+        output_buf << "error: " << (error / ErrorMsg)->location().view()
                    << std::endl;
-        result_buf << "code: " << (error / ErrorCode)->location().view()
+        output_buf << "code: " << (error / ErrorCode)->location().view()
                    << std::endl;
-        result_buf << error_ast;
+        output_buf << error_ast;
       }
     }
     else
     {
       for (auto result : *ast)
       {
-        result_buf << rego::to_json(result) << std::endl;
+        output_buf << rego::to_json(result) << std::endl;
       }
     }
 
-    return result_buf.str();
+    return output_buf.str();
   }
 
   Interpreter& Interpreter::debug_path(const std::filesystem::path& path)

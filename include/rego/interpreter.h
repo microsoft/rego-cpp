@@ -42,10 +42,10 @@ namespace rego
   private:
     friend const char* ::regoGetError(regoInterpreter* rego);
     friend void setError(regoInterpreter* rego, const std::string& error);
-    friend regoResult* ::regoQuery(
+    friend regoOutput* ::regoQuery(
       regoInterpreter* rego, const char* query_expr);
 
-    std::string result_to_string(const Node& result) const;
+    std::string output_to_string(const Node& output) const;
     void write_ast(
       std::size_t index, const std::string& pass, const Node& ast) const;
     Node get_errors(const Node& ast) const;
