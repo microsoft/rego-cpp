@@ -11,8 +11,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FetchContent_Declare(
   regocpp
-  GIT_REPOSITORY https://github.com/microsoft/rego-cpp
-  GIT_TAG        main
+  GIT_REPOSITORY https://github.com/matajoh/rego-cpp
+  GIT_TAG        19edb113037c163978d301d1db252cf4ce37140f
 )
 
 FetchContent_Declare(

@@ -198,7 +198,7 @@ int main(int argc, char** argv)
     .query = NULL};
   unsigned int data_index;
   regoInterpreter* rego = NULL;
-  regoResult* result = NULL;
+  regoOutput* output = NULL;
   int rc = EXIT_SUCCESS;
   regoEnum err;
 
@@ -286,19 +286,19 @@ int main(int argc, char** argv)
     }
   }
 
-  result = regoQuery(rego, config.query);
-  if (result == NULL)
+  output = regoQuery(rego, config.query);
+  if (output == NULL)
   {
     goto error;
   }
   if (config.use_raw_query)
   {
-    print_node(regoResultNode(result), 0);
+    print_node(regoOutputNode(output), 0);
     goto exit;
   }
   else
   {
-    printf("%s\n", regoResultString(result));
+    printf("%s\n", regoOutputString(output));
     goto exit;
   }
 
@@ -307,9 +307,9 @@ error:
   rc = EXIT_FAILURE;
 
 exit:
-  if (result != NULL)
+  if (output != NULL)
   {
-    regoFreeResult(result);
+    regoFreeOutput(output);
   }
 
   if (rego != NULL)
