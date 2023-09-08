@@ -11,7 +11,7 @@ namespace rego
     reinterpret_cast<rego::Interpreter*>(rego)->m_c_error = error;
   }
 
-  struct RegoResult
+  struct regoOutput
   {
     Node node;
     std::string value;
@@ -158,16 +158,16 @@ extern "C"
     reinterpret_cast<rego::Interpreter*>(rego)->executable(path);
   }
 
-  regoResult* regoQuery(regoInterpreter* rego, const char* query_expr)
+  regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr)
   {
     try
     {
       auto interpreter = reinterpret_cast<rego::Interpreter*>(rego);
-      rego::RegoResult* result = new rego::RegoResult();
-      result->node = interpreter->raw_query(query_expr);
-      result->value = interpreter->result_to_string(result->node);
+      rego::regoOutput* output = new rego::regoOutput();
+      output->node = interpreter->raw_query(query_expr);
+      output->value = interpreter->output_to_string(output->node);
 
-      return reinterpret_cast<regoResult*>(result);
+      return reinterpret_cast<regoOutput*>(output);
     }
     catch (const std::exception& e)
     {
@@ -176,23 +176,23 @@ extern "C"
     }
   }
 
-  // Result functions
-  regoBoolean regoResultOk(regoResult* result)
+  // Output functions
+  regoBoolean regoOutputOk(regoOutput* output)
   {
-    return reinterpret_cast<rego::RegoResult*>(result)->node->type() !=
+    return reinterpret_cast<rego::regoOutput*>(output)->node->type() !=
       rego::ErrorSeq;
   }
 
-  regoNode* regoResultNode(regoResult* result)
+  regoNode* regoOutputNode(regoOutput* output)
   {
     return reinterpret_cast<regoNode*>(
-      reinterpret_cast<rego::RegoResult*>(result)->node.get());
+      reinterpret_cast<rego::regoOutput*>(output)->node.get());
   }
 
-  regoNode* regoResultBinding(regoResult* result, const char* name)
+  regoNode* regoOutputBinding(regoOutput* output, const char* name)
   {
-    auto result_ptr = reinterpret_cast<rego::RegoResult*>(result);
-    auto node_ptr = reinterpret_cast<trieste::NodeDef*>(result_ptr->node.get());
+    auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
+    auto node_ptr = reinterpret_cast<trieste::NodeDef*>(output_ptr->node.get());
     if (node_ptr->type() == rego::ErrorSeq)
     {
       return nullptr;
@@ -211,14 +211,14 @@ extern "C"
     return nullptr;
   }
 
-  const char* regoResultString(regoResult* result)
+  const char* regoOutputString(regoOutput* output)
   {
-    return reinterpret_cast<rego::RegoResult*>(result)->value.c_str();
+    return reinterpret_cast<rego::regoOutput*>(output)->value.c_str();
   }
 
-  void regoFreeResult(regoResult* result)
+  void regoFreeOutput(regoOutput* output)
   {
-    delete reinterpret_cast<rego::RegoResult*>(result);
+    delete reinterpret_cast<rego::regoOutput*>(output);
   }
 
   // Node functions
