@@ -36,6 +36,7 @@ namespace rego
       throw std::runtime_error("Module file does not exist");
     }
 
+    LOG("Adding module file: ", path);
     auto file_ast = m_parser.sub_parse(path);
     m_module_seq->push_back(file_ast);
   }
@@ -46,6 +47,7 @@ namespace rego
     auto module_source = SourceDef::synthetic(contents);
     auto module = m_parser.sub_parse(name, File, module_source);
     m_module_seq->push_back(module);
+    LOG("Adding module: ", name, "(", contents.size(), " bytes)");
   }
 
   void Interpreter::add_data_json_file(const std::filesystem::path& path)
@@ -55,6 +57,7 @@ namespace rego
       throw std::runtime_error("Data file does not exist");
     }
 
+    LOG("Adding data file: ", path);
     auto file_ast = m_parser.sub_parse(path);
     m_data_seq->push_back(file_ast);
   }
@@ -64,11 +67,13 @@ namespace rego
     auto data_source = SourceDef::synthetic(json);
     auto data = m_parser.sub_parse("data", File, data_source);
     m_data_seq->push_back(data);
+    LOG("Adding data (", json.size(), " bytes)");
   }
 
   void Interpreter::add_data(const Node& node)
   {
     m_data_seq->push_back(node);
+    LOG("Adding data AST");
   }
 
   void Interpreter::add_input_json_file(const std::filesystem::path& path)
@@ -83,6 +88,7 @@ namespace rego
       throw std::runtime_error("Input file does not exist");
     }
 
+    LOG("Adding input file: ", path);
     auto file_ast = m_parser.sub_parse(path);
     m_input->push_back(file_ast);
   }
@@ -94,6 +100,7 @@ namespace rego
       throw std::runtime_error("Input already set");
     }
 
+    LOG("Adding input (", json.size(), " bytes)");
     auto input_source = SourceDef::synthetic(json);
     auto input = m_parser.sub_parse("input", File, input_source);
     m_input->push_back(input);
@@ -106,6 +113,7 @@ namespace rego
       throw std::runtime_error("Input already set");
     }
 
+    LOG("Adding input AST");
     m_input->push_back(node);
   }
 
@@ -135,6 +143,7 @@ namespace rego
 
   Node Interpreter::raw_query(const std::string& query_expr) const
   {
+    LOG("Query: ", query_expr);
     auto ast = NodeDef::create(Top);
     auto rego = NodeDef::create(rego::Rego);
     auto query_src = SourceDef::synthetic(query_expr);
@@ -204,12 +213,14 @@ namespace rego
           error << "Failed at pass " << pass_name << std::endl;
           ast->errors(error);
           errors->push_back(err(ast, error.str(), "well_formed_error"));
+          LOG(error.str());
         }
 
         return errors;
       }
     }
 
+    LOG("Query result: ", ast);
     return ast;
   }
 

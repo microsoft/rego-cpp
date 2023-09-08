@@ -152,7 +152,7 @@ namespace rego
           else
           {
             Location loc = vararg->front()->location();
-            var = Var ^ "[" + std::string(loc.view()) + "]";
+            var = Var ^ ("[" + std::string(loc.view()) + "]");
           }
 
           rulehead->replace(ruleref, RuleRef << var);

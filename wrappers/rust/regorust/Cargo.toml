@@ -5,6 +5,8 @@ edition = "2021"
 
 [dependencies]
 
-
 [build-dependencies]
-bindgen = "0.65.1"
+bindgen = "*"
+
+[lib]
+crate-type = ["staticlib"]

@@ -800,10 +800,10 @@ namespace rego
     return expr_str(statement);
   }
 
-  Resolver::NodePrinter Resolver::expr_str(const Node& unifyexpr)
+  Resolver::NodePrinter Resolver::expr_str(const Node& node)
   {
     return {
-      unifyexpr, [](std::ostream& os, const Node& unifyexpr) -> std::ostream& {
+      node, [](std::ostream& os, const Node& unifyexpr) -> std::ostream& {
         Node lhs = unifyexpr / Var;
         Node rhs = unifyexpr / Val;
         os << lhs->location().view() << " = "
@@ -812,18 +812,18 @@ namespace rego
       }};
   }
 
-  Resolver::NodePrinter Resolver::term_str(const Node& term)
+  Resolver::NodePrinter Resolver::term_str(const Node& node)
   {
-    return {term, [](std::ostream& os, const Node& term) -> std::ostream& {
+    return {node, [](std::ostream& os, const Node& term) -> std::ostream& {
               os << term->type().str() << "(" << to_json(term) << ")";
               return os;
             }};
   }
 
-  Resolver::NodePrinter Resolver::with_str(const Node& unifyexprwith)
+  Resolver::NodePrinter Resolver::with_str(const Node& node)
   {
     return {
-      unifyexprwith,
+      node,
       [](std::ostream& os, const Node& unifyexprwith) -> std::ostream& {
         Node unifybody = unifyexprwith / UnifyBody;
         os << "{";
@@ -855,10 +855,10 @@ namespace rego
       }};
   }
 
-  Resolver::NodePrinter Resolver::compr_str(const Node& unifyexprcompr)
+  Resolver::NodePrinter Resolver::compr_str(const Node& node)
   {
     return {
-      unifyexprcompr,
+      node,
       [](std::ostream& os, const Node& unifyexprcompr) -> std::ostream& {
         Node lhs = unifyexprcompr / Var;
         Node rhs = unifyexprcompr / Val;
@@ -878,10 +878,10 @@ namespace rego
       }};
   }
 
-  Resolver::NodePrinter Resolver::enum_str(const Node& unifyexprenum)
+  Resolver::NodePrinter Resolver::enum_str(const Node& node)
   {
     return {
-      unifyexprenum,
+      node,
       [](std::ostream& os, const Node& unifyexprenum) -> std::ostream& {
         Node item = unifyexprenum / Item;
         Node itemseq = unifyexprenum / ItemSeq;
@@ -902,10 +902,10 @@ namespace rego
       }};
   }
 
-  Resolver::NodePrinter Resolver::not_str(const Node& unifyexprnot)
+  Resolver::NodePrinter Resolver::not_str(const Node& node)
   {
     return {
-      unifyexprnot,
+      node,
       [](std::ostream& os, const Node& unifyexprnot) -> std::ostream& {
         Node unifybody = unifyexprnot->front();
         os << "not {";
@@ -923,10 +923,10 @@ namespace rego
       }};
   }
 
-  Resolver::NodePrinter Resolver::func_str(const Node& function)
+  Resolver::NodePrinter Resolver::func_str(const Node& node)
   {
     return {
-      function, [](std::ostream& os, const Node& function) -> std::ostream& {
+      node, [](std::ostream& os, const Node& function) -> std::ostream& {
         Node name = function / JSONString;
         Node args = function / ArgSeq;
         os << name->location().view() << "(";
@@ -941,9 +941,9 @@ namespace rego
       }};
   }
 
-  Resolver::NodePrinter Resolver::arg_str(const Node& arg)
+  Resolver::NodePrinter Resolver::arg_str(const Node& node)
   {
-    return {arg, [](std::ostream& os, const Node& arg) -> std::ostream& {
+    return {node, [](std::ostream& os, const Node& arg) -> std::ostream& {
               if (arg->type() == Var)
               {
                 os << arg->location().view();
@@ -982,13 +982,13 @@ namespace rego
             }};
   }
 
-  Resolver::NodePrinter Resolver::ref_str(const Node& ref)
+  Resolver::NodePrinter Resolver::ref_str(const Node& node)
   {
-    return {ref, [](std::ostream& os, const Node& node) -> std::ostream& {
-              Node ref = node;
-              if (node->type() == RuleRef || node->type() == RefTerm)
+    return {node, [](std::ostream& os, const Node& ref_) -> std::ostream& {
+              Node ref = ref_;
+              if (ref->type() == RuleRef || ref->type() == RefTerm)
               {
-                ref = node->front();
+                ref = ref->front();
                 if (ref->type() == Var)
                 {
                   os << ref->location().view();
@@ -1327,10 +1327,10 @@ namespace rego
     return buf.str();
   }
 
-  Resolver::NodePrinter Resolver::body_str(const Node& unifybody)
+  Resolver::NodePrinter Resolver::body_str(const Node& node)
   {
     return {
-      unifybody, [](std::ostream& os, const Node& unifybody) -> std::ostream& {
+      node, [](std::ostream& os, const Node& unifybody) -> std::ostream& {
         os << "{" << std::endl;
         for (auto& stmt : *unifybody)
         {
@@ -1348,10 +1348,10 @@ namespace rego
       }};
   }
 
-  Resolver::NodePrinter Resolver::rego_str(const Node& rego)
+  Resolver::NodePrinter Resolver::rego_str(const Node& node)
   {
     return {
-      rego, [](std::ostream& os, const Node& rego) -> std::ostream& {
+      node, [](std::ostream& os, const Node& rego) -> std::ostream& {
         std::deque<Node> queue;
         queue.push_back(rego / Data);
         os << std::endl << std::endl;

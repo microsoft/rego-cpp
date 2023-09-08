@@ -20,8 +20,8 @@ pub struct NodeIterator {
     index: usize,
 }
 
-pub fn set_logging_enabled(enabled: &bool) {
-    let c_enabled: crate::regoBoolean = if *enabled { 1 } else { 0 };
+pub fn set_logging_enabled(enabled: bool) {
+    let c_enabled: crate::regoBoolean = if enabled { 1 } else { 0 };
     unsafe {
         crate::regoSetLoggingEnabled(c_enabled);
     }
@@ -104,7 +104,7 @@ impl Interpreter {
     pub fn add_input_json(&self, input: &str) -> Result<(), &str> {
         let input_cstr = CString::new(input).unwrap();
         let input_ptr = input_cstr.as_ptr();
-        let result = unsafe { crate::regoAddInputJSONFile(self.c_ptr, input_ptr) };
+        let result = unsafe { crate::regoAddInputJSON(self.c_ptr, input_ptr) };
         if result == 0 {
             Ok(())
         } else {
@@ -112,8 +112,8 @@ impl Interpreter {
         }
     }
 
-    pub fn set_debug_enabled(&self, enabled: &bool) {
-        let c_enabled: crate::regoBoolean = if *enabled { 1 } else { 0 };
+    pub fn set_debug_enabled(&self, enabled: bool) {
+        let c_enabled: crate::regoBoolean = if enabled { 1 } else { 0 };
         unsafe {
             crate::regoSetDebugEnabled(self.c_ptr, c_enabled);
         }
@@ -142,8 +142,8 @@ impl Interpreter {
         }
     }
 
-    pub fn set_well_formed_checks_enabled(&self, enabled: &bool) {
-        let c_enabled: crate::regoBoolean = if *enabled { 1 } else { 0 };
+    pub fn set_well_formed_checks_enabled(&self, enabled: bool) {
+        let c_enabled: crate::regoBoolean = if enabled { 1 } else { 0 };
         unsafe {
             crate::regoSetWellFormedChecksEnabled(self.c_ptr, c_enabled);
         }

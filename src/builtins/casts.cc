@@ -99,7 +99,7 @@ namespace
         double float_value = std::stod(number_str);
         return Resolver::scalar(float_value);
       }
-      catch (const std::invalid_argument)
+      catch (const std::invalid_argument&)
       {
         return err(args[0], "invalid syntax", EvalBuiltInError);
       }
