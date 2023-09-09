@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <trieste/source.h>
 #include <set>
+#include <trieste/source.h>
 
 namespace rego
 {

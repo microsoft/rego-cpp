@@ -12,8 +12,10 @@
 
 namespace rego
 {
-  std::ostream& operator<<(std::ostream& os, const std::set<trieste::Location>& locs);
-  std::ostream& operator<<(std::ostream& os, const std::vector<trieste::Location>& locs);
+  std::ostream& operator<<(
+    std::ostream& os, const std::set<trieste::Location>& locs);
+  std::ostream& operator<<(
+    std::ostream& os, const std::vector<trieste::Location>& locs);
 
   struct Logger
   {

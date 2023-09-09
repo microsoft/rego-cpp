@@ -775,7 +775,9 @@ namespace rego
         source_values.begin(),
         source_values.end(),
         std::back_inserter(values),
-        [var](auto& source_value) { return ValueDef::copy_to(source_value, var); });
+        [var](auto& source_value) {
+          return ValueDef::copy_to(source_value, var);
+        });
     }
     else if (value->type() == Scalar)
     {

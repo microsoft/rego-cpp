@@ -69,8 +69,7 @@ int main(int argc, char** argv)
   app.add_flag("-l,--logging", enable_logging, "Enable logging");
 
   bool wf_checks{false};
-  app.add_flag(
-    "-w,--wf", wf_checks, "Enable well-formedness checks (slow)");
+  app.add_flag("-w,--wf", wf_checks, "Enable well-formedness checks (slow)");
 
   bool fail_first{false};
   app.add_flag(

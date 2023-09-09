@@ -187,7 +187,8 @@ extern "C"
 
   void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled)
   {
-    reinterpret_cast<rego::Interpreter*>(rego)->builtins().strict_errors(enabled);
+    reinterpret_cast<rego::Interpreter*>(rego)->builtins().strict_errors(
+      enabled);
   }
 
   regoBoolean regoGetStrictBuiltInErrors(regoInterpreter* rego)
