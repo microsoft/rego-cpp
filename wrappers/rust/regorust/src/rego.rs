@@ -1,5 +1,5 @@
 use std::ffi::{CStr, CString};
-use std::ops::Drop;
+use std::ops::{Drop, Index};
 use std::path::Path;
 
 pub struct Interpreter {
@@ -13,11 +13,14 @@ pub struct Output {
 #[derive(Clone)]
 pub struct Node {
     c_ptr: *mut crate::regoNode,
+    children: Vec<Node>,
+    pub size: usize,
+    pub kind: NodeKind,
 }
 
 pub struct NodeIterator {
-    node: Node,
-    index: usize,
+    pub node: Node,
+    pub index: usize,
 }
 
 pub fn set_logging_enabled(enabled: bool) {
@@ -201,7 +204,7 @@ impl Output {
 
     pub fn to_node(&self) -> Result<Node, Node> {
         let node_ptr = unsafe { crate::regoOutputNode(self.c_ptr) };
-        let output = Node { c_ptr: node_ptr };
+        let output = Node::new(node_ptr);
         if self.ok() {
             Ok(output)
         } else {
@@ -221,11 +224,12 @@ impl Output {
         if node_ptr == std::ptr::null_mut() {
             Err(())
         } else {
-            Ok(Node { c_ptr: node_ptr })
+            Ok(Node::new(node_ptr))
         }
     }
 }
 
+#[derive(Clone)]
 pub enum NodeKind {
     Undefined,
     Binding,
@@ -249,9 +253,8 @@ pub enum NodeKind {
     Internal,
 }
 
-impl Node {
-    pub fn kind(&self) -> NodeKind {
-        let c_kind = unsafe { crate::regoNodeType(self.c_ptr) };
+impl NodeKind {
+    fn new(c_kind: crate::regoEnum) -> Self {
         match c_kind {
             crate::REGO_NODE_UNDEFINED => NodeKind::Undefined,
             crate::REGO_NODE_BINDING => NodeKind::Binding,
@@ -276,6 +279,34 @@ impl Node {
             _ => panic!("Unknown node kind"),
         }
     }
+}
+
+#[derive(PartialEq, Debug)]
+pub enum NodeValue {
+    Var(String),
+    Int(i64),
+    Float(f64),
+    String(String),
+    Bool(bool),
+    Null,
+}
+
+impl Node {
+    pub fn new(c_ptr: *mut crate::regoNode) -> Self {
+        let num_children = unsafe { crate::regoNodeSize(c_ptr) };
+        let mut children = Vec::with_capacity(num_children as usize);
+        for i in 0..num_children {
+            let child_ptr = unsafe { crate::regoNodeGet(c_ptr, i) };
+            children.push(Node::new(child_ptr));
+        }
+        let kind = unsafe { crate::regoNodeType(c_ptr) };
+        Self {
+            c_ptr,
+            children,
+            size: num_children as usize,
+            kind: NodeKind::new(kind),
+        }
+    }
 
     pub fn kind_name(&self) -> &str {
         let c_str = unsafe { crate::regoNodeTypeName(self.c_ptr) };
@@ -286,8 +317,8 @@ impl Node {
     fn scalar_value(&self) -> Result<String, &str> {
         let size = unsafe { crate::regoNodeValueSize(self.c_ptr) };
 
-        let mut v = vec![0, size];
-        let v_ptr = v.as_mut_ptr() as *mut i8;
+        let mut v = vec![0 as i8; size as usize];
+        let v_ptr = v.as_mut_ptr();
         let err: crate::regoEnum = unsafe { crate::regoNodeValue(self.c_ptr, v_ptr, size) };
         if err != crate::REGO_OK {
             return Err("Error getting node value");
@@ -297,17 +328,26 @@ impl Node {
         }
     }
 
-    pub fn value(&self) -> Option<String> {
-        match self.kind() {
-            NodeKind::Null => Some("null".to_string()),
-            NodeKind::True => Some("true".to_string()),
-            NodeKind::False => Some("false".to_string()),
-            NodeKind::Var | NodeKind::Int | NodeKind::Float | NodeKind::String => {
-                match self.scalar_value() {
-                    Ok(s) => Some(s),
-                    Err(_) => None,
-                }
-            }
+    pub fn value(&self) -> Option<NodeValue> {
+        match self.kind {
+            NodeKind::Term => self.children[0].value(),
+            NodeKind::Scalar => self.children[0].value(),
+            NodeKind::Null => Some(NodeValue::Null),
+            NodeKind::True => Some(NodeValue::Bool(true)),
+            NodeKind::False => Some(NodeValue::Bool(false)),
+            NodeKind::Var => self.scalar_value().ok().map(|s| NodeValue::Var(s)),
+            NodeKind::Int => self
+                .scalar_value()
+                .ok()
+                .map(|s| NodeValue::Int(s.parse().unwrap())),
+            NodeKind::Float => self
+                .scalar_value()
+                .ok()
+                .map(|s| NodeValue::Float(s.parse().unwrap())),
+            NodeKind::String => self
+                .scalar_value()
+                .ok()
+                .map(|s| NodeValue::String(s[1..s.len() - 1].to_string())),
             _ => None,
         }
     }
@@ -315,14 +355,19 @@ impl Node {
     pub fn json(&self) -> Result<String, &str> {
         let size = unsafe { crate::regoNodeJSONSize(self.c_ptr) };
 
-        let mut v = vec![0, size];
-        let v_ptr = v.as_mut_ptr() as *mut i8;
+        let mut v = vec![0 as i8; size as usize];
+        let v_ptr = v.as_mut_ptr();
         let err: crate::regoEnum = unsafe { crate::regoNodeJSON(self.c_ptr, v_ptr, size) };
         if err != crate::REGO_OK {
             return Err("Error converting node to JSON");
         } else {
             let result: CString = unsafe { CString::from_raw(v_ptr) };
-            Ok(result.into_string().unwrap())
+            let json = result.into_string().unwrap();
+            if json.starts_with('"') && json.ends_with('"') {
+                return Ok(json[1..json.len() - 1].to_string());
+            } else {
+                return Ok(json);
+            }
         }
     }
 
@@ -331,44 +376,62 @@ impl Node {
         c_size as usize
     }
 
-    pub fn node(&self, index: usize) -> Result<Node, ()> {
-        let node_ptr = unsafe { crate::regoNodeGet(self.c_ptr, index as crate::regoSize) };
-        if node_ptr == std::ptr::null_mut() {
-            Err(())
-        } else {
-            Ok(Node { c_ptr: node_ptr })
+    fn lookup_object(&self, key: &str) -> Result<&Node, &str> {
+        for child in self.children.iter() {
+            let key_json = child.children[0].json()?;
+            if key_json == key {
+                return Ok(&child.children[1]);
+            }
+        }
+
+        Err("key not found")
+    }
+
+    fn lookup_set(&self, item: &str) -> Result<&Node, &str> {
+        for child in self.children.iter() {
+            let item_json = child.json()?;
+            if item_json == item {
+                return Ok(&child);
+            }
+        }
+
+        Err("item not found")
+    }
+
+    pub fn lookup(&self, key: &str) -> Result<&Node, &str> {
+        match self.kind {
+            NodeKind::Term => self.children[0].lookup(key),
+            NodeKind::Object => self.lookup_object(key),
+            NodeKind::Set => self.lookup_set(key),
+            _ => Err("Must be an object or a set"),
         }
     }
 
-    pub fn iter(&self) -> NodeIterator {
-        NodeIterator {
-            node: self.clone(),
-            index: 0,
+    pub fn index(&self, index: usize) -> Result<&Node, &str> {
+        match self.kind {
+            NodeKind::Term => self.children[0].index(index),
+            NodeKind::Array => Ok(&self.children[index]),
+            _ => Err("Must be an array"),
         }
+    }
+
+    pub fn at(&self, index: usize) -> Result<&Node, &str> {
+        if index >= self.size() {
+            return Err("Index out of bounds");
+        }
+
+        Ok(&self.children[index])
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, Node> {
+        return self.children.iter();
     }
 }
 
-impl ExactSizeIterator for NodeIterator {
-    fn len(&self) -> usize {
-        self.node.size()
-    }
-}
+impl Index<usize> for Node {
+    type Output = Node;
 
-impl Iterator for NodeIterator {
-    type Item = Node;
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.len(), Some(self.len()))
-    }
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let node_ptr =
-            unsafe { crate::regoNodeGet(self.node.c_ptr, self.index as crate::regoSize) };
-        if node_ptr == std::ptr::null_mut() {
-            None
-        } else {
-            self.index += 1;
-            Some(Node { c_ptr: node_ptr })
-        }
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.children[index]
     }
 }

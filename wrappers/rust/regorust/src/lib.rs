@@ -38,14 +38,76 @@ mod tests {
         rego.add_module("objects", module)
             .expect("cannot add module");
         match rego.query("x=[data.one, input.b, data.objects.sites[1]]") {
-            Ok(result) => match result.to_str() {
-                Ok(val) => {
-                    assert_eq!(val, "x = [{\"bar\":\"Foo\", \"baz\":5, \"be\":true, \"bop\":23.4}, \"20\", {\"name\":\"smoke1\"}]\n")
+            Ok(result) => {
+                let x = result.binding("x").expect("cannot get x");
+                let data_one = x.index(0).expect("cannot get data.one");
+                if let rego::NodeValue::String(bar) = data_one
+                    .lookup("bar")
+                    .expect("bar key missing")
+                    .value()
+                    .expect("bar value missing")
+                {
+                    assert_eq!(bar, "Foo");
+                } else {
+                    panic!("bar is not a string");
                 }
-                Err(err) => {
-                    panic!("unexpected result: {}", err);
+
+                if let rego::NodeValue::Bool(be) = data_one
+                    .lookup("be")
+                    .expect("be key missing")
+                    .value()
+                    .expect("be value missing")
+                {
+                    assert_eq!(be, true);
+                } else {
+                    panic!("be is not a bool");
                 }
-            },
+
+                if let rego::NodeValue::Int(baz) = data_one
+                    .lookup("baz")
+                    .expect("baz key missing")
+                    .value()
+                    .expect("baz value missing")
+                {
+                    assert_eq!(baz, 5);
+                } else {
+                    panic!("baz is not an int");
+                }
+
+                if let rego::NodeValue::Float(bop) = data_one
+                    .lookup("bop")
+                    .expect("bop key missing")
+                    .value()
+                    .expect("bop value missing")
+                {
+                    assert_eq!(bop, 23.4);
+                } else {
+                    panic!("bop is not a float");
+                }
+
+                if let rego::NodeValue::String(input_b) = x
+                    .index(1)
+                    .expect("cannot get input.b")
+                    .value()
+                    .expect("input.b value missing")
+                {
+                    assert_eq!(input_b, "20");
+                } else {
+                    panic!("input.b is not a string");
+                }
+
+                let data_objects_sites_1 = x.index(2).expect("cannot get data.objects.sites[1]");
+                if let rego::NodeValue::String(name) = data_objects_sites_1
+                    .lookup("name")
+                    .expect("name key missing")
+                    .value()
+                    .expect("name value missing")
+                {
+                    assert_eq!(name, "smoke1");
+                } else {
+                    panic!("name is not a string");
+                }
+            }
             Err(e) => {
                 panic!("error: {}", e);
             }
