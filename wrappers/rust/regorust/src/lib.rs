@@ -32,10 +32,61 @@ use std::path::Path;
 ///
 /// ```
 /// # use regorust::*;
-/// # let input = include_str!("../rego/examples/input0.json");
-/// # let data0 = include_str!("../rego/examples/data0.json");
-/// # let data1 = include_str!("../rego/examples/data1.json");
-/// # let module = include_str!("../rego/examples/objects.rego");
+/// let input = r#"
+///   {
+///     "a": 10,
+///     "b": "20",
+///     "c": 30.0,
+///     "d": true
+///   }
+/// "#;
+/// let data0 = r#"
+///   {
+///     "one": {
+///       "bar": "Foo",
+///       "baz": 5,
+///       "be": true,
+///       "bop": 23.4
+///     },
+///     "two": {
+///       "bar": "Bar",
+///       "baz": 12.3,
+///       "be": false,
+///       "bop": 42
+///     }
+///   }
+/// "#;
+/// let data1 = r#"
+///   {
+///     "three": {
+///       "bar": "Baz",
+///       "baz": 15,
+///       "be": true,
+///       "bop": 4.23
+///     }
+///   }        
+/// "#;
+/// let module = r#"
+///   package objects
+///
+///   rect := {`width`: 2, "height": 4}
+///   cube := {"width": 3, `height`: 4, "depth": 5}
+///   a := 42
+///   b := false
+///   c := null
+///   d := {"a": a, "x": [b, c]}
+///   index := 1
+///   shapes := [rect, cube]
+///   names := ["prod", `smoke1`, "dev"]
+///   sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
+///   e := {
+///     a: "foo",
+///     "three": c,
+///     names[2]: b,
+///     "four": d,
+///   }
+///   f := e["dev"]                
+/// "#;
 /// let rego = Interpreter::new();
 /// rego.set_input_json(input);
 /// rego.add_data_json(data0);
@@ -332,7 +383,15 @@ impl Interpreter {
     /// # Example
     /// ```
     /// # use regorust::*;
-    /// # let module = include_str!("../rego/examples/scalars.rego");
+    /// let module = r#"
+    ///   package scalars
+    ///
+    ///   greeting := "Hello"
+    ///   max_height := 42
+    ///   pi := 3.14159
+    ///   allowed := true
+    ///   location := null
+    /// "#;
     /// let rego = Interpreter::new();
     /// rego.add_module("scalars", module);
     /// let result = rego.query("data.scalars.greeting").unwrap();
@@ -411,7 +470,22 @@ impl Interpreter {
     /// # Example
     /// ```
     /// # use regorust::*;
-    /// # let data = include_str!("../rego/examples/data0.json");
+    /// let data = r#"
+    ///   {
+    ///     "one": {
+    ///       "bar": "Foo",
+    ///       "baz": 5,
+    ///       "be": true,
+    ///       "bop": 23.4
+    ///     },
+    ///     "two": {
+    ///       "bar": "Bar",
+    ///       "baz": 12.3,
+    ///       "be": false,
+    ///       "bop": 42
+    ///     }
+    ///   }
+    /// "#;
     /// let rego = Interpreter::new();
     /// rego.add_data_json(data);
     /// let result = rego.query("data.one.bar").unwrap();
@@ -487,7 +561,14 @@ impl Interpreter {
     /// # Example
     /// ```
     /// # use regorust::*;
-    /// # let input = include_str!("../rego/examples/input0.json");
+    /// let input = r#"
+    ///   {
+    ///     "a": 10,
+    ///     "b": "20",
+    ///     "c": 30.0,
+    ///     "d": true
+    ///   }
+    /// "#;
     /// let rego = Interpreter::new();
     /// rego.set_input_json(input);
     /// let result = rego.query("input.a").unwrap();
@@ -1078,10 +1159,61 @@ mod tests {
 
     #[test]
     fn input_data() {
-        let input = include_str!("../rego/examples/input0.json");
-        let data0 = include_str!("../rego/examples/data0.json");
-        let data1 = include_str!("../rego/examples/data1.json");
-        let module = include_str!("../rego/examples/objects.rego");
+        let input = r#"
+            {
+                "a": 10,
+                "b": "20",
+                "c": 30.0,
+                "d": true
+            }
+        "#;
+        let data0 = r#"
+            {
+                "one": {
+                    "bar": "Foo",
+                    "baz": 5,
+                    "be": true,
+                    "bop": 23.4
+                },
+                "two": {
+                    "bar": "Bar",
+                    "baz": 12.3,
+                    "be": false,
+                    "bop": 42
+                }
+            }
+        "#;
+        let data1 = r#"
+            {
+                "three": {
+                    "bar": "Baz",
+                    "baz": 15,
+                    "be": true,
+                    "bop": 4.23
+                }
+            }        
+        "#;
+        let module = r#"
+        package objects
+
+        rect := {`width`: 2, "height": 4}
+        cube := {"width": 3, `height`: 4, "depth": 5}
+        a := 42
+        b := false
+        c := null
+        d := {"a": a, "x": [b, c]}
+        index := 1
+        shapes := [rect, cube]
+        names := ["prod", `smoke1`, "dev"]
+        sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
+        e := {
+            a: "foo",
+            "three": c,
+            names[2]: b,
+            "four": d,
+        }
+        f := e["dev"]                
+        "#;
         let rego = Interpreter::new();
         rego.set_input_json(input).expect("cannot set input");
         rego.add_data_json(data0)
@@ -1205,7 +1337,27 @@ mod tests {
         let input0 = r#"{"a": 10}"#;
         let input1 = r#"{"a": 4}"#;
         let input2 = r#"{"a": 7}"#;
-        let module = include_str!("../rego/examples/multi.rego");
+        let module = r#"
+            package multi
+
+            default a := 0
+            
+            a := val {
+                input.a > 0
+                input.a < 10
+                input.a % 2 == 1
+                val := input.a * 10
+            } {
+                input.a > 0
+                input.a < 10
+                input.a % 2 == 0
+                val := input.a * 10 + 1
+            }
+            
+            a := input.a / 10 {
+                input.a >= 10
+            }        
+        "#;
         let rego = Interpreter::new();
         rego.add_module("multi", module).expect("cannot add module");
         rego.set_input_json(input0).expect("cannot set input");
