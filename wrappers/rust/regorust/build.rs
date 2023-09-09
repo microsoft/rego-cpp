@@ -1,7 +1,25 @@
 use std::env;
 use std::path::PathBuf;
+use std::process::Command;
 
 fn main() {
+    Command::new("git")
+        .args(&["clone", "https://github.com/matajoh/rego-cpp.git"])
+        .status()
+        .expect("failed to execute process");
+
+    Command::new("git")
+        .args(&["checkout", "rust-api"])
+        .current_dir("rego-cpp")
+        .status()
+        .expect("failed to execute process");
+
+    Command::new("cmake")
+        .args(&["-S", ".", "-B", "build", "--preset", "rust"])
+        .current_dir("rego-cpp")
+        .status()
+        .expect("failed to execute process");
+
     let libdir_path = PathBuf::from("rego/lib")
         .canonicalize()
         .expect("cannot canonicalize path");
