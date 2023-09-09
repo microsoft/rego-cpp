@@ -357,7 +357,15 @@ namespace rego
   inline const auto wf_pass_locals = wf_pass_explicit_enums;
 
   // clang-format off
-  inline const auto wf_pass_compr =
+  inline const auto wf_pass_compr1 =
+    wf_pass_locals
+    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
+    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_compr2 =
     wf_pass_locals
     | (ObjectCompr <<= Var * NestedBody)
     | (ArrayCompr <<= Var * NestedBody)
@@ -367,7 +375,7 @@ namespace rego
     ;
   // clang-format on
 
-  inline const auto wf_pass_absolute_refs = wf_pass_compr;
+  inline const auto wf_pass_absolute_refs = wf_pass_compr2;
 
   // clang-format off
   inline const auto wf_pass_merge_modules =

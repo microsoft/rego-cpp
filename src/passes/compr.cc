@@ -4,13 +4,11 @@
 
 namespace rego
 {
-  // Augments nested comprehension bodies to contain statements that set the
-  // comprehension item. Also reconfigures RuleObj and RuleSet
-  // nodes as comprehensions.
-  PassDef compr()
+  // Reconfigures RuleObj and RuleSet nodes as comprehensions.
+  PassDef compr1()
   {
     return {
-      dir::topdown | dir::once,
+      dir::bottomup | dir::once,
       {
         In(Policy) *
             (T(RuleSet)
@@ -111,6 +109,30 @@ namespace rego
                                                        << body))))));
           },
 
+        // errors
+
+        In(RuleObj) * (T(Expr)[Expr] * T(DataTerm)) >>
+          [](Match& _) {
+            return err(
+              _(Expr), "Syntax error: expected matching key/value node types");
+          },
+
+        In(RuleObj) * (T(DataTerm) * T(Expr)[Expr]) >>
+          [](Match& _) {
+            return err(
+              _(Expr), "Syntax error: expected matching key/value node types");
+          },
+
+      }};
+  }
+
+  // Augments nested comprehension bodies to contain statements that set the
+  // comprehension item.
+  PassDef compr2()
+  {
+    return {
+      dir::topdown,
+      {
         In(ArrayCompr, SetCompr) *
             (T(Expr)[Expr] * T(NestedBody)[NestedBody]) >>
           [](Match& _) {
@@ -155,21 +177,6 @@ namespace rego
 
             return Seq << (Var ^ out) << _(NestedBody);
           },
-
-        // errors
-
-        In(RuleObj) * (T(Expr)[Expr] * T(DataTerm)) >>
-          [](Match& _) {
-            return err(
-              _(Expr), "Syntax error: expected matching key/value node types");
-          },
-
-        In(RuleObj) * (T(DataTerm) * T(Expr)[Expr]) >>
-          [](Match& _) {
-            return err(
-              _(Expr), "Syntax error: expected matching key/value node types");
-          },
-
       }};
   }
 }
