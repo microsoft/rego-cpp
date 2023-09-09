@@ -1,5 +1,11 @@
 # Changelog
 
+## 2023-09-10 - Version 0.3.4
+Adding a Rust wrapper.
+
+**New Features**
+- `wrappers/rust/` contains a Rust crate, `regorust`, which wraps the library
+
 ## 2023-09-07 - Version 0.3.3
 Adding a C API.
 
