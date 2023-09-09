@@ -63,7 +63,7 @@ jobs:
 
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
-        run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang "-DREGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}" "-DREGOCPP_C_WRAPPER_TAG=${{github.ref_name}}"
+        run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang "-DREGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}" "-DREGOCPP_C_WRAPPER_TAG=${{github.sha}}"
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
