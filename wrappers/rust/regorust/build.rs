@@ -15,7 +15,7 @@ fn main() {
         .expect("failed to execute process");
 
     Command::new("cmake")
-        .args(&["-S", ".", "-B", "build", "--preset", "rust"])
+        .args(&["-S", ".", "-B", "build", "--preset", "release-rust"])
         .current_dir("rego-cpp")
         .status()
         .expect("failed to execute process");
