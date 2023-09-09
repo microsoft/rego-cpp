@@ -34,7 +34,8 @@ namespace rego
   PassDef compr();
   PassDef absolute_refs();
   PassDef merge_modules();
-  PassDef skips();
+  PassDef skips1();
+  PassDef skips2();
   PassDef unary();
   PassDef multiply_divide();
   PassDef add_subtract();

@@ -380,20 +380,26 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline const auto wf_pass_skips = 
+  inline const auto wf_pass_skips1 = 
+    wf_pass_merge_modules
+    | (DataModule <<= (RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
+    | (Rego <<= Query * Input * Data)
+    ;
+  // clang-format on
+
+  inline const auto wf_pass_skips2 = 
     wf_pass_merge_modules
     | (DataModule <<= (RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
     | (Rego <<= Query * Input * Data * SkipSeq)
     | (SkipSeq <<= Skip++)
     | (Skip <<= Key * (Val >>= VarSeq | BuiltInHook | Undefined))[Key]
     ;
-  // clang-format on
 
   inline const auto wf_unary_exprs = wf_symbols_exprs | UnaryExpr;
 
   // clang-format off
   inline const auto wf_pass_unary =
-    wf_pass_skips
+    wf_pass_skips2
     | (UnaryExpr <<= ArithArg)
     | (ArithArg <<= (Expr | RefTerm | NumTerm | UnaryExpr | ExprCall))
     | (Expr <<= wf_unary_exprs++[1])
