@@ -4,8 +4,6 @@
 #include "helpers.h"
 #include "resolver.h"
 
-#include <sstream>
-
 namespace
 {
   using namespace rego;

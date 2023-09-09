@@ -116,7 +116,7 @@
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/rust",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/rust",
         "REGOCPP_COPY_EXAMPLES": "ON"
       }
     }

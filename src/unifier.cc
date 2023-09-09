@@ -1,17 +1,11 @@
 #include "unifier.h"
 
-#include "CLI/TypeTools.hpp"
 #include "args.h"
 #include "errors.h"
 #include "helpers.h"
 #include "log.h"
 #include "resolver.h"
 #include "tokens.h"
-
-#include <algorithm>
-#include <iostream>
-#include <sstream>
-#include <type_traits>
 
 namespace rego
 {

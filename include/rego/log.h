@@ -7,13 +7,13 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include <trieste/source.h>
+#include <trieste/driver.h>
 #include <vector>
 
 namespace rego
 {
-  std::ostream& operator<<(std::ostream& os, const std::set<Location>& locs);
-  std::ostream& operator<<(std::ostream& os, const std::vector<Location>& locs);
+  std::ostream& operator<<(std::ostream& os, const std::set<trieste::Location>& locs);
+  std::ostream& operator<<(std::ostream& os, const std::vector<trieste::Location>& locs);
 
   struct Logger
   {

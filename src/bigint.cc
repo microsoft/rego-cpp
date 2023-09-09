@@ -1,7 +1,5 @@
 #include "bigint.h"
 
-#include <string_view>
-
 namespace rego
 {
   Location BigInt::Zero = Location("0");

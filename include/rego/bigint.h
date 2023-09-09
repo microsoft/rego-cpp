@@ -4,6 +4,7 @@
 #pragma once
 
 #include <trieste/source.h>
+#include <set>
 
 namespace rego
 {

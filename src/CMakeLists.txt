@@ -83,13 +83,6 @@ target_link_libraries(rego
     trieste::trieste
 )
 
-target_precompile_headers(rego
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/errors.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/helpers.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/passes.h
-)
-
 
 if (MSVC)
   target_compile_options(rego PUBLIC "/Zc:__cplusplus")

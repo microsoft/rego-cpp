@@ -1,7 +1,5 @@
 #include "utf8.h"
 
-#include <vector>
-
 namespace
 {
   const std::uint8_t MaskX = 0b11000000;
