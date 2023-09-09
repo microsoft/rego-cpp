@@ -16,16 +16,16 @@ namespace rego
   class Interpreter
   {
   public:
-    Interpreter(bool disable_well_formed_checks = false);
+    Interpreter();
     ~Interpreter();
     void add_module_file(const std::filesystem::path& path);
     void add_module(const std::string& name, const std::string& contents);
     void add_data_json_file(const std::filesystem::path& path);
     void add_data_json(const std::string& json);
     void add_data(const Node& node);
-    void add_input_json_file(const std::filesystem::path& path);
-    void add_input_json(const std::string& json);
-    void add_input(const Node& node);
+    void set_input_json_file(const std::filesystem::path& path);
+    void set_input_json(const std::string& json);
+    void set_input(const Node& node);
     std::string query(const std::string& query_expr) const;
     Node raw_query(const std::string& query_expr) const;
     Interpreter& debug_path(const std::filesystem::path& prefix);

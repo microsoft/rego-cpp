@@ -97,11 +97,11 @@ extern "C"
     }
   }
 
-  regoEnum regoAddInputJSONFile(regoInterpreter* rego, const char* path)
+  regoEnum regoSetInputJSONFile(regoInterpreter* rego, const char* path)
   {
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->add_input_json_file(path);
+      reinterpret_cast<rego::Interpreter*>(rego)->set_input_json_file(path);
       return REGO_OK;
     }
     catch (const std::exception& e)
@@ -111,11 +111,11 @@ extern "C"
     }
   }
 
-  regoEnum regoAddInputJSON(regoInterpreter* rego, const char* contents)
+  regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents)
   {
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->add_input_json(contents);
+      reinterpret_cast<rego::Interpreter*>(rego)->set_input_json(contents);
       return REGO_OK;
     }
     catch (const std::exception& e)
@@ -183,6 +183,18 @@ extern "C"
       rego::setError(rego, e.what());
       return nullptr;
     }
+  }
+
+  void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled)
+  {
+    reinterpret_cast<rego::Interpreter*>(rego)->builtins().strict_errors(enabled);
+  }
+
+  regoBoolean regoGetStrictBuiltInErrors(regoInterpreter* rego)
+  {
+    return reinterpret_cast<rego::Interpreter*>(rego)
+      ->builtins()
+      .strict_errors();
   }
 
   // Output functions
@@ -328,6 +340,11 @@ extern "C"
     if (node->type() == rego::ErrorCode)
     {
       return REGO_NODE_ERROR_CODE;
+    }
+
+    if (node->type() == rego::ErrorSeq)
+    {
+      return REGO_NODE_ERROR_SEQ;
     }
 
     return REGO_NODE_INTERNAL;

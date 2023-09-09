@@ -68,6 +68,10 @@ int main(int argc, char** argv)
   bool enable_logging{false};
   app.add_flag("-l,--logging", enable_logging, "Enable logging");
 
+  bool wf_checks{false};
+  app.add_flag(
+    "-w,--wf", wf_checks, "Enable well-formedness checks (slow)");
+
   bool fail_first{false};
   app.add_flag(
     "-f,--fail-first", fail_first, "Stop after first test case failure");
@@ -136,7 +140,7 @@ int main(int argc, char** argv)
       try
       {
         auto start = std::chrono::steady_clock::now();
-        auto result = testcase.run(argv[0], debug_path);
+        auto result = testcase.run(argv[0], debug_path, wf_checks);
         auto end = std::chrono::steady_clock::now();
         const std::chrono::duration<double> elapsed = end - start;
 

@@ -39,6 +39,7 @@ typedef unsigned int regoSize;
 #define REGO_NODE_ERROR_MESSAGE 1801
 #define REGO_NODE_ERROR_AST 1802
 #define REGO_NODE_ERROR_CODE 1803
+#define REGO_NODE_ERROR_SEQ 1804
 
 #define REGO_NODE_INTERNAL 1999
 
@@ -55,8 +56,8 @@ extern "C"
     regoInterpreter* rego, const char* name, const char* contents);
   regoEnum regoAddDataJSONFile(regoInterpreter* rego, const char* path);
   regoEnum regoAddDataJSON(regoInterpreter* rego, const char* contents);
-  regoEnum regoAddInputJSONFile(regoInterpreter* rego, const char* path);
-  regoEnum regoAddInputJSON(regoInterpreter* rego, const char* contents);
+  regoEnum regoSetInputJSONFile(regoInterpreter* rego, const char* path);
+  regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents);
   void regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetDebugEnabled(regoInterpreter* rego);
   const char* regoGetDebugPath(regoInterpreter* rego);
@@ -65,6 +66,8 @@ extern "C"
     regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego);
   regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr);
+  void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled);
+  regoBoolean regoGetStrictBuiltInErrors(regoInterpreter* rego);
   const char* regoGetError(regoInterpreter* rego);
 
   // Output functions

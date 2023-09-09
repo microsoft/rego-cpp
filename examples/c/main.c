@@ -279,7 +279,7 @@ int main(int argc, char** argv)
 
   if (config.input_file != NULL)
   {
-    err = regoAddInputJSONFile(rego, config.input_file);
+    err = regoSetInputJSONFile(rego, config.input_file);
     if (err == REGO_ERROR)
     {
       goto error;
