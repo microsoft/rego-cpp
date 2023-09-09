@@ -167,7 +167,7 @@ namespace rego
     InitStatments init_stmts = std::make_shared<NodeMap<InitInfo>>();
 
     PassDef init = {
-      dir::once | dir::topdown,
+      dir::once | dir::bottomup,
       {
         In(UnifyBody) *
             (T(Literal)[Literal](

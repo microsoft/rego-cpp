@@ -131,7 +131,7 @@ namespace rego
   // inserts Local nodes for them at the appropriate scope.
   PassDef body_locals(const BuiltIns& builtins)
   {
-    PassDef locals = {dir::topdown | dir::once};
+    PassDef locals = {dir::bottomup | dir::once};
 
     locals.pre(
       RuleComp, [builtins](Node n) { return preprocess_body(n, builtins); });
@@ -155,7 +155,7 @@ namespace rego
   // nodes for them at the appropriate scope.
   PassDef value_locals(const BuiltIns& builtins)
   {
-    PassDef locals = {dir::topdown | dir::once};
+    PassDef locals = {dir::bottomup | dir::once};
 
     locals.pre(
       RuleComp, [builtins](Node n) { return preprocess_value(n, builtins); });
