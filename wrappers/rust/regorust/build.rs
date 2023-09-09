@@ -20,6 +20,22 @@ fn main() {
         .status()
         .expect("failed to execute process");
 
+    Command::new("ninja")
+        .args(&["install"])
+        .current_dir("rego-cpp/build")
+        .status()
+        .expect("failed to execute process");
+
+    Command::new("cp")
+        .args(&["-r", "rego-cpp/build/rust", "rego"])
+        .status()
+        .expect("failed to execute process");
+
+    Command::new("rm")
+        .args(&["-rf", "rego-cpp"])
+        .status()
+        .expect("failed to execute process");
+
     let libdir_path = PathBuf::from("rego/lib")
         .canonicalize()
         .expect("cannot canonicalize path");
