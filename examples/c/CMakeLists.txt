@@ -9,10 +9,13 @@ project( regoc VERSION 0.1.0 LANGUAGES C CXX )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(REGOCPP_C_WRAPPER_REPO "https://github.com/microsoft/rego-cpp/" CACHE STRING "Specifies the git repository URL to test the C-Wrapper")
+set(REGOCPP_C_WRAPPER_TAG "main" CACHE STRING "Specifies the git tag to test the C-Wrapper" )
+
 FetchContent_Declare(
   regocpp
-  GIT_REPOSITORY https://github.com/matajoh/rego-cpp
-  GIT_TAG        19edb113037c163978d301d1db252cf4ce37140f
+  GIT_REPOSITORY ${REGOCPP_C_WRAPPER_REPO}
+  GIT_TAG        ${REGOCPP_C_WRAPPER_TAG}
 )
 
 FetchContent_Declare(
