@@ -1,7 +1,4 @@
-#include "variable.h"
-
-#include "helpers.h"
-#include "log.h"
+#include "internal.h"
 
 namespace rego
 {

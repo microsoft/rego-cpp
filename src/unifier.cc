@@ -1,11 +1,4 @@
-#include "unifier.h"
-
-#include "args.h"
-#include "errors.h"
-#include "helpers.h"
-#include "log.h"
-#include "resolver.h"
-#include "tokens.h"
+#include "internal.h"
 
 namespace rego
 {

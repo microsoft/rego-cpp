@@ -11,7 +11,6 @@ value.cc
 value_map.cc
 resolver.cc
 variable.cc
-wf.cc
 builtins.cc
 helpers.cc
 rego_c.cc
@@ -33,6 +32,7 @@ passes/lift_refheads.cc
 passes/symbols.cc
 passes/replace_argvals.cc
 passes/lift_query.cc
+passes/expand_imports.cc
 passes/constants.cc
 passes/enumerate.cc
 passes/locals.cc
@@ -81,6 +81,11 @@ endif()
 target_link_libraries(rego
   PUBLIC
     trieste::trieste
+)
+
+target_precompile_headers(rego
+  PUBLIC
+    internal.h
 )
 
 

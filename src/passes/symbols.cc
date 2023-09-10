@@ -1,9 +1,4 @@
-#include "errors.h"
-#include "helpers.h"
-#include "passes.h"
-#include "resolver.h"
-
-#include <sstream>
+#include "internal.h"
 
 namespace
 {

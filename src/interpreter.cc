@@ -1,9 +1,6 @@
 #include "interpreter.h"
 
-#include "errors.h"
-#include "helpers.h"
-#include "rego.h"
-#include "wf.h"
+#include "internal.h"
 
 namespace rego
 {
@@ -26,6 +23,21 @@ namespace rego
     wf::pop_front();
   }
 
+  void Interpreter::insert_module(const Node& module)
+  {
+    // sort the modules by their package name. This allows us to merge
+    // modules with the same name after their imports are resolved.
+    auto pos = std::upper_bound(m_module_seq->begin(), m_module_seq->end(), module, [](auto& a, auto& b) {
+      auto a_pkg = a->front();
+      auto b_pkg = b->front();
+      auto a_str = std::string(a_pkg->location().view());
+      auto b_str = std::string(b_pkg->location().view());
+      return a_pkg->location() < b_pkg->location();
+    });
+
+    m_module_seq->insert(pos, module);
+  }
+
   void Interpreter::add_module_file(const std::filesystem::path& path)
   {
     if (!std::filesystem::exists(path))
@@ -35,7 +47,7 @@ namespace rego
 
     LOG("Adding module file: ", path);
     auto file_ast = m_parser.sub_parse(path);
-    m_module_seq->push_back(file_ast);
+    insert_module(file_ast);
   }
 
   void Interpreter::add_module(
@@ -43,7 +55,7 @@ namespace rego
   {
     auto module_source = SourceDef::synthetic(contents);
     auto module = m_parser.sub_parse(name, File, module_source);
-    m_module_seq->push_back(module);
+    insert_module(module);
     LOG("Adding module: ", name, "(", contents.size(), " bytes)");
   }
 

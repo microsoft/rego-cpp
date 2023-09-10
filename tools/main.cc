@@ -1,5 +1,5 @@
 #include <CLI/CLI.hpp>
-#include <rego/rego.h>
+#include <rego/interpreter.h>
 
 int main(int argc, char** argv)
 {

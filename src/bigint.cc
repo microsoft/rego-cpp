@@ -1,4 +1,4 @@
-#include "bigint.h"
+#include "internal.h"
 
 namespace rego
 {

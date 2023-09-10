@@ -1,8 +1,7 @@
 #include "rego_c.h"
 
-#include "helpers.h"
+#include "internal.h"
 #include "interpreter.h"
-#include "log.h"
 
 namespace rego
 {

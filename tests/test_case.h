@@ -1,9 +1,6 @@
 #pragma once
 
-#include <optional>
-#include <rego/rego.h>
-#include <string>
-#include <vector>
+#include <rego/interpreter.h>
 
 namespace rego_test
 {

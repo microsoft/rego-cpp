@@ -3,12 +3,8 @@
 
 #pragma once
 
-#include "builtins.h"
+#include "rego.h"
 #include "rego_c.h"
-
-#include <string>
-#include <trieste/parse.h>
-#include <trieste/wf.h>
 
 namespace rego
 {
@@ -45,6 +41,7 @@ namespace rego
     friend regoOutput* ::regoQuery(
       regoInterpreter* rego, const char* query_expr);
 
+    void insert_module(const Node& module);
     std::string output_to_string(const Node& output) const;
     void write_ast(
       std::size_t index, const std::string& pass, const Node& ast) const;

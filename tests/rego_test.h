@@ -2,10 +2,7 @@
 
 // Trieste-based rewriter for Rego YAML test cases
 
-#include <rego/rego.h>
-#include <rego/wf.h>
-#include <trieste/driver.h>
-#include <trieste/token.h>
+#include <rego/interpreter.h>
 
 namespace rego_test
 {

@@ -1,4 +1,4 @@
-#include "tokens.h"
+#include "internal.h"
 
 namespace rego
 {

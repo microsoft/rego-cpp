@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-#ifndef _REGOCPP_WRAPPER_H_
-#define _REGOCPP_WRAPPER_H_
+#ifndef _REGO_C_H_
+#define _REGO_C_H_
 
 #include "version.h"
 

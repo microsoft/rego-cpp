@@ -1,6 +1,4 @@
-#include "args.h"
-
-#include "encoding.h"
+#include "internal.h"
 
 namespace rego
 {

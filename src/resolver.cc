@@ -1,9 +1,4 @@
-#include "resolver.h"
-
-#include "errors.h"
-#include "helpers.h"
-#include "log.h"
-#include "unifier.h"
+#include "internal.h"
 
 namespace
 {
