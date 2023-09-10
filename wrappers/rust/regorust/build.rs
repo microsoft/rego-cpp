@@ -1,18 +1,26 @@
 use std::env;
+use std::num::NonZeroUsize;
 use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let num_procs = std::thread::available_parallelism().unwrap_or(1);
-
-    Command::new("git")
-        .args(&["clone", "https://github.com/matajoh/rego-cpp.git"])
-        .current_dir(&out_path)
-        .status()
-        .expect("failed to execute process");
-
     let regocpp_path = out_path.join("rego-cpp");
+    let num_procs = std::thread::available_parallelism().unwrap_or(NonZeroUsize::new(1).unwrap());
+
+    if !out_path.exists() {
+        Command::new("git")
+            .args(&["clone", "https://github.com/matajoh/rego-cpp.git"])
+            .current_dir(&out_path)
+            .status()
+            .expect("failed to execute process");
+    } else {
+        Command::new("git")
+            .args(&["pull"])
+            .current_dir(&regocpp_path)
+            .status()
+            .expect("failed to execute process");
+    }
 
     Command::new("git")
         .args(&["checkout", "rust-api"])
