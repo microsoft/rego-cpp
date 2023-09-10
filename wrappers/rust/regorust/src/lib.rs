@@ -620,13 +620,6 @@ impl Interpreter {
         }
     }
 
-    /// Returns the path to the directory where the Rego interpreter will write debug AST files.
-    pub fn get_debug_path(&self) -> &str {
-        let c_str = unsafe { regoGetDebugPath(self.c_ptr) };
-        let result: &CStr = unsafe { CStr::from_ptr(c_str) };
-        result.to_str().unwrap()
-    }
-
     /// Sets whether the Rego interpreter will perform well-formedness checks.
     ///
     /// When enabled, the Rego interpreter will perform well-formedness checks on

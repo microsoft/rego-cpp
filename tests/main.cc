@@ -90,7 +90,7 @@ int main(int argc, char** argv)
     return app.exit(e);
   }
 
-  rego::Logger::enabled = enable_logging;
+  rego::set_logging_enabled(enable_logging);
 
   std::cout << "Loading test cases:";
   TestCases all_testcases;

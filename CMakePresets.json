@@ -113,7 +113,6 @@
       "name": "release-rust",
       "displayName": "Release Build for Rust",
       "description": "Sets up a release build that using the default compiler and is installed into the Rust wrapper build directory",
-      "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/rust",

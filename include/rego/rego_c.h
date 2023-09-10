@@ -60,7 +60,6 @@ extern "C"
   regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents);
   void regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetDebugEnabled(regoInterpreter* rego);
-  const char* regoGetDebugPath(regoInterpreter* rego);
   regoEnum regoSetDebugPath(regoInterpreter* rego, const char* path);
   void regoSetWellFormedChecksEnabled(
     regoInterpreter* rego, regoBoolean enabled);

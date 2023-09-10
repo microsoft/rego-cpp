@@ -26,7 +26,7 @@ extern "C"
 
   void regoSetLoggingEnabled(regoBoolean enabled)
   {
-    rego::Logger::enabled = enabled;
+    rego::set_logging_enabled(enabled);
   }
 
   regoInterpreter* regoNew()
@@ -132,11 +132,6 @@ extern "C"
   regoBoolean regoGetDebugEnabled(regoInterpreter* rego)
   {
     return reinterpret_cast<rego::Interpreter*>(rego)->debug_enabled();
-  }
-
-  const char* regoGetDebugPath(regoInterpreter* rego)
-  {
-    return reinterpret_cast<rego::Interpreter*>(rego)->debug_path().c_str();
   }
 
   regoEnum regoSetDebugPath(regoInterpreter* rego, const char* path)

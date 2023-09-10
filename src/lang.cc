@@ -108,4 +108,9 @@ namespace rego
       });
     return d;
   }
+
+  void set_logging_enabled(bool enabled)
+  {
+    Logger::enabled = enabled;
+  }
 }

@@ -4,6 +4,7 @@ use std::process::Command;
 
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let num_procs = std::thread::available_parallelism().unwrap_or(1);
 
     Command::new("git")
         .args(&["clone", "https://github.com/matajoh/rego-cpp.git"])
@@ -27,8 +28,15 @@ fn main() {
 
     let regocpp_build_path = regocpp_path.join("build");
 
-    Command::new("ninja")
-        .args(&["install"])
+    Command::new("cmake")
+        .args(&[
+            "--build",
+            ".",
+            "--parallel",
+            &num_procs.to_string(),
+            "--target",
+            "install",
+        ])
         .current_dir(&regocpp_build_path)
         .status()
         .expect("failed to execute process");
