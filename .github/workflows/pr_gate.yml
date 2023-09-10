@@ -105,7 +105,8 @@ jobs:
 
       - name: Git config for fetching pull requests
         run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+          git config --global --add remote.origin.fetch "+refs/pull/*/merge:refs/remotes/pull/*"
+          git config remote.origin.fetch
 
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
