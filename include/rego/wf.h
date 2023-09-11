@@ -357,7 +357,7 @@ namespace rego
   inline const auto wf_pass_locals = wf_pass_explicit_enums;
 
   // clang-format off
-  inline const auto wf_pass_compr1 =
+  inline const auto wf_pass_rules_to_compr =
     wf_pass_locals
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
@@ -365,17 +365,15 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline const auto wf_pass_compr2 =
-    wf_pass_locals
+  inline const auto wf_pass_compr =
+    wf_pass_rules_to_compr
     | (ObjectCompr <<= Var * NestedBody)
     | (ArrayCompr <<= Var * NestedBody)
     | (SetCompr <<= Var * NestedBody)
-    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
-    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
     ;
   // clang-format on
 
-  inline const auto wf_pass_absolute_refs = wf_pass_compr2;
+  inline const auto wf_pass_absolute_refs = wf_pass_compr;
 
   // clang-format off
   inline const auto wf_pass_merge_modules =
@@ -388,26 +386,27 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline const auto wf_pass_skips1 = 
+  inline const auto wf_pass_datarule = 
     wf_pass_merge_modules
     | (DataModule <<= (RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
     | (Rego <<= Query * Input * Data)
     ;
   // clang-format on
 
-  inline const auto wf_pass_skips2 = 
-    wf_pass_merge_modules
-    | (DataModule <<= (RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
+  // clang-format off
+  inline const auto wf_pass_skips = 
+    wf_pass_datarule
     | (Rego <<= Query * Input * Data * SkipSeq)
     | (SkipSeq <<= Skip++)
     | (Skip <<= Key * (Val >>= VarSeq | BuiltInHook | Undefined))[Key]
     ;
+  // clang-format on
 
   inline const auto wf_unary_exprs = wf_symbols_exprs | UnaryExpr;
 
   // clang-format off
   inline const auto wf_pass_unary =
-    wf_pass_skips2
+    wf_pass_skips
     | (UnaryExpr <<= ArithArg)
     | (ArithArg <<= (Expr | RefTerm | NumTerm | UnaryExpr | ExprCall))
     | (Expr <<= wf_unary_exprs++[1])

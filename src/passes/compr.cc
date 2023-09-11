@@ -5,7 +5,7 @@
 namespace rego
 {
   // Reconfigures RuleObj and RuleSet nodes as comprehensions.
-  PassDef compr1()
+  PassDef rules_to_compr()
   {
     return {
       dir::bottomup | dir::once,
@@ -128,7 +128,7 @@ namespace rego
 
   // Augments nested comprehension bodies to contain statements that set the
   // comprehension item.
-  PassDef compr2()
+  PassDef compr()
   {
     return {
       dir::topdown,

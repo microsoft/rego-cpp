@@ -99,10 +99,7 @@ namespace
 
 namespace rego
 {
-  // Primes the skiplist with With locations, to cover the cases in which
-  // a With statement adds a path into the base document which does exist
-  // already. This ensures those paths are still in the symbol table.
-  PassDef skips1()
+  PassDef datarule()
   {
     SkipMap skip_links = std::make_shared<std::map<std::string, Node>>();
 
@@ -120,7 +117,10 @@ namespace rego
     return skips;
   }
 
-  PassDef skips2()
+  // Primes the skiplist with With locations, to cover the cases in which
+  // a With statement adds a path into the base document which does exist
+  // already. This ensures those paths are still in the symbol table.
+  PassDef skips()
   {
     SkipMap skip_links = std::make_shared<std::map<std::string, Node>>();
 
