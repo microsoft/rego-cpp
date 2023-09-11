@@ -49,20 +49,8 @@ fn main() {
         .status()
         .expect("failed to execute process");
 
-    let regocpp_build_rust_path = regocpp_build_path.join("rust");
-    let rego_path = out_path.join("rego");
-
-    Command::new("cp")
-        .args(&[
-            "-r",
-            regocpp_build_rust_path.to_str().unwrap(),
-            rego_path.to_str().unwrap(),
-        ])
-        .status()
-        .expect("failed to execute process");
-
+    let rego_path = regocpp_build_path.join("rust");
     let libdir_path = rego_path.join("lib");
-
     let headers_path = rego_path.join("include").join("rego").join("rego_c.h");
     let headers_path_str = headers_path.to_str().expect("Path is not a valid string");
 
