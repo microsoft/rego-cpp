@@ -5,6 +5,16 @@
 
 #include "rego/rego.h"
 
+#define LOG(...) Logger::print(Logger::indent, __VA_ARGS__)
+#define LOG_HEADER(message, header) \
+  Logger::print(Logger::indent, (header), (message), (header))
+#define LOG_VECTOR(vector) Logger::print_vector_inline((vector))
+#define LOG_VECTOR_CUSTOM(vector, transform) \
+  Logger::print_vector_custom((vector), (transform))
+#define LOG_MAP_VALUES(map) Logger::print_map_values((map))
+#define LOG_INDENT() Logger::increase_print_indent()
+#define LOG_UNINDENT() Logger::decrease_print_indent()
+
 namespace rego
 {
   const inline auto ScalarToken =
@@ -294,16 +304,6 @@ namespace rego
       }
     }
   };
-
-  // clang-format off
-  #define LOG(...) Logger::print(Logger::indent, __VA_ARGS__)
-  #define LOG_HEADER(message, header) Logger::print(Logger::indent, (header), (message), (header))
-  #define LOG_VECTOR(vector) Logger::print_vector_inline((vector))
-  #define LOG_VECTOR_CUSTOM(vector, transform) Logger::print_vector_custom((vector), (transform))
-  #define LOG_MAP_VALUES(map) Logger::print_map_values((map))
-  #define LOG_INDENT() Logger::increase_print_indent()
-  #define LOG_UNINDENT() Logger::decrease_print_indent()
-  // clang-format on
 
   class ValueDef;
   using rank_t = std::size_t;
