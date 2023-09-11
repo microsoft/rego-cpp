@@ -197,6 +197,7 @@ namespace rego
   PassDef symbols();
   PassDef replace_argvals();
   PassDef lift_query();
+  PassDef expand_imports();
   PassDef constants();
   PassDef explicit_enums();
   PassDef body_locals(const BuiltIns& builtins);
