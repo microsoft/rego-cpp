@@ -125,47 +125,47 @@ namespace
         switch (pos[1])
         {
           case 'f':
-            return {'\f', std::string_view(pos, pos + 2)};
+            return {'\f', std::string_view(pos, 2)};
           case 'n':
-            return {'\n', std::string_view(pos, pos + 2)};
+            return {'\n', std::string_view(pos, 2)};
           case 'r':
-            return {'\r', std::string_view(pos, pos + 2)};
+            return {'\r', std::string_view(pos, 2)};
           case 't':
-            return {'\t', std::string_view(pos, pos + 2)};
+            return {'\t', std::string_view(pos, 2)};
           case 'v':
-            return {'\v', std::string_view(pos, pos + 2)};
+            return {'\v', std::string_view(pos, 2)};
           case '\\':
-            return {'\\', std::string_view(pos, pos + 2)};
+            return {'\\', std::string_view(pos, 2)};
           case '\'':
-            return {'\'', std::string_view(pos, pos + 2)};
+            return {'\'', std::string_view(pos, 2)};
           case '\"':
-            return {'\"', std::string_view(pos, pos + 2)};
+            return {'\"', std::string_view(pos, 2)};
         }
       }
       if (remaining >= 3 && pos[1] == 'x')
       {
         std::string hex = std::string(pos + 2, pos + 4);
         std::uint32_t value = std::stoul(hex, nullptr, 16);
-        return {value, std::string_view(pos, pos + 4)};
+        return {value, std::string_view(pos, 4)};
       }
       if (remaining >= 5 && pos[1] == 'u')
       {
         std::string hex = std::string(pos + 2, pos + 6);
         std::uint32_t value = std::stoul(hex, nullptr, 16);
-        return {value, std::string_view(pos, pos + 6)};
+        return {value, std::string_view(pos, 6)};
       }
       if (remaining >= 9 && pos[1] == 'U')
       {
         std::string hex = std::string(pos + 2, pos + 10);
         std::uint32_t value = std::stoul(hex, nullptr, 16);
-        return {value, std::string_view(pos, pos + 10)};
+        return {value, std::string_view(pos, 10)};
       }
     }
 
     if ((c0 & Mask1) == Mark1)
     {
       std::uint32_t value = c0 & Value1;
-      return {value, std::string_view(pos, pos + 1)};
+      return {value, std::string_view(pos, 1)};
     }
 
     if ((c0 & Mask2) == Mark2 && remaining >= 2)
@@ -175,7 +175,7 @@ namespace
       {
         std::uint32_t value = c0 & Value2;
         value = (value << ShiftX) | (c1 & ValueX);
-        return {value, std::string_view(pos, pos + 2)};
+        return {value, std::string_view(pos, 2)};
       }
     }
     else if ((c0 & Mask3) == Mark3 && remaining >= 3)
@@ -187,7 +187,7 @@ namespace
         std::uint32_t value = c0 & Value3;
         value = (value << ShiftX) | (c1 & ValueX);
         value = (value << ShiftX) | (c2 & ValueX);
-        return {value, std::string_view(pos, pos + 3)};
+        return {value, std::string_view(pos, 3)};
       }
     }
     else if ((c0 & Mask4) == Mark4 && remaining >= 4)
@@ -202,12 +202,12 @@ namespace
         value = (value << ShiftX) | (c1 & ValueX);
         value = (value << ShiftX) | (c2 & ValueX);
         value = (value << ShiftX) | (c3 & ValueX);
-        return {value, std::string_view(pos, pos + 4)};
+        return {value, std::string_view(pos, 4)};
       }
     }
 
     // bad
-    return {Bad, std::string_view(pos, pos + 1)};
+    return {Bad, std::string_view(pos, 1)};
   }
 
 }

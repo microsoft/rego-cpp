@@ -46,7 +46,7 @@ void load_testcase_dir(
     }
     else
     {
-      std::cerr << "Not a file: " << file_or_dir << std::endl;
+      std::cerr << "Not a file: " << file_or_dir.path() << std::endl;
     }
   }
 }
