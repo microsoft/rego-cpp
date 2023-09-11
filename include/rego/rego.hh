@@ -787,27 +787,389 @@ namespace rego
   using BuiltIn = std::shared_ptr<BuiltInDef>;
   using BuiltInBehavior = Node (*)(const Nodes&);
 
+  /**
+   * Result of unwrapping a node. 
+   */
+  struct UnwrapResult
+  {
+    /** The unwrapped argument or nullptr (if unsuccessful). */
+    Node node;
+
+    /** True if the argument was unwrapped successfully. */
+    bool success;
+  };
+
+  /**
+   * This struct provides options for unwrapping an argument and producing
+   * an error message.
+   * 
+   * The act of unwrapping a node is the process of testing whether a node
+   * or one of its direct descendents is of one or more types. So, for example,
+   * the following nodes:
+   * 
+   * ```
+   * (term (scalar (int 5)))
+   * (scalar (int 5))
+   * (int 5)
+   * ```
+   * 
+   * Would all be successfully unwrapped as `(int 5)` if the type JSONInt was
+   * specified. However, if JSONFloat was specified, the result would be an
+   * error node.
+   */
+  class UnwrapOpt
+  {
+  public:
+    /**
+     * Construct an UnwrapOpt.
+     * 
+     * @param index The index of the argument to unwrap. 
+     */
+    UnwrapOpt(std::size_t index);
+
+    /**
+     * Whether the statement indicating what was received instead
+     * of the expect type should be excluded.
+     */
+    bool exclude_got() const;
+    UnwrapOpt& exclude_got(bool exclude_got);
+
+    /**
+     * Whether to specify in the error message which kind of number
+     * was received (i.e. integer or floating point) 
+     */
+    bool specify_number() const;
+    UnwrapOpt& specify_number(bool specify_number);
+
+    /**
+     * The error code for the error message.
+     * 
+     * Default value if omitted is EvalTypeError.
+     */
+    const std::string& code() const;
+    UnwrapOpt& code(const std::string& value);
+
+    /**
+     * The error preamble.
+     * 
+     * If omitted, a default preamble will be constructed
+     * from the operation metadata in the form "operand <i> must be <t>". 
+     */
+    const std::string& pre() const;
+    UnwrapOpt& pre(const std::string& value);
+
+    /**
+     * The full error message.
+     * 
+     * If this is set, no message will be generated and instead
+     * this will be returned verbatim. 
+     */
+    const std::string& message() const;
+    UnwrapOpt& message(const std::string& value);
+
+    /**
+     * The name of the function.
+     * 
+     * If provide, will be a prefix on the message as "<func-name>:"
+     */
+    const std::string& func() const;
+    UnwrapOpt& func(const std::string& value);
+
+    /**
+     * The types to match against.
+     * 
+     * The operand must be one of the provided types or else an
+     * error node will be return.
+     */
+    const std::vector<Token>& types() const;
+    UnwrapOpt& types(const std::vector<Token>& value);
+
+    /**
+     * The singular type to match against.
+     */
+    const Token& type() const;
+    UnwrapOpt& type(const Token& value);
+
+    /**
+     * Unwraps an argument from the provided vector of nodes. 
+     * 
+     * @param args The vector of nodes to unwrap from.
+     * @return The unwrapped argument or an appropriate error node.
+     */
+    Node unwrap(const Nodes& args) const;
+
+  private:
+    bool m_exclude_got;
+    bool m_specify_number;
+    std::string m_code;
+    std::string m_prefix;
+    std::string m_message;
+    std::string m_func;
+    std::vector<Token> m_types;
+    std::size_t m_index;
+  };
+
+  /**
+   * Unwraps an argument from the provided vector of nodes.
+   * 
+   * @param args The vector of nodes to unwrap from.
+   * @param options The options for unwrapping.
+   * @return The unwrapped argument or an appropriate error node. 
+   */
+  Node unwrap_arg(const Nodes& args, const UnwrapOpt& options);
+
+  /**
+   * Attempts to unwrap an argument to one of the specified types.
+   * 
+   * @param term The term to unwrap.
+   * @param types The acceptable types.
+   * @return An unwrap result.
+   */
+  UnwrapResult unwrap(const Node& term, const std::set<Token>& types);
+
+  /**
+   * Extracts the value of a node as an integer.
+   * 
+   * @param node The node to extract from.
+   * @return The integer value of the node.
+   */ 
+  BigInt get_int(const Node& node);
+
+  /**
+   * Extracts the value of a node as a double.
+   * 
+   * @param node The node to extract from.
+   * @return The double value of the node.
+   */
+  double get_double(const Node& node);
+
+  /**
+   * Extracts the value of a node as a string.
+   * 
+   * The resulting string will have any enclosing quotes removed.
+   * 
+   * @param node The node to extract from.
+   * @return The string value of the node.
+   */
+  std::string get_string(const Node& node);
+
+  /**
+   * Extracts the value of a node as a boolean.
+   * 
+   * @param node The node to extract from.
+   * @return The boolean value of the node.
+   */
+  bool get_bool(const Node& node);
+
+  /**
+   * Converts the value to a scalar node.
+   * 
+   * @param value The value to convert.
+   * @return The scalar node (scalar (INT <value>)))
+   */
+    Node scalar(BigInt value);
+
+    /**
+     * Converts the value to a scalar node.
+     * 
+     * @param value The value to convert.
+     * @return The scalar node (scalar (FLOAT <value>)))
+     */
+    Node scalar(double value);
+
+    /**
+     * Converts the value to a scalar node.
+     * 
+     * @param value The value to convert.
+     * @return The scalar node (scalar (TRUE|FALSE)))
+     */
+    Node scalar(bool value);
+
+    /**
+     * Converts the value to a scalar node.
+     * 
+     * @param value The value to convert.
+     * @return The scalar node (scalar (STRING <value>)))
+     */
+    Node scalar(const char* value);
+
+    /**
+     * Converts the value to a scalar node.
+     * 
+     * @param value The value to convert.
+     * @return The scalar node (scalar (STRING <value>)))
+     */
+    Node scalar(const std::string& value);
+
+    /**
+     * Converts the value to a scalar node.
+     * 
+     * @param value The value to convert.
+     * @return The scalar node (scalar (NULL)))
+     */
+    Node scalar();
+
+    /**
+     * Converts the key and val terms to an object item.
+     * 
+     * @param key_term The key term.
+     * @param val_term The value term.
+     * @return The object item node (object_item (key_term) (val_term))
+     */
+    Node object_item(const Node& key_term, const Node& val_term);
+
+    /**
+     * Converts the value to an object node.
+     * 
+     * @param object_items The object items of the object
+     * @return The object node (object (object_item) (object_item) ...)
+     */
+    Node object(const Nodes& object_items);
+
+    /**
+     * Converts the value to an array node.
+     * 
+     * @param array_members The members of the array.
+     * @return The array node (array (term) (term) ...)
+     */
+    Node array(const Nodes& array_members);
+
+    /**
+     * Converts the value to a set node.
+     * 
+     * @param set_members The members of the set.
+     * @return The set node (set (term) (term) ...)
+     */
+    Node set(const Nodes& set_members);
+
+
+  /** This constant indicates that a built-in can receive any number of arguments. */
   const std::size_t AnyArity = std::numeric_limits<std::size_t>::max();
+
+  /** 
+   * Struct which defines a built-in function.
+   * 
+   * You can extend Rego by registering your own built-ins. A built-in is a
+   * function which is called by Rego during evaluation. Built-ins are called
+   * with a vector of Nodes, and return a Node. The vector of Nodes contains the
+   * arguments passed to the built-in. The Node returned by the built-in is the
+   * result of the built-in's evaluation.
+   * 
+   * Here is an example built-in which performs addition:
+   * 
+   * ```cpp
+   * Node add(const Nodes& args)
+   * {
+   *   Node a = unwrap_arg(args, UnwrapOpt(0).types({Int, Float}));
+   *   if(a.type() == Error){
+   *     return a;
+   *   }
+   *   
+   *   Node b = unwrap_arg(args, UnwrapOpt(1).types({Int, Float}));
+   *   if(b.type() == Error){
+   *    return b;
+   *   }
+   * 
+   *   if(a.type() == Int && b.type() == Int)
+   *   {
+   *     return scalar(get_int(a) + get_int(b));
+   *   }
+   * 
+   *   return scalar(get_double(a) + get_double(b));
+   * }
+   * ```
+   * 
+   * Note that there are several helper methods and objects to aid in
+   * writing managing nodes and wrapping/unwrapping them into basic
+   * types. Once a method like the above has been written, use
+   * BuiltInDef::create following way:
+   * ```cpp
+   * builtins.register_builtin(BuiltInDef::create(Location("add"), 2, add))
+   * ```
+   * 
+   * Then, during evaluation, any call to the built-in `add` will be
+   * handled by the `add` function.
+   */
   struct BuiltInDef
   {
+    /** The name used to match against expression calls in the rego program. */
     Location name;
+    /** 
+     * The number of expected arguments.
+     * 
+     * If any number of arguments can be provided, use the constant AnyArity.
+     */
     std::size_t arity;
+
+    /** The function which will be called when the built-in is evaluated. */
     BuiltInBehavior behavior;
+
+    /**
+     * Creates a new built-in.
+     * 
+     * BuiltIn is a pointer to a BuiltInDef.
+     * 
+     * @param name The name of the built-in.
+     * @param arity The number of arguments expected by the built-in.
+     * @param behavior The function which will be called when the built-in is evaluated.
+     * @return The built-in.
+     */
     static BuiltIn create(
       const Location& name, std::size_t arity, BuiltInBehavior behavior);
   };
 
+  /**
+   * Manages the set of builtins used by an interpreter to resolve built-in calls.
+   */
   class BuiltIns
   {
   public:
+    /** Constructor. */
     BuiltIns() noexcept;
+
+    /**
+     * Determines whether the provided name refers to a built-in.
+     * 
+     * @param name The name to check.
+     * @return True if the name refers to a built-in, otherwise false.
+     */
     bool is_builtin(const Location& name) const;
+
+    /**
+     * Calls the built-in with the provided name and arguments.
+     * 
+     * @param name The name of the built-in to call.
+     * @param args The arguments to pass to the built-in.
+     * @return The result of the built-in call.
+     */
     Node call(const Location& name, const Nodes& args) const;
+
+    /**
+     * Registers a built-in.
+     * 
+     * @param built_in The built-in to register.
+     */
     BuiltIns& register_builtin(const BuiltIn& built_in);
+
+    /** 
+     * Gets the built-in with the provided name. 
+     */
     const BuiltIn& at(const Location& name) const;
+
+    /**
+     * Whether to throw built-in errors.
+     * 
+     * If true, built-in errors will be thrown as exceptions. If false,
+     * built-in errors will result in Undefined nodes.
+     */
     bool strict_errors() const;
     BuiltIns& strict_errors(bool strict_errors);
 
+    /**
+     * Registers a set of built-ins.
+     * 
+     * @param built_ins The built-ins to register.
+     */
     template <typename T>
     BuiltIns& register_builtins(const T& built_ins)
     {
@@ -819,6 +1181,16 @@ namespace rego
       return *this;
     }
 
+    /**
+     * This registers the "standard library" of built-ins.
+     * 
+     * There are a number of built-ins which are provided by default. These
+     * built-ins are those documented
+     * <a href="https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions">here</a>.
+     * 
+     * rego-cpp supports the following built-ins as standard:
+     * 
+     */
     BuiltIns& register_standard_builtins();
     std::map<Location, BuiltIn>::const_iterator begin() const;
     std::map<Location, BuiltIn>::const_iterator end() const;
@@ -919,6 +1291,7 @@ namespace rego
   using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
   std::vector<PassCheck> passes(const BuiltIns& builtins);
   Node version();
+
 
   std::string to_json(
     const trieste::Node& node, bool sort = false, bool rego_set = true);
