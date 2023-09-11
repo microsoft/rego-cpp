@@ -405,6 +405,7 @@ extern "C"
     }
 
     json.copy(buffer, size);
+    buffer[json.size()] = '\0';
     return REGO_OK;
   }
 }
