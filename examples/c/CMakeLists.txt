@@ -9,13 +9,13 @@ project( regoc VERSION 0.1.0 LANGUAGES C CXX )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (defined(ENV:REGOCPP_C_WRAPPER_REPO))
+if (defined ENV{REGOCPP_C_WRAPPER_REPO})
   set(REGOCPP_C_WRAPPER_REPO $ENV{REGOCPP_C_WRAPPER_REPO})
 else ()
   set(REGOCPP_C_WRAPPER_REPO "https://github.com/microsoft/rego-cpp/")
 endif ()
 
-if (defined(ENV:REGOCPP_C_WRAPPER_TAG))
+if (defined ENV{REGOCPP_C_WRAPPER_TAG})
   set(REGOCPP_C_WRAPPER_TAG $ENV{REGOCPP_C_WRAPPER_TAG})
 else ()
   set(REGOCPP_C_WRAPPER_TAG "main")
