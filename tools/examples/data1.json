@@ -1,8 +1,0 @@
-{
-    "three": {
-        "bar": "Baz",
-        "baz": 15,
-        "be": true,
-        "bop": 4.23
-    }
-}
