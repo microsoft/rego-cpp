@@ -870,14 +870,15 @@ impl Node {
     fn scalar_value(&self) -> Result<String, &str> {
         let size = unsafe { regoNodeValueSize(self.c_ptr) };
 
-        let mut v = vec![0 as i8; size as usize];
-        let v_ptr = v.as_mut_ptr();
-        let err: regoEnum = unsafe { regoNodeValue(self.c_ptr, v_ptr, size) };
+        let buf = vec![32 as u8; (size as usize) - 1];
+        let input_cstr = CString::new(buf).unwrap();
+        let input_ptr = CString::into_raw(input_cstr);
+        let err: regoEnum = unsafe { regoNodeValue(self.c_ptr, input_ptr, size) };
         if err != REGO_OK {
             return Err("Error getting node value");
         } else {
-            let result: CString = unsafe { CString::from_raw(v_ptr) };
-            Ok(result.into_string().unwrap())
+            let output_cstr: CString = unsafe { CString::from_raw(input_ptr) };
+            Ok(output_cstr.into_string().unwrap())
         }
     }
 
@@ -982,15 +983,16 @@ impl Node {
     pub fn json(&self) -> Result<String, &str> {
         let size = unsafe { regoNodeJSONSize(self.c_ptr) };
 
-        let mut v = vec![0 as i8; size as usize];
-        let v_ptr = v.as_mut_ptr();
-        let err: regoEnum = unsafe { regoNodeJSON(self.c_ptr, v_ptr, size) };
+        let buf = vec![32 as u8; (size as usize) - 1];
+        let input_cstr = CString::new(buf).unwrap();
+        let input_ptr = CString::into_raw(input_cstr);
+        let err: regoEnum = unsafe { regoNodeJSON(self.c_ptr, input_ptr, size) };
         if err != REGO_OK {
             return Err("Error converting node to JSON");
         } else {
-            let result: CString = unsafe { CString::from_raw(v_ptr) };
-            let json = result.into_string().unwrap();
-            return Ok(json);
+            let output_cstr = unsafe { CString::from_raw(input_ptr) };
+            let output = output_cstr.into_string().unwrap();
+            return Ok(output);
         }
     }
 
