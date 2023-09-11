@@ -238,7 +238,7 @@ namespace rego
       runes.push_back(r.value);
       pos += r.source.size();
     }
-    
+
     return runes;
   }
 
