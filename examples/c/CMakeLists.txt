@@ -12,7 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if (defined(ENV:REGOCPP_C_WRAPPER_REPO))
   set(REGOCPP_C_WRAPPER_REPO $ENV{REGOCPP_C_WRAPPER_REPO})
 else ()
-  set(REGOCPP_C_WRAPPER_REPO "https://github.com/microsoft/rego-cpp/)
+  set(REGOCPP_C_WRAPPER_REPO "https://github.com/microsoft/rego-cpp/")
 endif ()
 
 if (defined(ENV:REGOCPP_C_WRAPPER_TAG))
