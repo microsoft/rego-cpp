@@ -163,3 +163,77 @@ jobs:
         env:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get dependencies
+        run: |
+          brew update && brew install ninja
+
+      - name: CMake config
+        run: cmake -B ${{github.workspace}}/build --preset release-clang-opa
+
+      - name: CMake build
+        working-directory: ${{github.workspace}}/build
+        run: ninja
+
+      - name: CMake test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
+
+  macos-wrappers-c:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get dependencies
+        run: |
+          brew update && brew install ninja
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: CMake config
+        working-directory: ${{github.workspace}}/examples/c
+        run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+
+      - name: CMake build
+        working-directory: ${{github.workspace}}/examples/c/build
+        run: ninja install
+
+      - name: CMake test
+        working-directory: ${{github.workspace}}/examples/c/build
+        run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
+  
+  macos-wrappers-rust:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get dependencies
+        run: |
+          brew update && brew install cargo rustc
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Cargo test
+        working-directory: ${{github.workspace}}/wrappers/rust/regorust/
+        run: cargo test
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
