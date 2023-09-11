@@ -4,6 +4,7 @@
 #pragma once
 
 #include <trieste/driver.h>
+#include "rego_c.h"
 
 namespace rego
 {
@@ -916,4 +917,54 @@ namespace rego
   std::string to_json(
     const trieste::Node& node, bool sort = false, bool rego_set = true);
   void set_logging_enabled(bool enabled);
+
+class Interpreter
+  {
+  public:
+    Interpreter();
+    ~Interpreter();
+    void add_module_file(const std::filesystem::path& path);
+    void add_module(const std::string& name, const std::string& contents);
+    void add_data_json_file(const std::filesystem::path& path);
+    void add_data_json(const std::string& json);
+    void add_data(const Node& node);
+    void set_input_json_file(const std::filesystem::path& path);
+    void set_input_json(const std::string& json);
+    void set_input(const Node& node);
+    std::string query(const std::string& query_expr) const;
+    Node raw_query(const std::string& query_expr) const;
+    Interpreter& debug_path(const std::filesystem::path& prefix);
+    const std::filesystem::path& debug_path() const;
+    Interpreter& debug_enabled(bool enabled);
+    bool debug_enabled() const;
+    Interpreter& well_formed_checks_enabled(bool enabled);
+    bool well_formed_checks_enabled() const;
+    Interpreter& executable(const std::filesystem::path& path);
+    const std::filesystem::path& executable() const;
+    BuiltIns& builtins();
+    const BuiltIns& builtins() const;
+
+  private:
+    friend const char* ::regoGetError(regoInterpreter* rego);
+    friend void setError(regoInterpreter* rego, const std::string& error);
+    friend regoOutput* ::regoQuery(
+      regoInterpreter* rego, const char* query_expr);
+
+    void insert_module(const Node& module);
+    std::string output_to_string(const Node& output) const;
+    void write_ast(
+      std::size_t index, const std::string& pass, const Node& ast) const;
+    Node get_errors(const Node& ast) const;
+    Parse m_parser;
+    wf::Wellformed m_wf_parser;
+    Node m_module_seq;
+    Node m_data_seq;
+    Node m_input;
+    std::filesystem::path m_debug_path;
+    bool m_debug_enabled;
+    bool m_well_formed_checks_enabled;
+    BuiltIns m_builtins;
+
+    std::string m_c_error;
+  };
 }

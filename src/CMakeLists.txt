@@ -85,7 +85,7 @@ target_link_libraries(rego
 
 target_precompile_headers(rego
   PRIVATE
-    internal.h
+    internal.hh
 )
 
 

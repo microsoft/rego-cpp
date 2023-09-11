@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rego/interpreter.h>
+#include <rego/rego.hh>
 
 namespace rego_test
 {

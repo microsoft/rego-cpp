@@ -1,6 +1,4 @@
-#include "interpreter.h"
-
-#include "internal.h"
+#include "internal.hh"
 
 namespace rego
 {

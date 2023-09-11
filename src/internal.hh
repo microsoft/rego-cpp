@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "rego/rego.h"
+#include "rego/rego.hh"
 
 #define LOG(...) Logger::print(Logger::indent, __VA_ARGS__)
 #define LOG_HEADER(message, header) \

@@ -2,7 +2,7 @@
 
 // Trieste-based rewriter for Rego YAML test cases
 
-#include <rego/interpreter.h>
+#include <rego/rego.hh>
 
 namespace rego_test
 {
