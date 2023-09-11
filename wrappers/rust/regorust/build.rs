@@ -7,7 +7,8 @@ fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     let regocpp_path = out_path.join("rego-cpp");
     let num_procs = std::thread::available_parallelism().unwrap_or(NonZeroUsize::new(1).unwrap());
-    let rego_git_repo = std::env::var("REGOCPP_C_WRAPPER_REPO").unwrap_or("https://github.com/microsoft/rego-cpp.git".to_string());
+    let rego_git_repo = std::env::var("REGOCPP_C_WRAPPER_REPO")
+        .unwrap_or("https://github.com/microsoft/rego-cpp.git".to_string());
     let rego_git_tag = std::env::var("REGOCPP_C_WRAPPER_TAG").unwrap_or("main".to_string());
 
     if !regocpp_path.exists() {
@@ -85,7 +86,9 @@ fn main() {
     println!("cargo:rustc-link-lib=static=rego");
     if cfg!(windows) {
         println!("cargo:rustc-link-arg=mincore.lib");
-    } else if cfg!(linux) {
+    } else if (cfg!(target_os = "macos")) {
+        println!("cargo:rustc-link-lib=c++");
+    } else {
         println!("cargo:rustc-link-lib=stdc++");
     }
     println!("cargo:rerun-if-changed={}", headers_path.to_str().unwrap());
