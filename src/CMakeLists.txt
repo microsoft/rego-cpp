@@ -83,16 +83,15 @@ target_link_libraries(rego
     trieste::trieste
 )
 
-target_precompile_headers(rego
-  PRIVATE
-    internal.hh
-)
-
-
-if (MSVC)
+if(MSVC)
+  target_precompile_headers(rego
+    PRIVATE
+      internal.hh
+  )
   target_compile_options(rego PUBLIC "/Zc:__cplusplus")
   target_compile_definitions(rego PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
 endif()
+
 
 target_include_directories( rego
   PUBLIC

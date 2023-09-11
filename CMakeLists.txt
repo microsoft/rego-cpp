@@ -131,6 +131,12 @@ if(REGOCPP_OPA_TESTS)
   endif()
 endif()
 
+find_program(CCACHE_PATH ccache)
+if(CCACHE_PATH)
+  message("Using ccache")
+  set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PATH})
+endif()
+
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
 # -------------------- Walk the subdirectories --------------------
