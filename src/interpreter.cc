@@ -2,6 +2,10 @@
 
 namespace rego
 {
+  using clock = std::chrono::high_resolution_clock;
+  using duration = std::chrono::high_resolution_clock::duration;
+  using timestamp = std::chrono::high_resolution_clock::time_point;
+
   Interpreter::Interpreter() :
     m_parser(parser()),
     m_wf_parser(wf_parser),
@@ -164,9 +168,11 @@ namespace rego
       return get_errors(ast);
     }
 
+    LOG("Name", "Passes", "Changes", "Time(ms)");
     auto passes = rego::passes(m_builtins);
     for (std::size_t i = 0; i < passes.size(); ++i)
     {
+      timestamp start = clock::now();
       auto& [pass_name, pass, wf] = passes[i];
       wf::push_back(wf);
       auto [new_ast, count, changes] = pass->run(ast);
@@ -180,6 +186,9 @@ namespace rego
       {
         ok = wf->check(ast, std::cout) && ok;
       }
+
+      duration elapsed = clock::now() - start;
+      LOG(pass_name, count, changes, std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
 
       Node errors = get_errors(ast);
       if (errors->size() > 0)
