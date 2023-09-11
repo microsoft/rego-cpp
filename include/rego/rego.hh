@@ -3,11 +3,215 @@
 
 #pragma once
 
-#include "tokens.h"
-#include "trieste/token.h"
+#include <trieste/driver.h>
+#include "rego_c.h"
 
 namespace rego
 {
+  using namespace trieste;
+
+  // grammar tokens
+  inline const auto Module = TokenDef("module", flag::symtab);
+  inline const auto Package = TokenDef("package");
+  inline const auto Policy = TokenDef("policy");
+  inline const auto Rule = TokenDef("rule", flag::symtab);
+  inline const auto RuleHead = TokenDef("rule-head");
+  inline const auto RuleHeadComp = TokenDef("rule-head-comp");
+  inline const auto RuleHeadFunc = TokenDef("rule-head-func");
+  inline const auto RuleHeadSet = TokenDef("rule-head-set");
+  inline const auto RuleHeadObj = TokenDef("rule-head-obj");
+  inline const auto RuleArgs = TokenDef("rule-args");
+  inline const auto Query = TokenDef("query");
+  inline const auto Literal = TokenDef("literal");
+  inline const auto Expr = TokenDef("expr");
+  inline const auto ExprInfix = TokenDef("expr-infix");
+  inline const auto ExprCall = TokenDef("expr-call");
+  inline const auto ExprEvery = TokenDef("expr-every");
+  inline const auto UnaryExpr = TokenDef("unary-expr");
+  inline const auto Term = TokenDef("term");
+  inline const auto InfixOperator = TokenDef("infix-operator");
+  inline const auto BoolOperator = TokenDef("bool-operator");
+  inline const auto ArithOperator = TokenDef("arith-operator");
+  inline const auto AssignOperator = TokenDef("assign-operator");
+  inline const auto Ref = TokenDef("ref");
+  inline const auto RefArgBrack = TokenDef("ref-arg-brack");
+  inline const auto RefArgDot = TokenDef("ref-arg-dot");
+  inline const auto Var = TokenDef("var", flag::print);
+  inline const auto Scalar = TokenDef("scalar");
+  inline const auto String = TokenDef("string");
+  inline const auto Array = TokenDef("array");
+  inline const auto Object = TokenDef("object");
+  inline const auto Set = TokenDef("set");
+  inline const auto EmptySet = TokenDef("empty-set");
+  inline const auto ObjectItem = TokenDef("object-item");
+  inline const auto RawString = TokenDef("raw-string", flag::print);
+  inline const auto JSONString = TokenDef("STRING", flag::print);
+  inline const auto JSONInt = TokenDef("INT", flag::print);
+  inline const auto JSONFloat = TokenDef("FLOAT", flag::print);
+  inline const auto JSONTrue = TokenDef("true");
+  inline const auto JSONFalse = TokenDef("false");
+  inline const auto JSONNull = TokenDef("null");
+  inline const auto Equals = TokenDef("==");
+  inline const auto NotEquals = TokenDef("!=");
+  inline const auto LessThan = TokenDef("<");
+  inline const auto GreaterThan = TokenDef(">");
+  inline const auto LessThanOrEquals = TokenDef("<=");
+  inline const auto GreaterThanOrEquals = TokenDef(">=");
+  inline const auto Add = TokenDef("+");
+  inline const auto Subtract = TokenDef("-");
+  inline const auto Multiply = TokenDef("*");
+  inline const auto Divide = TokenDef("/");
+  inline const auto Modulo = TokenDef("%");
+  inline const auto And = TokenDef("&");
+  inline const auto Or = TokenDef("|");
+  inline const auto Assign = TokenDef(":=");
+  inline const auto Unify = TokenDef("=");
+  inline const auto Default = TokenDef("default");
+  inline const auto Some = TokenDef("some");
+  inline const auto SomeDecl = TokenDef("some-decl");
+  inline const auto SomeExpr = TokenDef("some-expr");
+  inline const auto If = TokenDef("if");
+  inline const auto IsIn = TokenDef("in");
+  inline const auto Contains = TokenDef("contains");
+  inline const auto Else = TokenDef("else");
+  inline const auto As = TokenDef("as");
+  inline const auto With = TokenDef("with");
+  inline const auto Every = TokenDef("every");
+  inline const auto ArrayCompr = TokenDef("array-compr");
+  inline const auto ObjectCompr = TokenDef("object-compr");
+  inline const auto SetCompr = TokenDef("set-compr");
+  inline const auto Membership = TokenDef("membership");
+
+  // intermediate tokens
+  inline const auto UnifyBody = TokenDef("unify-body");
+  inline const auto RuleRef = TokenDef("rule-ref");
+  inline const auto RefHead = TokenDef("ref-head");
+  inline const auto RefArgSeq = TokenDef("ref-arg-seq");
+  inline const auto ModuleSeq = TokenDef("module-seq");
+  inline const auto DataSeq = TokenDef("data-seq");
+  inline const auto DataItemSeq = TokenDef("data-item-seq");
+  inline const auto DataItem = TokenDef("data-item", flag::lookup);
+  inline const auto DataRule = TokenDef("data-rule", flag::lookup);
+  inline const auto DataObject = TokenDef("data-object");
+  inline const auto DataObjectItem = TokenDef("data-object-item");
+  inline const auto DataArray = TokenDef("data-array");
+  inline const auto DataSet = TokenDef("data-set");
+  inline const auto DataModule = TokenDef("data-module", flag::lookup);
+  inline const auto Submodule =
+    TokenDef("submodule", flag::lookdown | flag::lookup);
+  inline const auto DataTerm = TokenDef("data-term");
+  inline const auto ObjectItemSeq = TokenDef("object-item-seq");
+  inline const auto ImportSeq = TokenDef("import-seq");
+  inline const auto VarSeq = TokenDef("var-seq");
+  inline const auto ElseSeq = TokenDef("else-seq");
+  inline const auto WithSeq = TokenDef("with-seq");
+  inline const auto SkipSeq = TokenDef("skip-seq");
+  inline const auto ItemSeq = TokenDef("item-seq");
+  inline const auto ItemSeq1 = TokenDef("item-seq-1");
+
+  // data and input
+  inline const auto Input = TokenDef("input", flag::lookup);
+  inline const auto Data = TokenDef("data", flag::lookup);
+
+  // fused
+  inline const auto RuleComp = TokenDef(
+    "rule-comp",
+    flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
+  inline const auto RuleFunc = TokenDef(
+    "rule-func",
+    flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
+  inline const auto RuleSet = TokenDef(
+    "rule-set",
+    flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
+  inline const auto RuleObj = TokenDef(
+    "rule-obj",
+    flag::symtab | flag::lookup | flag::lookdown | flag::defbeforeuse);
+  inline const auto DefaultRule =
+    TokenDef("default-rule", flag::lookup | flag::lookdown);
+  inline const auto Local = TokenDef("local", flag::lookup | flag::shadowing);
+  inline const auto ArithInfix = TokenDef("arith-infix");
+  inline const auto BinInfix = TokenDef("bin-infix");
+  inline const auto BoolInfix = TokenDef("bool-infix");
+  inline const auto AssignInfix = TokenDef("assign-infix");
+  inline const auto ArgVar = TokenDef("arg-var", flag::lookup);
+  inline const auto ArgVal = TokenDef("arg-val");
+  inline const auto LiteralWith = TokenDef("literal-with");
+  inline const auto LiteralEnum = TokenDef("literal-enum");
+  inline const auto LiteralInit = TokenDef("literal-init");
+  inline const auto LiteralNot = TokenDef("literal-not");
+
+  // utility
+  inline const auto Undefined = TokenDef("undefined");
+  inline const auto Rego = TokenDef("rego", flag::symtab);
+  inline const auto Math = TokenDef("math");
+  inline const auto Op = TokenDef("op");
+  inline const auto Comparison = TokenDef("comparison");
+  inline const auto Function = TokenDef("function");
+  inline const auto Arg = TokenDef("arg");
+  inline const auto ArgSeq = TokenDef("arg-seq");
+  inline const auto Val = TokenDef("value");
+  inline const auto Id = TokenDef("id");
+  inline const auto Head = TokenDef("head");
+  inline const auto Tail = TokenDef("tail");
+  inline const auto Head1 = TokenDef("head-1");
+  inline const auto Tail1 = TokenDef("tail-1");
+  inline const auto Head2 = TokenDef("head-2");
+  inline const auto Tail2 = TokenDef("tail-2");
+  inline const auto Lhs = TokenDef("lhs");
+  inline const auto Rhs = TokenDef("rhs");
+  inline const auto LhsVars = TokenDef("lhs-vars");
+  inline const auto RhsVars = TokenDef("rhs-vars");
+  inline const auto Key = TokenDef("key", flag::print);
+  inline const auto RefTerm = TokenDef("ref-term");
+  inline const auto NumTerm = TokenDef("num-term");
+  inline const auto ArithArg = TokenDef("arith-arg");
+  inline const auto BinArg = TokenDef("bin-arg");
+  inline const auto BoolArg = TokenDef("bool-arg");
+  inline const auto AssignArg = TokenDef("assign-arg");
+  inline const auto RuleHeadType = TokenDef("rule-head-type");
+  inline const auto UnifyExpr = TokenDef("unify-expr");
+  inline const auto UnifyExprWith = TokenDef("unify-expr-with");
+  inline const auto UnifyExprCompr = TokenDef("unify-expr-compr");
+  inline const auto UnifyExprEnum = TokenDef("unify-expr-enum");
+  inline const auto UnifyExprNot = TokenDef("unify-expr-not");
+  inline const auto TermSet = TokenDef("term-set");
+  inline const auto Empty = TokenDef("empty");
+  inline const auto SimpleRef = TokenDef("simple-ref");
+  inline const auto Binding = TokenDef("binding");
+  inline const auto Body = TokenDef("body");
+  inline const auto Import =
+    TokenDef("import", flag::lookdown | flag::lookup | flag::shadowing);
+  inline const auto Keyword =
+    TokenDef("keyword", flag::lookdown | flag::lookup);
+  inline const auto Idx = TokenDef("idx");
+  inline const auto Idx1 = TokenDef("idx-1");
+  inline const auto Skip = TokenDef("skip", flag::lookup);
+  inline const auto NestedBody = TokenDef("nested-body", flag::symtab);
+  inline const auto BuiltInHook = TokenDef("builtin-hook", flag::lookup);
+  inline const auto Item = TokenDef("item");
+  inline const auto Item1 = TokenDef("item-1");
+  inline const auto Enumerate = TokenDef("enumerate");
+  inline const auto Compr = TokenDef("compr");
+  inline const auto Merge = TokenDef("merge");
+  inline const auto ImportRef = TokenDef("import-ref");
+  inline const auto WithExpr = TokenDef("with-expr");
+  inline const auto EverySeq = TokenDef("every-seq");
+  inline const auto ErrorCode = TokenDef("error-code", flag::print);
+  inline const auto ErrorSeq = TokenDef("error-seq");
+
+  // lists
+  inline const auto List = TokenDef("list");
+
+  // parser
+  inline const auto Brace = TokenDef("brace");
+  inline const auto Dot = TokenDef("dot");
+  inline const auto Colon = TokenDef("colon");
+  inline const auto Square = TokenDef("square");
+  inline const auto Paren = TokenDef("paren");
+  inline const auto Not = TokenDef("not");
+  inline const auto Comma = TokenDef("comma");
+  inline const auto Placeholder = TokenDef("_");
+
   using namespace wf::ops;
 
   inline const auto wf_json =
@@ -339,6 +543,10 @@ namespace rego
   // clang-format on
 
   // clang-format off
+  inline const auto wf_pass_expand_imports = wf_pass_lift_query;
+  // clang-format on
+
+  // clang-format off
   inline const auto wf_pass_constants =
     wf_pass_lift_query
     | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= JSONInt))[Var]
@@ -568,4 +776,195 @@ namespace rego
     | (Top <<= (Binding | Term)++)
     ;
   // clang-format on
+
+  struct BuiltInDef;
+  using BuiltIn = std::shared_ptr<BuiltInDef>;
+  using BuiltInBehavior = Node (*)(const Nodes&);
+
+  const std::size_t AnyArity = std::numeric_limits<std::size_t>::max();
+  struct BuiltInDef
+  {
+    Location name;
+    std::size_t arity;
+    BuiltInBehavior behavior;
+    static BuiltIn create(
+      const Location& name, std::size_t arity, BuiltInBehavior behavior);
+  };
+
+  class BuiltIns
+  {
+  public:
+    BuiltIns() noexcept;
+    bool is_builtin(const Location& name) const;
+    Node call(const Location& name, const Nodes& args) const;
+    BuiltIns& register_builtin(const BuiltIn& built_in);
+    const BuiltIn& at(const Location& name) const;
+    bool strict_errors() const;
+    BuiltIns& strict_errors(bool strict_errors);
+
+    template <typename T>
+    BuiltIns& register_builtins(const T& built_ins)
+    {
+      for (auto& built_in : built_ins)
+      {
+        register_builtin(built_in);
+      }
+
+      return *this;
+    }
+
+    BuiltIns& register_standard_builtins();
+    std::map<Location, BuiltIn>::const_iterator begin() const;
+    std::map<Location, BuiltIn>::const_iterator end() const;
+
+  private:
+    std::map<Location, BuiltIn> m_builtins;
+    bool m_strict_errors;
+  };
+
+  /**
+   * This is a basic, non-optimized implementation of a big integer using
+   * strings. In most circumstances this would be considerably slower than other
+   * approaches, but given the way in which Trieste nodes store their content as
+   * Location objects into a source document, and this class operates over those
+   * Locations, it is actual quite efficient when compared to parsing and
+   * serializing the Location into a vector of unsigned longs.
+   */
+  class BigInt
+  {
+  public:
+    BigInt();
+    BigInt(const Location& value);
+    BigInt(std::int64_t value);
+    BigInt(std::size_t value);
+
+    const Location& loc() const;
+    std::int64_t to_int() const;
+    std::size_t to_size() const;
+    bool is_negative() const;
+    bool is_zero() const;
+    BigInt increment() const;
+    BigInt decrement() const;
+
+    static bool is_int(const Location& loc);
+
+    friend BigInt operator+(const BigInt& lhs, const BigInt& rhs);
+    friend BigInt operator-(const BigInt& lhs, const BigInt& rhs);
+    friend BigInt operator*(const BigInt& lhs, const BigInt& rhs);
+    friend BigInt operator/(const BigInt& lhs, const BigInt& rhs);
+    friend BigInt operator%(const BigInt& lhs, const BigInt& rhs);
+
+    friend bool operator>(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator<(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator<=(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator>=(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator==(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator!=(const BigInt& lhs, const BigInt& rhs);
+
+    friend std::ostream& operator<<(std::ostream& os, const BigInt& value);
+
+    BigInt negate() const;
+
+  private:
+    struct DivideResult
+    {
+      std::string quotient;
+      std::string remainder;
+    };
+
+    static bool less_than(
+      const std::string_view& lhs, const std::string_view& rhs);
+    static bool greater_than(
+      const std::string_view& lhs, const std::string_view& rhs);
+    static bool equal(const std::string_view& lhs, const std::string_view& rhs);
+    static std::string add(
+      const std::string_view& lhs, const std::string_view& rhs, bool negative);
+    static std::string subtract(
+      const std::string_view& lhs, const std::string_view& rhs, bool negative);
+    static DivideResult divide(
+      const std::string_view& lhs, const std::string_view& rhs);
+    static std::string multiply(
+      const std::string_view& lhs, const std::string_view& rhs);
+    std::string_view digits() const;
+    Location m_loc;
+    static Location Zero;
+    static Location One;
+  };
+
+  const std::string EvalTypeError = "eval_type_error";
+  const std::string EvalBuiltInError = "eval_builtin_error";
+  const std::string RegoTypeError = "rego_type_error";
+  const std::string EvalConflictError = "eval_conflict_error";
+  const std::string WellFormedError = "wellformed_error";
+  const std::string RuntimeError = "runtime_error";
+
+  Node err(
+    NodeRange& r,
+    const std::string& msg,
+    const std::string& code = WellFormedError);
+
+  Node err(
+    Node node,
+    const std::string& msg,
+    const std::string& code = WellFormedError);
+
+  Parse parser();
+  Driver& driver(const BuiltIns& builtins);
+  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
+  std::vector<PassCheck> passes(const BuiltIns& builtins);
+  Node version();
+
+  std::string to_json(
+    const trieste::Node& node, bool sort = false, bool rego_set = true);
+  void set_logging_enabled(bool enabled);
+
+class Interpreter
+  {
+  public:
+    Interpreter();
+    ~Interpreter();
+    void add_module_file(const std::filesystem::path& path);
+    void add_module(const std::string& name, const std::string& contents);
+    void add_data_json_file(const std::filesystem::path& path);
+    void add_data_json(const std::string& json);
+    void add_data(const Node& node);
+    void set_input_json_file(const std::filesystem::path& path);
+    void set_input_json(const std::string& json);
+    void set_input(const Node& node);
+    std::string query(const std::string& query_expr) const;
+    Node raw_query(const std::string& query_expr) const;
+    Interpreter& debug_path(const std::filesystem::path& prefix);
+    const std::filesystem::path& debug_path() const;
+    Interpreter& debug_enabled(bool enabled);
+    bool debug_enabled() const;
+    Interpreter& well_formed_checks_enabled(bool enabled);
+    bool well_formed_checks_enabled() const;
+    Interpreter& executable(const std::filesystem::path& path);
+    const std::filesystem::path& executable() const;
+    BuiltIns& builtins();
+    const BuiltIns& builtins() const;
+
+  private:
+    friend const char* ::regoGetError(regoInterpreter* rego);
+    friend void setError(regoInterpreter* rego, const std::string& error);
+    friend regoOutput* ::regoQuery(
+      regoInterpreter* rego, const char* query_expr);
+
+    void insert_module(const Node& module);
+    std::string output_to_string(const Node& output) const;
+    void write_ast(
+      std::size_t index, const std::string& pass, const Node& ast) const;
+    Node get_errors(const Node& ast) const;
+    Parse m_parser;
+    wf::Wellformed m_wf_parser;
+    Node m_module_seq;
+    Node m_data_seq;
+    Node m_input;
+    std::filesystem::path m_debug_path;
+    bool m_debug_enabled;
+    bool m_well_formed_checks_enabled;
+    BuiltIns m_builtins;
+
+    std::string m_c_error;
+  };
 }

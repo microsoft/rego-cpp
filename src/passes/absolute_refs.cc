@@ -1,26 +1,9 @@
-#include "errors.h"
-#include "helpers.h"
-#include "passes.h"
-
-#include <set>
+#include "internal.hh"
 
 namespace
 {
   using namespace rego;
   using namespace wf::ops;
-
-  bool is_ref_to_type(const Node& var, const std::set<Token>& types)
-  {
-    Nodes defs = var->lookup();
-    if (defs.size() > 0)
-    {
-      return types.contains(defs[0]->type());
-    }
-    else
-    {
-      return false;
-    }
-  }
 
   Node build_ref(Node leaf)
   {
@@ -69,34 +52,6 @@ namespace rego
   PassDef absolute_refs()
   {
     return {
-      In(RefTerm, RuleRef) * T(Var)[Var]([](auto& n) {
-        return is_ref_to_type(*n.first, {Import});
-      }) >>
-        [](Match& _) {
-          // <import>
-          Nodes defs = _(Var)->lookup();
-          Node import = defs[0];
-          Node ref = import / Ref;
-          return ref->clone();
-        },
-
-      In(RefTerm, RuleRef) *
-          (T(Ref)
-           << ((T(RefHead) << T(Var)[Var](
-                  [](auto& n) { return is_ref_to_type(*n.first, {Import}); })) *
-               T(RefArgSeq)[RefArgSeq])) >>
-        [](Match& _) {
-          // <import>.dot <import>[brack]
-          Nodes defs = _(Var)->lookup();
-          Node import = defs[0];
-          Node ref = import / Ref;
-          Node refhead = (ref / RefHead)->clone();
-          Node refargseq = (ref / RefArgSeq)->clone();
-          refargseq->insert(
-            refargseq->end(), _(RefArgSeq)->begin(), _(RefArgSeq)->end());
-          return Ref << refhead << refargseq;
-        },
-
       In(RefTerm, RuleRef) * T(Var)[Var]([](auto& n) {
         return is_ref_to_type(*n.first, RuleTypes);
       }) >>

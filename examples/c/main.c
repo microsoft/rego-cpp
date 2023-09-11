@@ -258,8 +258,6 @@ int main(int argc, char** argv)
     regoSetLoggingEnabled(true);
   }
 
-  regoSetExecutable(rego, argv[0]);
-
   for (data_index = 0; data_index < config.data_files_count; data_index++)
   {
     const char* file = config.data_files[data_index];
@@ -279,7 +277,7 @@ int main(int argc, char** argv)
 
   if (config.input_file != NULL)
   {
-    err = regoAddInputJSONFile(rego, config.input_file);
+    err = regoSetInputJSONFile(rego, config.input_file);
     if (err == REGO_ERROR)
     {
       goto error;

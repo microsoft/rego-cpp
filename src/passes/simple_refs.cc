@@ -1,7 +1,4 @@
-#include "errors.h"
-#include "helpers.h"
-#include "log.h"
-#include "passes.h"
+#include "internal.hh"
 
 namespace rego
 {

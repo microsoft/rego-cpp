@@ -1,8 +1,4 @@
-#include "rego_c.h"
-
-#include "helpers.h"
-#include "interpreter.h"
-#include "log.h"
+#include "internal.hh"
 
 namespace rego
 {
@@ -27,7 +23,7 @@ extern "C"
 
   void regoSetLoggingEnabled(regoBoolean enabled)
   {
-    rego::Logger::enabled = enabled;
+    rego::set_logging_enabled(enabled);
   }
 
   regoInterpreter* regoNew()
@@ -97,11 +93,11 @@ extern "C"
     }
   }
 
-  regoEnum regoAddInputJSONFile(regoInterpreter* rego, const char* path)
+  regoEnum regoSetInputJSONFile(regoInterpreter* rego, const char* path)
   {
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->add_input_json_file(path);
+      reinterpret_cast<rego::Interpreter*>(rego)->set_input_json_file(path);
       return REGO_OK;
     }
     catch (const std::exception& e)
@@ -111,11 +107,11 @@ extern "C"
     }
   }
 
-  regoEnum regoAddInputJSON(regoInterpreter* rego, const char* contents)
+  regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents)
   {
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->add_input_json(contents);
+      reinterpret_cast<rego::Interpreter*>(rego)->set_input_json(contents);
       return REGO_OK;
     }
     catch (const std::exception& e)
@@ -135,9 +131,18 @@ extern "C"
     return reinterpret_cast<rego::Interpreter*>(rego)->debug_enabled();
   }
 
-  void regoSetDebugPath(regoInterpreter* rego, const char* path)
+  regoEnum regoSetDebugPath(regoInterpreter* rego, const char* path)
   {
-    reinterpret_cast<rego::Interpreter*>(rego)->debug_path(path);
+    try
+    {
+      reinterpret_cast<rego::Interpreter*>(rego)->debug_path(path);
+      return REGO_OK;
+    }
+    catch (const std::exception& e)
+    {
+      rego::setError(rego, e.what());
+      return REGO_ERROR;
+    }
   }
 
   void regoSetWellFormedChecksEnabled(
@@ -151,11 +156,6 @@ extern "C"
   {
     return reinterpret_cast<rego::Interpreter*>(rego)
       ->well_formed_checks_enabled();
-  }
-
-  void regoSetExecutable(regoInterpreter* rego, const char* path)
-  {
-    reinterpret_cast<rego::Interpreter*>(rego)->executable(path);
   }
 
   regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr)
@@ -174,6 +174,19 @@ extern "C"
       rego::setError(rego, e.what());
       return nullptr;
     }
+  }
+
+  void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled)
+  {
+    reinterpret_cast<rego::Interpreter*>(rego)->builtins().strict_errors(
+      enabled);
+  }
+
+  regoBoolean regoGetStrictBuiltInErrors(regoInterpreter* rego)
+  {
+    return reinterpret_cast<rego::Interpreter*>(rego)
+      ->builtins()
+      .strict_errors();
   }
 
   // Output functions
@@ -321,6 +334,11 @@ extern "C"
       return REGO_NODE_ERROR_CODE;
     }
 
+    if (node->type() == rego::ErrorSeq)
+    {
+      return REGO_NODE_ERROR_SEQ;
+    }
+
     return REGO_NODE_INTERNAL;
   }
 
@@ -356,10 +374,14 @@ extern "C"
     return static_cast<regoSize>(size);
   }
 
-  regoNode* regoNodeGet(regoNode* node, regoSize index)
+  regoNode* regoNodeGet(regoNode* node_ptr, regoSize index)
   {
-    trieste::NodeDef* child =
-      reinterpret_cast<trieste::NodeDef*>(node)->at(index).get();
+    trieste::NodeDef* node = reinterpret_cast<trieste::NodeDef*>(node_ptr);
+    if (index >= node->size())
+    {
+      return nullptr;
+    }
+    trieste::NodeDef* child = node->at(index).get();
     return reinterpret_cast<regoNode*>(child);
   }
 
@@ -380,6 +402,7 @@ extern "C"
     }
 
     json.copy(buffer, size);
+    buffer[json.size()] = '\0';
     return REGO_OK;
   }
 }

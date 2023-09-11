@@ -1,7 +1,5 @@
 #include "base64/base64.h"
-#include "errors.h"
-#include "helpers.h"
-#include "register.h"
+#include "builtins.h"
 
 namespace
 {

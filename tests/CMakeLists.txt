@@ -15,7 +15,10 @@ target_link_libraries(yaml_trieste
   PRIVATE
   regocpp::rego)
 
-add_test(NAME rego_trieste COMMAND rego_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_trieste>)
+if(REGOCPP_BUILD_TOOLS)
+  add_test(NAME rego_trieste COMMAND rego_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_trieste>)
+endif()
+
 add_test(NAME yaml_trieste COMMAND yaml_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:yaml_trieste>)
 add_test(NAME rego_test COMMAND rego_test regocpp.yaml WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_aci COMMAND rego_test aci/aci.yaml WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)

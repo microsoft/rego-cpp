@@ -1,9 +1,4 @@
-#include "args.h"
-
-#include "helpers.h"
-#include "value.h"
-
-#include <sstream>
+#include "internal.hh"
 
 namespace rego
 {

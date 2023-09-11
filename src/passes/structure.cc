@@ -1,7 +1,4 @@
-#include "errors.h"
-#include "helpers.h"
-#include "passes.h"
-#include "resolver.h"
+#include "internal.hh"
 
 namespace
 {

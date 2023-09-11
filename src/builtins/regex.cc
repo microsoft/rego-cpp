@@ -1,8 +1,4 @@
-#include "errors.h"
-#include "helpers.h"
-#include "re2/stringpiece.h"
-#include "register.h"
-#include "resolver.h"
+#include "builtins.h"
 
 #include <regex>
 

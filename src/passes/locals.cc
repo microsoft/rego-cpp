@@ -1,9 +1,4 @@
-#include "builtins.h"
-#include "errors.h"
-#include "helpers.h"
-#include "passes.h"
-
-#include <map>
+#include "internal.hh"
 
 namespace
 {

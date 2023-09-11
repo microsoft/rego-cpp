@@ -1,5 +1,5 @@
 #include <CLI/CLI.hpp>
-#include <rego/rego.h>
+#include <rego/rego.hh>
 
 int main(int argc, char** argv)
 {
@@ -20,6 +20,9 @@ int main(int argc, char** argv)
   std::filesystem::path input_path;
   app.add_option("-i,--input", input_path, "Input JSON file");
 
+  bool wf_checks{false};
+  app.add_flag("-w,--wf", wf_checks, "Enable well-formedness checks");
+
   std::filesystem::path output;
   app.add_option("-a,--ast", output, "Output the AST");
 
@@ -35,10 +38,11 @@ int main(int argc, char** argv)
     return app.exit(e);
   }
 
-  rego::Logger::enabled = enable_logging;
+  rego::set_logging_enabled(enable_logging);
 
   auto interpreter = rego::Interpreter();
   interpreter.executable(argv[0]);
+  interpreter.well_formed_checks_enabled(wf_checks);
 
   if (!input_path.empty())
   {
@@ -49,7 +53,7 @@ int main(int argc, char** argv)
       return 1;
     }
 
-    interpreter.add_input_json_file(input_path);
+    interpreter.set_input_json_file(input_path);
   }
 
   for (auto& path : data_paths)

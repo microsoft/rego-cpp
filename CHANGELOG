@@ -1,5 +1,23 @@
 # Changelog
 
+## 2023-09-10 - Version 0.3.4
+Adding a Rust wrapper.
+
+**New Features**
+- `wrappers/rust/` contains a Rust crate, `regorust`, which wraps the library
+  and exposes a Rust API.
+
+**Breaking changes**
+- _C API_: The `regoAddInput*` functions are now named `regoSetInput*` and can
+  be used multiple times on the same interpreter.
+- _C API_: `regoGet/SetStrictBuiltInErrors` has been added.
+- The public headers have been reduced to just two files:
+  * `rego.hh` which contains the C++ API
+  * `rego_c.h` which contains the C API
+- The `rego.hh` header is now a C++ header and will not compile in C.
+- Many definitions have been moved to the (non-public) `internal.hh` header,
+  and code which relied on having access to those definitions will break.
+
 ## 2023-09-07 - Version 0.3.3
 Adding a C API.
 

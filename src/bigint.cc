@@ -1,6 +1,4 @@
-#include "bigint.h"
-
-#include <string_view>
+#include "internal.hh"
 
 namespace rego
 {

@@ -1,6 +1,4 @@
-#include "value_map.h"
-
-#include "helpers.h"
+#include "internal.hh"
 
 namespace rego
 {

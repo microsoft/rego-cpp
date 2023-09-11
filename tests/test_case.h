@@ -1,9 +1,6 @@
 #pragma once
 
-#include <optional>
-#include <rego/rego.h>
-#include <string>
-#include <vector>
+#include <rego/rego.hh>
 
 namespace rego_test
 {
@@ -27,7 +24,8 @@ namespace rego_test
 
     Result run(
       const std::filesystem::path& executable_path,
-      const std::filesystem::path& debug_path) const;
+      const std::filesystem::path& debug_path,
+      bool wf_checks) const;
 
     /** name of the test case category. */
     const std::string& category() const;

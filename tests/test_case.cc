@@ -461,10 +461,12 @@ namespace rego_test
 
   Result TestCase::run(
     const std::filesystem::path& executable_path,
-    const std::filesystem::path& debug_path) const
+    const std::filesystem::path& debug_path,
+    bool wf_checks) const
   {
     rego::Interpreter interpreter;
     interpreter.executable(executable_path);
+    interpreter.well_formed_checks_enabled(wf_checks);
     interpreter.builtins().strict_errors(m_strict_error);
     if (!debug_path.empty())
     {
@@ -480,11 +482,11 @@ namespace rego_test
     interpreter.add_data(m_data);
     if (m_input_term.size() > 0)
     {
-      interpreter.add_input_json(m_input_term);
+      interpreter.set_input_json(m_input_term);
     }
     else
     {
-      interpreter.add_input(m_input);
+      interpreter.set_input(m_input);
     }
 
     bool pass = true;

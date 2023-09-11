@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-#ifndef _REGOCPP_WRAPPER_H_
-#define _REGOCPP_WRAPPER_H_
+#ifndef _REGO_C_H_
+#define _REGO_C_H_
 
 #include "version.h"
 
@@ -39,6 +39,7 @@ typedef unsigned int regoSize;
 #define REGO_NODE_ERROR_MESSAGE 1801
 #define REGO_NODE_ERROR_AST 1802
 #define REGO_NODE_ERROR_CODE 1803
+#define REGO_NODE_ERROR_SEQ 1804
 
 #define REGO_NODE_INTERNAL 1999
 
@@ -55,16 +56,17 @@ extern "C"
     regoInterpreter* rego, const char* name, const char* contents);
   regoEnum regoAddDataJSONFile(regoInterpreter* rego, const char* path);
   regoEnum regoAddDataJSON(regoInterpreter* rego, const char* contents);
-  regoEnum regoAddInputJSONFile(regoInterpreter* rego, const char* path);
-  regoEnum regoAddInputJSON(regoInterpreter* rego, const char* contents);
+  regoEnum regoSetInputJSONFile(regoInterpreter* rego, const char* path);
+  regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents);
   void regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetDebugEnabled(regoInterpreter* rego);
-  void regoSetDebugPath(regoInterpreter* rego, const char* path);
+  regoEnum regoSetDebugPath(regoInterpreter* rego, const char* path);
   void regoSetWellFormedChecksEnabled(
     regoInterpreter* rego, regoBoolean enabled);
   regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego);
-  void regoSetExecutable(regoInterpreter* rego, const char* path);
   regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr);
+  void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled);
+  regoBoolean regoGetStrictBuiltInErrors(regoInterpreter* rego);
   const char* regoGetError(regoInterpreter* rego);
 
   // Output functions

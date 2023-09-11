@@ -1,8 +1,4 @@
-#include "bigint.h"
-#include "errors.h"
-#include "helpers.h"
-#include "register.h"
-#include "resolver.h"
+#include "builtins.h"
 
 namespace
 {

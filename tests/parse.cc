@@ -178,8 +178,8 @@ namespace rego_test
   enum class Collection
   {
     None,
-    Brace,
-    Square
+    Braces,
+    Squares
   };
 
   Parse parser()
@@ -216,12 +216,12 @@ namespace rego_test
             *in_value = false;
             m.term();
             m.push(Brace);
-            stack->push_back(Collection::Brace);
+            stack->push_back(Collection::Braces);
           },
 
         R"(\})" >>
           [stack, indent](auto& m) {
-            if (stack->back() == Collection::Brace)
+            if (stack->back() == Collection::Braces)
             {
               m.term();
               m.pop(Brace);
@@ -243,12 +243,12 @@ namespace rego_test
             indent->disable();
             m.term();
             m.push(Square);
-            stack->push_back(Collection::Square);
+            stack->push_back(Collection::Squares);
           },
 
         R"(\])" >>
           [stack, indent](auto& m) {
-            if (stack->back() == Collection::Square)
+            if (stack->back() == Collection::Squares)
             {
               m.term();
               m.pop(Square);
@@ -465,7 +465,7 @@ namespace rego_test
            {
              indent->disable();
              *in_value = false;
-             stack->push_back(Collection::Brace);
+             stack->push_back(Collection::Braces);
              m.term();
              m.push(Brace);
            }
@@ -473,7 +473,7 @@ namespace rego_test
 
        R"(\})" >>
          [indent, stack](auto& m) {
-           if (stack->back() == Collection::Brace)
+           if (stack->back() == Collection::Braces)
            {
              m.term();
              m.pop(Brace);
@@ -504,7 +504,7 @@ namespace rego_test
            if (indent->complete(m, "start"))
            {
              indent->disable();
-             stack->push_back(Collection::Square);
+             stack->push_back(Collection::Squares);
              m.term();
              m.push(Square);
            }
@@ -512,7 +512,7 @@ namespace rego_test
 
        R"(\])" >>
          [indent, stack](auto& m) {
-           if (stack->back() == Collection::Square)
+           if (stack->back() == Collection::Squares)
            {
              m.term();
              m.pop(Square);
@@ -568,7 +568,7 @@ namespace rego_test
 
         R"(\})" >>
           [stack, quote, indent](auto& m) {
-            if (*quote == Quote::None && stack->back() == Collection::Brace)
+            if (*quote == Quote::None && stack->back() == Collection::Braces)
             {
               m.term();
               m.pop(Brace);
@@ -587,7 +587,7 @@ namespace rego_test
 
         R"(\])" >>
           [stack, quote, indent](auto& m) {
-            if (*quote == Quote::None && stack->back() == Collection::Square)
+            if (*quote == Quote::None && stack->back() == Collection::Squares)
             {
               m.term();
               m.pop(Square);

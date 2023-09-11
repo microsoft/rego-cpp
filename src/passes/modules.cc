@@ -1,6 +1,4 @@
-#include "errors.h"
-#include "helpers.h"
-#include "passes.h"
+#include "internal.hh"
 
 namespace
 {
@@ -54,38 +52,6 @@ namespace rego
 
       In(Module) * (T(ImportSeq)[ImportSeq] * T(Import)[Import]) >>
         [](Match& _) { return ImportSeq << *_[ImportSeq] << _(Import); },
-
-      In(ModuleSeq) * (T(Module)[Lhs] * T(Module)[Rhs])([](auto& n) {
-        Node lhs = *n.first;
-        Node rhs = *(n.first + 1);
-        Node lhs_pkg = (lhs / Package / Group);
-        Node rhs_pkg = (rhs / Package / Group);
-        if (lhs_pkg->size() != rhs_pkg->size())
-        {
-          return false;
-        }
-
-        for (std::size_t i = 0; i < lhs_pkg->size(); ++i)
-        {
-          if (lhs_pkg->at(i)->location() != rhs_pkg->at(i)->location())
-          {
-            return false;
-          }
-        }
-
-        return true;
-      }) >>
-        [](Match& _) {
-          Node pkg = _(Lhs) / Package;
-          Node imports = _(Lhs) / ImportSeq;
-          Node policy = _(Lhs) / Policy;
-          Node rhs_imports = _(Rhs) / ImportSeq;
-          Node rhs_policy = _(Rhs) / Policy;
-          imports->insert(
-            imports->end(), rhs_imports->begin(), rhs_imports->end());
-          policy->insert(policy->end(), rhs_policy->begin(), rhs_policy->end());
-          return Module << pkg << imports << policy;
-        },
 
       T(Placeholder) >>
         [](Match& _) {

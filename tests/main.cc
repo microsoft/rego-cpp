@@ -36,7 +36,7 @@ void load_testcase_dir(
   {
     if (std::filesystem::is_directory(file_or_dir))
     {
-      std::cout << std::endl << file_or_dir << std::endl;
+      std::cout << std::endl << file_or_dir.path() << std::endl;
       load_testcase_dir(file_or_dir, debug_path, testcases);
     }
     else if (std::filesystem::exists(file_or_dir))
@@ -46,7 +46,7 @@ void load_testcase_dir(
     }
     else
     {
-      std::cerr << "Not a file: " << file_or_dir << std::endl;
+      std::cerr << "Not a file: " << file_or_dir.path() << std::endl;
     }
   }
 }
@@ -68,6 +68,9 @@ int main(int argc, char** argv)
   bool enable_logging{false};
   app.add_flag("-l,--logging", enable_logging, "Enable logging");
 
+  bool wf_checks{false};
+  app.add_flag("-w,--wf", wf_checks, "Enable well-formedness checks (slow)");
+
   bool fail_first{false};
   app.add_flag(
     "-f,--fail-first", fail_first, "Stop after first test case failure");
@@ -87,7 +90,7 @@ int main(int argc, char** argv)
     return app.exit(e);
   }
 
-  rego::Logger::enabled = enable_logging;
+  rego::set_logging_enabled(enable_logging);
 
   std::cout << "Loading test cases:";
   TestCases all_testcases;
@@ -136,7 +139,7 @@ int main(int argc, char** argv)
       try
       {
         auto start = std::chrono::steady_clock::now();
-        auto result = testcase.run(argv[0], debug_path);
+        auto result = testcase.run(argv[0], debug_path, wf_checks);
         auto end = std::chrono::steady_clock::now();
         const std::chrono::duration<double> elapsed = end - start;
 

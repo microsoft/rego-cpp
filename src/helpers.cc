@@ -1,7 +1,4 @@
-#include "helpers.h"
-
-#include "errors.h"
-#include "resolver.h"
+#include "internal.hh"
 #include "version.h"
 
 #ifdef _WIN32
@@ -718,5 +715,18 @@ namespace rego
   {
     m_func = func;
     return *this;
+  }
+
+  bool is_ref_to_type(const Node& var, const std::set<Token>& types)
+  {
+    Nodes defs = var->lookup();
+    if (defs.size() > 0)
+    {
+      return types.contains(defs[0]->type());
+    }
+    else
+    {
+      return false;
+    }
   }
 }

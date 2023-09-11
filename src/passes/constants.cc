@@ -1,7 +1,4 @@
-#include "errors.h"
-#include "helpers.h"
-#include "passes.h"
-#include "tokens.h"
+#include "internal.hh"
 
 namespace rego
 {
@@ -170,6 +167,22 @@ namespace rego
                                                              << (JSONInt ^
                                                                  "1"))))))))
                         << (LiteralNot << _(UnifyBody)))));
+        },
+
+      In(ModuleSeq) * (T(Module)[Lhs] * T(Module)[Rhs])([](auto& n) {
+        Node lhs = n.first[0];
+        Node rhs = n.first[1];
+        auto lhs_package = flatten_ref((lhs / Package)->front());
+        auto rhs_package = flatten_ref((rhs / Package)->front());
+
+        return lhs_package == rhs_package;
+      }) >>
+        [](Match& _) {
+          Node pkg = _(Lhs) / Package;
+          Node policy = _(Lhs) / Policy;
+          Node rhs_policy = _(Rhs) / Policy;
+          policy->push_back({rhs_policy->begin(), rhs_policy->end()});
+          return Module << pkg << policy;
         },
 
       // errors

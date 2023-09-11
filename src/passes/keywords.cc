@@ -1,6 +1,4 @@
-#include "errors.h"
-#include "helpers.h"
-#include "passes.h"
+#include "internal.hh"
 
 namespace
 {

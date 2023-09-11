@@ -1,0 +1,14 @@
+[package]
+name = "regorust"
+version = "0.3.4"
+edition = "2021"
+description = "Rust bindings for the rego-cpp Rego compiler and interpreter"
+license-file = "LICENSE"
+readme = "README.md"
+homepage = "https://github.com/microsoft/rego-cpp"
+repository = "https://github.com/microsoft/rego-cpp"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "*"

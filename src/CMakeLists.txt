@@ -11,7 +11,6 @@ value.cc
 value_map.cc
 resolver.cc
 variable.cc
-wf.cc
 builtins.cc
 helpers.cc
 rego_c.cc
@@ -33,6 +32,7 @@ passes/lift_refheads.cc
 passes/symbols.cc
 passes/replace_argvals.cc
 passes/lift_query.cc
+passes/expand_imports.cc
 passes/constants.cc
 passes/enumerate.cc
 passes/locals.cc
@@ -83,18 +83,15 @@ target_link_libraries(rego
     trieste::trieste
 )
 
-target_precompile_headers(rego
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/errors.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/helpers.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include/rego/passes.h
-)
-
-
-if (MSVC)
+if(MSVC)
+  target_precompile_headers(rego
+    PRIVATE
+      internal.hh
+  )
   target_compile_options(rego PUBLIC "/Zc:__cplusplus")
   target_compile_definitions(rego PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
 endif()
+
 
 target_include_directories( rego
   PUBLIC

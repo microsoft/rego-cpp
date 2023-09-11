@@ -1,16 +1,8 @@
-#include "interpreter.h"
-
-#include "errors.h"
-#include "helpers.h"
-#include "rego.h"
-#include "wf.h"
-
-#include <iostream>
-#include <sstream>
+#include "internal.hh"
 
 namespace rego
 {
-  Interpreter::Interpreter(bool disable_well_formed_checks) :
+  Interpreter::Interpreter() :
     m_parser(parser()),
     m_wf_parser(wf_parser),
     m_module_seq(NodeDef::create(ModuleSeq)),
@@ -18,7 +10,7 @@ namespace rego
     m_input(NodeDef::create(Input)),
     m_debug_path("."),
     m_debug_enabled(false),
-    m_well_formed_checks_enabled(!disable_well_formed_checks)
+    m_well_formed_checks_enabled(false)
   {
     wf::push_back(&wf_parser);
     m_builtins.register_standard_builtins();
@@ -29,6 +21,22 @@ namespace rego
     wf::pop_front();
   }
 
+  void Interpreter::insert_module(const Node& module)
+  {
+    // sort the modules by their package name. This allows us to merge
+    // modules with the same name after their imports are resolved.
+    auto pos = std::upper_bound(
+      m_module_seq->begin(), m_module_seq->end(), module, [](auto& a, auto& b) {
+        auto a_pkg = a->front();
+        auto b_pkg = b->front();
+        auto a_str = std::string(a_pkg->location().view());
+        auto b_str = std::string(b_pkg->location().view());
+        return a_pkg->location() < b_pkg->location();
+      });
+
+    m_module_seq->insert(pos, module);
+  }
+
   void Interpreter::add_module_file(const std::filesystem::path& path)
   {
     if (!std::filesystem::exists(path))
@@ -36,8 +44,9 @@ namespace rego
       throw std::runtime_error("Module file does not exist");
     }
 
+    LOG("Adding module file: ", path);
     auto file_ast = m_parser.sub_parse(path);
-    m_module_seq->push_back(file_ast);
+    insert_module(file_ast);
   }
 
   void Interpreter::add_module(
@@ -45,7 +54,8 @@ namespace rego
   {
     auto module_source = SourceDef::synthetic(contents);
     auto module = m_parser.sub_parse(name, File, module_source);
-    m_module_seq->push_back(module);
+    insert_module(module);
+    LOG("Adding module: ", name, "(", contents.size(), " bytes)");
   }
 
   void Interpreter::add_data_json_file(const std::filesystem::path& path)
@@ -55,6 +65,7 @@ namespace rego
       throw std::runtime_error("Data file does not exist");
     }
 
+    LOG("Adding data file: ", path);
     auto file_ast = m_parser.sub_parse(path);
     m_data_seq->push_back(file_ast);
   }
@@ -64,49 +75,39 @@ namespace rego
     auto data_source = SourceDef::synthetic(json);
     auto data = m_parser.sub_parse("data", File, data_source);
     m_data_seq->push_back(data);
+    LOG("Adding data (", json.size(), " bytes)");
   }
 
   void Interpreter::add_data(const Node& node)
   {
     m_data_seq->push_back(node);
+    LOG("Adding data AST");
   }
 
-  void Interpreter::add_input_json_file(const std::filesystem::path& path)
+  void Interpreter::set_input_json_file(const std::filesystem::path& path)
   {
-    if (m_input->size() > 0)
-    {
-      throw std::runtime_error("Input already set");
-    }
-
     if (!std::filesystem::exists(path))
     {
       throw std::runtime_error("Input file does not exist");
     }
 
+    LOG("Setting input from file: ", path);
     auto file_ast = m_parser.sub_parse(path);
-    m_input->push_back(file_ast);
+    m_input = Input << file_ast;
   }
 
-  void Interpreter::add_input_json(const std::string& json)
+  void Interpreter::set_input_json(const std::string& json)
   {
-    if (m_input->size() > 0)
-    {
-      throw std::runtime_error("Input already set");
-    }
-
+    LOG("Setting input (", json.size(), " bytes)");
     auto input_source = SourceDef::synthetic(json);
-    auto input = m_parser.sub_parse("input", File, input_source);
-    m_input->push_back(input);
+    auto ast = m_parser.sub_parse("input", File, input_source);
+    m_input = Input << ast;
   }
 
-  void Interpreter::add_input(const Node& node)
+  void Interpreter::set_input(const Node& node)
   {
-    if (m_input->size() > 0)
-    {
-      throw std::runtime_error("Input already set");
-    }
-
-    m_input->push_back(node);
+    LOG("Setting input AST");
+    m_input = Input << node;
   }
 
   Node Interpreter::get_errors(const Node& node) const
@@ -135,6 +136,7 @@ namespace rego
 
   Node Interpreter::raw_query(const std::string& query_expr) const
   {
+    LOG("Query: ", query_expr);
     auto ast = NodeDef::create(Top);
     auto rego = NodeDef::create(rego::Rego);
     auto query_src = SourceDef::synthetic(query_expr);
@@ -144,21 +146,10 @@ namespace rego
       m_input->push_back(NodeDef::create(Undefined));
     }
 
-    // sort the modules by their package name. This will allow
-    // us to easily merge modules which are defined across multiple
-    // files.
-    std::sort(m_module_seq->begin(), m_module_seq->end(), [](auto& a, auto& b) {
-      auto a_pkg = a->front();
-      auto b_pkg = b->front();
-      auto a_str = std::string(a_pkg->location().view());
-      auto b_str = std::string(b_pkg->location().view());
-      return a_pkg->location() < b_pkg->location();
-    });
-
     rego->push_back(query);
-    rego->push_back(m_input);
-    rego->push_back(m_data_seq);
-    rego->push_back(m_module_seq);
+    rego->push_back(m_input->clone());
+    rego->push_back(m_data_seq->clone());
+    rego->push_back(m_module_seq->clone());
     ast->push_back(rego);
 
     bool ok = m_wf_parser.build_st(ast, std::cerr);
@@ -204,12 +195,14 @@ namespace rego
           error << "Failed at pass " << pass_name << std::endl;
           ast->errors(error);
           errors->push_back(err(ast, error.str(), "well_formed_error"));
+          LOG(error.str());
         }
 
         return errors;
       }
     }
 
+    LOG("Query result: ", ast);
     return ast;
   }
 

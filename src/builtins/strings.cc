@@ -1,8 +1,4 @@
-#include "errors.h"
-#include "helpers.h"
-#include "register.h"
-#include "resolver.h"
-#include "utf8.h"
+#include "builtins.h"
 
 #include <bitset>
 

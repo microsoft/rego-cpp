@@ -1,8 +1,4 @@
-#include "log.h"
-#include "passes.h"
-#include "rego.h"
-#include "tokens.h"
-#include "wf.h"
+#include "internal.hh"
 
 namespace rego
 {
@@ -30,6 +26,7 @@ namespace rego
       {"symbols", symbols(), &wf_pass_symbols},
       {"replace_argvals", replace_argvals(), &wf_pass_replace_argvals},
       {"lift_query", lift_query(), &wf_pass_lift_query},
+      {"expand_imports", expand_imports(), &wf_pass_expand_imports},
       {"constants", constants(), &wf_pass_constants},
       {"explicit_enums", explicit_enums(), &wf_pass_explicit_enums},
       {"body_locals", body_locals(builtins), &wf_pass_locals},
@@ -83,6 +80,7 @@ namespace rego
         {"symbols", symbols(), wf_pass_symbols},
         {"replace_argvals", replace_argvals(), wf_pass_replace_argvals},
         {"lift_query", lift_query(), wf_pass_lift_query},
+        {"expand_imports", expand_imports(), wf_pass_expand_imports},
         {"constants", constants(), wf_pass_constants},
         {"explicit_enums", explicit_enums(), wf_pass_explicit_enums},
         {"body_locals", body_locals(builtins), wf_pass_locals},
@@ -109,5 +107,10 @@ namespace rego
         {"query", query(), wf_pass_query},
       });
     return d;
+  }
+
+  void set_logging_enabled(bool enabled)
+  {
+    Logger::enabled = enabled;
   }
 }

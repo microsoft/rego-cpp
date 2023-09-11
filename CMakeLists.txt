@@ -72,8 +72,8 @@ option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the inst
 
 FetchContent_Declare(
   trieste
-  GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        140e55346b5b6f367538790c98d9d7543376b515
+  GIT_REPOSITORY https://github.com/matajoh/trieste
+  GIT_TAG        7bf503b81db295ddbddd8d0010f5d820057ec8a8
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
@@ -129,6 +129,12 @@ if(REGOCPP_OPA_TESTS)
                     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                     OUTPUT_QUIET)
   endif()
+endif()
+
+find_program(CCACHE_PATH ccache)
+if(CCACHE_PATH)
+  message("Using ccache")
+  set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PATH})
 endif()
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
