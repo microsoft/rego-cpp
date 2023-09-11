@@ -113,88 +113,86 @@ namespace
     }
   }
 
-  rego::rune utf8_to_rune(
-    std::string_view::const_iterator pos, std::string_view::const_iterator end)
+  rego::rune utf8_to_rune(const std::string_view& utf8)
   {
-    std::uint8_t c0 = static_cast<std::uint8_t>(pos[0]);
-    std::size_t remaining = std::distance(pos, end);
+    std::uint8_t c0 = static_cast<std::uint8_t>(utf8[0]);
     if (c0 == '\\')
     {
-      if (remaining >= 1)
+      if (utf8.size() >= 1)
       {
-        switch (pos[1])
+        switch (utf8[1])
         {
           case 'f':
-            return {'\f', std::string_view(pos, 2)};
+            return {'\f', utf8.substr(0, 2)};
           case 'n':
-            return {'\n', std::string_view(pos, 2)};
+            return {'\n', utf8.substr(0, 2)};
           case 'r':
-            return {'\r', std::string_view(pos, 2)};
+            return {'\r', utf8.substr(0, 2)};
           case 't':
-            return {'\t', std::string_view(pos, 2)};
+            return {'\t', utf8.substr(0, 2)};
           case 'v':
-            return {'\v', std::string_view(pos, 2)};
+            return {'\v', utf8.substr(0, 2)};
           case '\\':
-            return {'\\', std::string_view(pos, 2)};
+            return {'\\', utf8.substr(0, 2)};
           case '\'':
-            return {'\'', std::string_view(pos, 2)};
+            return {'\'', utf8.substr(0, 2)};
           case '\"':
-            return {'\"', std::string_view(pos, 2)};
+            return {'\"', utf8.substr(0, 2)};
         }
       }
-      if (remaining >= 3 && pos[1] == 'x')
+      if (utf8.size() >= 3 && utf8[1] == 'x')
       {
-        std::string hex = std::string(pos + 2, pos + 4);
+        std::string hex = std::string(utf8.substr(2, 2));
         std::uint32_t value = std::stoul(hex, nullptr, 16);
-        return {value, std::string_view(pos, 4)};
+        return {value, utf8.substr(0, 4)};
       }
-      if (remaining >= 5 && pos[1] == 'u')
+      if (utf8.size() >= 5 && utf8[1] == 'u')
       {
-        std::string hex = std::string(pos + 2, pos + 6);
+        std::string hex = std::string(utf8.substr(2, 4));
         std::uint32_t value = std::stoul(hex, nullptr, 16);
-        return {value, std::string_view(pos, 6)};
+        return {value, utf8.substr(0, 6)};
       }
-      if (remaining >= 9 && pos[1] == 'U')
+      if (utf8.size() >= 9 && utf8[1] == 'U')
       {
-        std::string hex = std::string(pos + 2, pos + 10);
+        std::string hex = std::string(utf8.substr(2, 8));
         std::uint32_t value = std::stoul(hex, nullptr, 16);
-        return {value, std::string_view(pos, 10)};
+        return {value, utf8.substr(0, 10)};
       }
     }
 
     if ((c0 & Mask1) == Mark1)
     {
       std::uint32_t value = c0 & Value1;
-      return {value, std::string_view(pos, 1)};
+      return {value, utf8.substr(0, 1)};
     }
 
-    if ((c0 & Mask2) == Mark2 && remaining >= 2)
+    if ((c0 & Mask2) == Mark2 && utf8.size() >= 2)
     {
-      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
+      std::uint8_t c1 = static_cast<std::uint8_t>(utf8[1]);
       if ((c1 & MaskX) == MarkX)
       {
         std::uint32_t value = c0 & Value2;
         value = (value << ShiftX) | (c1 & ValueX);
-        return {value, std::string_view(pos, 2)};
+        return {value, utf8.substr(0, 2)};
       }
     }
-    else if ((c0 & Mask3) == Mark3 && remaining >= 3)
+    else if ((c0 & Mask3) == Mark3 && utf8.size() >= 3)
     {
-      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
-      std::uint8_t c2 = static_cast<std::uint8_t>(pos[2]);
+      std::uint8_t c1 = static_cast<std::uint8_t>(utf8[1]);
+      std::uint8_t c2 = static_cast<std::uint8_t>(utf8[2]);
       if ((c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX)
       {
         std::uint32_t value = c0 & Value3;
         value = (value << ShiftX) | (c1 & ValueX);
         value = (value << ShiftX) | (c2 & ValueX);
-        return {value, std::string_view(pos, 3)};
+        return {value, utf8.substr(0, 3)};
       }
     }
-    else if ((c0 & Mask4) == Mark4 && remaining >= 4)
+    else if ((c0 & Mask4) == Mark4 && utf8.size() >= 4)
     {
-      std::uint8_t c1 = static_cast<std::uint8_t>(pos[1]);
-      std::uint8_t c2 = static_cast<std::uint8_t>(pos[2]);
-      std::uint8_t c3 = static_cast<std::uint8_t>(pos[3]);
+      std::uint8_t c1 = static_cast<std::uint8_t>(utf8[1]);
+      std::uint8_t c2 = static_cast<std::uint8_t>(utf8[2]);
+      std::uint8_t c3 = static_cast<std::uint8_t>(utf8[3]);
       if (
         (c1 & MaskX) == MarkX && (c2 & MaskX) == MarkX && (c3 & MaskX) == MarkX)
       {
@@ -202,12 +200,12 @@ namespace
         value = (value << ShiftX) | (c1 & ValueX);
         value = (value << ShiftX) | (c2 & ValueX);
         value = (value << ShiftX) | (c3 & ValueX);
-        return {value, std::string_view(pos, 4)};
+        return {value, utf8.substr(0, 4)};
       }
     }
 
     // bad
-    return {Bad, std::string_view(pos, 1)};
+    return {Bad, utf8.substr(0, 1)};
   }
 
 }
@@ -218,13 +216,12 @@ namespace rego
   {
     std::vector<rune> runes;
     runes.reserve(utf8.size());
-    auto pos = utf8.begin();
-    auto end = utf8.end();
-    while (pos < end)
+    std::size_t pos = 0;
+    while (pos < utf8.size())
     {
-      rune r = utf8_to_rune(pos, end);
+      rune r = utf8_to_rune(utf8.substr(pos));
       runes.push_back(r);
-      pos = r.source.end();
+      pos += r.source.size();
     }
 
     return runes;
@@ -234,14 +231,14 @@ namespace rego
   {
     runestring runes;
     runes.reserve(utf8.size());
-    auto pos = utf8.begin();
-    auto end = utf8.end();
-    while (pos < end)
+    std::size_t pos = 0;
+    while (pos < utf8.size())
     {
-      rune r = utf8_to_rune(pos, end);
+      rune r = utf8_to_rune(utf8.substr(pos));
       runes.push_back(r.value);
-      pos = r.source.end();
+      pos += r.source.size();
     }
+    
     return runes;
   }
 

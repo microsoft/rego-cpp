@@ -85,7 +85,7 @@ fn main() {
     println!("cargo:rustc-link-lib=static=rego");
     if cfg!(windows) {
         println!("cargo:rustc-link-arg=mincore.lib");
-    } else {
+    } else if cfg!(linux) {
         println!("cargo:rustc-link-lib=stdc++");
     }
     println!("cargo:rerun-if-changed={}", headers_path.to_str().unwrap());
