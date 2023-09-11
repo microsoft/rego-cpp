@@ -7,10 +7,12 @@ fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     let regocpp_path = out_path.join("rego-cpp");
     let num_procs = std::thread::available_parallelism().unwrap_or(NonZeroUsize::new(1).unwrap());
+    let rego_git_repo = std::env::var("REGOCPP_C_WRAPPER_REPO").unwrap_or("https://github.com/microsoft/rego-cpp.git".to_string());
+    let rego_git_tag = std::env::var("REGOCPP_C_WRAPPER_TAG").unwrap_or("main".to_string());
 
     if !regocpp_path.exists() {
         Command::new("git")
-            .args(&["clone", "https://github.com/matajoh/rego-cpp.git"])
+            .args(&["clone", &rego_git_repo])
             .current_dir(&out_path)
             .status()
             .expect("failed to execute process");
@@ -23,7 +25,7 @@ fn main() {
     }
 
     Command::new("git")
-        .args(&["checkout", "rust-api"])
+        .args(&["checkout", &rego_git_tag])
         .current_dir(&regocpp_path)
         .status()
         .expect("failed to execute process");
