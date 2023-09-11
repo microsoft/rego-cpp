@@ -357,13 +357,19 @@ namespace rego
   inline const auto wf_pass_locals = wf_pass_explicit_enums;
 
   // clang-format off
-  inline const auto wf_pass_compr =
+  inline const auto wf_pass_rules_to_compr =
     wf_pass_locals
+    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
+    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_compr =
+    wf_pass_rules_to_compr
     | (ObjectCompr <<= Var * NestedBody)
     | (ArrayCompr <<= Var * NestedBody)
     | (SetCompr <<= Var * NestedBody)
-    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
-    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
     ;
   // clang-format on
 
@@ -380,9 +386,16 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline const auto wf_pass_skips = 
+  inline const auto wf_pass_datarule = 
     wf_pass_merge_modules
     | (DataModule <<= (RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
+    | (Rego <<= Query * Input * Data)
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_skips = 
+    wf_pass_datarule
     | (Rego <<= Query * Input * Data * SkipSeq)
     | (SkipSeq <<= Skip++)
     | (Skip <<= Key * (Val >>= VarSeq | BuiltInHook | Undefined))[Key]

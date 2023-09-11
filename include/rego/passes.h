@@ -31,9 +31,11 @@ namespace rego
   PassDef explicit_enums();
   PassDef body_locals(const BuiltIns& builtins);
   PassDef value_locals(const BuiltIns& builtins);
+  PassDef rules_to_compr();
   PassDef compr();
   PassDef absolute_refs();
   PassDef merge_modules();
+  PassDef datarule();
   PassDef skips();
   PassDef unary();
   PassDef multiply_divide();

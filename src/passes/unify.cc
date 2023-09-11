@@ -10,7 +10,7 @@ namespace rego
   PassDef unify(const BuiltIns& builtins)
   {
     PassDef unify = {
-      dir::topdown | dir::once,
+      dir::bottomup | dir::once,
       {
         In(Input) * T(Term) >>
           ([](Match&) -> Node { return Term << (Scalar << JSONNull); }),
