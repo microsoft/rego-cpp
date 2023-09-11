@@ -67,7 +67,10 @@ jobs:
 
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
-        run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang "-DREGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}" "-DREGOCPP_C_WRAPPER_TAG=${{github.sha}}"
+        run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -109,8 +112,10 @@ jobs:
 
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
-        run: cmake -B ${{github.workspace}}/examples/c/build --preset release "-DREGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}" "-DREGOCPP_C_WRAPPER_TAG=${{github.sha}}"
-
+        run: cmake -B ${{github.workspace}}/examples/c/build --preset release
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
         run: cmake --build . --config Release --target INSTALL
