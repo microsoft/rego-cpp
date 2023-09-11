@@ -34,5 +34,5 @@ namespace rego
           return Ref << refhead << refargseq;
         },
     };
-  }  
+  }
 }

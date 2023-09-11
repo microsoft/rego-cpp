@@ -27,13 +27,14 @@ namespace rego
   {
     // sort the modules by their package name. This allows us to merge
     // modules with the same name after their imports are resolved.
-    auto pos = std::upper_bound(m_module_seq->begin(), m_module_seq->end(), module, [](auto& a, auto& b) {
-      auto a_pkg = a->front();
-      auto b_pkg = b->front();
-      auto a_str = std::string(a_pkg->location().view());
-      auto b_str = std::string(b_pkg->location().view());
-      return a_pkg->location() < b_pkg->location();
-    });
+    auto pos = std::upper_bound(
+      m_module_seq->begin(), m_module_seq->end(), module, [](auto& a, auto& b) {
+        auto a_pkg = a->front();
+        auto b_pkg = b->front();
+        auto a_str = std::string(a_pkg->location().view());
+        auto b_str = std::string(b_pkg->location().view());
+        return a_pkg->location() < b_pkg->location();
+      });
 
     m_module_seq->insert(pos, module);
   }
