@@ -36,7 +36,7 @@ void load_testcase_dir(
   {
     if (std::filesystem::is_directory(file_or_dir))
     {
-      std::cout << std::endl << file_or_dir << std::endl;
+      std::cout << std::endl << file_or_dir.path() << std::endl;
       load_testcase_dir(file_or_dir, debug_path, testcases);
     }
     else if (std::filesystem::exists(file_or_dir))

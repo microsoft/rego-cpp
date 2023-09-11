@@ -225,7 +225,7 @@ jobs:
 
       - name: Get dependencies
         run: |
-          brew update && brew install cargo rustc
+          brew update && brew install rust
 
       - name: Git config for fetching pull requests
         run: |
