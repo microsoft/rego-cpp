@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+/** @file */
+
 #ifndef _REGO_C_H_
 #define _REGO_C_H_
 
@@ -48,6 +50,15 @@ extern "C"
 {
 #endif
   // Interpreter functions
+
+  /**
+    * Sets whether the diagnostic logging is enabled. This is disabled by
+    * default. When enabled, the Rego interpreter will log detailed information
+    * about the evaluation process to stdout. This is very useful for debugging 
+    * the implementation but may not be as useful for debugging policies.
+    * 
+    * @param enabled Whether logging should be enabled.
+    */
   void regoSetLoggingEnabled(regoBoolean enabled);
   regoInterpreter* regoNew();
   void regoFree(regoInterpreter* rego);

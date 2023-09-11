@@ -6,6 +6,12 @@
 #include <trieste/driver.h>
 #include "rego_c.h"
 
+/** 
+ *  This namespace provides the C++ API for the library.
+ *  It includes all the token types for nodes in the AST, the well-formedness
+ *  definitions for each pass, the built-in system and custom types for
+ *  handling various kinds of data (e.g. the BigInt class). 
+ */
 namespace rego
 {
   using namespace trieste;
