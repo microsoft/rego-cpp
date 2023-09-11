@@ -16,7 +16,7 @@ fn main() {
             .expect("failed to execute process");
     } else {
         Command::new("git")
-            .args(&["pull"])
+            .args(&["pull", "--rebase"])
             .current_dir(&regocpp_path)
             .status()
             .expect("failed to execute process");
