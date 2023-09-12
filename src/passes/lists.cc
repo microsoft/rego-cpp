@@ -337,7 +337,8 @@ namespace rego
           return SomeDecl << (VarSeq << group) << (Group << Undefined);
         },
 
-      In(Group) * T(EmptySet) >> ([](Match&) -> Node { return Set; }),
+      In(Group) * T(EmptySet)[EmptySet] >>
+        ([](Match& _) -> Node { return Set ^ _(EmptySet); }),
 
       In(Group) * (T(Square) << End) >> [](Match&) -> Node { return Array; },
 

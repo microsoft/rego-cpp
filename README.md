@@ -47,9 +47,9 @@ You can then build and run the tests using:
     cmake --build . --config Release --target INSTALL
     ctest -C Release
 
-### Using the Interpreter
+### Using the `rego` CLI
 
-The interpreter will be located at `build/dist/bin/rego`. Here are
+The interpreter tool will be located at `build/dist/bin/rego`. Here are
 some example commands using the provided example files and run from the suggested
 `dist` install directory:
 
@@ -71,6 +71,11 @@ some example commands using the provided example files and run from the suggeste
 You can run the test driver from the same directory:
 
     ./bin/rego_test tests/regocpp.yaml
+
+### Using the `rego` Library
+
+See the [examples](examples/README.md) directory for examples of how to use the
+library from different langauages.
 
 ## Language Support
 

@@ -13,11 +13,13 @@ namespace rego
   {
     // TODO add valid non-alphanum characters
     std::ostringstream buf;
+    buf << '"';
     std::size_t length = rnd() % max_string_length;
     for (std::size_t i = 0; i < length; ++i)
     {
       buf << alphanumeric[rnd() % alphanumeric.size()];
     }
+    buf << '"';
     return buf.str();
   }
 
@@ -26,11 +28,13 @@ namespace rego
   {
     // TODO add valid non-alphanum characters
     std::ostringstream buf;
+    buf << '`';
     std::size_t length = rnd() % max_string_length;
     for (std::size_t i = 0; i < length; ++i)
     {
       buf << alphanumeric[rnd() % alphanumeric.size()];
     }
+    buf << '`';
     return buf.str();
   }
 
