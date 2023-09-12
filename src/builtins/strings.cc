@@ -127,8 +127,8 @@ namespace
 
   Node format_int(const Nodes& args)
   {
-    Node number = unwrap_arg(
-      args, UnwrapOpt(0).types({Int, Float}).func("format_int"));
+    Node number =
+      unwrap_arg(args, UnwrapOpt(0).types({Int, Float}).func("format_int"));
     if (number->type() == Error)
     {
       return number;
@@ -733,14 +733,12 @@ namespace
     {
       return value;
     }
-    Node offset =
-      unwrap_arg(args, UnwrapOpt(1).type(Int).func("substring"));
+    Node offset = unwrap_arg(args, UnwrapOpt(1).type(Int).func("substring"));
     if (offset->type() == Error)
     {
       return offset;
     }
-    Node length =
-      unwrap_arg(args, UnwrapOpt(2).type(Int).func("substring"));
+    Node length = unwrap_arg(args, UnwrapOpt(2).type(Int).func("substring"));
     if (length->type() == Error)
     {
       return length;

@@ -280,8 +280,7 @@ namespace rego
       In(RuleArgs) * (T(Group) << TermToken[Val]) >>
         [](Match& _) { return Term << _(Val); },
 
-      In(RuleArgs) *
-          (T(Group) << (T(Subtract) * (T(Int) / T(Float))[Val])) >>
+      In(RuleArgs) * (T(Group) << (T(Subtract) * (T(Int) / T(Float))[Val])) >>
         [](Match& _) { return Term << (Scalar << Resolver::negate(_(Val))); },
 
       In(ExprEvery) * (T(Group) << (T(IsIn) * ExprToken++[Expr] * End)) >>

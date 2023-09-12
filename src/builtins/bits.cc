@@ -7,16 +7,14 @@ namespace
   Node and_(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args,
-      UnwrapOpt(0).types({Int}).func("bits.and").specify_number(true));
+      args, UnwrapOpt(0).types({Int}).func("bits.and").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node y = unwrap_arg(
-      args,
-      UnwrapOpt(1).types({Int}).func("bits.and").specify_number(true));
+      args, UnwrapOpt(1).types({Int}).func("bits.and").specify_number(true));
     if (y->type() == Error)
     {
       return y;
@@ -31,16 +29,14 @@ namespace
   Node lsh(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args,
-      UnwrapOpt(0).types({Int}).func("bits.lsh").specify_number(true));
+      args, UnwrapOpt(0).types({Int}).func("bits.lsh").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node s = unwrap_arg(
-      args,
-      UnwrapOpt(1).types({Int}).func("bits.lsh").specify_number(true));
+      args, UnwrapOpt(1).types({Int}).func("bits.lsh").specify_number(true));
     if (s->type() == Error)
     {
       return s;
@@ -66,8 +62,7 @@ namespace
   Node negate(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args,
-      UnwrapOpt(0).types({Int}).func("bits.negate").specify_number(true));
+      args, UnwrapOpt(0).types({Int}).func("bits.negate").specify_number(true));
     if (x->type() == Error)
     {
       return x;
@@ -103,16 +98,14 @@ namespace
   Node rsh(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args,
-      UnwrapOpt(0).types({Int}).func("bits.rsh").specify_number(true));
+      args, UnwrapOpt(0).types({Int}).func("bits.rsh").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node s = unwrap_arg(
-      args,
-      UnwrapOpt(1).types({Int}).func("bits.rsh").specify_number(true));
+      args, UnwrapOpt(1).types({Int}).func("bits.rsh").specify_number(true));
     if (s->type() == Error)
     {
       return s;
@@ -136,16 +129,14 @@ namespace
   Node xor_(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args,
-      UnwrapOpt(0).types({Int}).func("bits.xor").specify_number(true));
+      args, UnwrapOpt(0).types({Int}).func("bits.xor").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node y = unwrap_arg(
-      args,
-      UnwrapOpt(1).types({Int}).func("bits.xor").specify_number(true));
+      args, UnwrapOpt(1).types({Int}).func("bits.xor").specify_number(true));
     if (x->type() == Error)
     {}
 

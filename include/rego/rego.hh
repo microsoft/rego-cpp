@@ -221,8 +221,7 @@ namespace rego
 
   using namespace wf::ops;
 
-  inline const auto wf_json =
-    JSONString | Int | Float | True | False | Null;
+  inline const auto wf_json = JSONString | Int | Float | True | False | Null;
 
   inline const auto wf_arith_op = Add | Subtract | Multiply | Divide | Modulo;
 

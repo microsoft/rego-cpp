@@ -245,11 +245,11 @@ namespace rego
                          << (Expr
                              << _(Item) << Unify
                              << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (Int ^ "1"))))))));
+                                 << (Ref
+                                     << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "1"))))))));
         },
 
       In(UnifyBody) *
@@ -265,20 +265,20 @@ namespace rego
                          << (Expr
                              << _(Idx) << Unify
                              << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (Int ^ "0"))))))))
+                                 << (Ref
+                                     << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "0"))))))))
                      << (Literal
                          << (Expr
                              << _(Item) << Unify
                              << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (Int ^ "1"))))))));
+                                 << (Ref
+                                     << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "1"))))))));
         },
 
       In(UnifyBody, LiteralWith) *
@@ -379,11 +379,10 @@ namespace rego
             << (Literal
                 << (Expr << (RefTerm << _(Val)->clone()) << Unify
                          << (RefTerm
-                             << (Ref
-                                 << (RefHead << (Var ^ item))
-                                 << (RefArgSeq
-                                     << (RefArgBrack
-                                         << (Scalar << (Int ^ "1"))))))))
+                             << (Ref << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "1"))))))))
             << *_[UnifyBody];
 
           return Seq << (Lift << UnifyBody
@@ -421,19 +420,17 @@ namespace rego
             << (Literal
                 << (Expr << (RefTerm << _(Idx)->clone()) << Unify
                          << (RefTerm
-                             << (Ref
-                                 << (RefHead << (Var ^ item))
-                                 << (RefArgSeq
-                                     << (RefArgBrack
-                                         << (Scalar << (Int ^ "0"))))))))
+                             << (Ref << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "0"))))))))
             << (Literal
                 << (Expr << (RefTerm << _(Val)->clone()) << Unify
                          << (RefTerm
-                             << (Ref
-                                 << (RefHead << (Var ^ item))
-                                 << (RefArgSeq
-                                     << (RefArgBrack
-                                         << (Scalar << (Int ^ "1"))))))))
+                             << (Ref << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "1"))))))))
             << *_[UnifyBody];
 
           return Seq << (Lift << UnifyBody

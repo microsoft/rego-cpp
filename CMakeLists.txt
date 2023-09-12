@@ -108,6 +108,7 @@ if(CLANG_FORMAT_NOT_FOUND)
 else()
   file(GLOB_RECURSE ALL_SOURCE_FILES CONFIGURE_DEPENDS
         src/*.cc
+        src/*.hh
         src/passes/*.cc
         src/*.h
         include/rego/*.h

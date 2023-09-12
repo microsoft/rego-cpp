@@ -285,10 +285,9 @@ namespace rego
               return Seq << (Lift << DataModule
                                   << (RuleComp << rulename << rulebody
                                                << rulevalue << (Int ^ "0")))
-                         << (Lift
-                             << DataModule
-                             << (RuleComp << rulename->clone() << Empty
-                                          << default_value << (Int ^ "1")))
+                         << (Lift << DataModule
+                                  << (RuleComp << rulename->clone() << Empty
+                                               << default_value << (Int ^ "1")))
                          << (UnifyExpr
                              << _(Var)
                              << (Expr << (RefTerm << rulename->clone())));
@@ -317,8 +316,7 @@ namespace rego
                                       << rulevalue << (Int ^ "0")))
                 << (Lift << DataModule
                          << (RuleFunc << rulename->clone() << ruleargs->clone()
-                                      << Empty << default_value
-                                      << (Int ^ "1")))
+                                      << Empty << default_value << (Int ^ "1")))
                 << (Local << (Var ^ partial) << Undefined)
                 << (UnifyExpr
                     << (Var ^ partial)

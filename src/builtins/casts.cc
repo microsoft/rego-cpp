@@ -75,9 +75,7 @@ namespace
   Node to_number(const Nodes& args)
   {
     Node number = unwrap_arg(
-      args,
-      UnwrapOpt(0).types(
-        {Int, Float, JSONString, True, False, Null}));
+      args, UnwrapOpt(0).types({Int, Float, JSONString, True, False, Null}));
     if (number->type() == Error)
     {
       return number;

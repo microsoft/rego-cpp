@@ -5,15 +5,20 @@
 
 #include "rego/rego.hh"
 
-#define LOG_ERROR(...) Logger::print(LogLevel::Error, Logger::indent, "Error: ", __VA_ARGS__)
-#define LOG_WARNING(...) Logger::print(LogLevel::Warning, Logger::indent, "Warning: ", __VA_ARGS__)
+#define LOG_ERROR(...) \
+  Logger::print(LogLevel::Error, Logger::indent, "Error: ", __VA_ARGS__)
+#define LOG_WARNING(...) \
+  Logger::print(LogLevel::Warning, Logger::indent, "Warning: ", __VA_ARGS__)
 #define LOG_INFO(...) Logger::print(LogLevel::Info, Logger::indent, __VA_ARGS__)
-#define LOG_DEBUG(...) Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
-#define LOG_Trace(...) Logger::print(LogLevel::Trace, Logger::indent, __VA_ARGS__)
+#define LOG_DEBUG(...) \
+  Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
+#define LOG_Trace(...) \
+  Logger::print(LogLevel::Trace, Logger::indent, __VA_ARGS__)
 #define LOG(...) Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
 #define LOG_HEADER(message, header) \
   Logger::print(LogLevel::Debug, Logger::indent, (header), (message), (header))
-#define LOG_VECTOR(vector) Logger::print_vector_inline(LogLevel::Debug, (vector))
+#define LOG_VECTOR(vector) \
+  Logger::print_vector_inline(LogLevel::Debug, (vector))
 #define LOG_VECTOR_CUSTOM(vector, transform) \
   Logger::print_vector_custom(LogLevel::Debug, (vector), (transform))
 #define LOG_MAP_VALUES(map) Logger::print_map_values(LogLevel::Debug, (map))
@@ -225,7 +230,8 @@ namespace rego
     }
 
     template <typename T>
-    static inline void print_vector_inline(LogLevel level, const std::vector<T>& values)
+    static inline void print_vector_inline(
+      LogLevel level, const std::vector<T>& values)
     {
       if (level <= maximum_level)
       {
@@ -254,7 +260,8 @@ namespace rego
     }
 
     template <typename K, typename V>
-    static inline void print_map_values(LogLevel level, const std::map<K, V>& values)
+    static inline void print_map_values(
+      LogLevel level, const std::map<K, V>& values)
     {
       if (level <= maximum_level)
       {
