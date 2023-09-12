@@ -9,7 +9,7 @@ namespace rego
       dir::bottomup | dir::once,
       {
         In(Input) * T(Term) >>
-          ([](Match&) -> Node { return Term << (Scalar << JSONNull); }),
+          ([](Match&) -> Node { return Term << (Scalar << Null); }),
         In(Data) * T(DataModule) >> ([](Match&) -> Node { return DataModule; }),
         In(Rego) * T(SkipSeq) >> ([](Match&) -> Node { return SkipSeq; }),
         In(Query, Array, Set, ObjectItem) *

@@ -21,9 +21,34 @@ extern "C"
     return reinterpret_cast<rego::Interpreter*>(rego)->m_c_error.c_str();
   }
 
-  void regoSetLoggingEnabled(regoBoolean enabled)
+  void regoSetLogLevel(regoEnum level)
   {
-    rego::set_logging_enabled(enabled);
+    switch (level)
+    {
+      case REGO_LOG_LEVEL_NONE:
+        rego::set_log_level(rego::LogLevel::None);
+        break;
+
+      case REGO_LOG_LEVEL_ERROR:
+        rego::set_log_level(rego::LogLevel::Error);
+        break;
+
+      case REGO_LOG_LEVEL_WARN:
+        rego::set_log_level(rego::LogLevel::Warn);
+        break;
+
+      case REGO_LOG_LEVEL_INFO:
+        rego::set_log_level(rego::LogLevel::Info);
+        break;
+
+      case REGO_LOG_LEVEL_DEBUG:
+        rego::set_log_level(rego::LogLevel::Debug);
+        break;
+
+      case REGO_LOG_LEVEL_TRACE:
+        rego::set_log_level(rego::LogLevel::Trace);
+        break;
+    }
   }
 
   regoInterpreter* regoNew()
@@ -279,12 +304,12 @@ extern "C"
       return REGO_NODE_OBJECT_ITEM;
     }
 
-    if (node->type() == rego::JSONInt)
+    if (node->type() == rego::Int)
     {
       return REGO_NODE_INT;
     }
 
-    if (node->type() == rego::JSONFloat)
+    if (node->type() == rego::Float)
     {
       return REGO_NODE_FLOAT;
     }
@@ -294,17 +319,17 @@ extern "C"
       return REGO_NODE_STRING;
     }
 
-    if (node->type() == rego::JSONTrue)
+    if (node->type() == rego::True)
     {
       return REGO_NODE_TRUE;
     }
 
-    if (node->type() == rego::JSONFalse)
+    if (node->type() == rego::False)
     {
       return REGO_NODE_FALSE;
     }
 
-    if (node->type() == rego::JSONNull)
+    if (node->type() == rego::Null)
     {
       return REGO_NODE_NULL;
     }

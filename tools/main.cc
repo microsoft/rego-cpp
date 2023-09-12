@@ -26,8 +26,8 @@ int main(int argc, char** argv)
   std::filesystem::path output;
   app.add_option("-a,--ast", output, "Output the AST");
 
-  bool enable_logging{false};
-  app.add_flag("-l,--logging", enable_logging, "Enable logging");
+  rego::LogLevel loglevel{rego::LogLevel::None};
+  app.add_option("-l,--loglevel", loglevel, "Enable logging");
 
   try
   {
@@ -38,10 +38,9 @@ int main(int argc, char** argv)
     return app.exit(e);
   }
 
-  rego::set_logging_enabled(enable_logging);
+  rego::set_log_level(loglevel);
 
   auto interpreter = rego::Interpreter();
-  interpreter.executable(argv[0]);
   interpreter.well_formed_checks_enabled(wf_checks);
 
   if (!input_path.empty())

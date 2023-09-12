@@ -160,13 +160,13 @@ namespace
 
     if (*a_semver < *b_semver)
     {
-      return JSONInt ^ "-1";
+      return Int ^ "-1";
     }
     if (*b_semver < *a_semver)
     {
-      return JSONInt ^ "1";
+      return Int ^ "1";
     }
-    return JSONInt ^ "0";
+    return Int ^ "0";
   }
 
   Node is_valid(const Nodes& args)
@@ -174,17 +174,17 @@ namespace
     auto vsn = unwrap(args[0], {JSONString});
     if (!vsn.success)
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
 
     std::string vsn_str = get_string(vsn.node);
     auto semver = parse_semver(vsn_str);
     if (semver.has_value())
     {
-      return JSONTrue ^ "true";
+      return True ^ "true";
     }
 
-    return JSONFalse ^ "false";
+    return False ^ "false";
   }
 }
 

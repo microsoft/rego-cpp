@@ -202,7 +202,7 @@ namespace rego
             if (out_map.empty())
             {
               // no outputs. We just return true.
-              rulevalue = DataTerm << (Scalar << JSONTrue);
+              rulevalue = DataTerm << (Scalar << True);
             }
             else
             {
@@ -225,7 +225,7 @@ namespace rego
             Node result = Seq
               << (Lift << DataModule
                        << (RuleFunc << rulename << ruleargs << rulebody
-                                    << rulevalue << (JSONInt ^ "0")))
+                                    << rulevalue << (Int ^ "0")))
               << (UnifyExpr
                   << _(Item)
                   << (Expr << (Enumerate << (Expr << (RefTerm << _(ItemSeq))))))
@@ -284,11 +284,10 @@ namespace rego
                     << (Expr << (_(Compr)->type() << _(Compr) / Var)));
               return Seq << (Lift << DataModule
                                   << (RuleComp << rulename << rulebody
-                                               << rulevalue << (JSONInt ^ "0")))
-                         << (Lift
-                             << DataModule
-                             << (RuleComp << rulename->clone() << Empty
-                                          << default_value << (JSONInt ^ "1")))
+                                               << rulevalue << (Int ^ "0")))
+                         << (Lift << DataModule
+                                  << (RuleComp << rulename->clone() << Empty
+                                               << default_value << (Int ^ "1")))
                          << (UnifyExpr
                              << _(Var)
                              << (Expr << (RefTerm << rulename->clone())));
@@ -314,11 +313,10 @@ namespace rego
               return Seq
                 << (Lift << DataModule
                          << (RuleFunc << rulename << ruleargs << rulebody
-                                      << rulevalue << (JSONInt ^ "0")))
+                                      << rulevalue << (Int ^ "0")))
                 << (Lift << DataModule
                          << (RuleFunc << rulename->clone() << ruleargs->clone()
-                                      << Empty << default_value
-                                      << (JSONInt ^ "1")))
+                                      << Empty << default_value << (Int ^ "1")))
                 << (Local << (Var ^ partial) << Undefined)
                 << (UnifyExpr
                     << (Var ^ partial)
@@ -337,12 +335,12 @@ namespace rego
             find_invars(_(UnifyBody), invars);
 
             Location rulename = _.fresh({"every"});
-            Node rulevalue = DataTerm << (Scalar << (JSONTrue ^ "true"));
+            Node rulevalue = DataTerm << (Scalar << (True ^ "true"));
             if (invars.empty())
             {
               return Seq << (Lift << DataModule
                                   << (RuleComp << (Var ^ rulename) << rulebody
-                                               << rulevalue << (JSONInt ^ "0")))
+                                               << rulevalue << (Int ^ "0")))
                          << (RefTerm << (Var ^ rulename));
             }
 
@@ -357,7 +355,7 @@ namespace rego
             return Seq << (Lift << DataModule
                                 << (RuleFunc << (Var ^ rulename) << ruleargs
                                              << rulebody << rulevalue
-                                             << (JSONInt ^ "0")))
+                                             << (Int ^ "0")))
                        << (ExprCall << (Var ^ rulename) << argseq);
           },
 

@@ -1,5 +1,4 @@
 #include "internal.hh"
-#include "version.h"
 
 #ifdef _WIN32
 #include <codecvt>
@@ -375,13 +374,13 @@ namespace rego
 
   BigInt get_int(const Node& node)
   {
-    assert(node->type() == JSONInt);
+    assert(node->type() == Int);
     return ::get_int(node);
   }
 
   double get_double(const Node& node)
   {
-    assert(node->type() == JSONFloat || node->type() == JSONInt);
+    assert(node->type() == Float || node->type() == Int);
     return ::get_double(node);
   }
 
@@ -408,8 +407,8 @@ namespace rego
 
   bool get_bool(const Node& node)
   {
-    assert(node->type() == JSONTrue || node->type() == JSONFalse);
-    return node->type() == JSONTrue;
+    assert(node->type() == True || node->type() == False);
+    return node->type() == True;
   }
 
   bool is_truthy(const Node& node)
@@ -424,7 +423,7 @@ namespace rego
     if (value->type() == Scalar)
     {
       value = value->front();
-      return value->type() != JSONFalse;
+      return value->type() != False;
     }
 
     if (
@@ -472,7 +471,7 @@ namespace rego
       value = value->front();
     }
 
-    if (value->type() == JSONFalse)
+    if (value->type() == False)
     {
       return true;
     }
@@ -487,7 +486,7 @@ namespace rego
 
   std::string type_name(const Token& type, bool specify_number)
   {
-    if (type == JSONInt)
+    if (type == Int)
     {
       if (specify_number)
       {
@@ -496,7 +495,7 @@ namespace rego
       return "number";
     }
 
-    if (type == JSONFloat)
+    if (type == Float)
     {
       if (specify_number)
       {
@@ -510,7 +509,7 @@ namespace rego
       return "string";
     }
 
-    if (type == JSONTrue || type == JSONFalse)
+    if (type == True || type == False)
     {
       return "boolean";
     }
@@ -728,5 +727,56 @@ namespace rego
     {
       return false;
     }
+  }
+
+  Node scalar(BigInt value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar(double value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar(bool value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar(const char* value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar(const std::string& value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar()
+  {
+    return Resolver::scalar();
+  }
+
+  Node object_item(const Node& key_term, const Node& val_term)
+  {
+    return ObjectItem << Resolver::to_term(key_term)
+                      << Resolver::to_term(val_term);
+  }
+
+  Node object(const Nodes& object_items)
+  {
+    return Object << object_items;
+  }
+
+  Node array(const Nodes& array_members)
+  {
+    return Array << array_members;
+  }
+
+  Node set(const Nodes& set_members)
+  {
+    return Set << set_members;
   }
 }

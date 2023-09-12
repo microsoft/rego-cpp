@@ -354,19 +354,19 @@ namespace rego_test
         },
 
       In(rego::Scalar, Group) * (T(Scalar) << T(Integer)[Integer]) >>
-        [](Match& _) { return rego::JSONInt ^ _(Integer); },
+        [](Match& _) { return rego::Int ^ _(Integer); },
 
       In(rego::Scalar, Group) * (T(Scalar) << T(Float)[Float]) >>
-        [](Match& _) { return rego::JSONFloat ^ _(Float); },
+        [](Match& _) { return rego::Float ^ _(Float); },
 
       In(rego::Scalar, Group) * (T(Scalar) << T(True)[True]) >>
-        [](Match& _) { return rego::JSONTrue ^ _(True); },
+        [](Match& _) { return rego::True ^ _(True); },
 
       In(rego::Scalar, Group) * (T(Scalar) << T(False)[False]) >>
-        [](Match& _) { return rego::JSONFalse ^ _(False); },
+        [](Match& _) { return rego::False ^ _(False); },
 
       In(rego::Scalar, Group) * (T(Scalar) << T(Null)[Null]) >>
-        [](Match& _) { return rego::JSONNull ^ _(Null); },
+        [](Match& _) { return rego::Null ^ _(Null); },
 
       In(Group) * T(Mapping)[Mapping] >>
         [](Match& _) {

@@ -3,9 +3,16 @@
 
 #pragma once
 
-#include <trieste/driver.h>
 #include "rego_c.h"
 
+#include <trieste/driver.h>
+
+/**
+ *  This namespace provides the C++ API for the library.
+ *  It includes all the token types for nodes in the AST, the well-formedness
+ *  definitions for each pass, the built-in system and custom types for
+ *  handling various kinds of data (e.g. the BigInt class).
+ */
 namespace rego
 {
   using namespace trieste;
@@ -46,11 +53,11 @@ namespace rego
   inline const auto ObjectItem = TokenDef("object-item");
   inline const auto RawString = TokenDef("raw-string", flag::print);
   inline const auto JSONString = TokenDef("STRING", flag::print);
-  inline const auto JSONInt = TokenDef("INT", flag::print);
-  inline const auto JSONFloat = TokenDef("FLOAT", flag::print);
-  inline const auto JSONTrue = TokenDef("true");
-  inline const auto JSONFalse = TokenDef("false");
-  inline const auto JSONNull = TokenDef("null");
+  inline const auto Int = TokenDef("INT", flag::print);
+  inline const auto Float = TokenDef("FLOAT", flag::print);
+  inline const auto True = TokenDef("true");
+  inline const auto False = TokenDef("false");
+  inline const auto Null = TokenDef("null");
   inline const auto Equals = TokenDef("==");
   inline const auto NotEquals = TokenDef("!=");
   inline const auto LessThan = TokenDef("<");
@@ -214,8 +221,7 @@ namespace rego
 
   using namespace wf::ops;
 
-  inline const auto wf_json =
-    JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull;
+  inline const auto wf_json = JSONString | Int | Float | True | False | Null;
 
   inline const auto wf_arith_op = Add | Subtract | Multiply | Divide | Modulo;
 
@@ -351,7 +357,7 @@ namespace rego
   inline const auto wf_pass_rules =
     wf_pass_elses
     | (Policy <<= Rule++)
-    | (Rule <<= (Default >>= JSONTrue | JSONFalse) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
+    | (Rule <<= (Default >>= True | False) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
     | (RuleHead <<= RuleRef * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc | RuleHeadSet | RuleHeadObj))
     | (RuleRef <<= (Var | Array | Dot)++[1])
     | (ElseSeq <<= Else++)
@@ -424,7 +430,7 @@ namespace rego
     | (Keyword <<= Var)[Var]
     | (Package <<= Ref)
     | (Policy <<= Rule++)
-    | (Rule <<= (Default >>= JSONTrue | JSONFalse) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
+    | (Rule <<= (Default >>= True | False) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
     | (RuleHead <<= RuleRef * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc | RuleHeadSet | RuleHeadObj))
     | (RuleRef <<= Ref | Var)
     | (ElseSeq <<= Else++)
@@ -454,7 +460,7 @@ namespace rego
     | (RefArgSeq <<= (RefArgDot | RefArgBrack)++)
     | (RefArgDot <<= Var)
     | (RefArgBrack <<= Scalar | Var | Object | Array | Set | Expr)
-    | (Scalar <<= String | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
+    | (Scalar <<= String | Int | Float | True | False | Null)
     | (String <<= JSONString | RawString)
     | (Array <<= Expr++)
     | (Set <<= Expr++)
@@ -470,7 +476,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_strings =
     wf_pass_structure
-    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
+    | (Scalar <<= JSONString | Int | Float | True | False | Null)
     ;
   // clang-format on
 
@@ -505,8 +511,8 @@ namespace rego
     wf_pass_lift_refheads
     | (Module <<= Package * Policy)
     | (Policy <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj)++)
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= JSONInt))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= JSONInt))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | Term))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | Term) * (Val >>= Expr | Term))[Var]
     | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum)++[1])
@@ -519,7 +525,7 @@ namespace rego
     | (ArrayCompr <<= Expr * (Body >>= NestedBody))
     | (SetCompr <<= Expr * (Body >>= NestedBody))
     | (RefTerm <<= Ref | Var)
-    | (NumTerm <<= JSONInt | JSONFloat)
+    | (NumTerm <<= Int | Float)
     | (RefArgBrack <<= RefTerm | Scalar | Object | Array | Set | Expr)
     | (Expr <<= wf_symbols_exprs++[1])
     | (Import <<= Var * Ref)[Var]
@@ -549,8 +555,8 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_constants =
     wf_pass_lift_query
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= JSONInt))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= JSONInt))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= Int))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= Int))[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | DataTerm))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | DataTerm) * (Val >>= Expr | DataTerm))[Var]
     ;
@@ -754,8 +760,8 @@ namespace rego
     | (Object <<= ObjectItem++)
     | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
     | (DataItem <<= Key * (Val >>= DataModule | Term))[Key]
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= JSONInt))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= JSONInt))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))[Var]
     ;
@@ -778,49 +784,11 @@ namespace rego
   // clang-format on
 
   struct BuiltInDef;
+  /** A pointer to a BuiltInDef.*/
   using BuiltIn = std::shared_ptr<BuiltInDef>;
+
+  /** The function pointer to the behavior of the built-in. */
   using BuiltInBehavior = Node (*)(const Nodes&);
-
-  const std::size_t AnyArity = std::numeric_limits<std::size_t>::max();
-  struct BuiltInDef
-  {
-    Location name;
-    std::size_t arity;
-    BuiltInBehavior behavior;
-    static BuiltIn create(
-      const Location& name, std::size_t arity, BuiltInBehavior behavior);
-  };
-
-  class BuiltIns
-  {
-  public:
-    BuiltIns() noexcept;
-    bool is_builtin(const Location& name) const;
-    Node call(const Location& name, const Nodes& args) const;
-    BuiltIns& register_builtin(const BuiltIn& built_in);
-    const BuiltIn& at(const Location& name) const;
-    bool strict_errors() const;
-    BuiltIns& strict_errors(bool strict_errors);
-
-    template <typename T>
-    BuiltIns& register_builtins(const T& built_ins)
-    {
-      for (auto& built_in : built_ins)
-      {
-        register_builtin(built_in);
-      }
-
-      return *this;
-    }
-
-    BuiltIns& register_standard_builtins();
-    std::map<Location, BuiltIn>::const_iterator begin() const;
-    std::map<Location, BuiltIn>::const_iterator end() const;
-
-  private:
-    std::map<Location, BuiltIn> m_builtins;
-    bool m_strict_errors;
-  };
 
   /**
    * This is a basic, non-optimized implementation of a big integer using
@@ -891,6 +859,423 @@ namespace rego
     static Location One;
   };
 
+  /**
+   * Result of unwrapping a node.
+   */
+  struct UnwrapResult
+  {
+    /** The unwrapped argument or nullptr (if unsuccessful). */
+    Node node;
+
+    /** True if the argument was unwrapped successfully. */
+    bool success;
+  };
+
+  /**
+   * This struct provides options for unwrapping an argument and producing
+   * an error message.
+   *
+   * The act of unwrapping a node is the process of testing whether a node
+   * or one of its direct descendents is of one or more types. So, for example,
+   * the following nodes:
+   *
+   * ```
+   * (term (scalar (int 5)))
+   * (scalar (int 5))
+   * (int 5)
+   * ```
+   *
+   * Would all be successfully unwrapped as `(int 5)` if the type JSONInt was
+   * specified. However, if Float was specified, the result would be an
+   * error node.
+   */
+  class UnwrapOpt
+  {
+  public:
+    /**
+     * Construct an UnwrapOpt.
+     *
+     * @param index The index of the argument to unwrap.
+     */
+    UnwrapOpt(std::size_t index);
+
+    /**
+     * Whether the statement indicating what was received instead
+     * of the expect type should be excluded.
+     */
+    bool exclude_got() const;
+    UnwrapOpt& exclude_got(bool exclude_got);
+
+    /**
+     * Whether to specify in the error message which kind of number
+     * was received (i.e. integer or floating point)
+     */
+    bool specify_number() const;
+    UnwrapOpt& specify_number(bool specify_number);
+
+    /**
+     * The error code for the error message.
+     *
+     * Default value if omitted is EvalTypeError.
+     */
+    const std::string& code() const;
+    UnwrapOpt& code(const std::string& value);
+
+    /**
+     * The error preamble.
+     *
+     * If omitted, a default preamble will be constructed
+     * from the operation metadata in the form "operand <i> must be <t>".
+     */
+    const std::string& pre() const;
+    UnwrapOpt& pre(const std::string& value);
+
+    /**
+     * The full error message.
+     *
+     * If this is set, no message will be generated and instead
+     * this will be returned verbatim.
+     */
+    const std::string& message() const;
+    UnwrapOpt& message(const std::string& value);
+
+    /**
+     * The name of the function.
+     *
+     * If provide, will be a prefix on the message as "<func-name>:"
+     */
+    const std::string& func() const;
+    UnwrapOpt& func(const std::string& value);
+
+    /**
+     * The types to match against.
+     *
+     * The operand must be one of the provided types or else an
+     * error node will be return.
+     */
+    const std::vector<Token>& types() const;
+    UnwrapOpt& types(const std::vector<Token>& value);
+
+    /**
+     * The singular type to match against.
+     */
+    const Token& type() const;
+    UnwrapOpt& type(const Token& value);
+
+    /**
+     * Unwraps an argument from the provided vector of nodes.
+     *
+     * @param args The vector of nodes to unwrap from.
+     * @return The unwrapped argument or an appropriate error node.
+     */
+    Node unwrap(const Nodes& args) const;
+
+  private:
+    bool m_exclude_got;
+    bool m_specify_number;
+    std::string m_code;
+    std::string m_prefix;
+    std::string m_message;
+    std::string m_func;
+    std::vector<Token> m_types;
+    std::size_t m_index;
+  };
+
+  /**
+   * Unwraps an argument from the provided vector of nodes.
+   *
+   * @param args The vector of nodes to unwrap from.
+   * @param options The options for unwrapping.
+   * @return The unwrapped argument or an appropriate error node.
+   */
+  Node unwrap_arg(const Nodes& args, const UnwrapOpt& options);
+
+  /**
+   * Attempts to unwrap an argument to one of the specified types.
+   *
+   * @param term The term to unwrap.
+   * @param types The acceptable types.
+   * @return An unwrap result.
+   */
+  UnwrapResult unwrap(const Node& term, const std::set<Token>& types);
+
+  /**
+   * Extracts the value of a node as an integer.
+   *
+   * @param node The node to extract from.
+   * @return The integer value of the node.
+   */
+  BigInt get_int(const Node& node);
+
+  /**
+   * Extracts the value of a node as a double.
+   *
+   * @param node The node to extract from.
+   * @return The double value of the node.
+   */
+  double get_double(const Node& node);
+
+  /**
+   * Extracts the value of a node as a string.
+   *
+   * The resulting string will have any enclosing quotes removed.
+   *
+   * @param node The node to extract from.
+   * @return The string value of the node.
+   */
+  std::string get_string(const Node& node);
+
+  /**
+   * Extracts the value of a node as a boolean.
+   *
+   * @param node The node to extract from.
+   * @return The boolean value of the node.
+   */
+  bool get_bool(const Node& node);
+
+  /**
+   * Converts the value to a scalar node.
+   *
+   * @param value The value to convert.
+   * @return The scalar node (scalar (INT <value>)))
+   */
+  Node scalar(BigInt value);
+
+  /**
+   * Converts the value to a scalar node.
+   *
+   * @param value The value to convert.
+   * @return The scalar node (scalar (FLOAT <value>)))
+   */
+  Node scalar(double value);
+
+  /**
+   * Converts the value to a scalar node.
+   *
+   * @param value The value to convert.
+   * @return The scalar node (scalar (TRUE|FALSE)))
+   */
+  Node scalar(bool value);
+
+  /**
+   * Converts the value to a scalar node.
+   *
+   * @param value The value to convert.
+   * @return The scalar node (scalar (STRING <value>)))
+   */
+  Node scalar(const char* value);
+
+  /**
+   * Converts the value to a scalar node.
+   *
+   * @param value The value to convert.
+   * @return The scalar node (scalar (STRING <value>)))
+   */
+  Node scalar(const std::string& value);
+
+  /**
+   * Converts the value to a scalar node.
+   *
+   * @param value The value to convert.
+   * @return The scalar node (scalar (NULL)))
+   */
+  Node scalar();
+
+  /**
+   * Converts the key and val terms to an object item.
+   *
+   * @param key_term The key term.
+   * @param val_term The value term.
+   * @return The object item node (object_item (key_term) (val_term))
+   */
+  Node object_item(const Node& key_term, const Node& val_term);
+
+  /**
+   * Converts the value to an object node.
+   *
+   * @param object_items The object items of the object
+   * @return The object node (object (object_item) (object_item) ...)
+   */
+  Node object(const Nodes& object_items);
+
+  /**
+   * Converts the value to an array node.
+   *
+   * @param array_members The members of the array.
+   * @return The array node (array (term) (term) ...)
+   */
+  Node array(const Nodes& array_members);
+
+  /**
+   * Converts the value to a set node.
+   *
+   * @param set_members The members of the set.
+   * @return The set node (set (term) (term) ...)
+   */
+  Node set(const Nodes& set_members);
+
+  /** This constant indicates that a built-in can receive any number of
+   * arguments. */
+  const std::size_t AnyArity = std::numeric_limits<std::size_t>::max();
+
+  /**
+   * Struct which defines a built-in function.
+   *
+   * You can extend Rego by registering your own built-ins. A built-in is a
+   * function which is called by Rego during evaluation. Built-ins are called
+   * with a vector of Nodes, and return a Node. The vector of Nodes contains the
+   * arguments passed to the built-in. The Node returned by the built-in is the
+   * result of the built-in's evaluation.
+   *
+   * Here is an example built-in which performs addition:
+   *
+   * ```cpp
+   * Node add(const Nodes& args)
+   * {
+   *   Node a = unwrap_arg(args, UnwrapOpt(0).types({Int, Float}));
+   *   if(a.type() == Error){
+   *     return a;
+   *   }
+   *
+   *   Node b = unwrap_arg(args, UnwrapOpt(1).types({Int, Float}));
+   *   if(b.type() == Error){
+   *    return b;
+   *   }
+   *
+   *   if(a.type() == Int && b.type() == Int)
+   *   {
+   *     return scalar(get_int(a) + get_int(b));
+   *   }
+   *
+   *   return scalar(get_double(a) + get_double(b));
+   * }
+   * ```
+   *
+   * Note that there are several helper methods and objects to aid in
+   * writing managing nodes and wrapping/unwrapping them into basic
+   * types. Once a method like the above has been written, use
+   * BuiltInDef::create following way:
+   * ```cpp
+   * builtins.register_builtin(BuiltInDef::create(Location("add"), 2, add))
+   * ```
+   *
+   * Then, during evaluation, any call to the built-in `add` will be
+   * handled by the `add` function.
+   */
+  struct BuiltInDef
+  {
+    /** The name used to match against expression calls in the rego program. */
+    Location name;
+    /**
+     * The number of expected arguments.
+     *
+     * If any number of arguments can be provided, use the constant AnyArity.
+     */
+    std::size_t arity;
+
+    /** The function which will be called when the built-in is evaluated. */
+    BuiltInBehavior behavior;
+
+    /**
+     * Creates a new built-in.
+     *
+     * BuiltIn is a pointer to a BuiltInDef.
+     *
+     * @param name The name of the built-in.
+     * @param arity The number of arguments expected by the built-in.
+     * @param behavior The function which will be called when the built-in is
+     * evaluated.
+     * @return The built-in.
+     */
+    static BuiltIn create(
+      const Location& name, std::size_t arity, BuiltInBehavior behavior);
+  };
+
+  /**
+   * Manages the set of builtins used by an interpreter to resolve built-in
+   * calls.
+   */
+  class BuiltIns
+  {
+  public:
+    /** Constructor. */
+    BuiltIns() noexcept;
+
+    /**
+     * Determines whether the provided name refers to a built-in.
+     *
+     * @param name The name to check.
+     * @return True if the name refers to a built-in, otherwise false.
+     */
+    bool is_builtin(const Location& name) const;
+
+    /**
+     * Calls the built-in with the provided name and arguments.
+     *
+     * @param name The name of the built-in to call.
+     * @param args The arguments to pass to the built-in.
+     * @return The result of the built-in call.
+     */
+    Node call(const Location& name, const Nodes& args) const;
+
+    /**
+     * Registers a built-in.
+     *
+     * @param built_in The built-in to register.
+     */
+    BuiltIns& register_builtin(const BuiltIn& built_in);
+
+    /**
+     * Gets the built-in with the provided name.
+     */
+    const BuiltIn& at(const Location& name) const;
+
+    /**
+     * Whether to throw built-in errors.
+     *
+     * If true, built-in errors will be thrown as exceptions. If false,
+     * built-in errors will result in Undefined nodes.
+     */
+    bool strict_errors() const;
+    BuiltIns& strict_errors(bool strict_errors);
+
+    /**
+     * Registers a set of built-ins.
+     *
+     * @param built_ins The built-ins to register.
+     */
+    template <typename T>
+    BuiltIns& register_builtins(const T& built_ins)
+    {
+      for (auto& built_in : built_ins)
+      {
+        register_builtin(built_in);
+      }
+
+      return *this;
+    }
+
+    /**
+     * This registers the "standard library" of built-ins.
+     *
+     * There are a number of built-ins which are provided by default. These
+     * built-ins are those documented
+     * <a
+     * href="https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions">here</a>.
+     *
+     * rego-cpp supports the following built-ins as standard:
+     *
+     */
+    BuiltIns& register_standard_builtins();
+
+    std::map<Location, BuiltIn>::const_iterator begin() const;
+    std::map<Location, BuiltIn>::const_iterator end() const;
+
+  private:
+    std::map<Location, BuiltIn> m_builtins;
+    bool m_strict_errors;
+  };
+
   const std::string EvalTypeError = "eval_type_error";
   const std::string EvalBuiltInError = "eval_builtin_error";
   const std::string RegoTypeError = "rego_type_error";
@@ -898,49 +1283,263 @@ namespace rego
   const std::string WellFormedError = "wellformed_error";
   const std::string RuntimeError = "runtime_error";
 
+  /**
+   * Generates an error node.
+   *
+   * @param r The range of nodes over which the error occurred.
+   * @param msg The error message.
+   * @param code The error code.
+   */
   Node err(
     NodeRange& r,
     const std::string& msg,
     const std::string& code = WellFormedError);
 
+  /**
+   * Generates an error node.
+   *
+   * @param node The node for which the error occurred.
+   * @param msg The error message.
+   * @param code The error code.
+   */
   Node err(
     Node node,
     const std::string& msg,
     const std::string& code = WellFormedError);
 
-  Parse parser();
-  Driver& driver(const BuiltIns& builtins);
   using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
-  std::vector<PassCheck> passes(const BuiltIns& builtins);
+
+  /**
+   * Creates the parser object, which turns a document into tokens.
+   *
+   * @return The parser.
+   */
+  Parse parser();
+
+  /**
+   * Creates a test driver.
+   *
+   * The test driver performs probabilstic testing of the complication. For each
+   * pass it generates random AST outputs depending on the well-formed
+   * expression of the input, runs them through the pass logic, and then checks
+   * it against the wf expression for the output.
+   *
+   * @param builtins The built-ins to use.
+   * @return The driver.
+   */
+  Driver& driver(const BuiltIns& builtins);
+
+  /**
+   * Returns a node representing the version of the library.
+   *
+   * The resulting node will be an object containing:
+   * - The Git commit hash ("commit")
+   * - The library version ("regocpp_version")
+   * - The supported OPA Rego version ("version")
+   * - The environment variables ("env")
+   */
   Node version();
 
+  /** Converts a node to JSON.
+   *
+   * @param node The node to convert.
+   * @param sort Whether to sort the keys of a JSON object or the values in a
+   * set.
+   * @param set_as_array Whether to represent a set using array notation.
+   */
   std::string to_json(
-    const trieste::Node& node, bool sort = false, bool rego_set = true);
-  void set_logging_enabled(bool enabled);
+    const trieste::Node& node, bool sort = false, bool set_as_array = false);
 
-class Interpreter
+  /**
+   * The logging level.
+   */
+  enum class LogLevel : char
+  {
+    None = REGO_LOG_LEVEL_NONE,
+    Error = REGO_LOG_LEVEL_ERROR,
+    Warn = REGO_LOG_LEVEL_WARN,
+    Info = REGO_LOG_LEVEL_INFO,
+    Debug = REGO_LOG_LEVEL_DEBUG,
+    Trace = REGO_LOG_LEVEL_TRACE,
+  };
+
+  /**
+   * Sets the logging level for the library.
+   *
+   * @param level The logging level.
+   */
+  void set_log_level(LogLevel level);
+
+  /**
+   * This class forms the main interface to the Rego library.
+   *
+   * You can use it to assemble and then execute queries, for example:
+   *
+   * ```cpp
+   * Interpreter rego;
+   * rego.add_module_file("objects.rego");
+   * rego.add_data_json_file("data0.json");
+   * rego.add_data_json_file("data1.json");
+   * rego.add_input_json_file("input0.json");
+   * std::cout << rego.query("[data.one, input.b, data.objects.sites[1]]") <<
+   * std::endl;
+   * ```
+   */
+  class Interpreter
   {
   public:
+    /**
+     * Constructor.
+     *
+     * Pushes the default WF context.
+     */
     Interpreter();
+
+    /**
+     * Destructor.
+     *
+     * Pops the default WF context.
+     */
     ~Interpreter();
+
+    /**
+     * Adds a module (i.e. virtual document) file to the interpreter.
+     *
+     * This is the same as calling Interpreter::add_module with the contents of
+     * the file.
+     *
+     * @param path The path to the module file.
+     */
     void add_module_file(const std::filesystem::path& path);
+
+    /**
+     * Adds a module (i.e. virtual document) to the interpreter.
+     *
+     * The module will be parsed and added to the interpreter's module sequence.
+     *
+     * @param name The name of the module.
+     * @param contents The contents of the module.
+     */
     void add_module(const std::string& name, const std::string& contents);
+
+    /**
+     * Adds a base document to the interpreter.
+     *
+     * This is the same as calling Interpreter::add_data_json with the contents
+     * of the file.
+     *
+     * @param module The module to add.
+     */
     void add_data_json_file(const std::filesystem::path& path);
+
+    /**
+     * Adds a base document to the interpreter.
+     *
+     * The document must contain a single JSON-encoded object, and will be
+     * parsed and added to the interpreter's data sequence.
+     *
+     * @param json The contents of the document.
+     */
     void add_data_json(const std::string& json);
+
+    /**
+     * Adds a base document to the interpreter.
+     *
+     * Adds an AST node directly to the interpreter's data sequence. Use with
+     * caution.
+     *
+     * @param node The contents of the document.
+     */
     void add_data(const Node& node);
+
+    /**
+     * Sets the input document to the interpreter.
+     *
+     * This is the same as calling Interpreter::add_input_json with the contents
+     * of the file.
+     *
+     * @param path The path to the input file.
+     */
     void set_input_json_file(const std::filesystem::path& path);
+
+    /**
+     * Sets the input document to the interpreter.
+     *
+     * The document must contain a single JSON-encoded value, and will be parsed
+     * and set as the interpreter's input. This can be performed multiple times
+     * and will affect the result of any subsequent queries.
+     *
+     * @param json The contents of the document.
+     */
     void set_input_json(const std::string& json);
+
+    /**
+     * Sets the input document to the interpreter.
+     *
+     * Sets an AST node directly as the interpreter's input. Use with
+     * caution.
+     *
+     * @param node The contents of the document.
+     */
     void set_input(const Node& node);
+
+    /**
+     * Executes a query against the interpreter.
+     *
+     * This method calls Interpreter::raw_query and then converts it into a
+     * human-readable string.
+     *
+     * @param query_expr The query expression.
+     * @return The result of the query.
+     */
     std::string query(const std::string& query_expr) const;
+
+    /**
+     * Executes a query against the interpreter.
+     *
+     * The query expression must be a valid Rego query expression. The result
+     * will be an AST node representing the result, which will either be a
+     * list of bindings and terms, or an error sequence.
+     *
+     * @param query_expr The query expression.
+     * @return The result of the query.
+     */
     Node raw_query(const std::string& query_expr) const;
+
+    /**
+     * The path to the debug directory.
+     *
+     * If set, then (when in debug mode) the interpreter will output
+     * intermediary ASTs after each compiler pass to the debug directory. If the
+     * directory does not exist, it will be created.
+     */
     Interpreter& debug_path(const std::filesystem::path& prefix);
     const std::filesystem::path& debug_path() const;
+
+    /**
+     * Whether debug mode is enabled.
+     *
+     * If true, then the interpreter will output intermediary ASTs after each
+     * compiler pass to the debug directory set via Interpreter::debug_path.
+     */
     Interpreter& debug_enabled(bool enabled);
     bool debug_enabled() const;
+
+    /**
+     * Whether well-formed checks are enabled.
+     *
+     * If true, then the interpreter will perform well-formedness checks after
+     * each compiler pass using the well-formedness definitions.
+     */
     Interpreter& well_formed_checks_enabled(bool enabled);
     bool well_formed_checks_enabled() const;
-    Interpreter& executable(const std::filesystem::path& path);
-    const std::filesystem::path& executable() const;
+
+    /**
+     * The built-ins used by the interpreter.
+     *
+     * This object can be used to register custom built-ins created using
+     * BuiltInDef::create.
+     */
     BuiltIns& builtins();
     const BuiltIns& builtins() const;
 

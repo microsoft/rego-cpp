@@ -62,7 +62,7 @@ namespace rego
 
       In(Policy) *
           (T(Rule)
-           << (T(JSONFalse) *
+           << (T(False) *
                (T(RuleHead)
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
@@ -71,7 +71,7 @@ namespace rego
           Node elseseq = _(ElseSeq);
           if (elseseq->size() == 0)
           {
-            return RuleComp << _(Id) << _(Body) << _(Expr) << (JSONInt ^ "0");
+            return RuleComp << _(Id) << _(Body) << _(Expr) << (Int ^ "0");
           }
 
           // we need to create sub-rules for each possibility
@@ -80,14 +80,14 @@ namespace rego
           Node seq = NodeDef::create(Seq);
           seq
             << (RuleComp << (Var ^ subrule) << _(Body) << _(Expr)
-                         << (JSONInt ^ "0"));
+                         << (Int ^ "0"));
           for (std::size_t i = 0; i < elseseq->size(); ++i)
           {
             Node expr = elseseq->at(i) / Val;
             Node body = elseseq->at(i) / Body;
             seq
               << (RuleComp << (Var ^ subrule) << body << expr
-                           << (JSONInt ^ std::to_string(i + 1)));
+                           << (Int ^ std::to_string(i + 1)));
           }
 
           Location value = _.fresh({"value"});
@@ -97,12 +97,12 @@ namespace rego
                              << (Literal
                                  << (Expr << (RefTerm << (Var ^ value)) << Unify
                                           << (RefTerm << (Var ^ subrule)))))
-                         << (JSONInt ^ "0"));
+                         << (Int ^ "0"));
         },
 
       In(Policy) *
           (T(Rule)
-           << (T(JSONTrue) *
+           << (T(True) *
                (T(RuleHead)
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
@@ -110,12 +110,12 @@ namespace rego
         [](Match& _) {
           std::size_t rank = std::numeric_limits<std::uint16_t>::max();
           return RuleComp << _(Id) << Empty << _(Expr)
-                          << (JSONInt ^ std::to_string(rank));
+                          << (Int ^ std::to_string(rank));
         },
 
       In(Policy) *
           (T(Rule)
-           << (T(JSONFalse) *
+           << (T(False) *
                (T(RuleHead)
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadFunc)
@@ -127,7 +127,7 @@ namespace rego
           if (elseseq->size() == 0)
           {
             return RuleFunc << _(Id) << _(RuleArgs) << _(Body) << _(Expr)
-                            << (JSONInt ^ "0");
+                            << (Int ^ "0");
           }
 
           // we need to create sub-rules for each possibility
@@ -136,14 +136,14 @@ namespace rego
           Node seq = NodeDef::create(Seq);
           seq
             << (RuleFunc << (Var ^ subrule) << _(RuleArgs) << _(Body) << _(Expr)
-                         << (JSONInt ^ "0"));
+                         << (Int ^ "0"));
           for (std::size_t i = 0; i < elseseq->size(); ++i)
           {
             Node expr = elseseq->at(i) / Val;
             Node body = elseseq->at(i) / Body;
             seq
               << (RuleFunc << (Var ^ subrule) << _(RuleArgs)->clone() << body
-                           << expr << (JSONInt ^ std::to_string(i + 1)));
+                           << expr << (Int ^ std::to_string(i + 1)));
           }
 
           Location value = _.fresh({"value"});
@@ -168,12 +168,12 @@ namespace rego
                                           << (ExprCall
                                               << (RuleRef << (Var ^ subrule))
                                               << argseq))))
-                         << (JSONInt ^ "0"));
+                         << (Int ^ "0"));
         },
 
       In(Policy) *
           (T(Rule)
-           << (T(JSONTrue) *
+           << (T(True) *
                (T(RuleHead)
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadFunc)
@@ -183,12 +183,12 @@ namespace rego
         [](Match& _) {
           std::size_t rank = std::numeric_limits<std::uint16_t>::max();
           return RuleFunc << _(Id) << _(RuleArgs) << Empty << _(Expr)
-                          << (JSONInt ^ std::to_string(rank));
+                          << (Int ^ std::to_string(rank));
         },
 
       In(Policy) *
           (T(Rule)
-           << (T(JSONFalse) *
+           << (T(False) *
                (T(RuleHead)
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadSet) << T(Expr)[Expr]))) *
@@ -197,7 +197,7 @@ namespace rego
 
       In(Policy) *
           (T(Rule)
-           << (T(JSONFalse) *
+           << (T(False) *
                (T(RuleHead)
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadObj)
@@ -213,7 +213,7 @@ namespace rego
       In(Expr) * (T(Term) << (T(Ref) / T(Var))[Val]) >>
         [](Match& _) { return RefTerm << _(Val); },
 
-      In(Expr) * (T(Term) << (T(Scalar) << (T(JSONInt) / T(JSONFloat))[Val])) >>
+      In(Expr) * (T(Term) << (T(Scalar) << (T(Int) / T(Float))[Val])) >>
         [](Match& _) { return NumTerm << _(Val); },
 
       In(Expr) * (T(Term) << (T(Set) / T(SetCompr))[Set]) >>
@@ -245,11 +245,11 @@ namespace rego
                          << (Expr
                              << _(Item) << Unify
                              << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (JSONInt ^ "1"))))))));
+                                 << (Ref
+                                     << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "1"))))))));
         },
 
       In(UnifyBody) *
@@ -265,20 +265,20 @@ namespace rego
                          << (Expr
                              << _(Idx) << Unify
                              << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (JSONInt ^ "0"))))))))
+                                 << (Ref
+                                     << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "0"))))))))
                      << (Literal
                          << (Expr
                              << _(Item) << Unify
                              << (RefTerm
-                                 << (Ref << (RefHead << (Var ^ item))
-                                         << (RefArgSeq
-                                             << (RefArgBrack
-                                                 << (Scalar
-                                                     << (JSONInt ^ "1"))))))));
+                                 << (Ref
+                                     << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "1"))))))));
         },
 
       In(UnifyBody, LiteralWith) *
@@ -379,11 +379,10 @@ namespace rego
             << (Literal
                 << (Expr << (RefTerm << _(Val)->clone()) << Unify
                          << (RefTerm
-                             << (Ref
-                                 << (RefHead << (Var ^ item))
-                                 << (RefArgSeq
-                                     << (RefArgBrack
-                                         << (Scalar << (JSONInt ^ "1"))))))))
+                             << (Ref << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "1"))))))))
             << *_[UnifyBody];
 
           return Seq << (Lift << UnifyBody
@@ -421,19 +420,17 @@ namespace rego
             << (Literal
                 << (Expr << (RefTerm << _(Idx)->clone()) << Unify
                          << (RefTerm
-                             << (Ref
-                                 << (RefHead << (Var ^ item))
-                                 << (RefArgSeq
-                                     << (RefArgBrack
-                                         << (Scalar << (JSONInt ^ "0"))))))))
+                             << (Ref << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "0"))))))))
             << (Literal
                 << (Expr << (RefTerm << _(Val)->clone()) << Unify
                          << (RefTerm
-                             << (Ref
-                                 << (RefHead << (Var ^ item))
-                                 << (RefArgSeq
-                                     << (RefArgBrack
-                                         << (Scalar << (JSONInt ^ "1"))))))))
+                             << (Ref << (RefHead << (Var ^ item))
+                                     << (RefArgSeq
+                                         << (RefArgBrack
+                                             << (Scalar << (Int ^ "1"))))))))
             << *_[UnifyBody];
 
           return Seq << (Lift << UnifyBody

@@ -284,7 +284,7 @@ namespace
     }
 
     Node number_node =
-      unwrap_arg(args, UnwrapOpt(2).type({JSONInt}).func("regex.find_n"));
+      unwrap_arg(args, UnwrapOpt(2).type({Int}).func("regex.find_n"));
     if (number_node->type() == Error)
     {
       return number_node;
@@ -338,7 +338,7 @@ namespace
     }
 
     Node number_node =
-      unwrap_arg(args, UnwrapOpt(2).type({JSONInt}).func("regex.find_n"));
+      unwrap_arg(args, UnwrapOpt(2).type({Int}).func("regex.find_n"));
     if (number_node->type() == Error)
     {
       return number_node;

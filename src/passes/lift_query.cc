@@ -17,7 +17,7 @@ namespace rego
                      << (Ref << (RefHead << (Var ^ querymodule)) << RefArgSeq))
                  << (Policy
                      << (RuleComp << (Var ^ queryrule) << Empty << _(Query)
-                                  << (JSONInt ^ "0")));
+                                  << (Int ^ "0")));
         std::ostringstream oss;
         oss << "data." << querymodule.view() << "." << queryrule.view();
         std::string ref = oss.str();

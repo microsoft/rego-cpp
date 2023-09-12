@@ -92,12 +92,12 @@ namespace
 
     if (num_decimals == 0)
     {
-      return JSONInt ^ num_str;
+      return Int ^ num_str;
     }
 
     if (num_decimals == 1)
     {
-      return JSONFloat ^ num_str;
+      return Float ^ num_str;
     }
 
     return err(x, errors.parse, EvalBuiltInError);
@@ -105,20 +105,20 @@ namespace
 
   Node scale(const Node& num, const BigInt& scale, bool round)
   {
-    if (num->type() == JSONInt)
+    if (num->type() == Int)
     {
       BigInt num_int(num->location());
-      return JSONInt ^ (num_int * scale).loc();
+      return Int ^ (num_int * scale).loc();
     }
 
-    if (num->type() == JSONFloat)
+    if (num->type() == Float)
     {
       double result = get_double(num) * scale.to_int();
       if (round)
       {
         result = std::round(result);
         Node result_node = Resolver::scalar(result);
-        return JSONInt ^ result_node->location();
+        return Int ^ result_node->location();
       }
 
       return Resolver::scalar(result);
@@ -129,7 +129,7 @@ namespace
 
   Node scale(const Node& num, double scale)
   {
-    if (num->type() == JSONFloat || num->type() == JSONInt)
+    if (num->type() == Float || num->type() == Int)
     {
       return Resolver::scalar(get_double(num) * scale);
     }

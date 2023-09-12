@@ -65,7 +65,7 @@ namespace
       return err(op, "unsupported math operation");
     }
 
-    return JSONInt ^ value.loc();
+    return Int ^ value.loc();
   }
 
   Node do_arith(const Node& op, double lhs, double rhs)
@@ -104,7 +104,7 @@ namespace
     std::ostringstream oss;
     oss << std::setprecision(std::numeric_limits<double>::max_digits10 - 1)
         << std::noshowpoint << value;
-    return JSONFloat ^ oss.str();
+    return Float ^ oss.str();
   }
 
   Node do_bool(const Node& op, BigInt lhs, BigInt rhs)
@@ -141,11 +141,11 @@ namespace
 
     if (value)
     {
-      return JSONTrue ^ "true";
+      return True ^ "true";
     }
     else
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
   }
 
@@ -183,11 +183,11 @@ namespace
 
     if (value)
     {
-      return JSONTrue ^ "true";
+      return True ^ "true";
     }
     else
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
   }
 
@@ -225,11 +225,11 @@ namespace
 
     if (value)
     {
-      return JSONTrue ^ "true";
+      return True ^ "true";
     }
     else
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
   }
 }
@@ -238,7 +238,7 @@ namespace rego
 {
   Node Resolver::scalar(BigInt value)
   {
-    return JSONInt ^ value.loc();
+    return Int ^ value.loc();
   }
 
   Node Resolver::scalar(double value)
@@ -246,12 +246,12 @@ namespace rego
     std::ostringstream oss;
     oss << std::setprecision(std::numeric_limits<double>::max_digits10 - 1)
         << std::noshowpoint << value;
-    return JSONFloat ^ oss.str();
+    return Float ^ oss.str();
   }
 
   Node Resolver::scalar()
   {
-    return JSONNull ^ "null";
+    return Null ^ "null";
   }
 
   Node Resolver::term(BigInt value)
@@ -298,26 +298,26 @@ namespace rego
   {
     if (value)
     {
-      return JSONTrue ^ "true";
+      return True ^ "true";
     }
     else
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
   }
 
   Node Resolver::negate(const Node& node)
   {
-    if (node->type() == JSONInt)
+    if (node->type() == Int)
     {
       BigInt value = get_int(node);
-      return JSONInt ^ value.negate().loc();
+      return Int ^ value.negate().loc();
     }
-    else if (node->type() == JSONFloat)
+    else if (node->type() == Float)
     {
       double value = get_double(node);
       value *= -1.0;
-      return JSONFloat ^ std::to_string(value);
+      return Float ^ std::to_string(value);
     }
     else
     {
@@ -329,7 +329,7 @@ namespace rego
   {
     if (lhs->type() == Undefined || rhs->type() == Undefined)
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
 
     if (lhs->type() == Error)
@@ -342,15 +342,15 @@ namespace rego
       return rhs;
     }
 
-    auto maybe_lhs_number = unwrap(lhs, {JSONInt, JSONFloat});
-    auto maybe_rhs_number = unwrap(rhs, {JSONInt, JSONFloat});
+    auto maybe_lhs_number = unwrap(lhs, {Int, Float});
+    auto maybe_rhs_number = unwrap(rhs, {Int, Float});
 
     if (maybe_lhs_number.success && maybe_rhs_number.success)
     {
       Node lhs_number = maybe_lhs_number.node;
       Node rhs_number = maybe_rhs_number.node;
       if (
-        lhs_number->type() == JSONInt && rhs_number->type() == JSONInt &&
+        lhs_number->type() == Int && rhs_number->type() == Int &&
         op->type() != Divide)
       {
         return do_arith(op, get_int(lhs_number), get_int(rhs_number));
@@ -414,7 +414,7 @@ namespace rego
   {
     if (lhs->type() == Undefined || rhs->type() == Undefined)
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
 
     if (lhs->type() == Error)
@@ -427,14 +427,14 @@ namespace rego
       return rhs;
     }
 
-    auto maybe_lhs_number = unwrap(lhs, {JSONInt, JSONFloat});
-    auto maybe_rhs_number = unwrap(rhs, {JSONInt, JSONFloat});
+    auto maybe_lhs_number = unwrap(lhs, {Int, Float});
+    auto maybe_rhs_number = unwrap(rhs, {Int, Float});
 
     if (maybe_lhs_number.success && maybe_rhs_number.success)
     {
       Node lhs_number = maybe_lhs_number.node;
       Node rhs_number = maybe_rhs_number.node;
-      if (lhs_number->type() == JSONInt && rhs_number->type() == JSONInt)
+      if (lhs_number->type() == Int && rhs_number->type() == Int)
       {
         return do_bool(op, get_int(lhs_number), get_int(rhs_number));
       }
@@ -470,7 +470,7 @@ namespace rego
         index = index->front();
       }
 
-      if (index->type() == JSONInt)
+      if (index->type() == Int)
       {
         auto i = get_int(index).to_size();
         if (i < container->size())
@@ -569,9 +569,9 @@ namespace rego
     }
 
     if (
-      value->type() == JSONInt || value->type() == JSONFloat ||
-      value->type() == JSONString || value->type() == JSONTrue ||
-      value->type() == JSONFalse || value->type() == JSONNull)
+      value->type() == Int || value->type() == Float ||
+      value->type() == JSONString || value->type() == True ||
+      value->type() == False || value->type() == Null)
     {
       return Term << (Scalar << value);
     }
@@ -638,7 +638,7 @@ namespace rego
 
   Node Resolver::unary(const Node& value)
   {
-    auto maybe_number = unwrap(value, {JSONInt, JSONFloat});
+    auto maybe_number = unwrap(value, {Int, Float});
     if (maybe_number.success)
     {
       return negate(maybe_number.node);
@@ -1233,7 +1233,7 @@ namespace rego
     }
     else
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
 
     std::string index_str = to_json(index);
@@ -1241,11 +1241,11 @@ namespace rego
     {
       if (i == index_str)
       {
-        return JSONTrue ^ "true";
+        return True ^ "true";
       }
     }
 
-    return JSONFalse ^ "false";
+    return False ^ "false";
   }
 
   Node Resolver::membership(const Node& item, const Node& itemseq)
@@ -1267,15 +1267,15 @@ namespace rego
     }
     else
     {
-      return JSONFalse ^ "false";
+      return False ^ "false";
     }
 
     if (indices.size() > 0)
     {
-      return JSONTrue ^ "True";
+      return True ^ "True";
     }
 
-    return JSONFalse ^ "false";
+    return False ^ "false";
   }
 
   std::vector<std::string> Resolver::array_find(

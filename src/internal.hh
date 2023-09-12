@@ -5,20 +5,32 @@
 
 #include "rego/rego.hh"
 
-#define LOG(...) Logger::print(Logger::indent, __VA_ARGS__)
+#define LOG_ERROR(...) \
+  Logger::print(LogLevel::Error, Logger::indent, "Error: ", __VA_ARGS__)
+#define LOG_WARNING(...) \
+  Logger::print(LogLevel::Warning, Logger::indent, "Warning: ", __VA_ARGS__)
+#define LOG_INFO(...) Logger::print(LogLevel::Info, Logger::indent, __VA_ARGS__)
+#define LOG_DEBUG(...) \
+  Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
+#define LOG_Trace(...) \
+  Logger::print(LogLevel::Trace, Logger::indent, __VA_ARGS__)
+#define LOG(...) Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
 #define LOG_HEADER(message, header) \
-  Logger::print(Logger::indent, (header), (message), (header))
-#define LOG_VECTOR(vector) Logger::print_vector_inline((vector))
+  Logger::print(LogLevel::Debug, Logger::indent, (header), (message), (header))
+#define LOG_VECTOR(vector) \
+  Logger::print_vector_inline(LogLevel::Debug, (vector))
 #define LOG_VECTOR_CUSTOM(vector, transform) \
-  Logger::print_vector_custom((vector), (transform))
-#define LOG_MAP_VALUES(map) Logger::print_map_values((map))
+  Logger::print_vector_custom(LogLevel::Debug, (vector), (transform))
+#define LOG_MAP_VALUES(map) Logger::print_map_values(LogLevel::Debug, (map))
 #define LOG_INDENT() Logger::increase_print_indent()
 #define LOG_UNINDENT() Logger::decrease_print_indent()
 
 namespace rego
 {
+  std::vector<PassCheck> passes(const BuiltIns& builtins);
+
   const inline auto ScalarToken =
-    T(JSONInt) / T(JSONFloat) / T(JSONTrue) / T(JSONFalse) / T(JSONNull);
+    T(Int) / T(Float) / T(True) / T(False) / T(Null);
   const inline auto ArithToken =
     T(Add) / T(Subtract) / T(Multiply) / T(Divide) / T(Modulo);
   const inline auto ArithInfixArg = T(Expr) / T(NumTerm) / T(Ref) /
@@ -45,45 +57,6 @@ namespace rego
   inline const std::set<Token> RuleTypes(
     {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
 
-  struct UnwrapResult
-  {
-    Node node;
-    bool success;
-  };
-
-  class UnwrapOpt
-  {
-  public:
-    UnwrapOpt(std::size_t index);
-    bool exclude_got() const;
-    UnwrapOpt& exclude_got(bool exclude_got);
-    bool specify_number() const;
-    UnwrapOpt& specify_number(bool specify_number);
-    const std::string& code() const;
-    UnwrapOpt& code(const std::string& value);
-    const std::string& pre() const;
-    UnwrapOpt& pre(const std::string& value);
-    const std::string& message() const;
-    UnwrapOpt& message(const std::string& value);
-    const std::string& func() const;
-    UnwrapOpt& func(const std::string& value);
-    const std::vector<Token>& types() const;
-    UnwrapOpt& types(const std::vector<Token>& value);
-    UnwrapOpt& type(const Token& value);
-
-    Node unwrap(const Nodes& args) const;
-
-  private:
-    bool m_exclude_got;
-    bool m_specify_number;
-    std::string m_code;
-    std::string m_prefix;
-    std::string m_message;
-    std::string m_func;
-    std::vector<Token> m_types;
-    std::size_t m_index;
-  };
-
   bool all_alnum(const std::string_view& str);
   bool contains_local(const Node& node);
   bool contains_ref(const Node& node);
@@ -98,14 +71,8 @@ namespace rego
   bool is_undefined(const Node& node);
   bool is_ref_to_type(const Node& var, const std::set<Token>& types);
   std::string strip_quotes(const std::string_view& str);
-  BigInt get_int(const Node& node);
-  double get_double(const Node& node);
-  std::string get_string(const Node& node);
-  bool get_bool(const Node& node);
   std::string type_name(const Token& type, bool specify_number = false);
   std::string type_name(const Node& node, bool specify_number = false);
-  Node unwrap_arg(const Nodes& args, const UnwrapOpt& options);
-  UnwrapResult unwrap(const Node& term, const std::set<Token>& types);
 
   using namespace trieste;
   using PrintNode = std::ostream& (*)(std::ostream&, const Node&);
@@ -230,7 +197,7 @@ namespace rego
 
   struct Logger
   {
-    static bool enabled;
+    static LogLevel maximum_level;
     static std::string indent;
 
     static inline void increase_print_indent()
@@ -244,28 +211,29 @@ namespace rego
     }
 
     template <typename T>
-    static inline void print(const T& value)
+    static inline void print(LogLevel level, const T& value)
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
         std::cout << value << std::endl;
       }
     }
 
     template <typename T, typename... Types>
-    static void print(T head, Types... tail)
+    static void print(LogLevel level, T head, Types... tail)
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
         std::cout << head;
-        print(tail...);
+        print(level, tail...);
       }
     }
 
     template <typename T>
-    static inline void print_vector_inline(const std::vector<T>& values)
+    static inline void print_vector_inline(
+      LogLevel level, const std::vector<T>& values)
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
         std::cout << indent << "[";
         std::string sep = "";
@@ -280,28 +248,29 @@ namespace rego
 
     template <typename T, typename P>
     static inline void print_vector_custom(
-      const std::vector<T>& values, P (*transform)(const T&))
+      LogLevel level, const std::vector<T>& values, P (*transform)(const T&))
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
         for (auto& value : values)
         {
-          print(indent, transform(value));
+          print(level, indent, transform(value));
         }
       }
     }
 
     template <typename K, typename V>
-    static inline void print_map_values(const std::map<K, V>& values)
+    static inline void print_map_values(
+      LogLevel level, const std::map<K, V>& values)
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
-        print(indent, "{");
+        print(level, indent, "{");
         for (auto& [_, value] : values)
         {
-          print(indent, "  ", value);
+          print(level, indent, "  ", value);
         }
-        print(indent, "}");
+        print(level, indent, "}");
       }
     }
   };

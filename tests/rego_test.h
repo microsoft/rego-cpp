@@ -128,8 +128,8 @@ namespace rego_test
 
   const auto inline wf_rego_term_tokens =
     rego::Scalar | rego::Object | rego::Array | rego::Set;
-  const auto inline wf_rego_scalar_tokens = rego::JSONInt | rego::JSONFloat |
-    rego::JSONString | rego::JSONTrue | rego::JSONFalse | rego::JSONNull;
+  const auto inline wf_rego_scalar_tokens = rego::Int | rego::Float |
+    rego::JSONString | rego::True | rego::False | rego::Null;
 
   // clang-format off
   inline const auto wf_pass_to_rego =

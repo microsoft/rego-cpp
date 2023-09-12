@@ -120,14 +120,14 @@ namespace rego
                     << (UnifyBody
                         << (LiteralEnum << (Var ^ item) << _(Expr))
                         << (Literal
-                            << (Expr << (RefTerm << _(Val)) << Unify
-                                     << (RefTerm
-                                         << (Ref << (RefHead << (Var ^ item))
-                                                 << (RefArgSeq
-                                                     << (RefArgBrack
-                                                         << (Scalar
-                                                             << (JSONInt ^
-                                                                 "1"))))))))
+                            << (Expr
+                                << (RefTerm << _(Val)) << Unify
+                                << (RefTerm
+                                    << (Ref
+                                        << (RefHead << (Var ^ item))
+                                        << (RefArgSeq
+                                            << (RefArgBrack
+                                                << (Scalar << (Int ^ "1"))))))))
                         << (LiteralNot << _(UnifyBody)))));
         },
 
@@ -148,24 +148,24 @@ namespace rego
                     << (UnifyBody
                         << (LiteralEnum << (Var ^ item) << _(Expr))
                         << (Literal
-                            << (Expr << (RefTerm << _(Idx)->clone()) << Unify
-                                     << (RefTerm
-                                         << (Ref << (RefHead << (Var ^ item))
-                                                 << (RefArgSeq
-                                                     << (RefArgBrack
-                                                         << (Scalar
-                                                             << (JSONInt ^
-                                                                 "0"))))))))
+                            << (Expr
+                                << (RefTerm << _(Idx)->clone()) << Unify
+                                << (RefTerm
+                                    << (Ref
+                                        << (RefHead << (Var ^ item))
+                                        << (RefArgSeq
+                                            << (RefArgBrack
+                                                << (Scalar << (Int ^ "0"))))))))
 
                         << (Literal
-                            << (Expr << (RefTerm << _(Val)->clone()) << Unify
-                                     << (RefTerm
-                                         << (Ref << (RefHead << (Var ^ item))
-                                                 << (RefArgSeq
-                                                     << (RefArgBrack
-                                                         << (Scalar
-                                                             << (JSONInt ^
-                                                                 "1"))))))))
+                            << (Expr
+                                << (RefTerm << _(Val)->clone()) << Unify
+                                << (RefTerm
+                                    << (Ref
+                                        << (RefHead << (Var ^ item))
+                                        << (RefArgSeq
+                                            << (RefArgBrack
+                                                << (Scalar << (Int ^ "1"))))))))
                         << (LiteralNot << _(UnifyBody)))));
         },
 

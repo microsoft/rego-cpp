@@ -2,7 +2,7 @@
 
 namespace rego
 {
-  bool Logger::enabled = false;
+  LogLevel Logger::maximum_level = LogLevel::None;
   std::string Logger::indent = "";
 
   std::vector<PassCheck> passes(const BuiltIns& builtins)
@@ -109,8 +109,8 @@ namespace rego
     return d;
   }
 
-  void set_logging_enabled(bool enabled)
+  void set_log_level(LogLevel level)
   {
-    Logger::enabled = enabled;
+    Logger::maximum_level = level;
   }
 }

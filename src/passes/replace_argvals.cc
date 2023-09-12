@@ -55,7 +55,7 @@ namespace
         Node item = unwrap_term(argval->at(i));
         (itemref / RefArgSeq)
           << (RefArgBrack
-              << (Expr << (Term << (Scalar << (JSONInt ^ std::to_string(i))))));
+              << (Expr << (Term << (Scalar << (Int ^ std::to_string(i))))));
         add_constraints(itemref, item, stmts);
       }
     }

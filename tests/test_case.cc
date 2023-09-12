@@ -211,7 +211,7 @@ namespace rego_test
 
       std::string key = std::string((binding / rego::Var)->location().view());
       std::string value =
-        rego::to_json((binding / rego::Term), m_sort_bindings, false);
+        rego::to_json((binding / rego::Term), m_sort_bindings, true);
       bindings[key] = value;
     }
 
@@ -460,12 +460,9 @@ namespace rego_test
   }
 
   Result TestCase::run(
-    const std::filesystem::path& executable_path,
-    const std::filesystem::path& debug_path,
-    bool wf_checks) const
+    const std::filesystem::path& debug_path, bool wf_checks) const
   {
     rego::Interpreter interpreter;
-    interpreter.executable(executable_path);
     interpreter.well_formed_checks_enabled(wf_checks);
     interpreter.builtins().strict_errors(m_strict_error);
     if (!debug_path.empty())

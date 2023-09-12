@@ -51,9 +51,9 @@ namespace
   {
     Node arr = unwrap_arg(args, UnwrapOpt(0).func("array.slice").type(Array));
     Node start_number =
-      unwrap_arg(args, UnwrapOpt(1).func("array.slice").type(JSONInt));
+      unwrap_arg(args, UnwrapOpt(1).func("array.slice").type(Int));
     Node end_number =
-      unwrap_arg(args, UnwrapOpt(2).func("array.slice").type(JSONInt));
+      unwrap_arg(args, UnwrapOpt(2).func("array.slice").type(Int));
 
     std::int64_t raw_start = BigInt(start_number->location()).to_int();
     std::int64_t raw_end = BigInt(end_number->location()).to_int();

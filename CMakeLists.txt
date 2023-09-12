@@ -64,6 +64,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" OFF)
 option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
+option(REGOCPP_BUILD_DOCS "Specifies whether to build the documentation" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
 option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
 option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
@@ -72,8 +73,8 @@ option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the inst
 
 FetchContent_Declare(
   trieste
-  GIT_REPOSITORY https://github.com/matajoh/trieste
-  GIT_TAG        7bf503b81db295ddbddd8d0010f5d820057ec8a8
+  GIT_REPOSITORY https://github.com/microsoft/trieste
+  GIT_TAG        5f75cf7aeb74890066ff249a82fa14dc031a9642
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
@@ -107,9 +108,11 @@ if(CLANG_FORMAT_NOT_FOUND)
 else()
   file(GLOB_RECURSE ALL_SOURCE_FILES CONFIGURE_DEPENDS
         src/*.cc
+        src/*.hh
         src/passes/*.cc
         src/*.h
         include/rego/*.h
+        include/rego/*.hh
         tools/*.cc
         tests/*.cc
         tests/*.h
@@ -150,6 +153,11 @@ add_subdirectory(src)
 
 if(REGOCPP_BUILD_TOOLS)
   add_subdirectory(tools)
+endif()
+
+if(REGOCPP_BUILD_DOCS)
+  find_package( Doxygen REQUIRED )
+  add_subdirectory( doc )
 endif()
 
 # -------------------- Install ------------------------------------

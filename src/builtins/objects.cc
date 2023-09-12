@@ -94,7 +94,7 @@ namespace
     }
     else if (collection->type() == Array)
     {
-      auto maybe_key = unwrap(keys->at(index), {JSONInt});
+      auto maybe_key = unwrap(keys->at(index), {Int});
       if (!maybe_key.success)
       {
         return std::nullopt;
@@ -367,10 +367,10 @@ namespace
 
     if (is_subset(super, sub))
     {
-      return JSONTrue ^ "true";
+      return True ^ "true";
     }
 
-    return JSONFalse ^ "false";
+    return False ^ "false";
   }
 
   Node object_union(const Node& lhs, const Node& rhs)
