@@ -111,6 +111,7 @@ else()
         src/passes/*.cc
         src/*.h
         include/rego/*.h
+        include/rego/*.hh
         tools/*.cc
         tests/*.cc
         tests/*.h

@@ -312,15 +312,24 @@ pub enum NodeValue {
     Null,
 }
 
-/// Sets whether verbose logging is enabled for the library
-///
-/// When enabled, the Rego library will output extensive information
-/// about its internal state to stdout. This is useful for debugging
-/// the library itself, but is not useful for debugging Rego policies.
-pub fn set_logging_enabled(enabled: bool) {
-    let c_enabled: regoBoolean = if enabled { 1 } else { 0 };
-    unsafe {
-        regoSetLoggingEnabled(c_enabled);
+pub enum LogLevel {
+    None,
+    Debug,
+    Info,
+    Warn,
+    Error,
+    Trace,
+}
+
+/// Sets the level of logging produced by the library.
+pub fn set_log_level(level: LogLevel) {
+    match level {
+        LogLevel::None => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_NONE) },
+        LogLevel::Debug => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_DEBUG) },
+        LogLevel::Info => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_INFO) },
+        LogLevel::Warn => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_WARN) },
+        LogLevel::Error => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_ERROR) },
+        LogLevel::Trace => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_TRACE) },
     }
 }
 

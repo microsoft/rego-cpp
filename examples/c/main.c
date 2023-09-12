@@ -14,9 +14,9 @@
 static struct cag_option options[] = {
   {.identifier = 'l',
    .access_letters = "l",
-   .access_name = "logging",
-   .value_name = NULL,
-   .description = "Enable logging"},
+   .access_name = "log_level",
+   .value_name = "VALUE",
+   .description = "Log level (one of 'n', 'e', 'w', 'i', 'd', 't')"},
 
   {.identifier = 'r',
    .access_letters = "r",
@@ -54,7 +54,7 @@ static struct cag_option options[] = {
  */
 struct regoc_configuration
 {
-  bool logging_enabled;
+  char log_level;
   bool use_raw_query;
   const char* data_files[MAX_DATA_FILES];
   unsigned int data_files_count;
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
   char identifier;
   cag_option_context context;
   struct regoc_configuration config = {
-    .logging_enabled = false,
+    .log_level = 'n',
     .use_raw_query = false,
     .data_files_count = 0,
     .input_file = NULL,
@@ -209,7 +209,7 @@ int main(int argc, char** argv)
     switch (identifier)
     {
       case 'l':
-        config.logging_enabled = true;
+        config.log_level = cag_option_get_value(&context)[0];
         break;
 
       case 'r':
@@ -253,10 +253,6 @@ int main(int argc, char** argv)
   }
 
   rego = regoNew();
-  if (config.logging_enabled)
-  {
-    regoSetLoggingEnabled(true);
-  }
 
   for (data_index = 0; data_index < config.data_files_count; data_index++)
   {

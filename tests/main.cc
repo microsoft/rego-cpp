@@ -65,8 +65,8 @@ int main(int argc, char** argv)
   app.add_option(
     "-a,--ast", debug_path, "Output the AST (debugging for test case parser)");
 
-  bool enable_logging{false};
-  app.add_flag("-l,--logging", enable_logging, "Enable logging");
+  rego::LogLevel loglevel{rego::LogLevel::None};
+  app.add_option("-l,--loglevel", loglevel, "Enable logging");
 
   bool wf_checks{false};
   app.add_flag("-w,--wf", wf_checks, "Enable well-formedness checks (slow)");
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
     return app.exit(e);
   }
 
-  rego::set_logging_enabled(enable_logging);
+  rego::set_log_level(loglevel);
 
   std::cout << "Loading test cases:";
   TestCases all_testcases;

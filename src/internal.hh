@@ -5,13 +5,18 @@
 
 #include "rego/rego.hh"
 
-#define LOG(...) Logger::print(Logger::indent, __VA_ARGS__)
+#define LOG_ERROR(...) Logger::print(LogLevel::Error, Logger::indent, "Error: ", __VA_ARGS__)
+#define LOG_WARNING(...) Logger::print(LogLevel::Warning, Logger::indent, "Warning: ", __VA_ARGS__)
+#define LOG_INFO(...) Logger::print(LogLevel::Info, Logger::indent, __VA_ARGS__)
+#define LOG_DEBUG(...) Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
+#define LOG_Trace(...) Logger::print(LogLevel::Trace, Logger::indent, __VA_ARGS__)
+#define LOG(...) Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
 #define LOG_HEADER(message, header) \
-  Logger::print(Logger::indent, (header), (message), (header))
-#define LOG_VECTOR(vector) Logger::print_vector_inline((vector))
+  Logger::print(LogLevel::Debug, Logger::indent, (header), (message), (header))
+#define LOG_VECTOR(vector) Logger::print_vector_inline(LogLevel::Debug, (vector))
 #define LOG_VECTOR_CUSTOM(vector, transform) \
-  Logger::print_vector_custom((vector), (transform))
-#define LOG_MAP_VALUES(map) Logger::print_map_values((map))
+  Logger::print_vector_custom(LogLevel::Debug, (vector), (transform))
+#define LOG_MAP_VALUES(map) Logger::print_map_values(LogLevel::Debug, (map))
 #define LOG_INDENT() Logger::increase_print_indent()
 #define LOG_UNINDENT() Logger::decrease_print_indent()
 
@@ -185,7 +190,7 @@ namespace rego
 
   struct Logger
   {
-    static bool enabled;
+    static LogLevel maximum_level;
     static std::string indent;
 
     static inline void increase_print_indent()
@@ -199,28 +204,28 @@ namespace rego
     }
 
     template <typename T>
-    static inline void print(const T& value)
+    static inline void print(LogLevel level, const T& value)
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
         std::cout << value << std::endl;
       }
     }
 
     template <typename T, typename... Types>
-    static void print(T head, Types... tail)
+    static void print(LogLevel level, T head, Types... tail)
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
         std::cout << head;
-        print(tail...);
+        print(level, tail...);
       }
     }
 
     template <typename T>
-    static inline void print_vector_inline(const std::vector<T>& values)
+    static inline void print_vector_inline(LogLevel level, const std::vector<T>& values)
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
         std::cout << indent << "[";
         std::string sep = "";
@@ -235,28 +240,28 @@ namespace rego
 
     template <typename T, typename P>
     static inline void print_vector_custom(
-      const std::vector<T>& values, P (*transform)(const T&))
+      LogLevel level, const std::vector<T>& values, P (*transform)(const T&))
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
         for (auto& value : values)
         {
-          print(indent, transform(value));
+          print(level, indent, transform(value));
         }
       }
     }
 
     template <typename K, typename V>
-    static inline void print_map_values(const std::map<K, V>& values)
+    static inline void print_map_values(LogLevel level, const std::map<K, V>& values)
     {
-      if (enabled)
+      if (level <= maximum_level)
       {
-        print(indent, "{");
+        print(level, indent, "{");
         for (auto& [_, value] : values)
         {
-          print(indent, "  ", value);
+          print(level, indent, "  ", value);
         }
-        print(indent, "}");
+        print(level, indent, "}");
       }
     }
   };

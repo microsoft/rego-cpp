@@ -48,7 +48,7 @@ namespace rego
       throw std::runtime_error("Module file does not exist");
     }
 
-    LOG("Adding module file: ", path);
+    LOG_INFO("Adding module file: ", path);
     auto file_ast = m_parser.sub_parse(path);
     insert_module(file_ast);
   }
@@ -59,7 +59,7 @@ namespace rego
     auto module_source = SourceDef::synthetic(contents);
     auto module = m_parser.sub_parse(name, File, module_source);
     insert_module(module);
-    LOG("Adding module: ", name, "(", contents.size(), " bytes)");
+    LOG_INFO("Adding module: ", name, "(", contents.size(), " bytes)");
   }
 
   void Interpreter::add_data_json_file(const std::filesystem::path& path)
@@ -69,7 +69,7 @@ namespace rego
       throw std::runtime_error("Data file does not exist");
     }
 
-    LOG("Adding data file: ", path);
+    LOG_INFO("Adding data file: ", path);
     auto file_ast = m_parser.sub_parse(path);
     m_data_seq->push_back(file_ast);
   }
@@ -79,13 +79,13 @@ namespace rego
     auto data_source = SourceDef::synthetic(json);
     auto data = m_parser.sub_parse("data", File, data_source);
     m_data_seq->push_back(data);
-    LOG("Adding data (", json.size(), " bytes)");
+    LOG_INFO("Adding data (", json.size(), " bytes)");
   }
 
   void Interpreter::add_data(const Node& node)
   {
     m_data_seq->push_back(node);
-    LOG("Adding data AST");
+    LOG_INFO("Adding data AST");
   }
 
   void Interpreter::set_input_json_file(const std::filesystem::path& path)
@@ -95,14 +95,14 @@ namespace rego
       throw std::runtime_error("Input file does not exist");
     }
 
-    LOG("Setting input from file: ", path);
+    LOG_INFO("Setting input from file: ", path);
     auto file_ast = m_parser.sub_parse(path);
     m_input = Input << file_ast;
   }
 
   void Interpreter::set_input_json(const std::string& json)
   {
-    LOG("Setting input (", json.size(), " bytes)");
+    LOG_INFO("Setting input (", json.size(), " bytes)");
     auto input_source = SourceDef::synthetic(json);
     auto ast = m_parser.sub_parse("input", File, input_source);
     m_input = Input << ast;
@@ -110,7 +110,7 @@ namespace rego
 
   void Interpreter::set_input(const Node& node)
   {
-    LOG("Setting input AST");
+    LOG_INFO("Setting input AST");
     m_input = Input << node;
   }
 
@@ -140,7 +140,7 @@ namespace rego
 
   Node Interpreter::raw_query(const std::string& query_expr) const
   {
-    LOG("Query: ", query_expr);
+    LOG_INFO("Query: ", query_expr);
     auto ast = NodeDef::create(Top);
     auto rego = NodeDef::create(rego::Rego);
     auto query_src = SourceDef::synthetic(query_expr);
@@ -168,11 +168,13 @@ namespace rego
       return get_errors(ast);
     }
 
-    LOG("Name", "Passes", "Changes", "Time(ms)");
+    const std::string delim = "\t";
+    LOG_INFO("Name\tPasses\tChanges\tTime(ms)");
     auto passes = rego::passes(m_builtins);
+    timestamp start = clock::now();
     for (std::size_t i = 0; i < passes.size(); ++i)
     {
-      timestamp start = clock::now();
+      timestamp pass_start = clock::now();
       auto& [pass_name, pass, wf] = passes[i];
       wf::push_back(wf);
       auto [new_ast, count, changes] = pass->run(ast);
@@ -187,8 +189,16 @@ namespace rego
         ok = wf->check(ast, std::cout) && ok;
       }
 
-      duration elapsed = clock::now() - start;
-      LOG(pass_name, count, changes, std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+      duration pass_elapsed = clock::now() - pass_start;
+      LOG_INFO(
+        pass_name,
+        delim,
+        count,
+        delim,
+        changes,
+        delim,
+        std::chrono::duration_cast<std::chrono::milliseconds>(pass_elapsed)
+          .count());
 
       Node errors = get_errors(ast);
       if (errors->size() > 0)
@@ -204,14 +214,24 @@ namespace rego
           error << "Failed at pass " << pass_name << std::endl;
           ast->errors(error);
           errors->push_back(err(ast, error.str(), "well_formed_error"));
-          LOG(error.str());
+          LOG_INFO(error.str());
         }
 
         return errors;
       }
     }
 
-    LOG("Query result: ", ast);
+    duration elapsed = clock::now() - start;
+    LOG_INFO(
+      "Total",
+      delim,
+      "-",
+      delim,
+      "-",
+      delim,
+      std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+
+    LOG_INFO("Query result: ", ast);
     return ast;
   }
 
