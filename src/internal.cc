@@ -1,5 +1,4 @@
 #include "internal.hh"
-#include "version.h"
 
 #ifdef _WIN32
 #include <codecvt>

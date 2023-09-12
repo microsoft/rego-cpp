@@ -1321,9 +1321,9 @@ namespace rego
    * Creates a test driver.
    *
    * The test driver performs probabilstic testing of the complication. For each
-   * pass it generates random AST outputs depending on the well-formed expression
-   * of the input, runs them through the pass logic, and then checks it against the
-   * wf expression for the output.
+   * pass it generates random AST outputs depending on the well-formed
+   * expression of the input, runs them through the pass logic, and then checks
+   * it against the wf expression for the output.
    *
    * @param builtins The built-ins to use.
    * @return The driver.
@@ -1344,7 +1344,8 @@ namespace rego
   /** Converts a node to JSON.
    *
    * @param node The node to convert.
-   * @param sort Whether to sort the keys of a JSON object or the values in a set.
+   * @param sort Whether to sort the keys of a JSON object or the values in a
+   * set.
    * @param set_as_array Whether to represent a set using array notation.
    */
   std::string to_json(
@@ -1365,23 +1366,24 @@ namespace rego
 
   /**
    * Sets the logging level for the library.
-   * 
+   *
    * @param level The logging level.
    */
   void set_log_level(LogLevel level);
 
   /**
    * This class forms the main interface to the Rego library.
-   * 
+   *
    * You can use it to assemble and then execute queries, for example:
-   * 
+   *
    * ```cpp
    * Interpreter rego;
    * rego.add_module_file("objects.rego");
    * rego.add_data_json_file("data0.json");
    * rego.add_data_json_file("data1.json");
    * rego.add_input_json_file("input0.json");
-   * std::cout << rego.query("[data.one, input.b, data.objects.sites[1]]") << std::endl;   * 
+   * std::cout << rego.query("[data.one, input.b, data.objects.sites[1]]") <<
+   * std::endl;
    * ```
    */
   class Interpreter
@@ -1389,32 +1391,33 @@ namespace rego
   public:
     /**
      * Constructor.
-     * 
+     *
      * Pushes the default WF context.
      */
     Interpreter();
 
     /**
      * Destructor.
-     * 
+     *
      * Pops the default WF context.
      */
     ~Interpreter();
 
     /**
      * Adds a module (i.e. virtual document) file to the interpreter.
-     * 
-     * This is the same as calling Interpreter::add_module with the contents of the file.
-     * 
+     *
+     * This is the same as calling Interpreter::add_module with the contents of
+     * the file.
+     *
      * @param path The path to the module file.
      */
     void add_module_file(const std::filesystem::path& path);
 
     /**
      * Adds a module (i.e. virtual document) to the interpreter.
-     * 
+     *
      * The module will be parsed and added to the interpreter's module sequence.
-     * 
+     *
      * @param name The name of the module.
      * @param contents The contents of the module.
      */
@@ -1422,69 +1425,71 @@ namespace rego
 
     /**
      * Adds a base document to the interpreter.
-     * 
-     * This is the same as calling Interpreter::add_data_json with the contents of the file.
-     * 
+     *
+     * This is the same as calling Interpreter::add_data_json with the contents
+     * of the file.
+     *
      * @param module The module to add.
      */
     void add_data_json_file(const std::filesystem::path& path);
 
     /**
      * Adds a base document to the interpreter.
-     * 
-     * The document must contain a single JSON-encoded object, and will be parsed
-     * and added to the interpreter's data sequence.
-     * 
+     *
+     * The document must contain a single JSON-encoded object, and will be
+     * parsed and added to the interpreter's data sequence.
+     *
      * @param json The contents of the document.
      */
     void add_data_json(const std::string& json);
 
     /**
      * Adds a base document to the interpreter.
-     * 
+     *
      * Adds an AST node directly to the interpreter's data sequence. Use with
      * caution.
-     * 
+     *
      * @param node The contents of the document.
      */
     void add_data(const Node& node);
 
     /**
      * Sets the input document to the interpreter.
-     * 
-     * This is the same as calling Interpreter::add_input_json with the contents of the file.
-     * 
+     *
+     * This is the same as calling Interpreter::add_input_json with the contents
+     * of the file.
+     *
      * @param path The path to the input file.
      */
     void set_input_json_file(const std::filesystem::path& path);
 
     /**
      * Sets the input document to the interpreter.
-     * 
+     *
      * The document must contain a single JSON-encoded value, and will be parsed
      * and set as the interpreter's input. This can be performed multiple times
      * and will affect the result of any subsequent queries.
-     * 
+     *
      * @param json The contents of the document.
      */
     void set_input_json(const std::string& json);
 
     /**
      * Sets the input document to the interpreter.
-     * 
+     *
      * Sets an AST node directly as the interpreter's input. Use with
      * caution.
-     * 
+     *
      * @param node The contents of the document.
      */
     void set_input(const Node& node);
 
     /**
      * Executes a query against the interpreter.
-     * 
+     *
      * This method calls Interpreter::raw_query and then converts it into a
      * human-readable string.
-     * 
+     *
      * @param query_expr The query expression.
      * @return The result of the query.
      */
@@ -1492,23 +1497,23 @@ namespace rego
 
     /**
      * Executes a query against the interpreter.
-     * 
+     *
      * The query expression must be a valid Rego query expression. The result
      * will be an AST node representing the result, which will either be a
      * list of bindings and terms, or an error sequence.
-     * 
+     *
      * @param query_expr The query expression.
      * @return The result of the query.
      */
     Node raw_query(const std::string& query_expr) const;
 
-   /**
-   * The path to the debug directory.
-   *
-   * If set, then (when in debug mode) the interpreter will output intermediary
-   * ASTs after each compiler pass to the debug directory. If the directory does
-   * not exist, it will be created.
-   */
+    /**
+     * The path to the debug directory.
+     *
+     * If set, then (when in debug mode) the interpreter will output
+     * intermediary ASTs after each compiler pass to the debug directory. If the
+     * directory does not exist, it will be created.
+     */
     Interpreter& debug_path(const std::filesystem::path& prefix);
     const std::filesystem::path& debug_path() const;
 
@@ -1532,7 +1537,7 @@ namespace rego
 
     /**
      * The built-ins used by the interpreter.
-     * 
+     *
      * This object can be used to register custom built-ins created using
      * BuiltInDef::create.
      */

@@ -341,12 +341,14 @@ extern "C"
   // --------- Node functions --------- //
   ////////////////////////////////////////
 
+  // clang-format off
+
   /**
    * Returns an enumeration value indicating the nodes type.
    *
    * This type will be one of the following values:
    *
-// clang-format off
+   * 
    * | Name | Description |
    * | ---- | ----------- |
    * | REGO_NODE_BINDING | A binding. Will have two children, a REGO_NODE_VAR and a REGO_NODE_TERM |
@@ -371,10 +373,11 @@ extern "C"
    * | REGO_NODE_ERROR_SEQ | An error sequence. Will have one or more children of: REGO_NODE_ERROR |
    * | REGO_NODE_INTERNAL | An internal node. Use regoNodeTypeName to get the full value. |
    *
-// clang-format on
    * @return The node type.
    */
   regoEnum regoNodeType(regoNode* node);
+
+  // clang-format on
 
   /**
    * Returns the name of the node type as a human-readable string.
