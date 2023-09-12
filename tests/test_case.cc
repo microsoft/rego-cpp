@@ -460,12 +460,10 @@ namespace rego_test
   }
 
   Result TestCase::run(
-    const std::filesystem::path& executable_path,
     const std::filesystem::path& debug_path,
     bool wf_checks) const
   {
     rego::Interpreter interpreter;
-    interpreter.executable(executable_path);
     interpreter.well_formed_checks_enabled(wf_checks);
     interpreter.builtins().strict_errors(m_strict_error);
     if (!debug_path.empty())

@@ -341,17 +341,6 @@ namespace rego
     std::cerr << "Could not open " << output << " for writing." << std::endl;
   }
 
-  Interpreter& Interpreter::executable(const std::filesystem::path& path)
-  {
-    m_parser.executable(path);
-    return *this;
-  }
-
-  const std::filesystem::path& Interpreter::executable() const
-  {
-    return m_parser.executable();
-  }
-
   BuiltIns& Interpreter::builtins()
   {
     return m_builtins;

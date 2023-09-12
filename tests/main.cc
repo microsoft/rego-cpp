@@ -139,7 +139,7 @@ int main(int argc, char** argv)
       try
       {
         auto start = std::chrono::steady_clock::now();
-        auto result = testcase.run(argv[0], debug_path, wf_checks);
+        auto result = testcase.run(debug_path, wf_checks);
         auto end = std::chrono::steady_clock::now();
         const std::chrono::duration<double> elapsed = end - start;
 

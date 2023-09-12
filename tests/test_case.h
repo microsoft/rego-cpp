@@ -23,7 +23,6 @@ namespace rego_test
       const std::filesystem::path& debug_path = "");
 
     Result run(
-      const std::filesystem::path& executable_path,
       const std::filesystem::path& debug_path,
       bool wf_checks) const;
 

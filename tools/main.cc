@@ -41,7 +41,6 @@ int main(int argc, char** argv)
   rego::set_log_level(loglevel);
 
   auto interpreter = rego::Interpreter();
-  interpreter.executable(argv[0]);
   interpreter.well_formed_checks_enabled(wf_checks);
 
   if (!input_path.empty())

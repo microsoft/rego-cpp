@@ -785,7 +785,10 @@ namespace rego
   // clang-format on
 
   struct BuiltInDef;
+  /** A pointer to a BuiltInDef.*/
   using BuiltIn = std::shared_ptr<BuiltInDef>;
+
+  /** The function pointer to the behavior of the built-in. */
   using BuiltInBehavior = Node (*)(const Nodes&);
 
   /**
@@ -1384,26 +1387,155 @@ namespace rego
   class Interpreter
   {
   public:
+    /**
+     * Constructor.
+     * 
+     * Pushes the default WF context.
+     */
     Interpreter();
+
+    /**
+     * Destructor.
+     * 
+     * Pops the default WF context.
+     */
     ~Interpreter();
+
+    /**
+     * Adds a module (i.e. virtual document) file to the interpreter.
+     * 
+     * This is the same as calling Interpreter::add_module with the contents of the file.
+     * 
+     * @param path The path to the module file.
+     */
     void add_module_file(const std::filesystem::path& path);
+
+    /**
+     * Adds a module (i.e. virtual document) to the interpreter.
+     * 
+     * The module will be parsed and added to the interpreter's module sequence.
+     * 
+     * @param name The name of the module.
+     * @param contents The contents of the module.
+     */
     void add_module(const std::string& name, const std::string& contents);
+
+    /**
+     * Adds a base document to the interpreter.
+     * 
+     * This is the same as calling Interpreter::add_data_json with the contents of the file.
+     * 
+     * @param module The module to add.
+     */
     void add_data_json_file(const std::filesystem::path& path);
+
+    /**
+     * Adds a base document to the interpreter.
+     * 
+     * The document must contain a single JSON-encoded object, and will be parsed
+     * and added to the interpreter's data sequence.
+     * 
+     * @param json The contents of the document.
+     */
     void add_data_json(const std::string& json);
+
+    /**
+     * Adds a base document to the interpreter.
+     * 
+     * Adds an AST node directly to the interpreter's data sequence. Use with
+     * caution.
+     * 
+     * @param node The contents of the document.
+     */
     void add_data(const Node& node);
+
+    /**
+     * Sets the input document to the interpreter.
+     * 
+     * This is the same as calling Interpreter::add_input_json with the contents of the file.
+     * 
+     * @param path The path to the input file.
+     */
     void set_input_json_file(const std::filesystem::path& path);
+
+    /**
+     * Sets the input document to the interpreter.
+     * 
+     * The document must contain a single JSON-encoded value, and will be parsed
+     * and set as the interpreter's input. This can be performed multiple times
+     * and will affect the result of any subsequent queries.
+     * 
+     * @param json The contents of the document.
+     */
     void set_input_json(const std::string& json);
+
+    /**
+     * Sets the input document to the interpreter.
+     * 
+     * Sets an AST node directly as the interpreter's input. Use with
+     * caution.
+     * 
+     * @param node The contents of the document.
+     */
     void set_input(const Node& node);
+
+    /**
+     * Executes a query against the interpreter.
+     * 
+     * This method calls Interpreter::raw_query and then converts it into a
+     * human-readable string.
+     * 
+     * @param query_expr The query expression.
+     * @return The result of the query.
+     */
     std::string query(const std::string& query_expr) const;
+
+    /**
+     * Executes a query against the interpreter.
+     * 
+     * The query expression must be a valid Rego query expression. The result
+     * will be an AST node representing the result, which will either be a
+     * list of bindings and terms, or an error sequence.
+     * 
+     * @param query_expr The query expression.
+     * @return The result of the query.
+     */
     Node raw_query(const std::string& query_expr) const;
+
+   /**
+   * The path to the debug directory.
+   *
+   * If set, then (when in debug mode) the interpreter will output intermediary
+   * ASTs after each compiler pass to the debug directory. If the directory does
+   * not exist, it will be created.
+   */
     Interpreter& debug_path(const std::filesystem::path& prefix);
     const std::filesystem::path& debug_path() const;
+
+    /**
+     * Whether debug mode is enabled.
+     *
+     * If true, then the interpreter will output intermediary ASTs after each
+     * compiler pass to the debug directory set via Interpreter::debug_path.
+     */
     Interpreter& debug_enabled(bool enabled);
     bool debug_enabled() const;
+
+    /**
+     * Whether well-formed checks are enabled.
+     *
+     * If true, then the interpreter will perform well-formedness checks after
+     * each compiler pass using the well-formedness definitions.
+     */
     Interpreter& well_formed_checks_enabled(bool enabled);
     bool well_formed_checks_enabled() const;
-    Interpreter& executable(const std::filesystem::path& path);
-    const std::filesystem::path& executable() const;
+
+    /**
+     * The built-ins used by the interpreter.
+     * 
+     * This object can be used to register custom built-ins created using
+     * BuiltInDef::create.
+     */
     BuiltIns& builtins();
     const BuiltIns& builtins() const;
 

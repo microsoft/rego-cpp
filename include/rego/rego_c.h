@@ -346,31 +346,32 @@ extern "C"
    *
    * This type will be one of the following values:
    *
+// clang-format off
    * | Name | Description |
    * | ---- | ----------- |
-   * | REGO_NODE_BINDING | A binding. Will have two children, a REGO_NODE_VAR
-   * and a REGO_NODE_TERM | | REGO_NODE_VAR | A variable name. | |
-   * REGO_NODE_TERM | A term. Will have one child of: REGO_NODE_SCALAR,
-   * REGO_NODE_ARRAY, REGO_NODE_SET, REGO_NODE_OBJECT | | REGO_NODE_SCALAR | A
-   * scalar value. Will have one child of: REGO_NODE_INT, REGO_NODE_FLOAT,
-   * REGO_NODE_STRING, REGO_NODE_TRUE, REGO_NODE_FALSE, REGO_NODE_NULL,
-   * REGO_NODE_UNDEFINED | | REGO_NODE_ARRAY | An array. Will have one or more
-   * children of: REGO_NODE_TERM | | REGO_NODE_SET | A set. Will have one or
-   * more children of: REGO_NODE_TERM | | REGO_NODE_OBJECT | An object. Will
-   * have one or more children of: REGO_NODE_OBJECT_ITEM | |
-   * REGO_NODE_OBJECT_ITEM | An object item. Will have two children, a
-   * REGO_NODE_TERM (the key) and a REGO_NODE_TERM (the value) | | REGO_NODE_INT
-   * | An integer value. | | REGO_NODE_FLOAT | A floating point value. | |
-   * REGO_NODE_STRING | A string value. | | REGO_NODE_TRUE | A true value. | |
-   * REGO_NODE_FALSE | A false value. | | REGO_NODE_NULL | A null value. | |
-   * REGO_NODE_UNDEFINED | An undefined value. | | REGO_NODE_ERROR | An error.
-   * Will have three children: REGO_NODE_ERROR_MESSAGE, REGO_NODE_ERROR_AST, and
-   * REGO_NODE_ERROR_CODE | | REGO_NODE_ERROR_MESSAGE | An error message. | |
-   * REGO_NODE_ERROR_AST | An error AST. | | REGO_NODE_ERROR_CODE | An error
-   * code. | | REGO_NODE_ERROR_SEQ | An error sequence. Will have one or more
-   * children of: REGO_NODE_ERROR | | REGO_NODE_INTERNAL | An internal node. Use
-   * regoNodeTypeName to get the full value. |
+   * | REGO_NODE_BINDING | A binding. Will have two children, a REGO_NODE_VAR and a REGO_NODE_TERM |
+   * | REGO_NODE_VAR | A variable name. | 
+   * | REGO_NODE_TERM | A term. Will have one child of: REGO_NODE_SCALAR, REGO_NODE_ARRAY, REGO_NODE_SET, REGO_NODE_OBJECT |
+   * | REGO_NODE_SCALAR | A scalar value. Will have one child of: REGO_NODE_INT, REGO_NODE_FLOAT, REGO_NODE_STRING, REGO_NODE_TRUE, REGO_NODE_FALSE, REGO_NODE_NULL, REGO_NODE_UNDEFINED |
+   * | REGO_NODE_ARRAY | An array. Will have one or more children of: REGO_NODE_TERM |
+   * | REGO_NODE_SET | A set. Will have one or more children of: REGO_NODE_TERM |
+   * | REGO_NODE_OBJECT | An object. Will have one or more children of: REGO_NODE_OBJECT_ITEM |
+   * | REGO_NODE_OBJECT_ITEM | An object item. Will have two children, a REGO_NODE_TERM (the key) and a REGO_NODE_TERM (the value) |
+   * | REGO_NODE_INT | An integer value. |
+   * | REGO_NODE_FLOAT | A floating point value. |
+   * | REGO_NODE_STRING | A string value. |
+   * | REGO_NODE_TRUE | A true value. |
+   * | REGO_NODE_FALSE | A false value. |
+   * | REGO_NODE_NULL | A null value. |
+   * | REGO_NODE_UNDEFINED | An undefined value. |
+   * | REGO_NODE_ERROR | An error. Will have three children: REGO_NODE_ERROR_MESSAGE, REGO_NODE_ERROR_AST, and REGO_NODE_ERROR_CODE | 
+   * | REGO_NODE_ERROR_MESSAGE | An error message. |
+   * | REGO_NODE_ERROR_AST | An error AST. |
+   * | REGO_NODE_ERROR_CODE | An error code. |
+   * | REGO_NODE_ERROR_SEQ | An error sequence. Will have one or more children of: REGO_NODE_ERROR |
+   * | REGO_NODE_INTERNAL | An internal node. Use regoNodeTypeName to get the full value. |
    *
+// clang-format on
    * @return The node type.
    */
   regoEnum regoNodeType(regoNode* node);
