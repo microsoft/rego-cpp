@@ -68,9 +68,10 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
-        num_jobs = multiprocessing.cpu_count()
+        num_workers = multiprocessing.cpu_count()
+        print("Building with", num_workers, "workers")
         build_args.append("--parallel")
-        build_args.append(str(num_jobs))
+        build_args.append(str(num_workers))
 
         subprocess.check_call(["cmake", ext.source_dir] +
                               cmake_args, cwd=self.build_temp)
