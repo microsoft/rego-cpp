@@ -86,7 +86,7 @@ fn main() {
     println!("cargo:rustc-link-lib=static=rego");
     if cfg!(windows) {
         println!("cargo:rustc-link-arg=mincore.lib");
-    } else if (cfg!(target_os = "macos")) {
+    } else if cfg!(target_os = "macos") {
         println!("cargo:rustc-link-lib=c++");
     } else {
         println!("cargo:rustc-link-lib=stdc++");
