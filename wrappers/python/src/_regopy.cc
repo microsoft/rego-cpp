@@ -1,0 +1,16 @@
+#include <rego/rego_c.h>
+#include <pybind11/pybind11.h>
+
+PYBIND11_MODULE(_regopy, m)
+{
+  m.attr("REGOCPP_VERSION") = REGOCPP_VERSION;
+  m.attr("REGOCPP_OPA_VERSION") = REGOCPP_OPA_VERSION;
+  m.attr("REGOCPP_GIT_HASH") = REGOCPP_GIT_HASH;
+  m.attr("REGOCPP_BUILD_NAME") = REGOCPP_BUILD_NAME;
+  m.attr("REGOCPP_BUILD_DATE") = REGOCPP_BUILD_DATE;
+  m.attr("REGOCPP_BUILD_TOOLCHAIN") = REGOCPP_BUILD_TOOLCHAIN;
+  m.attr("REGOCPP_PLATFORM") = REGOCPP_PLATFORM;
+
+  
+  
+}
