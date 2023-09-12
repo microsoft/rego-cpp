@@ -1305,19 +1305,51 @@ namespace rego
     const std::string& msg,
     const std::string& code = WellFormedError);
 
+  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
+
   /**
    * Creates the parser object, which turns a document into tokens.
+   *
+   * @return The parser.
    */
   Parse parser();
 
+  /**
+   * Creates a test driver.
+   *
+   * The test driver performs probabilstic testing of the complication. For each
+   * pass it generates random AST outputs depending on the well-formed expression
+   * of the input, runs them through the pass logic, and then checks it against the
+   * wf expression for the output.
+   *
+   * @param builtins The built-ins to use.
+   * @return The driver.
+   */
   Driver& driver(const BuiltIns& builtins);
-  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
-  std::vector<PassCheck> passes(const BuiltIns& builtins);
+
+  /**
+   * Returns a node representing the version of the library.
+   *
+   * The resulting node will be an object containing:
+   * - The Git commit hash ("commit")
+   * - The library version ("regocpp_version")
+   * - The supported OPA Rego version ("version")
+   * - The environment variables ("env")
+   */
   Node version();
 
+  /** Converts a node to JSON.
+   *
+   * @param node The node to convert.
+   * @param sort Whether to sort the keys of a JSON object or the values in a set.
+   * @param set_as_array Whether to represent a set using array notation.
+   */
   std::string to_json(
-    const trieste::Node& node, bool sort = false, bool rego_set = true);
+    const trieste::Node& node, bool sort = false, bool set_as_array = false);
 
+  /**
+   * The logging level.
+   */
   enum class LogLevel : char
   {
     None = REGO_LOG_LEVEL_NONE,
@@ -1328,10 +1360,27 @@ namespace rego
     Trace = REGO_LOG_LEVEL_TRACE,
   };
 
-  LogLevel parse_log_level(const std::string& level);
-
+  /**
+   * Sets the logging level for the library.
+   * 
+   * @param level The logging level.
+   */
   void set_log_level(LogLevel level);
 
+  /**
+   * This class forms the main interface to the Rego library.
+   * 
+   * You can use it to assemble and then execute queries, for example:
+   * 
+   * ```cpp
+   * Interpreter rego;
+   * rego.add_module_file("objects.rego");
+   * rego.add_data_json_file("data0.json");
+   * rego.add_data_json_file("data1.json");
+   * rego.add_input_json_file("input0.json");
+   * std::cout << rego.query("[data.one, input.b, data.objects.sites[1]]") << std::endl;   * 
+   * ```
+   */
   class Interpreter
   {
   public:

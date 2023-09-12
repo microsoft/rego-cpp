@@ -22,6 +22,8 @@
 
 namespace rego
 {
+  std::vector<PassCheck> passes(const BuiltIns& builtins);
+
   const inline auto ScalarToken =
     T(JSONInt) / T(JSONFloat) / T(JSONTrue) / T(JSONFalse) / T(JSONNull);
   const inline auto ArithToken =

@@ -2,7 +2,7 @@
 
 namespace rego
 {
-  std::string to_json(const Node& node, bool sort, bool rego_set)
+  std::string to_json(const Node& node, bool sort, bool set_as_array)
   {
     std::ostringstream buf;
     if (node->type() == JSONInt)
@@ -59,7 +59,7 @@ namespace rego
       std::vector<std::string> items;
       for (const auto& child : *node)
       {
-        items.push_back(to_json(child, sort, rego_set));
+        items.push_back(to_json(child, sort, set_as_array));
       }
 
       if (sort)
@@ -80,7 +80,7 @@ namespace rego
       std::vector<std::string> items;
       for (const auto& child : *node)
       {
-        items.push_back(to_json(child, sort, rego_set));
+        items.push_back(to_json(child, sort, set_as_array));
       }
 
       if (sort)
@@ -88,13 +88,13 @@ namespace rego
         std::sort(items.begin(), items.end());
       }
 
-      if (rego_set)
+      if (set_as_array)
       {
-        buf << "<";
+        buf << "[";
       }
       else
       {
-        buf << "[";
+        buf << "<";
       }
       std::string sep = "";
       for (const auto& item : items)
@@ -103,13 +103,13 @@ namespace rego
         sep = ", ";
       }
 
-      if (rego_set)
+      if (set_as_array)
       {
-        buf << ">";
+        buf << "]";
       }
       else
       {
-        buf << "]";
+        buf << ">";
       }
     }
     else if (node->type() == Object || node->type() == DataObject)
@@ -119,12 +119,12 @@ namespace rego
       {
         auto key = child / Key;
         auto value = child / Val;
-        std::string key_str = to_json(key, sort, rego_set);
+        std::string key_str = to_json(key, sort, set_as_array);
         if (!key_str.starts_with('"') || !key_str.ends_with('"'))
         {
           key_str = '"' + key_str + '"';
         }
-        items[key_str] = to_json(value, sort, rego_set);
+        items[key_str] = to_json(value, sort, set_as_array);
       }
 
       buf << "{";
@@ -141,12 +141,12 @@ namespace rego
       node->type() == Scalar || node->type() == Term ||
       node->type() == DataTerm)
     {
-      return to_json(node->front(), sort, rego_set);
+      return to_json(node->front(), sort, set_as_array);
     }
     else if (node->type() == Binding)
     {
       buf << (node / Var)->location().view() << " = "
-          << to_json(node / Term, sort, rego_set);
+          << to_json(node / Term, sort, set_as_array);
     }
     else if (node->type() == TermSet)
     {
@@ -154,7 +154,7 @@ namespace rego
       std::string sep = "";
       for (const auto& child : *node)
       {
-        buf << sep << to_json(child, sort, rego_set);
+        buf << sep << to_json(child, sort, set_as_array);
         sep = ", ";
       }
       buf << "}";

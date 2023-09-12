@@ -3,7 +3,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.h.in" "${CMAKE_CURRENT_BINAR
 set( SOURCES
 bigint.cc
 interpreter.cc
-lang.cc
+rego.cc
 parse.cc
 args.cc
 unifier.cc
@@ -12,7 +12,7 @@ value_map.cc
 resolver.cc
 variable.cc
 builtins.cc
-helpers.cc
+internal.cc
 rego_c.cc
 encoding.cc
 passes/input_data.cc

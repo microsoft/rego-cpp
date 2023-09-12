@@ -211,7 +211,7 @@ namespace rego_test
 
       std::string key = std::string((binding / rego::Var)->location().view());
       std::string value =
-        rego::to_json((binding / rego::Term), m_sort_bindings, false);
+        rego::to_json((binding / rego::Term), m_sort_bindings, true);
       bindings[key] = value;
     }
 
