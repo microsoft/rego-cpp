@@ -78,7 +78,6 @@ fn main() {
     let rego_path = regocpp_path.join("rust");
     let libdir_path = rego_path.join("lib");
     let headers_path = rego_path.join("include").join("rego").join("rego_c.h");
-    let headers_path_str = headers_path.to_str().expect("Path is not a valid string");
 
     println!("cargo:rustc-link-search={}", libdir_path.to_str().unwrap());
     println!("cargo:rustc-link-lib=static=re2");
@@ -92,14 +91,4 @@ fn main() {
         println!("cargo:rustc-link-lib=stdc++");
     }
     println!("cargo:rerun-if-changed={}", headers_path.to_str().unwrap());
-
-    let bindings = bindgen::Builder::default()
-        .header(headers_path_str)
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .generate()
-        .expect("Unable to generate bindings");
-
-    bindings
-        .write_to_file(out_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
 }

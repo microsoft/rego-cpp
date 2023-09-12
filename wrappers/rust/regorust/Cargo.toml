@@ -3,7 +3,7 @@ name = "regorust"
 version = "0.3.5"
 edition = "2021"
 description = "Rust bindings for the rego-cpp Rego compiler and interpreter"
-license-file = "LICENSE"
+license = "MIT"
 readme = "README.md"
 homepage = "https://microsoft.github.io/rego-cpp/"
 repository = "https://github.com/microsoft/rego-cpp"
@@ -11,4 +11,4 @@ repository = "https://github.com/microsoft/rego-cpp"
 [dependencies]
 
 [build-dependencies]
-bindgen = "*"
+

@@ -1,6 +1,6 @@
 #![allow(non_camel_case_types)]
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+include!("bindings.rs");
 
 use std::ffi::{CStr, CString};
 use std::ops::Index;
