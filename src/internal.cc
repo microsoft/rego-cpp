@@ -728,4 +728,55 @@ namespace rego
       return false;
     }
   }
+
+  Node scalar(BigInt value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar(double value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar(bool value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar(const char* value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar(const std::string& value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node scalar()
+  {
+    return Resolver::scalar();
+  }
+
+  Node object_item(const Node& key_term, const Node& val_term)
+  {
+    return ObjectItem << Resolver::to_term(key_term)
+                      << Resolver::to_term(val_term);
+  }
+
+  Node object(const Nodes& object_items)
+  {
+    return Object << object_items;
+  }
+
+  Node array(const Nodes& array_members)
+  {
+    return Array << array_members;
+  }
+
+  Node set(const Nodes& set_members)
+  {
+    return Set << set_members;
+  }
 }

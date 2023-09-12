@@ -1,5 +1,23 @@
 # Changelog
 
+## 2023-09012 - Version 0.3.5
+Adding C++ documentation.
+
+**New Features**
+- The C++ API is now documented using Doxygen. The documentation can be found
+  [here](https://microsoft.github.io/regocpp/).
+- Logging levels have been added and can be set via the API (instead of just
+  binary enabled/disabled)
+
+**Breaking changes**
+- _C API_: The `regoSetLoggingEnabled` function has been replaced with
+  `regoSetLoggingLevel`. This is also reflected in the C++ and Rust APIs.h
+- _C API_: The `regoSetExecutablePath` function has been removed due to the
+  `Interpreter::executable()` property being removed from the C++ API.
+- The `to_json` method flag `rego_set` has been changed to `set_as_array` and
+  the order of its flag inverted (it is now `false` by default).
+
+
 ## 2023-09-10 - Version 0.3.4
 Adding a Rust wrapper.
 
