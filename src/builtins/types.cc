@@ -11,17 +11,17 @@ namespace
 
   Node is_boolean(const Nodes& args)
   {
-    return Resolver::scalar(is_instance(args[0], {JSONTrue, JSONFalse}));
+    return Resolver::scalar(is_instance(args[0], {True, False}));
   }
 
   Node is_null(const Nodes& args)
   {
-    return Resolver::scalar(is_instance(args[0], {JSONNull}));
+    return Resolver::scalar(is_instance(args[0], {Null}));
   }
 
   Node is_number(const Nodes& args)
   {
-    return Resolver::scalar(is_instance(args[0], {JSONInt, JSONFloat}));
+    return Resolver::scalar(is_instance(args[0], {Int, Float}));
   }
 
   Node is_object(const Nodes& args)

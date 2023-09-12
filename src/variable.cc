@@ -176,7 +176,7 @@ namespace rego
   {
     if (!m_unify && !m_user_var)
     {
-      return JSONTrue ^ "true";
+      return True ^ "true";
     }
 
     Node term = to_term();

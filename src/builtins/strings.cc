@@ -128,20 +128,20 @@ namespace
   Node format_int(const Nodes& args)
   {
     Node number = unwrap_arg(
-      args, UnwrapOpt(0).types({JSONInt, JSONFloat}).func("format_int"));
+      args, UnwrapOpt(0).types({Int, Float}).func("format_int"));
     if (number->type() == Error)
     {
       return number;
     }
 
-    Node base = unwrap_arg(args, UnwrapOpt(1).type(JSONInt).func("format_int"));
+    Node base = unwrap_arg(args, UnwrapOpt(1).type(Int).func("format_int"));
     if (base->type() == Error)
     {
       return base;
     }
 
     std::int64_t value;
-    if (number->type() == JSONFloat)
+    if (number->type() == Float)
     {
       value = static_cast<std::int64_t>(std::floor(get_double(number)));
     }
@@ -195,10 +195,10 @@ namespace
     auto pos = haystack_runes.find(needle_runes);
     if (pos == haystack_runes.npos)
     {
-      return JSONInt ^ "-1";
+      return Int ^ "-1";
     }
 
-    return JSONInt ^ std::to_string(pos);
+    return Int ^ std::to_string(pos);
   }
 
   Node indexof_n(const Nodes& args)
@@ -223,7 +223,7 @@ namespace
     auto pos = haystack_runes.find(needle_runes);
     while (pos != haystack_runes.npos)
     {
-      array->push_back(JSONInt ^ std::to_string(pos));
+      array->push_back(Int ^ std::to_string(pos));
       pos = haystack_runes.find(needle_runes, pos + 1);
     }
 
@@ -483,7 +483,7 @@ namespace
           break;
 
         case PrintVerbType::Integer:
-          node = unwrap_arg({node}, UnwrapOpt(0).type(JSONInt).func("sprintf"));
+          node = unwrap_arg({node}, UnwrapOpt(0).type(Int).func("sprintf"));
           if (node->type() == Error)
           {
             return node;
@@ -495,7 +495,7 @@ namespace
 
         case PrintVerbType::Double:
           node = unwrap_arg(
-            {node}, UnwrapOpt(0).types({JSONInt, JSONFloat}).func("sprintf"));
+            {node}, UnwrapOpt(0).types({Int, Float}).func("sprintf"));
           if (node->type() == Error)
           {
             return node;
@@ -579,12 +579,12 @@ namespace
       {
         if (search_str.starts_with(base_str))
         {
-          return JSONTrue ^ "true";
+          return True ^ "true";
         }
       }
     }
 
-    return JSONFalse ^ "false";
+    return False ^ "false";
   }
 
   Node any_suffix_match(const Nodes& args)
@@ -649,12 +649,12 @@ namespace
       {
         if (search_str.ends_with(base_str))
         {
-          return JSONTrue ^ "true";
+          return True ^ "true";
         }
       }
     }
 
-    return JSONFalse ^ "false";
+    return False ^ "false";
   }
 
   Node replace_n(const Nodes& args)
@@ -734,13 +734,13 @@ namespace
       return value;
     }
     Node offset =
-      unwrap_arg(args, UnwrapOpt(1).type(JSONInt).func("substring"));
+      unwrap_arg(args, UnwrapOpt(1).type(Int).func("substring"));
     if (offset->type() == Error)
     {
       return offset;
     }
     Node length =
-      unwrap_arg(args, UnwrapOpt(2).type(JSONInt).func("substring"));
+      unwrap_arg(args, UnwrapOpt(2).type(Int).func("substring"));
     if (length->type() == Error)
     {
       return length;

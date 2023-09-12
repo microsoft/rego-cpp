@@ -8,7 +8,7 @@ namespace
   {
     Node x = unwrap_arg(
       args,
-      UnwrapOpt(0).types({JSONInt}).func("bits.and").specify_number(true));
+      UnwrapOpt(0).types({Int}).func("bits.and").specify_number(true));
     if (x->type() == Error)
     {
       return x;
@@ -16,7 +16,7 @@ namespace
 
     Node y = unwrap_arg(
       args,
-      UnwrapOpt(1).types({JSONInt}).func("bits.and").specify_number(true));
+      UnwrapOpt(1).types({Int}).func("bits.and").specify_number(true));
     if (y->type() == Error)
     {
       return y;
@@ -32,7 +32,7 @@ namespace
   {
     Node x = unwrap_arg(
       args,
-      UnwrapOpt(0).types({JSONInt}).func("bits.lsh").specify_number(true));
+      UnwrapOpt(0).types({Int}).func("bits.lsh").specify_number(true));
     if (x->type() == Error)
     {
       return x;
@@ -40,7 +40,7 @@ namespace
 
     Node s = unwrap_arg(
       args,
-      UnwrapOpt(1).types({JSONInt}).func("bits.lsh").specify_number(true));
+      UnwrapOpt(1).types({Int}).func("bits.lsh").specify_number(true));
     if (s->type() == Error)
     {
       return s;
@@ -67,7 +67,7 @@ namespace
   {
     Node x = unwrap_arg(
       args,
-      UnwrapOpt(0).types({JSONInt}).func("bits.negate").specify_number(true));
+      UnwrapOpt(0).types({Int}).func("bits.negate").specify_number(true));
     if (x->type() == Error)
     {
       return x;
@@ -81,14 +81,14 @@ namespace
   Node or_(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args, UnwrapOpt(0).types({JSONInt}).func("bits.or").specify_number(true));
+      args, UnwrapOpt(0).types({Int}).func("bits.or").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node y = unwrap_arg(
-      args, UnwrapOpt(1).types({JSONInt}).func("bits.or").specify_number(true));
+      args, UnwrapOpt(1).types({Int}).func("bits.or").specify_number(true));
     if (y->type() == Error)
     {
       return y;
@@ -104,7 +104,7 @@ namespace
   {
     Node x = unwrap_arg(
       args,
-      UnwrapOpt(0).types({JSONInt}).func("bits.rsh").specify_number(true));
+      UnwrapOpt(0).types({Int}).func("bits.rsh").specify_number(true));
     if (x->type() == Error)
     {
       return x;
@@ -112,7 +112,7 @@ namespace
 
     Node s = unwrap_arg(
       args,
-      UnwrapOpt(1).types({JSONInt}).func("bits.rsh").specify_number(true));
+      UnwrapOpt(1).types({Int}).func("bits.rsh").specify_number(true));
     if (s->type() == Error)
     {
       return s;
@@ -137,7 +137,7 @@ namespace
   {
     Node x = unwrap_arg(
       args,
-      UnwrapOpt(0).types({JSONInt}).func("bits.xor").specify_number(true));
+      UnwrapOpt(0).types({Int}).func("bits.xor").specify_number(true));
     if (x->type() == Error)
     {
       return x;
@@ -145,7 +145,7 @@ namespace
 
     Node y = unwrap_arg(
       args,
-      UnwrapOpt(1).types({JSONInt}).func("bits.xor").specify_number(true));
+      UnwrapOpt(1).types({Int}).func("bits.xor").specify_number(true));
     if (x->type() == Error)
     {}
 

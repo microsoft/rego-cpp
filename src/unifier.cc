@@ -291,7 +291,7 @@ namespace rego
         {
           if (m_negate && var.is_unify())
           {
-            var.unify({ValueDef::create(JSONTrue ^ "true")});
+            var.unify({ValueDef::create(True ^ "true")});
             LOG("> result: ", var);
           }
           else
@@ -318,7 +318,7 @@ namespace rego
               {
                 value->mark_as_valid();
               }
-              var.unify({ValueDef::create(JSONTrue ^ "true")});
+              var.unify({ValueDef::create(True ^ "true")});
               LOG("> result: ", var);
             }
             else
@@ -406,7 +406,7 @@ namespace rego
             if (node->size() == 0)
             {
               LOG("> ", var.name().view(), ": Empty TermSet => false");
-              return JSONFalse ^ "false";
+              return False ^ "false";
             }
             Node maybe_term = Resolver::reduce_termset(node);
             if (maybe_term->type() == Term)
@@ -414,7 +414,7 @@ namespace rego
               if (result->type() == Undefined)
               {
                 LOG("> ", var.name().view(), ": TermSet => true");
-                return JSONTrue ^ "true";
+                return True ^ "true";
               }
             }
             else
@@ -429,28 +429,28 @@ namespace rego
           else if (node->size() > 0 && result->type() == Undefined)
           {
             LOG("> ", var.name().view(), ": TermSet => true");
-            return JSONTrue ^ "true";
+            return True ^ "true";
           }
           else if (node->size() == 0 && var.is_user_var())
           {
             LOG("> ", var.name().view(), ": Empty TermSet => false");
-            return JSONFalse ^ "false";
+            return False ^ "false";
           }
         }
         else if (var.is_unify() && is_falsy(node))
         {
           LOG("> ", var.name().view(), ": false => false");
-          return JSONFalse ^ "false";
+          return False ^ "false";
         }
         else if (node->type() == Term && result->type() == Undefined)
         {
           LOG("> ", var.name().view(), ": Term => true");
-          return JSONTrue ^ "true";
+          return True ^ "true";
         }
         else if (var.is_user_var() && is_undefined(node))
         {
           LOG("> ", var.name().view(), ": undefined => false");
-          return JSONFalse ^ "false";
+          return False ^ "false";
         }
 
         LOG("> ", var.name().view(), ": ", result->location().view());
@@ -1043,11 +1043,11 @@ namespace rego
       Node term = args[0]->to_term();
       if (is_truthy(term))
       {
-        return ValueDef::create(var, JSONFalse ^ "false", sources);
+        return ValueDef::create(var, False ^ "false", sources);
       }
       else
       {
-        return ValueDef::create(var, JSONTrue ^ "true", sources);
+        return ValueDef::create(var, True ^ "true", sources);
       }
     }
 
@@ -1171,7 +1171,7 @@ namespace rego
       {
         for (std::size_t i = 0; i < container->size(); ++i)
         {
-          Node index = Scalar << (JSONInt ^ std::to_string(i));
+          Node index = Scalar << (Int ^ std::to_string(i));
           Node tuple = Term << (Array << index << container->at(i));
           items.push_back(ValueDef::create(var, tuple));
         }
@@ -1598,7 +1598,7 @@ namespace rego
       Node body_result;
       if (rulebody->type() == Empty)
       {
-        body_result = JSONTrue;
+        body_result = True;
       }
       else
       {
@@ -1619,7 +1619,7 @@ namespace rego
         return body_result;
       }
 
-      if (body_result->type() == JSONTrue)
+      if (body_result->type() == True)
       {
         if (value->type() == UnifyBody)
         {
@@ -1656,7 +1656,7 @@ namespace rego
         continue;
       }
 
-      if (body_result->type() == JSONTrue)
+      if (body_result->type() == True)
       {
         if (result == nullptr)
         {
@@ -1718,7 +1718,7 @@ namespace rego
 
     if (rulebody->type() == Empty)
     {
-      body_result = JSONTrue;
+      body_result = True;
     }
     else
     {
@@ -1739,7 +1739,7 @@ namespace rego
       return std::make_pair(index, body_result);
     }
 
-    if (body_result->type() == JSONFalse || body_result->type() == Undefined)
+    if (body_result->type() == False || body_result->type() == Undefined)
     {
       LOG("No value");
       return std::nullopt;
@@ -1794,7 +1794,7 @@ namespace rego
       Node body_result;
       if (rulebody->type() == Empty)
       {
-        body_result = JSONTrue;
+        body_result = True;
       }
       else
       {
@@ -1815,7 +1815,7 @@ namespace rego
         return body_result;
       }
 
-      if (body_result->type() == JSONTrue)
+      if (body_result->type() == True)
       {
         if (value->type() == UnifyBody)
         {
@@ -1844,7 +1844,7 @@ namespace rego
         }
       }
 
-      if (body_result->type() == JSONTrue && value->type() == Term)
+      if (body_result->type() == True && value->type() == Term)
       {
         Node set = value->front();
         argseq->insert(argseq->end(), set->begin(), set->end());
@@ -1889,7 +1889,7 @@ namespace rego
       Node body_result;
       if (rulebody->type() == Empty)
       {
-        body_result = JSONTrue;
+        body_result = True;
       }
       else
       {
@@ -1910,7 +1910,7 @@ namespace rego
         return body_result;
       }
 
-      if (body_result->type() == JSONTrue)
+      if (body_result->type() == True)
       {
         if (value->type() == UnifyBody)
         {
@@ -1939,7 +1939,7 @@ namespace rego
         }
       }
 
-      if (body_result->type() == JSONTrue && value->type() == Term)
+      if (body_result->type() == True && value->type() == Term)
       {
         Node obj = value->front();
         for (Node item : *obj)

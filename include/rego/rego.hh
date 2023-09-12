@@ -53,11 +53,11 @@ namespace rego
   inline const auto ObjectItem = TokenDef("object-item");
   inline const auto RawString = TokenDef("raw-string", flag::print);
   inline const auto JSONString = TokenDef("STRING", flag::print);
-  inline const auto JSONInt = TokenDef("INT", flag::print);
-  inline const auto JSONFloat = TokenDef("FLOAT", flag::print);
-  inline const auto JSONTrue = TokenDef("true");
-  inline const auto JSONFalse = TokenDef("false");
-  inline const auto JSONNull = TokenDef("null");
+  inline const auto Int = TokenDef("INT", flag::print);
+  inline const auto Float = TokenDef("FLOAT", flag::print);
+  inline const auto True = TokenDef("true");
+  inline const auto False = TokenDef("false");
+  inline const auto Null = TokenDef("null");
   inline const auto Equals = TokenDef("==");
   inline const auto NotEquals = TokenDef("!=");
   inline const auto LessThan = TokenDef("<");
@@ -222,7 +222,7 @@ namespace rego
   using namespace wf::ops;
 
   inline const auto wf_json =
-    JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull;
+    JSONString | Int | Float | True | False | Null;
 
   inline const auto wf_arith_op = Add | Subtract | Multiply | Divide | Modulo;
 
@@ -358,7 +358,7 @@ namespace rego
   inline const auto wf_pass_rules =
     wf_pass_elses
     | (Policy <<= Rule++)
-    | (Rule <<= (Default >>= JSONTrue | JSONFalse) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
+    | (Rule <<= (Default >>= True | False) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
     | (RuleHead <<= RuleRef * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc | RuleHeadSet | RuleHeadObj))
     | (RuleRef <<= (Var | Array | Dot)++[1])
     | (ElseSeq <<= Else++)
@@ -431,7 +431,7 @@ namespace rego
     | (Keyword <<= Var)[Var]
     | (Package <<= Ref)
     | (Policy <<= Rule++)
-    | (Rule <<= (Default >>= JSONTrue | JSONFalse) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
+    | (Rule <<= (Default >>= True | False) * RuleHead * (Body >>= UnifyBody | Empty) * ElseSeq)
     | (RuleHead <<= RuleRef * (RuleHeadType >>= RuleHeadComp | RuleHeadFunc | RuleHeadSet | RuleHeadObj))
     | (RuleRef <<= Ref | Var)
     | (ElseSeq <<= Else++)
@@ -461,7 +461,7 @@ namespace rego
     | (RefArgSeq <<= (RefArgDot | RefArgBrack)++)
     | (RefArgDot <<= Var)
     | (RefArgBrack <<= Scalar | Var | Object | Array | Set | Expr)
-    | (Scalar <<= String | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
+    | (Scalar <<= String | Int | Float | True | False | Null)
     | (String <<= JSONString | RawString)
     | (Array <<= Expr++)
     | (Set <<= Expr++)
@@ -477,7 +477,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_strings =
     wf_pass_structure
-    | (Scalar <<= JSONString | JSONInt | JSONFloat | JSONTrue | JSONFalse | JSONNull)
+    | (Scalar <<= JSONString | Int | Float | True | False | Null)
     ;
   // clang-format on
 
@@ -512,8 +512,8 @@ namespace rego
     wf_pass_lift_refheads
     | (Module <<= Package * Policy)
     | (Policy <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj)++)
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= JSONInt))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= JSONInt))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | Term))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | Term) * (Val >>= Expr | Term))[Var]
     | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum)++[1])
@@ -526,7 +526,7 @@ namespace rego
     | (ArrayCompr <<= Expr * (Body >>= NestedBody))
     | (SetCompr <<= Expr * (Body >>= NestedBody))
     | (RefTerm <<= Ref | Var)
-    | (NumTerm <<= JSONInt | JSONFloat)
+    | (NumTerm <<= Int | Float)
     | (RefArgBrack <<= RefTerm | Scalar | Object | Array | Set | Expr)
     | (Expr <<= wf_symbols_exprs++[1])
     | (Import <<= Var * Ref)[Var]
@@ -556,8 +556,8 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_constants =
     wf_pass_lift_query
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= JSONInt))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= JSONInt))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= Int))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= Int))[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | DataTerm))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | DataTerm) * (Val >>= Expr | DataTerm))[Var]
     ;
@@ -761,8 +761,8 @@ namespace rego
     | (Object <<= ObjectItem++)
     | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
     | (DataItem <<= Key * (Val >>= DataModule | Term))[Key]
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= JSONInt))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= JSONInt))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))[Var]
     ;
@@ -887,7 +887,7 @@ namespace rego
    * ```
    *
    * Would all be successfully unwrapped as `(int 5)` if the type JSONInt was
-   * specified. However, if JSONFloat was specified, the result would be an
+   * specified. However, if Float was specified, the result would be an
    * error node.
    */
   class UnwrapOpt

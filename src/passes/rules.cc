@@ -45,7 +45,7 @@ namespace rego
            << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadSet << _(Item)))
                       << _(UnifyBody) << ElseSeq;
@@ -58,11 +58,11 @@ namespace rego
         [](Match& _) {
           // this has the form of a set rule but the reference implementation
           // interprets it as an object rule instead.
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadObj
                                        << _(Item) << (AssignOperator << Assign)
-                                       << (Group << (JSONTrue ^ "true"))))
+                                       << (Group << (True ^ "true"))))
                       << _(UnifyBody) << ElseSeq;
         },
 
@@ -70,7 +70,7 @@ namespace rego
           (T(Group)
            << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) * End)) >>
         [](Match& _) {
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadSet << _(Item)))
                       << Empty << ElseSeq;
@@ -82,7 +82,7 @@ namespace rego
                (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail] *
                ~T(If) * T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadObj
                                        << _(Key) << (AssignOperator << Assign)
@@ -95,7 +95,7 @@ namespace rego
            << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
                (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadObj
                                        << _(Key) << (AssignOperator << Assign)
@@ -108,8 +108,8 @@ namespace rego
            << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] * ~T(If) *
                T(UnifyBody)[UnifyBody] * (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
-          Node value = Group << JSONTrue;
-          return Rule << JSONFalse
+          Node value = Group << True;
+          return Rule << False
                       << (RuleHead << (RuleRef << _(RefHead) << _[RefArgSeq])
                                    << (RuleHeadComp
                                        << (AssignOperator << Assign) << value))
@@ -124,7 +124,7 @@ namespace rego
                (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
           Node value = (Group << _(Head) << _[Tail]);
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead << (RuleRef << _(RefHead) << _[RefArgSeq])
                                    << (RuleHeadComp
                                        << (AssignOperator << Assign) << value))
@@ -137,7 +137,7 @@ namespace rego
                RuleRefToken++[RefArgSeq] * (T(Assign) / T(Unify)) * ~T(If) *
                ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
-          Node is_default = _(Default) != nullptr ? JSONTrue : JSONFalse;
+          Node is_default = _(Default) != nullptr ? True : False;
           return Rule << is_default
                       << (RuleHead
                           << (RuleRef << _(RefHead) << _[RefArgSeq])
@@ -153,7 +153,7 @@ namespace rego
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
           // a misclassified single-element set
-          Node is_default = _(Default) != nullptr ? JSONTrue : JSONFalse;
+          Node is_default = _(Default) != nullptr ? True : False;
           return Rule << is_default
                       << (RuleHead << (RuleRef << _(RefHead) << _[RefArgSeq])
                                    << (RuleHeadComp
@@ -186,8 +186,8 @@ namespace rego
             }
           }
 
-          Node value = Group << JSONTrue;
-          return Rule << JSONFalse
+          Node value = Group << True;
+          return Rule << False
                       << (RuleHead
                           << (RuleRef << _(RefHead) << _[RefArgSeq])
                           << (RuleHeadFunc << args << (AssignOperator << Assign)
@@ -221,7 +221,7 @@ namespace rego
           }
 
           Node value = Group << _(Head) << _[Tail];
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead
                           << (RuleRef << _(RefHead) << _[RefArgSeq])
                           << (RuleHeadFunc << args << (AssignOperator << Assign)
@@ -254,7 +254,7 @@ namespace rego
             }
           }
 
-          Node is_default = _(Default) != nullptr ? JSONTrue : JSONFalse;
+          Node is_default = _(Default) != nullptr ? True : False;
           Node value = Group << _(Head) << _[Tail];
           return Rule << is_default
                       << (RuleHead
@@ -270,7 +270,7 @@ namespace rego
                ExprToken[Head] * ExprToken++[Tail] * ~T(If) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead
                           << (RuleRef << _(RefHead) << _[RefArgSeq])
                           << (RuleHeadSet << (Group << _(Head) << _[Tail])))
@@ -282,7 +282,7 @@ namespace rego
            << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] * T(Contains) *
                ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
-          return Rule << JSONFalse
+          return Rule << False
                       << (RuleHead
                           << (RuleRef << _(RefHead) << _[RefArgSeq])
                           << (RuleHeadSet << (Group << _(Head) << _[Tail])))

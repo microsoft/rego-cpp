@@ -36,7 +36,7 @@ namespace rego
 
       In(Group) * (T(Else) * ~T(If) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) {
-          return Else << (Group << (JSONTrue ^ "true")) << _(UnifyBody);
+          return Else << (Group << (True ^ "true")) << _(UnifyBody);
         },
 
       In(Group) *

@@ -126,7 +126,7 @@ namespace rego
                                                  << (RefArgSeq
                                                      << (RefArgBrack
                                                          << (Scalar
-                                                             << (JSONInt ^
+                                                             << (Int ^
                                                                  "1"))))))))
                         << (LiteralNot << _(UnifyBody)))));
         },
@@ -154,7 +154,7 @@ namespace rego
                                                  << (RefArgSeq
                                                      << (RefArgBrack
                                                          << (Scalar
-                                                             << (JSONInt ^
+                                                             << (Int ^
                                                                  "0"))))))))
 
                         << (Literal
@@ -164,7 +164,7 @@ namespace rego
                                                  << (RefArgSeq
                                                      << (RefArgBrack
                                                          << (Scalar
-                                                             << (JSONInt ^
+                                                             << (Int ^
                                                                  "1"))))))))
                         << (LiteralNot << _(UnifyBody)))));
         },

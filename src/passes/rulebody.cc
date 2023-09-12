@@ -180,7 +180,7 @@ namespace rego
           for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
           {
             Node item = _(Lhs)->at(i)->front();
-            Node index = Scalar << (JSONInt ^ std::to_string(i));
+            Node index = Scalar << (Int ^ std::to_string(i));
             Node rhsval = RefTerm
               << (SimpleRef << rhs->clone() << (RefArgBrack << index));
             Node init_vars = NodeDef::create(VarSeq);

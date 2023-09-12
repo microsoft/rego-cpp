@@ -12,7 +12,7 @@ namespace
     auto now = high_resolution_clock::now().time_since_epoch();
     auto now_ns = duration_cast<nanoseconds>(now).count();
 
-    return JSONInt ^ std::to_string(now_ns);
+    return Int ^ std::to_string(now_ns);
   }
 }
 

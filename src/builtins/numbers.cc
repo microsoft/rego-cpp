@@ -9,20 +9,20 @@ namespace
   Node abs(const Nodes& args)
   {
     Node number = unwrap_arg(
-      args, UnwrapOpt(0).types({JSONInt, JSONFloat}).message("Not a number"));
+      args, UnwrapOpt(0).types({Int, Float}).message("Not a number"));
     if (number->type() == Error)
     {
       return number;
     }
 
-    if (number->type() == JSONInt)
+    if (number->type() == Int)
     {
       BigInt value = get_int(number);
       if (value.is_negative())
       {
         value = value.negate();
       }
-      return JSONInt ^ value.loc();
+      return Int ^ value.loc();
     }
     else
     {
@@ -31,67 +31,67 @@ namespace
       {
         value *= -1;
       }
-      return JSONFloat ^ std::to_string(value);
+      return Float ^ std::to_string(value);
     }
   }
 
   Node ceil(const Nodes& args)
   {
     Node number = unwrap_arg(
-      args, UnwrapOpt(0).types({JSONInt, JSONFloat}).message("Not a number"));
+      args, UnwrapOpt(0).types({Int, Float}).message("Not a number"));
     if (number->type() == Error)
     {
       return number;
     }
 
-    if (number->type() == JSONInt)
+    if (number->type() == Int)
     {
       return number;
     }
     else
     {
       BigInt value(static_cast<std::int64_t>(std::ceil(get_double(number))));
-      return JSONInt ^ value.loc();
+      return Int ^ value.loc();
     }
   }
 
   Node floor(const Nodes& args)
   {
     Node number = unwrap_arg(
-      args, UnwrapOpt(0).types({JSONInt, JSONFloat}).message("Not a number"));
+      args, UnwrapOpt(0).types({Int, Float}).message("Not a number"));
     if (number->type() == Error)
     {
       return number;
     }
 
-    if (number->type() == JSONInt)
+    if (number->type() == Int)
     {
       return number;
     }
     else
     {
       BigInt value(static_cast<std::int64_t>(std::floor(get_double(number))));
-      return JSONInt ^ value.loc();
+      return Int ^ value.loc();
     }
   }
 
   Node round(const Nodes& args)
   {
     Node number = unwrap_arg(
-      args, UnwrapOpt(0).types({JSONInt, JSONFloat}).message("Not a number"));
+      args, UnwrapOpt(0).types({Int, Float}).message("Not a number"));
     if (number->type() == Error)
     {
       return number;
     }
 
-    if (number->type() == JSONInt)
+    if (number->type() == Int)
     {
       return number;
     }
     else
     {
       BigInt value(static_cast<std::int64_t>(std::round(get_double(number))));
-      return JSONInt ^ value.loc();
+      return Int ^ value.loc();
     }
   }
 
@@ -99,7 +99,7 @@ namespace
   {
     Node lhs_number = unwrap_arg(
       args,
-      UnwrapOpt(0).type(JSONInt).func("numbers.range").specify_number(true));
+      UnwrapOpt(0).type(Int).func("numbers.range").specify_number(true));
     if (lhs_number->type() == Error)
     {
       return lhs_number;
@@ -107,7 +107,7 @@ namespace
 
     Node rhs_number = unwrap_arg(
       args,
-      UnwrapOpt(1).type(JSONInt).func("numbers.range").specify_number(true));
+      UnwrapOpt(1).type(Int).func("numbers.range").specify_number(true));
     if (rhs_number->type() == Error)
     {
       return rhs_number;
@@ -121,20 +121,20 @@ namespace
       BigInt curr = lhs;
       while (curr < rhs)
       {
-        array->push_back(Term << (Scalar << (JSONInt ^ curr.loc())));
+        array->push_back(Term << (Scalar << (Int ^ curr.loc())));
         curr = curr.increment();
       }
-      array->push_back(Term << (Scalar << (JSONInt ^ curr.loc())));
+      array->push_back(Term << (Scalar << (Int ^ curr.loc())));
     }
     else
     {
       BigInt curr = lhs;
       while (curr > rhs)
       {
-        array->push_back(Term << (Scalar << (JSONInt ^ curr.loc())));
+        array->push_back(Term << (Scalar << (Int ^ curr.loc())));
         curr = curr.decrement();
       }
-      array->push_back(Term << (Scalar << (JSONInt ^ curr.loc())));
+      array->push_back(Term << (Scalar << (Int ^ curr.loc())));
     }
 
     return array;
@@ -150,7 +150,7 @@ namespace
     }
 
     Node n_node =
-      unwrap_arg(args, UnwrapOpt(1).type(JSONInt).func("rand.intn"));
+      unwrap_arg(args, UnwrapOpt(1).type(Int).func("rand.intn"));
     if (n_node->type() == Error)
     {
       return n_node;
@@ -162,7 +162,7 @@ namespace
     auto seed = static_cast<std::mt19937::result_type>(hash(seed_string));
     std::mt19937 rng(seed);
     std::size_t value = rng() % n;
-    return JSONInt ^ std::to_string(value);
+    return Int ^ std::to_string(value);
   }
 }
 

@@ -108,7 +108,7 @@ namespace rego
             (T(DataRule) << (T(Var)[Var] * T(DataTerm)[DataTerm])) >>
           [](Match& _) {
             return RuleComp << _(Var) << Empty << _(DataTerm)
-                            << (JSONInt ^ "0");
+                            << (Int ^ "0");
           },
       }};
 

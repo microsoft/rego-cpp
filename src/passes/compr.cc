@@ -90,7 +90,7 @@ namespace rego
             if (body->type() == Empty)
             {
               body = UnifyBody
-                << (Literal << (Expr << (Term << (Scalar << (JSONTrue)))));
+                << (Literal << (Expr << (Term << (Scalar << (True)))));
             }
 
             body = NestedBody << (Key ^ compr) << body;

@@ -4,17 +4,17 @@ using namespace rego;
 
 Node add(const Nodes& args)
 {
-  Node a = unwrap_arg(args, UnwrapOpt(0).types({JSONInt, JSONFloat}));
+  Node a = unwrap_arg(args, UnwrapOpt(0).types({Int, Float}));
   if(a->type() == Error){
     return a;
   }
 
-  Node b = unwrap_arg(args, UnwrapOpt(1).types({JSONInt, JSONFloat}));
+  Node b = unwrap_arg(args, UnwrapOpt(1).types({Int, Float}));
   if(b->type() == Error){
     return b;
   }
 
-  if(a->type() == JSONInt && b->type() == JSONInt){
+  if(a->type() == Int && b->type() == Int){
     return scalar(get_int(a) + get_int(b));
   }
 

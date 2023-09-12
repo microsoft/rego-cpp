@@ -41,7 +41,7 @@ namespace
 
   Node cast_boolean(const Nodes& args)
   {
-    Node boolean = unwrap_arg(args, UnwrapOpt(0).types({JSONTrue, JSONFalse}));
+    Node boolean = unwrap_arg(args, UnwrapOpt(0).types({True, False}));
     if (boolean->type() == Error)
     {
       return boolean;
@@ -63,7 +63,7 @@ namespace
 
   Node cast_null(const Nodes& args)
   {
-    Node null = unwrap_arg(args, UnwrapOpt(0).type(JSONNull));
+    Node null = unwrap_arg(args, UnwrapOpt(0).type(Null));
     if (null->type() == Error)
     {
       return null;
@@ -77,7 +77,7 @@ namespace
     Node number = unwrap_arg(
       args,
       UnwrapOpt(0).types(
-        {JSONInt, JSONFloat, JSONString, JSONTrue, JSONFalse, JSONNull}));
+        {Int, Float, JSONString, True, False, Null}));
     if (number->type() == Error)
     {
       return number;
@@ -87,7 +87,7 @@ namespace
     {
       if (BigInt::is_int(number->location()))
       {
-        return JSONInt ^ number->location();
+        return Int ^ number->location();
       }
 
       std::string number_str = get_string(number);
@@ -102,19 +102,19 @@ namespace
       }
     }
 
-    if (number->type() == JSONNull)
+    if (number->type() == Null)
     {
-      return JSONInt ^ "0";
+      return Int ^ "0";
     }
 
-    if (number->type() == JSONTrue)
+    if (number->type() == True)
     {
-      return JSONInt ^ "1";
+      return Int ^ "1";
     }
 
-    if (number->type() == JSONFalse)
+    if (number->type() == False)
     {
-      return JSONInt ^ "0";
+      return Int ^ "0";
     }
 
     return number->clone();

@@ -159,7 +159,7 @@ namespace rego
 
         // Float.
         R"([[:digit:]]+\.[[:digit:]]+(?:e[+-]?[[:digit:]]+)?\b)" >>
-          [](auto& m) { m.add(JSONFloat); },
+          [](auto& m) { m.add(Float); },
 
         // String.
         R"("(?:\\(?:["\\\/bfnrtx]|u[a-fA-F0-9]{4})|[^"\\\0-\x1F\x7F]+)*")" >>
@@ -169,20 +169,20 @@ namespace rego
         R"(`[^`]*`)" >> [](auto& m) { m.add(RawString); },
 
         // Int.
-        R"([[:digit:]]+\b)" >> [](auto& m) { m.add(JSONInt); },
+        R"([[:digit:]]+\b)" >> [](auto& m) { m.add(Int); },
 
         // Float with exponent but no decimal.
         R"([[:digit:]]+(?:e[+-]?[[:digit:]]+)?\b)" >>
-          [](auto& m) { m.add(JSONFloat); },
+          [](auto& m) { m.add(Float); },
 
         // True.
-        "true\\b" >> [](auto& m) { m.add(JSONTrue); },
+        "true\\b" >> [](auto& m) { m.add(True); },
 
         // False.
-        "false\\b" >> [](auto& m) { m.add(JSONFalse); },
+        "false\\b" >> [](auto& m) { m.add(False); },
 
         // Null.
-        "null\\b" >> [](auto& m) { m.add(JSONNull); },
+        "null\\b" >> [](auto& m) { m.add(Null); },
 
         // Default.
         "default\\b" >> [](auto& m) { m.add(Default); },
@@ -276,15 +276,15 @@ namespace rego
     p.done([](auto& m) { m.term({List, Some, With}); });
 
     p.gen({
-      JSONInt >> [](auto& rnd) { return std::to_string(rnd() % 100); },
-      JSONFloat >>
+      Int >> [](auto& rnd) { return std::to_string(rnd() % 100); },
+      Float >>
         [](auto& rnd) {
           std::uniform_real_distribution<> dist(-10.0, 10.0);
           return std::to_string(dist(rnd));
         },
-      JSONTrue >> [](auto&) { return "true"; },
-      JSONFalse >> [](auto&) { return "false"; },
-      JSONNull >> [](auto&) { return "null"; },
+      True >> [](auto&) { return "true"; },
+      False >> [](auto&) { return "false"; },
+      Null >> [](auto&) { return "null"; },
       JSONString >> [](auto& rnd) { return rand_string(rnd); },
       RawString >> [](auto& rnd) { return rand_raw_string(rnd); },
     });

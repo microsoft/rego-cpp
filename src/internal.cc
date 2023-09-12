@@ -374,13 +374,13 @@ namespace rego
 
   BigInt get_int(const Node& node)
   {
-    assert(node->type() == JSONInt);
+    assert(node->type() == Int);
     return ::get_int(node);
   }
 
   double get_double(const Node& node)
   {
-    assert(node->type() == JSONFloat || node->type() == JSONInt);
+    assert(node->type() == Float || node->type() == Int);
     return ::get_double(node);
   }
 
@@ -407,8 +407,8 @@ namespace rego
 
   bool get_bool(const Node& node)
   {
-    assert(node->type() == JSONTrue || node->type() == JSONFalse);
-    return node->type() == JSONTrue;
+    assert(node->type() == True || node->type() == False);
+    return node->type() == True;
   }
 
   bool is_truthy(const Node& node)
@@ -423,7 +423,7 @@ namespace rego
     if (value->type() == Scalar)
     {
       value = value->front();
-      return value->type() != JSONFalse;
+      return value->type() != False;
     }
 
     if (
@@ -471,7 +471,7 @@ namespace rego
       value = value->front();
     }
 
-    if (value->type() == JSONFalse)
+    if (value->type() == False)
     {
       return true;
     }
@@ -486,7 +486,7 @@ namespace rego
 
   std::string type_name(const Token& type, bool specify_number)
   {
-    if (type == JSONInt)
+    if (type == Int)
     {
       if (specify_number)
       {
@@ -495,7 +495,7 @@ namespace rego
       return "number";
     }
 
-    if (type == JSONFloat)
+    if (type == Float)
     {
       if (specify_number)
       {
@@ -509,7 +509,7 @@ namespace rego
       return "string";
     }
 
-    if (type == JSONTrue || type == JSONFalse)
+    if (type == True || type == False)
     {
       return "boolean";
     }

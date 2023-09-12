@@ -96,7 +96,7 @@ namespace
     return std::accumulate(
       collection->begin(),
       collection->end(),
-      JSONInt ^ "0",
+      Int ^ "0",
       [](const Node& a, const Node& b) {
         return Resolver::arithinfix(Add ^ "+", a, b);
       });
@@ -114,7 +114,7 @@ namespace
     Node sum = std::accumulate(
       collection->begin(),
       collection->end(),
-      JSONInt ^ "1",
+      Int ^ "1",
       [](const Node& a, const Node& b) {
         return Resolver::arithinfix(Multiply ^ "*", a, b);
       });
@@ -133,17 +133,17 @@ namespace
 
     for (const Node& item : *collection)
     {
-      auto maybe_boolean = unwrap(item, {JSONTrue, JSONFalse});
+      auto maybe_boolean = unwrap(item, {True, False});
       if (maybe_boolean.success)
       {
-        if (maybe_boolean.node->type() == JSONTrue)
+        if (maybe_boolean.node->type() == True)
         {
-          return JSONTrue ^ "true";
+          return True ^ "true";
         }
       }
     }
 
-    return JSONFalse ^ "false";
+    return False ^ "false";
   }
 
   Node all(const Nodes& args)
@@ -157,21 +157,21 @@ namespace
 
     for (const Node& item : *collection)
     {
-      auto maybe_boolean = unwrap(item, {JSONTrue, JSONFalse});
+      auto maybe_boolean = unwrap(item, {True, False});
       if (maybe_boolean.success)
       {
-        if (maybe_boolean.node->type() == JSONFalse)
+        if (maybe_boolean.node->type() == False)
         {
-          return JSONFalse ^ "false";
+          return False ^ "false";
         }
       }
       else
       {
-        return JSONFalse ^ "false";
+        return False ^ "false";
       }
     }
 
-    return JSONTrue ^ "true";
+    return True ^ "true";
   }
 
 }

@@ -84,7 +84,7 @@ namespace rego
           Node body = UnifyBody << _[Tail];
           if (body->size() == 0)
           {
-            body << (Literal << (Expr << (Term << (Scalar << JSONTrue))));
+            body << (Literal << (Expr << (Term << (Scalar << True))));
           }
           return Seq << (Local << (Var ^ itemseq) << Undefined)
                      << (Literal
@@ -184,7 +184,7 @@ namespace rego
                                     << (SimpleRef
                                         << (Var ^ item)
                                         << (RefArgBrack
-                                            << (Scalar << (JSONInt ^ "0"))))))))
+                                            << (Scalar << (Int ^ "0"))))))))
                     << (LiteralInit
                         << _(LhsVars) << VarSeq
                         << (AssignInfix
@@ -194,7 +194,7 @@ namespace rego
                                     << (SimpleRef
                                         << (Var ^ item)
                                         << (RefArgBrack
-                                            << (Scalar << (JSONInt ^ "1"))))))))
+                                            << (Scalar << (Int ^ "1"))))))))
                     << _[Tail]));
         },
 
@@ -256,7 +256,7 @@ namespace rego
                                     << (SimpleRef
                                         << (Var ^ item)
                                         << (RefArgBrack
-                                            << (Scalar << (JSONInt ^ "0"))))))))
+                                            << (Scalar << (Int ^ "0"))))))))
                     << (Literal
                         << (Expr
                             << (AssignInfix
@@ -267,7 +267,7 @@ namespace rego
                                             << (Var ^ item)
                                             << (RefArgBrack
                                                 << (Scalar
-                                                    << (JSONInt ^ "1")))))))))
+                                                    << (Int ^ "1")))))))))
                     << _[Tail]));
         },
 

@@ -5,11 +5,11 @@ namespace rego
   std::string to_json(const Node& node, bool sort, bool set_as_array)
   {
     std::ostringstream buf;
-    if (node->type() == JSONInt)
+    if (node->type() == Int)
     {
       buf << node->location().view();
     }
-    else if (node->type() == JSONFloat)
+    else if (node->type() == Float)
     {
       try
       {
@@ -34,15 +34,15 @@ namespace rego
         buf << str;
       }
     }
-    else if (node->type() == JSONTrue)
+    else if (node->type() == True)
     {
       buf << "true";
     }
-    else if (node->type() == JSONFalse)
+    else if (node->type() == False)
     {
       buf << "false";
     }
-    else if (node->type() == JSONNull)
+    else if (node->type() == Null)
     {
       buf << "null";
     }

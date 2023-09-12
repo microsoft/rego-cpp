@@ -304,12 +304,12 @@ extern "C"
       return REGO_NODE_OBJECT_ITEM;
     }
 
-    if (node->type() == rego::JSONInt)
+    if (node->type() == rego::Int)
     {
       return REGO_NODE_INT;
     }
 
-    if (node->type() == rego::JSONFloat)
+    if (node->type() == rego::Float)
     {
       return REGO_NODE_FLOAT;
     }
@@ -319,17 +319,17 @@ extern "C"
       return REGO_NODE_STRING;
     }
 
-    if (node->type() == rego::JSONTrue)
+    if (node->type() == rego::True)
     {
       return REGO_NODE_TRUE;
     }
 
-    if (node->type() == rego::JSONFalse)
+    if (node->type() == rego::False)
     {
       return REGO_NODE_FALSE;
     }
 
-    if (node->type() == rego::JSONNull)
+    if (node->type() == rego::Null)
     {
       return REGO_NODE_NULL;
     }

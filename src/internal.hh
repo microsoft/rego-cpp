@@ -25,7 +25,7 @@ namespace rego
   std::vector<PassCheck> passes(const BuiltIns& builtins);
 
   const inline auto ScalarToken =
-    T(JSONInt) / T(JSONFloat) / T(JSONTrue) / T(JSONFalse) / T(JSONNull);
+    T(Int) / T(Float) / T(True) / T(False) / T(Null);
   const inline auto ArithToken =
     T(Add) / T(Subtract) / T(Multiply) / T(Divide) / T(Modulo);
   const inline auto ArithInfixArg = T(Expr) / T(NumTerm) / T(Ref) /
