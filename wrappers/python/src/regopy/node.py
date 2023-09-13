@@ -70,14 +70,14 @@ class Node:
     Example:
     >>> from regopy import Interpreter
     >>> rego = Interpreter()
-    >>> output = rego.query("x={"a": 10, "b": "20", "c": [30.0, 60], "d": true, "e": null}")
+    >>> output = rego.query('x={"a": 10, "b": "20", "c": [30.0, 60], "d": true, "e": null}')
     >>> x = output.binding("x")
     >>> print("x =", x.json())
-    x = {"a": 10, "b": "20", "c": [30.0, 60], "d": true, "e": null}
+    x = {"a":10, "b":"20", "c":[30, 60], "d":true, "e":null}
     >>> print("x['a'] =", x["a"].value)
     x['a'] = 10
     >>> print("x['b'] =", x["b"].value)
-    x['b'] = 20
+    x['b'] = "20"
     >>> print("x['c'][0] =", x["c"][0].value)
     x['c'][0] = 30.0
     >>> print("x['c'][1] =", x["c"][1].value)
@@ -134,7 +134,7 @@ class Node:
 
             >>> y = output.binding("y")
             >>> print("y =", y.value)
-            y = 20
+            y = "20"
 
             >>> z = output.binding("z")
             >>> print("z =", z.value)

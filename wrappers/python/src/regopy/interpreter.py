@@ -43,8 +43,8 @@ class Interpreter:
         the C API and converting the results to Python types.
 
     Examples:
-        >>> import regopy
-        >>> rego = regopy.Interpreter()
+        >>> from regopy import Interpreter
+        >>> rego = Interpreter()
         >>> print(rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4"))
         x = 5
         y = 9.4
@@ -103,7 +103,7 @@ class Interpreter:
         >>> rego.add_data(data1)
         >>> rego.add_module("objects", module)
         >>> print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
-        x = [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
+        x = [{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]
     """
 
     def __init__(self):
@@ -127,14 +127,14 @@ class Interpreter:
         Example:
             >>> from regopy import Interpreter
             >>> module = '''
-            >>>   package scalars
-            >>>
-            >>>   greeting := "Hello"
-            >>>   max_height := 42
-            >>>   pi := 3.14159
-            >>>   allowed := true
-            >>>   location := null
-            >>> '''
+            ...   package scalars
+            ...
+            ...   greeting := "Hello"
+            ...   max_height := 42
+            ...   pi := 3.14159
+            ...   allowed := true
+            ...   location := null
+            ... '''
             >>> rego = Interpreter()
             >>> rego.add_module("scalars", module)
             >>> output = rego.query("data.scalars.greeting")
@@ -160,21 +160,21 @@ class Interpreter:
             >>> from regopy import Interpreter
             >>> rego = Interpreter()
             >>> data = '''
-            >>>   {
-            >>>     "one": {
-            >>>       "bar": "Foo",
-            >>>       "baz": 5,
-            >>>       "be": true,
-            >>>       "bop": 23.4
-            >>>     },
-            >>>     "two": {
-            >>>       "bar": "Bar",
-            >>>       "baz": 12.3,
-            >>>       "be": false,
-            >>>       "bop": 42
-            >>>     }
-            >>>   }
-            >>> '''
+            ...   {
+            ...     "one": {
+            ...       "bar": "Foo",
+            ...       "baz": 5,
+            ...       "be": true,
+            ...       "bop": 23.4
+            ...     },
+            ...     "two": {
+            ...       "bar": "Bar",
+            ...       "baz": 12.3,
+            ...       "be": false,
+            ...       "bop": 42
+            ...     }
+            ...   }
+            ... '''
             >>> rego.add_data_json(data)
             >>> output = rego.query("data.one.bar")
             >>> print(output)
@@ -215,13 +215,13 @@ class Interpreter:
         Example:
             >>> from regopy import Interpreter
             >>> input = '''
-            >>>   {
-            >>>     "a": 10,
-            >>>     "b": "20",
-            >>>     "c": 30.0,
-            >>>     "d": true
-            >>>   }
-            >>> '''
+            ...   {
+            ...     "a": 10,
+            ...     "b": "20",
+            ...     "c": 30.0,
+            ...     "d": true
+            ...   }
+            ... '''
             >>> rego = Interpreter()
             >>> rego.set_input_json(input)
             >>> output = rego.query("input.a")
@@ -325,41 +325,41 @@ class Interpreter:
 
         Examples:
             >>> from regopy import Interpreter
-            >>> input0 = '{"a": 10}'
-            >>> input1 = '{"a": 4}'
-            >>> input2 = '{"a": 7}'
+            >>> input0 = {"a": 10}
+            >>> input1 = {"a": 4}
+            >>> input2 = {"a": 7}
             >>> multi = '''
-            >>>   package multi
-            >>>
-            >>>   default a := 0
-            >>>
-            >>>   a := val {
-            >>>       input.a > 0
-            >>>       input.a < 10
-            >>>       input.a % 2 == 1
-            >>>       val := input.a * 10
-            >>>   } {
-            >>>       input.a > 0
-            >>>       input.a < 10
-            >>>       input.a % 2 == 0
-            >>>       val := input.a * 10 + 1
-            >>>   }
-            >>>
-            >>>   a := input.a / 10 {
-            >>>       input.a >= 10
-            >>>   }
-            >>> '''
+            ...   package multi
+            ...
+            ...   default a := 0
+            ...
+            ...   a := val {
+            ...       input.a > 0
+            ...       input.a < 10
+            ...       input.a % 2 == 1
+            ...       val := input.a * 10
+            ...   } {
+            ...       input.a > 0
+            ...       input.a < 10
+            ...       input.a % 2 == 0
+            ...       val := input.a * 10 + 1
+            ...   }
+            ...
+            ...   a := input.a / 10 {
+            ...       input.a >= 10
+            ...   }
+            ... '''
             >>> rego = Interpreter()
             >>> rego.add_module("multi", multi)
-            >>> rego.set_input_json(input0)
+            >>> rego.set_input(input0)
             >>> output = rego.query("data.multi.a")
             >>> print(output)
             1
-            >>> rego.set_input_json(input1)
+            >>> rego.set_input(input1)
             >>> output = rego.query("data.multi.a")
             >>> print(output)
             41
-            >>> rego.set_input_json(input2)
+            >>> rego.set_input(input2)
             >>> output = rego.query("data.multi.a")
             >>> print(output)
             70
