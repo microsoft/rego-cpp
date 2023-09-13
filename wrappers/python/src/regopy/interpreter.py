@@ -40,12 +40,12 @@ class Interpreter:
 
     Description:
         This wraps the Rego C API, and handles passing calls to
-        the C API and converting the results to Rust types.
+        the C API and converting the results to Python types.
 
     Examples:
-        >>> from regopy import Interpreter
-        ... rego = Interpreter()
-        ... print(rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4"))
+        >>> import regopy
+        >>> rego = regopy.Interpreter()
+        >>> print(rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4"))
         x = 5
         y = 9.4
 
@@ -55,7 +55,7 @@ class Interpreter:
         ...     "c": 30.0,
         ...     "d": True
         ... }
-        ... data0 = {
+        >>> data0 = {
         ...     "one": {
         ...         "bar": "Foo",
         ...         "baz": 5,
@@ -69,7 +69,7 @@ class Interpreter:
         ...         "bop": 42
         ...     }
         ... }
-        ... data1 = {
+        >>> data1 = {
         ...     "three": {
         ...         "bar": "Baz",
         ...         "baz": 15,
@@ -77,7 +77,7 @@ class Interpreter:
         ...         "bop": 4.23
         ...     }
         ... }
-        ... module = '''
+        >>> module = '''
         ...     package objects
         ...
         ...     rect := {`width`: 2, "height": 4}
@@ -98,11 +98,11 @@ class Interpreter:
         ...     }
         ...     f := e["dev"]
         ... '''
-        ... rego.set_input(input)
-        ... rego.add_data(data0)
-        ... rego.add_data(data1)
-        ... rego.add_module("objects", module)
-        ... print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
+        >>> rego.set_input(input)
+        >>> rego.add_data(data0)
+        >>> rego.add_data(data1)
+        >>> rego.add_module("objects", module)
+        >>> print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
         x = [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
     """
 
@@ -126,19 +126,19 @@ class Interpreter:
 
         Example:
             >>> from regopy import Interpreter
-            ... module = '''
-            ...   package scalars
-            ...
-            ...   greeting := "Hello"
-            ...   max_height := 42
-            ...   pi := 3.14159
-            ...   allowed := true
-            ...   location := null
-            ... '''
-            ... rego = Interpreter()
-            ... rego.add_module("scalars", module)
-            ... output = rego.query("data.scalars.greeting")
-            ... print(output)
+            >>> module = '''
+            >>>   package scalars
+            >>>
+            >>>   greeting := "Hello"
+            >>>   max_height := 42
+            >>>   pi := 3.14159
+            >>>   allowed := true
+            >>>   location := null
+            >>> '''
+            >>> rego = Interpreter()
+            >>> rego.add_module("scalars", module)
+            >>> output = rego.query("data.scalars.greeting")
+            >>> print(output)
             "Hello"
         """
         err = regoAddModule(self._impl, name, source)
@@ -158,26 +158,26 @@ class Interpreter:
 
         Example:
             >>> from regopy import Interpreter
-            ... rego = Interpreter()
-            ... data = '''
-            ...   {
-            ...     "one": {
-            ...       "bar": "Foo",
-            ...       "baz": 5,
-            ...       "be": true,
-            ...       "bop": 23.4
-            ...     },
-            ...     "two": {
-            ...       "bar": "Bar",
-            ...       "baz": 12.3,
-            ...       "be": false,
-            ...       "bop": 42
-            ...     }
-            ...   }
-            ... '''
-            ... rego.add_data_json(data)
-            ... output = rego.query("data.one.bar")
-            ... print(output)
+            >>> rego = Interpreter()
+            >>> data = '''
+            >>>   {
+            >>>     "one": {
+            >>>       "bar": "Foo",
+            >>>       "baz": 5,
+            >>>       "be": true,
+            >>>       "bop": 23.4
+            >>>     },
+            >>>     "two": {
+            >>>       "bar": "Bar",
+            >>>       "baz": 12.3,
+            >>>       "be": false,
+            >>>       "bop": 42
+            >>>     }
+            >>>   }
+            >>> '''
+            >>> rego.add_data_json(data)
+            >>> output = rego.query("data.one.bar")
+            >>> print(output)
             "Foo"
         """
         err = regoAddDataJSON(self._impl, json)
@@ -214,18 +214,18 @@ class Interpreter:
 
         Example:
             >>> from regopy import Interpreter
-            ... input = '''
-            ...   {
-            ...     "a": 10,
-            ...     "b": "20",
-            ...     "c": 30.0,
-            ...     "d": true
-            ...   }
-            ... '''
-            ... rego = Interpreter()
-            ... rego.set_input_json(input)
-            ... output = rego.query("input.a")
-            ... print(output)
+            >>> input = '''
+            >>>   {
+            >>>     "a": 10,
+            >>>     "b": "20",
+            >>>     "c": 30.0,
+            >>>     "d": true
+            >>>   }
+            >>> '''
+            >>> rego = Interpreter()
+            >>> rego.set_input_json(input)
+            >>> output = rego.query("input.a")
+            >>> print(output)
             10
         """
         err = regoSetInputJSON(self._impl, json)
@@ -325,43 +325,43 @@ class Interpreter:
 
         Examples:
             >>> from regopy import Interpreter
-            ... input0 = '{"a": 10}'
-            ... input1 = '{"a": 4}'
-            ... input2 = '{"a": 7}'
-            ... multi = '''
-            ...   package multi
-            ...
-            ...   default a := 0
-            ...
-            ...   a := val {
-            ...       input.a > 0
-            ...       input.a < 10
-            ...       input.a % 2 == 1
-            ...       val := input.a * 10
-            ...   } {
-            ...       input.a > 0
-            ...       input.a < 10
-            ...       input.a % 2 == 0
-            ...       val := input.a * 10 + 1
-            ...   }
-            ...
-            ...   a := input.a / 10 {
-            ...       input.a >= 10
-            ...   }
-            ... '''
-            ... rego = Interpreter()
-            ... rego.add_module("multi", multi)
-            ... rego.set_input_json(input0)
-            ... output = rego.query("data.multi.a")
-            ... print(output)
+            >>> input0 = '{"a": 10}'
+            >>> input1 = '{"a": 4}'
+            >>> input2 = '{"a": 7}'
+            >>> multi = '''
+            >>>   package multi
+            >>>
+            >>>   default a := 0
+            >>>
+            >>>   a := val {
+            >>>       input.a > 0
+            >>>       input.a < 10
+            >>>       input.a % 2 == 1
+            >>>       val := input.a * 10
+            >>>   } {
+            >>>       input.a > 0
+            >>>       input.a < 10
+            >>>       input.a % 2 == 0
+            >>>       val := input.a * 10 + 1
+            >>>   }
+            >>>
+            >>>   a := input.a / 10 {
+            >>>       input.a >= 10
+            >>>   }
+            >>> '''
+            >>> rego = Interpreter()
+            >>> rego.add_module("multi", multi)
+            >>> rego.set_input_json(input0)
+            >>> output = rego.query("data.multi.a")
+            >>> print(output)
             1
-            ... rego.set_input_json(input1)
-            ... output = rego.query("data.multi.a")
-            ... print(output)
+            >>> rego.set_input_json(input1)
+            >>> output = rego.query("data.multi.a")
+            >>> print(output)
             41
-            ... rego.set_input_json(input2)
-            ... output = rego.query("data.multi.a")
-            ... print(output)
+            >>> rego.set_input_json(input2)
+            >>> output = rego.query("data.multi.a")
+            >>> print(output)
             70
         """
         impl = regoQuery(self._impl, query)

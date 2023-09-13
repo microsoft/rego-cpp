@@ -62,10 +62,6 @@ namespace rego
         items.push_back(to_json(child, sort, set_as_array));
       }
 
-      if (sort)
-      {
-        std::sort(items.begin(), items.end());
-      }
       buf << "[";
       std::string sep = "";
       for (const auto& item : items)

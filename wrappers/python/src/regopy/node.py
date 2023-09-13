@@ -4,63 +4,59 @@ from enum import IntEnum
 from typing import Union
 
 from ._regopy import (
-    REGO_ERROR_BUFFER_TOO_SMALL,
-    REGO_NODE_BINDING,
-    REGO_NODE_VAR,
-    REGO_NODE_TERM,
-    REGO_NODE_SCALAR,
     REGO_NODE_ARRAY,
-    REGO_NODE_SET,
-    REGO_NODE_OBJECT,
-    REGO_NODE_OBJECT_ITEM,
-    REGO_NODE_INT,
-    REGO_NODE_FLOAT,
-    REGO_NODE_STRING,
-    REGO_NODE_TRUE,
-    REGO_NODE_FALSE,
-    REGO_NODE_NULL,
-    REGO_NODE_UNDEFINED,
+    REGO_NODE_BINDING,
     REGO_NODE_ERROR,
-    REGO_NODE_ERROR_MESSAGE,
     REGO_NODE_ERROR_AST,
     REGO_NODE_ERROR_CODE,
+    REGO_NODE_ERROR_MESSAGE,
     REGO_NODE_ERROR_SEQ,
+    REGO_NODE_FALSE,
+    REGO_NODE_FLOAT,
+    REGO_NODE_INT,
     REGO_NODE_INTERNAL,
+    REGO_NODE_NULL,
+    REGO_NODE_OBJECT,
+    REGO_NODE_OBJECT_ITEM,
+    REGO_NODE_SCALAR,
+    REGO_NODE_SET,
+    REGO_NODE_STRING,
+    REGO_NODE_TERM,
+    REGO_NODE_TRUE,
+    REGO_NODE_UNDEFINED,
+    REGO_NODE_VAR,
+    regoNodeGet,
+    regoNodeJSON,
+    regoNodeSize,
     regoNodeType,
     regoNodeTypeName,
-    regoNodeValueSize,
     regoNodeValue,
-    regoNodeSize,
-    regoNodeGet,
-    regoNodeJSONSize,
-    regoNodeJSON
 )
 
 
 class NodeKind(IntEnum):
     """Enumeration of node types."""
 
-    BINDING = REGO_NODE_BINDING
-    VAR = REGO_NODE_VAR
-    TERM = REGO_NODE_TERM
-    SCALAR = REGO_NODE_SCALAR
-    ARRAY = REGO_NODE_ARRAY
-    SET = REGO_NODE_SET
-    OBJECT = REGO_NODE_OBJECT
-    OBJECT_ITEM = REGO_NODE_OBJECT_ITEM
-    INT = REGO_NODE_INT
-    FLOAT = REGO_NODE_FLOAT
-    STRING = REGO_NODE_STRING
-    TRUE = REGO_NODE_TRUE
-    FALSE = REGO_NODE_FALSE
-    NULL = REGO_NODE_NULL
-    UNDEFINED = REGO_NODE_UNDEFINED
-    ERROR = REGO_NODE_ERROR
-    ERROR_MESSAGE = REGO_NODE_ERROR_MESSAGE
-    ERROR_AST = REGO_NODE_ERROR_AST
-    ERROR_CODE = REGO_NODE_ERROR_CODE
-    ERROR_SEQ = REGO_NODE_ERROR_SEQ
-    INTERNAL = REGO_NODE_INTERNAL
+    Binding = REGO_NODE_BINDING
+    Var = REGO_NODE_VAR
+    Term = REGO_NODE_TERM
+    Scalar = REGO_NODE_SCALAR
+    Array = REGO_NODE_ARRAY
+    Set = REGO_NODE_SET
+    Object = REGO_NODE_OBJECT
+    ObjectItem = REGO_NODE_OBJECT_ITEM
+    Int = REGO_NODE_INT
+    Float = REGO_NODE_FLOAT
+    String = REGO_NODE_STRING
+    Boolean = REGO_NODE_TRUE
+    Null = REGO_NODE_NULL
+    Undefined = REGO_NODE_UNDEFINED
+    Error = REGO_NODE_ERROR
+    ErrorMessage = REGO_NODE_ERROR_MESSAGE
+    ErrorAst = REGO_NODE_ERROR_AST
+    ErrorCode = REGO_NODE_ERROR_CODE
+    ErrorSeq = REGO_NODE_ERROR_SEQ
+    Internal = REGO_NODE_INTERNAL
 
 
 class Node:
@@ -92,12 +88,17 @@ class Node:
     x['e'] = None
     """
 
-    ValueKinds = [NodeKind.INT, NodeKind.FLOAT, NodeKind.STRING, NodeKind.TRUE, NodeKind.FALSE, NodeKind.NULL]
+    ValueKinds = [NodeKind.Int, NodeKind.Float, NodeKind.String, NodeKind.Boolean, NodeKind.Null]
 
     def __init__(self, impl):
         """Creates a new node."""
         self._impl = impl
-        self._kind = regoNodeType(self._impl)
+        kind = regoNodeType(self._impl)
+        if kind in (REGO_NODE_TRUE, REGO_NODE_FALSE):
+            self._kind = NodeKind.Boolean
+        else:
+            self._kind = NodeKind(regoNodeType(self._impl))
+
         self._children = [Node(regoNodeGet(self._impl, i)) for i in range(len(self))]
 
     @property
@@ -139,8 +140,8 @@ class Node:
             >>> print("z =", z.value)
             z = True
         """
-        if self._kind == NodeKind.Term or self._kind == NodeKind.SCALAR:
-            return self._children[0].value()
+        if self._kind == NodeKind.Term or self._kind == NodeKind.Scalar:
+            return self.at(0).value
 
         if self._kind not in Node.ValueKinds:
             raise ValueError("Node does not have a value")
@@ -148,31 +149,22 @@ class Node:
         if hasattr(self, "_value"):
             return self._value
 
-        size = regoNodeValueSize(self._impl)
-        buf = bytearray(size)
-        err = regoNodeValue(self._impl, buf, size)
-        if err == REGO_ERROR_BUFFER_TOO_SMALL:
-            raise ValueError("Buffer too small")
+        value = regoNodeValue(self._impl)
+        if self._kind == NodeKind.Int:
+            self._value = int(value)
+        elif self._kind == NodeKind.Float:
+            self._value = float(value)
+        elif self._kind == NodeKind.Boolean:
+            self._value = value == "true"
+        elif self._kind == NodeKind.Null:
+            self._value = None
+        elif self._kind == NodeKind.String:
+            self._value = value
+        else:
+            raise ValueError("Node does not have a value")
 
-        value = buf.decode("utf-8")
-        if self._kind == NodeKind.INT:
-            self.value = int(value)
+        return self._value
 
-        if self._kind == NodeKind.FLOAT:
-            self.value = float(value)
-
-        if self._kind == NodeKind.TRUE:
-            self.value = True
-
-        if self._kind == NodeKind.FALSE:
-            self.value = False
-
-        if self._kind == NodeKind.NULL:
-            self.value = None
-
-        return self.value
-
-    @property
     def __len__(self) -> int:
         """Returns the number of child nodes."""
         return regoNodeSize(self._impl)
@@ -188,20 +180,20 @@ class Node:
             TypeError: If the node is not an array.
         """
         if self._kind == NodeKind.Term:
-            return self.index(0).index(index)
+            return self.at(0).index(index)
 
-        if self._kind == NodeKind.ARRAY:
+        if self._kind == NodeKind.Array:
             if index < 0 or index >= len(self):
                 raise IndexError("index out of bounds")
 
-            return self._children[index]
+            return self.at(index)
 
-        raise TypeError("index is only valid for ARRAY nodes")
+        raise TypeError("index is only valid for Array nodes")
 
     def lookup(self, key: str) -> "Node":
         """Returns the child node for the given key.
 
-        If this is of kind OBJECT or SET, then the key must be a string.
+        If this is of kind Object or Set, then the key must be a string.
 
         Returns:
             Node: The child node.
@@ -211,16 +203,24 @@ class Node:
             TypeError: If the node does not support lookup
         """
         if self._kind == NodeKind.Term:
-            return self.index(0).lookup(key)
+            return self.at(0).lookup(key)
 
-        if self._kind == NodeKind.OBJECT:
+        if self._kind == NodeKind.Object:
             for child in self._children:
-                if child.kind == NodeKind.OBJECT_ITEM and child.index(0).value == key:
-                    return child.index(1)
+                assert child.kind == NodeKind.ObjectItem
+                child_key = child.at(0).value
+                if child_key == key:
+                    return child.at(1)
+
+                if child_key.startswith('"') and child_key.endswith('"'):
+                    child_key = child_key[1:-1]
+
+                if child_key == key:
+                    return child.at(1)
 
             raise KeyError(f"Key {key} not found")
 
-        if self._kind == NodeKind.SET:
+        if self._kind == NodeKind.Set:
             for child in self._children:
                 if child.value == key:
                     return child
@@ -261,13 +261,7 @@ class Node:
 
     def json(self) -> str:
         """Returns the node as a JSON string."""
-        size = regoNodeJSONSize(self._impl)
-        buf = bytearray(size)
-        err = regoNodeJSON(self._impl, buf, size)
-        if err == REGO_ERROR_BUFFER_TOO_SMALL:
-            raise ValueError("Buffer too small")
-
-        return buf.decode("utf-8")
+        return regoNodeJSON(self._impl)
 
     def __str__(self) -> str:
         """Returns the node as a JSON string."""

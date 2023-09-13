@@ -4,6 +4,24 @@
 
 using namespace pybind11::literals;
 
+namespace {
+  std::string get_value(regoNode* node)
+  {
+    std::vector<char> value;
+    value.resize(regoNodeValueSize(node));
+    regoNodeValue(node, value.data(), value.size());
+    return std::string(value.begin(), value.end() - 1);
+  }
+
+  std::string get_json(regoNode* node)
+  {
+    std::vector<char> json;
+    json.resize(regoNodeJSONSize(node));
+    regoNodeJSON(node, json.data(), json.size());
+    return std::string(json.begin(), json.end() - 1);
+  }
+}
+
 PYBIND11_MODULE(_regopy, m)
 {
   m.attr("REGOCPP_VERSION") = REGOCPP_VERSION;
@@ -17,7 +35,6 @@ PYBIND11_MODULE(_regopy, m)
   // error codes
   m.attr("REGO_OK") = REGO_OK;
   m.attr("REGO_ERROR") = REGO_ERROR;
-  m.attr("REGO_ERROR_BUFFER_TOO_SMALL") = REGO_ERROR_BUFFER_TOO_SMALL;
 
   // term node types
   m.attr("REGO_NODE_BINDING") = REGO_NODE_BINDING;
@@ -177,17 +194,10 @@ PYBIND11_MODULE(_regopy, m)
     "Returns a human-readable node type name.",
     "node"_a);
   m.def(
-    "regoNodeValueSize",
-    &regoNodeValueSize,
-    "Returns the size of the buffer needed to store the node's value.",
-    "node"_a);
-  m.def(
     "regoNodeValue",
-    &regoNodeValue,
-    "Writes the node value to the provided buffer.",
-    "node"_a,
-    "buffer"_a,
-    "size"_a);
+    &get_value,
+    "Gets the node value as a string.",
+    "node"_a);
   m.def("regoNodeSize", &regoNodeSize, "Returns the node size.", "node"_a);
   m.def(
     "regoNodeGet",
@@ -196,15 +206,8 @@ PYBIND11_MODULE(_regopy, m)
     "node"_a,
     "index"_a);
   m.def(
-    "regoNodeJSONSize",
-    &regoNodeJSONSize,
-    "Returns size of buffer needed to store the node's JSON representation.",
-    "node"_a);
-  m.def(
     "regoNodeJSON",
-    &regoNodeJSON,
-    "Writes the node's JSON representation to the provided buffer.",
-    "node"_a,
-    "buffer"_a,
-    "size"_a);
+    &get_json,
+    "Gets the node's JSON representation.",
+    "node"_a);
 }

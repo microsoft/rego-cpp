@@ -7,7 +7,7 @@ def test_query_math():
     rego = Interpreter()
     output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4")
     assert output is not None
-    assert str(output) == "x = 5\ny = 9.4\n"
+    assert str(output) == "x = 5\ny = 9.4"
     assert output.binding("x").json() == "5"
     assert output.binding("y").json() == "9.4"
 
@@ -71,19 +71,19 @@ def test_input_data():
     assert output is not None
     x = output.binding("x")
     data_one = x[0]
-    assert data_one["bar"].value == "Foo"
+    assert data_one["bar"].value == '"Foo"'
     assert data_one["be"].value is True
     assert data_one["baz"].value == 5
     assert data_one["bop"].value == 23.4
-    assert x[1].value == "20"
+    assert x[1].value == '"20"'
     data_objects_sites_1 = x[2]
-    assert data_objects_sites_1["name"].value == "smoke1"
+    assert data_objects_sites_1["name"].value == '"smoke1"'
 
 
 def test_multiple_inputs():
-    input0 = '{"a": 10}'
-    input1 = '{"a": 4}'
-    input2 = '{"a": 7}'
+    input0 = {"a": 10}
+    input1 = {"a": 4}
+    input2 = {"a": 7}
     module = """
     package multi
 
@@ -109,7 +109,7 @@ def test_multiple_inputs():
     rego.add_module("multi", module)
     rego.set_input(input0)
     output = rego.query("x = data.multi.a")
-    assert output is not None
+    assert str(output) == "x = 1"
     assert output.binding("x").value == 1
     rego.set_input(input1)
     output = rego.query("x = data.multi.a")
