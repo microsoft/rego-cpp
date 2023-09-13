@@ -36,8 +36,8 @@ class Output:
     def __del__(self):
         regoFreeOutput(self._impl)
 
-    def __str__(self):
-        regoOutputString(self._impl)
+    def __str__(self) -> str:
+        return regoOutputString(self._impl)
 
     def node(self) -> Node:
         return Node(regoOutputNode(self._impl))

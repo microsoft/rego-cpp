@@ -262,7 +262,7 @@ namespace rego
     {
       for (auto result : *ast)
       {
-        output_buf << rego::to_json(result, false, true) << std::endl;
+        output_buf << rego::to_json(result, true, true) << std::endl;
       }
     }
 
