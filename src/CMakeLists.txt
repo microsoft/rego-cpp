@@ -92,6 +92,10 @@ if(MSVC)
   target_compile_definitions(rego PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
 endif()
 
+if (REGOCPP_SANITIZE)
+  target_compile_options(rego PUBLIC -g -fsanitize=${REGOCPP_SANITIZE} -fno-omit-frame-pointer)
+  target_link_libraries(rego PUBLIC -fsanitize=${REGOCPP_SANITIZE})
+endif()
 
 target_include_directories( rego
   PUBLIC
