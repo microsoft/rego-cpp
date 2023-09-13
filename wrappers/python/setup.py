@@ -8,8 +8,14 @@ import sys
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
-
 REQUIRES_DEV = [
+    "flake8",
+    "flake8-bugbear",
+    "flake8-builtins",
+    "flake8-docstrings",
+    "flake8-import-order",
+    "flake8-quotes",
+    "pep8-naming",
     "pytest-md",
     "pytest-emoji",
     "pytest-cov",
@@ -85,6 +91,7 @@ setup(
     author="rego-cpp Team",
     author_email="rego-cpp@microsoft.com",
     description="Python interface for the OPA Rego Language and Runtime",
+    license="MIT",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     packages=find_packages("src"),
@@ -92,14 +99,7 @@ setup(
     python_requires=">=3.6, <4",
     ext_modules=[CMakeExtension("regopy._regopy")],
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3 :: Only",
         "License :: OSI Approved :: MIT License"
     ],
     project_urls={

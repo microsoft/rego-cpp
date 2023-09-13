@@ -1,17 +1,10 @@
 """Module providing a Pythonic interface to the rego-cpp interpreter."""
 
-from enum import IntEnum
 import json
 
 from .output import Output
 from ._regopy import (
     REGO_ERROR,
-    REGO_LOG_LEVEL_NONE,
-    REGO_LOG_LEVEL_ERROR,
-    REGO_LOG_LEVEL_WARN,
-    REGO_LOG_LEVEL_INFO,
-    REGO_LOG_LEVEL_DEBUG,
-    REGO_LOG_LEVEL_TRACE,
     regoNew,
     regoFree,
     regoAddModule,
@@ -27,15 +20,6 @@ from ._regopy import (
     regoGetStrictBuiltInErrors,
     regoGetError
 )
-
-
-class LogLevel(IntEnum):
-    NONE = REGO_LOG_LEVEL_NONE
-    ERROR = REGO_LOG_LEVEL_ERROR
-    WARN = REGO_LOG_LEVEL_WARN
-    INFO = REGO_LOG_LEVEL_INFO
-    DEBUG = REGO_LOG_LEVEL_DEBUG
-    TRACE = REGO_LOG_LEVEL_TRACE
 
 
 class RegoError(Exception):
