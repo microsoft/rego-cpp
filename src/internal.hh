@@ -5,26 +5,6 @@
 
 #include "rego/rego.hh"
 
-#define LOG_ERROR(...) \
-  Logger::print(LogLevel::Error, Logger::indent, "Error: ", __VA_ARGS__)
-#define LOG_WARNING(...) \
-  Logger::print(LogLevel::Warning, Logger::indent, "Warning: ", __VA_ARGS__)
-#define LOG_INFO(...) Logger::print(LogLevel::Info, Logger::indent, __VA_ARGS__)
-#define LOG_DEBUG(...) \
-  Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
-#define LOG_Trace(...) \
-  Logger::print(LogLevel::Trace, Logger::indent, __VA_ARGS__)
-#define LOG(...) Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
-#define LOG_HEADER(message, header) \
-  Logger::print(LogLevel::Debug, Logger::indent, (header), (message), (header))
-#define LOG_VECTOR(vector) \
-  Logger::print_vector_inline(LogLevel::Debug, (vector))
-#define LOG_VECTOR_CUSTOM(vector, transform) \
-  Logger::print_vector_custom(LogLevel::Debug, (vector), (transform))
-#define LOG_MAP_VALUES(map) Logger::print_map_values(LogLevel::Debug, (map))
-#define LOG_INDENT() Logger::increase_print_indent()
-#define LOG_UNINDENT() Logger::decrease_print_indent()
-
 namespace rego
 {
   std::vector<PassCheck> passes(const BuiltIns& builtins);
@@ -532,3 +512,24 @@ namespace rego
     bool m_negate;
   };
 }
+
+
+#define LOG_ERROR(...) \
+  rego::Logger::print(rego::LogLevel::Error, rego::Logger::indent, "Error: ", __VA_ARGS__)
+#define LOG_WARN(...) \
+  rego::Logger::print(rego::LogLevel::Warn, rego::Logger::indent, "Warning: ", __VA_ARGS__)
+#define LOG_INFO(...) rego::Logger::print(rego::LogLevel::Info, rego::Logger::indent, __VA_ARGS__)
+#define LOG_DEBUG(...) \
+  rego::Logger::print(rego::LogLevel::Debug, rego::Logger::indent, __VA_ARGS__)
+#define LOG_TRACE(...) \
+  rego::Logger::print(rego::LogLevel::Trace, rego::Logger::indent, __VA_ARGS__)
+#define LOG(...) rego::Logger::print(rego::LogLevel::Debug, rego::Logger::indent, __VA_ARGS__)
+#define LOG_HEADER(message, header) \
+  rego::Logger::print(rego::LogLevel::Debug, rego::Logger::indent, (header), (message), (header))
+#define LOG_VECTOR(vector) \
+  rego::Logger::print_vector_inline(rego::LogLevel::Debug, (vector))
+#define LOG_VECTOR_CUSTOM(vector, transform) \
+  rego::Logger::print_vector_custom(rego::LogLevel::Debug, (vector), (transform))
+#define LOG_MAP_VALUES(map) rego::Logger::print_map_values(rego::LogLevel::Debug, (map))
+#define LOG_INDENT() rego::Logger::increase_print_indent()
+#define LOG_UNINDENT() rego::Logger::decrease_print_indent()

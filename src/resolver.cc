@@ -1518,7 +1518,7 @@ namespace rego
 
     if (current->type() != Object)
     {
-      LOG(
+      LOG_WARN(
         "Conflict: cannot merge partials into non-object: ", term_str(current));
       Node replacement = NodeDef::create(Object);
       current->parent()->replace(current, replacement);

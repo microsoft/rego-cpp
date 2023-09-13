@@ -1,20 +1,22 @@
-"""regopy"""
+"""regopy - Python wrapper for rego-cpp."""
 
 from enum import IntEnum
 
 from ._regopy import (
-    REGOCPP_VERSION,
-    REGO_LOG_LEVEL_NONE,
-    REGO_LOG_LEVEL_ERROR,
-    REGO_LOG_LEVEL_WARN,
-    REGO_LOG_LEVEL_INFO,
     REGO_LOG_LEVEL_DEBUG,
+    REGO_LOG_LEVEL_ERROR,
+    REGO_LOG_LEVEL_INFO,
+    REGO_LOG_LEVEL_NONE,
     REGO_LOG_LEVEL_TRACE,
-    regoSetLogLevel
+    REGO_LOG_LEVEL_WARN,
+    REGOCPP_VERSION,
+    regoSetLogLevel,
+    regoNew,
+    regoFree,
 )
 from .interpreter import Interpreter, RegoError
-from .output import Output
 from .node import Node, NodeType
+from .output import Output
 
 __version__ = REGOCPP_VERSION
 
@@ -22,6 +24,7 @@ __all__ = [
     "Interpreter", "RegoError",
     "Output",
     "Node", "NodeType",
+    "regoNew", "regoFree",
 ]
 
 

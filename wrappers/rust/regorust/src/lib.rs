@@ -378,17 +378,6 @@ impl Interpreter {
 
     /// Adds a Rego module from a string.
     ///
-    /// # Example module string
-    /// ```rego
-    /// package scalars
-    ///
-    /// greeting := "Hello"
-    /// max_height := 42
-    /// pi := 3.14159
-    /// allowed := true
-    /// location := null
-    /// ```
-    ///
     /// # Example
     /// ```
     /// # use regorust::*;
@@ -457,24 +446,6 @@ impl Interpreter {
     /// Adds a base document from a string.
     ///
     /// The string must contain a valid JSON object.
-    ///
-    /// # Example document file
-    /// ```json
-    /// {
-    ///    "one": {
-    ///        "bar": "Foo",
-    ///        "baz": 5,
-    ///        "be": true,
-    ///        "bop": 23.4
-    ///    },
-    ///    "two": {
-    ///        "bar": "Bar",
-    ///      "baz": 12.3,
-    ///        "be": false,
-    ///        "bop": 42
-    ///    }
-    /// }
-    /// ```
     ///
     /// # Example
     /// ```

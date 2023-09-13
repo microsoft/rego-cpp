@@ -1,6 +1,5 @@
 """Module providing an interface to a rego-cpp output object."""
 
-from .node import Node
 from ._regopy import (
     regoFreeOutput,
     regoOutputBinding,
@@ -8,9 +7,29 @@ from ._regopy import (
     regoOutputOk,
     regoOutputString,
 )
+from .node import Node
 
 
 class Output:
+    """Interface for the Rego output.
+
+    Outputs can either be examined as strings, or inspected
+    using Rego Nodes. It is also possible to extract bindings
+    for specific variables.
+
+    Examples:
+        >>> from regopy import Interpreter
+        >>> rego = Interpreter()
+        >>> output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4")
+        >>> print(output)
+        x = 5
+        y = 9.4
+
+        >>> x = output.binding("x")
+        >>> print(x.json())
+        5
+    """
+
     def __init__(self, impl):
         self._impl = impl
 

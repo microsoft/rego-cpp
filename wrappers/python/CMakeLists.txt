@@ -34,7 +34,7 @@ FetchContent_Declare(
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
-set(SNMALLOC_NO_TLS ON)
+set(SNMALLOC_ENABLE_DYNAMIC_LOADING ON)
 
 FetchContent_MakeAvailable(regocpp)
 FetchContent_MakeAvailable(pybind11)
