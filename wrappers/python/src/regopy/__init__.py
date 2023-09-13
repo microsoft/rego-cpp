@@ -10,12 +10,10 @@ from ._regopy import (
     REGO_LOG_LEVEL_TRACE,
     REGO_LOG_LEVEL_WARN,
     REGOCPP_VERSION,
-    regoSetLogLevel,
-    regoNew,
-    regoFree,
+    regoSetLogLevel
 )
 from .interpreter import Interpreter, RegoError
-from .node import Node, NodeType
+from .node import Node, NodeKind
 from .output import Output
 
 __version__ = REGOCPP_VERSION
@@ -23,7 +21,7 @@ __version__ = REGOCPP_VERSION
 __all__ = [
     "Interpreter", "RegoError",
     "Output",
-    "Node", "NodeType",
+    "Node", "NodeKind",
     "regoNew", "regoFree",
 ]
 
