@@ -76,16 +76,15 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
+        num_workers = multiprocessing.cpu_count()
+        build_args += ["--parallel", str(num_workers)]
+
         if platform.system() == "Windows":
             cmake_args += ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format(cfg.upper(), extdir)]
             if platform.architecture()[0] == "64bit":
                 cmake_args += ["-A", "x64"]
             else:
                 cmake_args += ["-A", "Win32"]
-
-            build_args += ["--", "/m"]
-        else:
-            build_args += ["--", "-j2"]
 
         subprocess.check_call(["cmake", ext.source_dir] +
                               cmake_args, cwd=self.build_temp)
