@@ -25,13 +25,10 @@ Node
 .. autoclass:: Node
     :members:
 
-.. autoclass:: NodeKind
-    :members:
+.. autoenum:: NodeKind
 
 Logging
 -------
 
-.. autoclass:: LogLevel
-    :members:
-
+.. autoenum:: LogLevel
 .. autofunction:: set_log_level

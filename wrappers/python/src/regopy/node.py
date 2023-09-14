@@ -67,23 +67,30 @@ class Node:
     the variants of [`NodeKind`]. Each node also has zero or more
     children, which are also nodes.
 
-    Example:
+    Examples:
+
     >>> from regopy import Interpreter
     >>> rego = Interpreter()
     >>> output = rego.query('x={"a": 10, "b": "20", "c": [30.0, 60], "d": true, "e": null}')
     >>> x = output.binding("x")
     >>> print("x =", x.json())
     x = {"a":10, "b":"20", "c":[30, 60], "d":true, "e":null}
+
     >>> print("x['a'] =", x["a"].value)
     x['a'] = 10
+
     >>> print("x['b'] =", x["b"].value)
     x['b'] = "20"
+
     >>> print("x['c'][0] =", x["c"][0].value)
     x['c'][0] = 30.0
+
     >>> print("x['c'][1] =", x["c"][1].value)
     x['c'][1] = 60
+
     >>> print("x['d'] =", x["d"].value)
     x['d'] = True
+
     >>> print("x['e'] =", x["e"].value)
     x['e'] = None
     """

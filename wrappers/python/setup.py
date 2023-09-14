@@ -24,6 +24,7 @@ REQUIRES_DEV = [
     "sphinx",
     "sphinx-autodoc-typehints",
     "sphinx-rtd-theme",
+    "enum-tools[sphinx]",
     "twine",
     "wheel"
 ]

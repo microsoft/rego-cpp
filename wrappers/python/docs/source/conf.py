@@ -17,6 +17,7 @@ release = '0.3.5'
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
+    "enum_tools.autoenum",
     "sphinx_autodoc_typehints"
 ]
 

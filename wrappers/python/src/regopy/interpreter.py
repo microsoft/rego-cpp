@@ -38,9 +38,8 @@ class RegoError(Exception):
 class Interpreter:
     """Pythonic interface to the rego-cpp interpreter.
 
-    Description:
-        This wraps the Rego C API, and handles passing calls to
-        the C API and converting the results to Python types.
+    This wraps the Rego C API, and handles passing calls to
+    the C API and converting the results to Python types.
 
     Examples:
         >>> from regopy import Interpreter
