@@ -7,17 +7,17 @@ using namespace pybind11::literals;
 namespace {
   std::string get_value(regoNode* node)
   {
-    std::vector<char> value;
-    value.resize(regoNodeValueSize(node));
-    regoNodeValue(node, value.data(), value.size());
+    regoSize size = regoNodeValueSize(node);
+    std::vector<char> value(size);
+    regoNodeValue(node, value.data(), size);
     return std::string(value.begin(), value.end() - 1);
   }
 
   std::string get_json(regoNode* node)
   {
-    std::vector<char> json;
-    json.resize(regoNodeJSONSize(node));
-    regoNodeJSON(node, json.data(), json.size());
+    regoSize size = regoNodeJSONSize(node);
+    std::vector<char> json(size);
+    regoNodeJSON(node, json.data(), size);
     return std::string(json.begin(), json.end() - 1);
   }
 }

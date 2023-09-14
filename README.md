@@ -20,9 +20,6 @@ environment.
 
 ### Linux
 
-> **Note**
-> At the moment, you must use `clang++` to build the project on Linux.
-
 Create a build directory and initialize the cmake project:
 
     mkdir build
