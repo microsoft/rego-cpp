@@ -1343,12 +1343,11 @@ namespace rego
   /** Converts a node to JSON.
    *
    * @param node The node to convert.
-   * @param sort Whether to sort the keys of a JSON object or the values in a
-   * set.
-   * @param set_as_array Whether to represent a set using array notation.
+   * @param set_as_array Whether to represent a set using array notation. Otherwise,
+   *                     sets are denoted using "<>" delimiters.
    */
   std::string to_json(
-    const trieste::Node& node, bool sort = false, bool set_as_array = false);
+    const trieste::Node& node, bool set_as_array = false, bool sort_arrays = false);
 
   /**
    * The logging level.

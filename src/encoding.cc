@@ -1,8 +1,104 @@
 #include "internal.hh"
 
+namespace
+{
+  using namespace rego;
+
+  struct NodeKey
+  {
+    std::string key;
+    Node node;
+    NodeKey(const Node& value)
+    {
+      node = value;
+      if (node->type() == Term)
+      {
+        node = node->front();
+      }
+
+      if (node->type() == Scalar)
+      {
+        node = node->front();
+      }
+
+      key = to_json(node, false);
+    }
+
+    bool operator<(const NodeKey& other) const
+    {
+      if (node->type() == other.node->type())
+      {
+        if (node->type() == Int)
+        {
+          return get_int(node) < get_int(other.node);
+        }
+
+        if (node->type() == Float)
+        {
+          return get_double(node) < get_double(other.node);
+        }
+
+        return key < other.key;
+      }
+      else
+      {
+        if (
+          (node->type() == Float && other.node->type() == Int) ||
+          (node->type() == Int && other.node->type() == Float))
+        {
+          return get_double(node) < get_double(other.node);
+        }
+
+        // type ordering is Null < Bool < Number < String
+        if (node->type() == Null)
+        {
+          return true;
+        }
+
+        if (other.node->type() == Null)
+        {
+          return false;
+        }
+
+        if (node->type() == False)
+        {
+          return true;
+        }
+
+        if (other.node->type() == False)
+        {
+          return false;
+        }
+
+        if (node->type() == True)
+        {
+          return true;
+        }
+
+        if (other.node->type() == True)
+        {
+          return false;
+        }
+
+        if (node->type() == Int || node->type() == Float)
+        {
+          return true;
+        }
+
+        if (other.node->type() == Int || other.node->type() == Float)
+        {
+          return false;
+        }
+
+        return key < other.key;
+      }
+    }
+  };
+}
+
 namespace rego
 {
-  std::string to_json(const Node& node, bool sort, bool set_as_array)
+  std::string to_json(const Node& node, bool set_as_array, bool sort_arrays)
   {
     std::ostringstream buf;
     if (node->type() == Int)
@@ -57,9 +153,26 @@ namespace rego
     else if (node->type() == Array || node->type() == DataArray)
     {
       std::vector<std::string> items;
-      for (const auto& child : *node)
+      if (sort_arrays)
       {
-        items.push_back(to_json(child, sort, set_as_array));
+        std::vector<NodeKey> keys;
+        for (const auto& child : *node)
+        {
+          keys.push_back(child);
+        }
+
+        std::sort(keys.begin(), keys.end());
+        std::transform(
+          keys.begin(), keys.end(), std::back_inserter(items), [&](auto& key) {
+            return to_json(key.node, set_as_array, sort_arrays);
+          });
+      }
+      else
+      {
+        for (const auto& child : *node)
+        {
+          items.push_back(to_json(child, set_as_array, sort_arrays));
+        }
       }
 
       buf << "[";
@@ -73,16 +186,13 @@ namespace rego
     }
     else if (node->type() == Set || node->type() == DataSet)
     {
-      std::vector<std::string> items;
+      std::vector<NodeKey> node_keys;
       for (const auto& child : *node)
       {
-        items.push_back(to_json(child, sort, set_as_array));
+        node_keys.push_back(child);
       }
 
-      if (sort)
-      {
-        std::sort(items.begin(), items.end());
-      }
+      std::sort(node_keys.begin(), node_keys.end());
 
       if (set_as_array)
       {
@@ -93,9 +203,10 @@ namespace rego
         buf << "<";
       }
       std::string sep = "";
-      for (const auto& item : items)
+      for (const auto& node_key : node_keys)
       {
-        buf << sep << item;
+        std::string key_str = to_json(node_key.node, set_as_array, sort_arrays);
+        buf << sep << key_str;
         sep = ", ";
       }
 
@@ -111,16 +222,17 @@ namespace rego
     else if (node->type() == Object || node->type() == DataObject)
     {
       std::map<std::string, std::string> items;
+      std::vector<NodeKey> keys;
       for (const auto& child : *node)
       {
         auto key = child / Key;
         auto value = child / Val;
-        std::string key_str = to_json(key, sort, set_as_array);
+        std::string key_str = to_json(key, set_as_array, sort_arrays);
         if (!key_str.starts_with('"') || !key_str.ends_with('"'))
         {
           key_str = '"' + key_str + '"';
         }
-        items[key_str] = to_json(value, sort, set_as_array);
+        items.insert({key_str, to_json(value, set_as_array, sort_arrays)});
       }
 
       buf << "{";
@@ -137,12 +249,12 @@ namespace rego
       node->type() == Scalar || node->type() == Term ||
       node->type() == DataTerm)
     {
-      return to_json(node->front(), sort, set_as_array);
+      return to_json(node->front(), set_as_array, sort_arrays);
     }
     else if (node->type() == Binding)
     {
       buf << (node / Var)->location().view() << " = "
-          << to_json(node / Term, sort, set_as_array);
+          << to_json(node / Term, set_as_array, sort_arrays);
     }
     else if (node->type() == TermSet)
     {
@@ -150,7 +262,7 @@ namespace rego
       std::string sep = "";
       for (const auto& child : *node)
       {
-        buf << sep << to_json(child, sort, set_as_array);
+        buf << sep << to_json(child, set_as_array, sort_arrays);
         sep = ", ";
       }
       buf << "}";

@@ -263,7 +263,7 @@ namespace rego
       std::vector<std::string> results;
       std::transform(
         ast->begin(), ast->end(), std::back_inserter(results), [](auto& result) {
-          return rego::to_json(result, true, true);
+          return rego::to_json(result, true);
         });
       std::sort(results.begin(), results.end());
       std::string sep = "";
