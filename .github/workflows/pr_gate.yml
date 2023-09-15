@@ -360,3 +360,5 @@ jobs:
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
         run: pytest -vv --emoji
+        env:
+          PYTHONVERBOSE: 3

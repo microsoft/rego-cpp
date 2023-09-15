@@ -10,6 +10,8 @@ Adding a Python wrapper.
 **Bug Fixes**
 - Fixed a bug where `to_json()` was incorrectly sorting arrays when the `sort`
   flag was set to `true`.
+- Removes a memory leak caused by a cyclic graph of Unifiers
+- Fixes various use-after-free violations caused by missing `clone()` invocations.
 
 ## 2023-09-12 - Version 0.3.5
 Adding C++ documentation.
