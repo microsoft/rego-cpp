@@ -11,7 +11,31 @@ namespace
     std::set<Location> rhs_vars;
   };
 
-  using InitStatments = std::shared_ptr<NodeMap<InitInfo>>;
+  Node to_init(
+    const Node& lhs,
+    const std::set<Location>& lhs_locs,
+    const Node& rhs,
+    const std::set<Location>& rhs_locs)
+  {
+    Node lhs_vars = NodeDef::create(VarSeq);
+    for (auto& loc : lhs_locs)
+    {
+      lhs_vars << (Var ^ loc);
+    }
+
+    Node rhs_vars = NodeDef::create(VarSeq);
+    for (auto& loc : rhs_locs)
+    {
+      rhs_vars << (Var ^ loc);
+    }
+
+    if (rhs_vars->size() > 0 && lhs_vars->size() == 0)
+    {
+      return LiteralInit << rhs_vars << lhs_vars << (AssignInfix << rhs << lhs);
+    }
+
+    return LiteralInit << lhs_vars << rhs_vars << (AssignInfix << lhs << rhs);
+  }
 
   void vars_from(Node node, std::set<Location>& vars)
   {
@@ -58,12 +82,12 @@ namespace
     }
   }
 
-  void find_init_stmts(
-    Node unifybody, std::set<Location>& locals, InitStatments init_stmts)
+  void find_init_stmts(Node unifybody, std::set<Location>& locals)
   {
     // gather all locals
-    for (Node stmt : *unifybody)
+    for (std::size_t i = 0; i < unifybody->size(); ++i)
     {
+      Node stmt = unifybody->at(i);
       if (stmt->type() == Local)
       {
         locals.insert((stmt / Var)->location());
@@ -71,15 +95,15 @@ namespace
       else if (stmt->type() == LiteralEnum)
       {
         locals.erase((stmt / Item)->location());
-        find_init_stmts(stmt / UnifyBody, locals, init_stmts);
+        find_init_stmts(stmt / UnifyBody, locals);
       }
       else if (stmt->type() == LiteralWith)
       {
-        find_init_stmts(stmt / UnifyBody, locals, init_stmts);
+        find_init_stmts(stmt / UnifyBody, locals);
       }
       else if (stmt->type() == LiteralNot)
       {
-        find_init_stmts(stmt / UnifyBody, locals, init_stmts);
+        find_init_stmts(stmt / UnifyBody, locals);
       }
       else if (stmt->type() == Literal)
       {
@@ -126,12 +150,12 @@ namespace
           locals.erase(loc);
         }
 
-        init_stmts->insert({stmt, InitInfo{lhs_found, rhs_found}});
+        unifybody->replace_at(i, to_init(lhs, lhs_found, rhs, rhs_found));
       }
     }
   }
 
-  void register_init_stmts(const Node& rule, InitStatments init_stmts)
+  void register_init_stmts(const Node& rule)
   {
     Node body = rule / Body;
     Node val = rule / Val;
@@ -139,13 +163,13 @@ namespace
     if (body->type() == UnifyBody)
     {
       std::set<Location> locals;
-      find_init_stmts(body, locals, init_stmts);
+      find_init_stmts(body, locals);
     }
 
     if (val->type() == UnifyBody)
     {
       std::set<Location> locals;
-      find_init_stmts(val, locals, init_stmts);
+      find_init_stmts(val, locals);
     }
   }
 }
@@ -161,72 +185,37 @@ namespace rego
   // initialized. These allow later passes to correctly handle these statements.
   PassDef init()
   {
-    InitStatments init_stmts = std::make_shared<NodeMap<InitInfo>>();
+    PassDef init = {dir::once | dir::bottomup};
 
-    PassDef init = {
-      dir::once | dir::bottomup,
-      {
-        In(UnifyBody) *
-            (T(Literal)[Literal](
-               [init_stmts](auto& n) { return init_stmts->contains(*n.first); })
-             << (T(Expr)
-                 << (T(AssignInfix)
-                     << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
-          [init_stmts](Match& _) {
-            InitInfo& init_info = init_stmts->at(_(Literal));
-
-            Node lhs_vars = NodeDef::create(VarSeq);
-            for (auto& loc : init_info.lhs_vars)
-            {
-              lhs_vars << (Var ^ loc);
-            }
-
-            Node rhs_vars = NodeDef::create(VarSeq);
-            for (auto& loc : init_info.rhs_vars)
-            {
-              rhs_vars << (Var ^ loc);
-            }
-
-            if (rhs_vars->size() > 0 && lhs_vars->size() == 0)
-            {
-              return LiteralInit << rhs_vars << lhs_vars
-                                 << (AssignInfix << _(Rhs) << _(Lhs));
-            }
-
-            return LiteralInit << lhs_vars << rhs_vars
-                               << (AssignInfix << _(Lhs) << _(Rhs));
-          },
-      }};
-
-    init.pre(RuleComp, [init_stmts](Node rule) {
-      register_init_stmts(rule, init_stmts);
+    init.pre(RuleComp, [](Node rule) {
+      register_init_stmts(rule);
       return 0;
     });
 
-    init.pre(RuleFunc, [init_stmts](Node rule) {
-      register_init_stmts(rule, init_stmts);
+    init.pre(RuleFunc, [](Node rule) {
+      register_init_stmts(rule);
       return 0;
     });
 
-    init.pre(RuleSet, [init_stmts](Node rule) {
-      register_init_stmts(rule, init_stmts);
+    init.pre(RuleSet, [](Node rule) {
+      register_init_stmts(rule);
       return 0;
     });
 
-    init.pre(RuleObj, [init_stmts](Node rule) {
-      register_init_stmts(rule, init_stmts);
+    init.pre(RuleObj, [](Node rule) {
+      register_init_stmts(rule);
       return 0;
     });
 
-    init.pre(NestedBody, [init_stmts](Node nested) {
+    init.pre(NestedBody, [](Node nested) {
       std::set<Location> locals;
-      find_init_stmts(nested / Val, locals, init_stmts);
+      find_init_stmts(nested / Val, locals);
       return 0;
     });
 
-    init.pre(ExprEvery, [init_stmts](Node exprevery) {
+    init.pre(ExprEvery, [](Node exprevery) {
       std::set<Location> locals;
-      find_init_stmts(exprevery / UnifyBody, locals, init_stmts);
+      find_init_stmts(exprevery / UnifyBody, locals);
       return 0;
     });
 

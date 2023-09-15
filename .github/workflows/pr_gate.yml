@@ -355,6 +355,7 @@ jobs:
         env:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          PYTHONVERBOSE: 3
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 

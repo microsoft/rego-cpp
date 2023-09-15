@@ -402,12 +402,25 @@ namespace rego
     std::size_t m_id;
   };
 
+  enum class UnifierType
+  {
+    Body,
+    Value
+  };
+
+  struct UnifierKey
+  {
+    Location key;
+    UnifierType type;
+    bool operator<(const UnifierKey& other) const;
+  };
+
   class UnifierDef;
   using Unifier = std::shared_ptr<UnifierDef>;
   using CallStack = std::shared_ptr<std::vector<Location>>;
   using ValuesLookup = std::map<std::string, Values>;
   using WithStack = std::shared_ptr<std::vector<ValuesLookup>>;
-  using UnifierCache = std::shared_ptr<NodeMap<Unifier>>;
+  using UnifierCache = std::shared_ptr<std::map<UnifierKey, Unifier>>;
 
   class UnifierDef
   {
@@ -418,19 +431,20 @@ namespace rego
       CallStack call_stack,
       WithStack with_stack,
       const BuiltIns& builtins,
-      UnifierCache cache);
+      UnifierCache unifier_cache);
     Node unify();
     Nodes expressions() const;
     Nodes bindings() const;
     std::string str() const;
     std::string dependency_str() const;
     static Unifier create(
+      const UnifierKey& key,
       const Location& rule,
       const Node& rulebody,
       const CallStack& call_stack,
       const WithStack& with_stack,
       const BuiltIns& builtins,
-      const UnifierCache& cache);
+      const UnifierCache& unifier_cache);
     std::optional<Node> resolve_rule(const Nodes& defs) const;
     std::optional<Node> resolve_rulecomp(const Nodes& rulecomp) const;
     std::optional<Node> resolve_ruleset(const Nodes& ruleset) const;
@@ -447,9 +461,19 @@ namespace rego
       std::size_t score;
     };
 
-    Unifier rule_unifier(const Location& rule, const Node& rulebody) const;
+    struct Statement
+    {
+      std::size_t id;
+      Node node;
+    };
+
+    static Resolver::NodePrinter stmt_str(const Statement& statement);
+    Unifier rule_unifier(
+      const UnifierKey& key, const Location& rule, const Node& rulebody) const;
     void init_from_body(
-      const Node& rulebody, std::vector<Node>& statements, std::size_t root);
+      const Node& rulebody,
+      std::vector<Statement>& statements,
+      std::size_t root);
     std::size_t add_variable(const Node& local);
     std::size_t add_unifyexpr(const Node& unifyexpr);
     void add_withpush(const Node& withpush);
@@ -460,7 +484,7 @@ namespace rego
     std::size_t compute_dependency_score(
       std::size_t index, std::set<size_t>& visited);
     std::size_t dependency_score(const Variable& var) const;
-    std::size_t dependency_score(const Node& expr) const;
+    std::size_t dependency_score(const Statement& stmt) const;
     std::size_t detect_cycles() const;
     bool has_cycle(std::size_t id) const;
 
@@ -479,7 +503,9 @@ namespace rego
     bool is_local(const Node& var);
     std::size_t scan_vars(const Node& expr, std::vector<Location>& locals);
     void pass();
-    void execute_statements(Nodes::iterator begin, Nodes::iterator end);
+    void execute_statements(
+      std::vector<Statement>::iterator begin,
+      std::vector<Statement>::iterator end);
     void remove_invalid_values();
     void mark_invalid_values();
     Variable& get_variable(const Location& name);
@@ -499,15 +525,14 @@ namespace rego
 
     Location m_rule;
     std::map<Location, Variable> m_variables;
-    std::vector<Node> m_statements;
-    NodeMap<std::vector<Node>> m_nested_statements;
+    std::vector<Statement> m_statements;
+    std::map<std::size_t, std::vector<Statement>> m_nested_statements;
     CallStack m_call_stack;
     WithStack m_with_stack;
-    BuiltIns m_builtins;
+    const BuiltIns& m_builtins;
+    UnifierCache m_cache;
     std::size_t m_retries;
     Token m_parent_type;
-    UnifierCache m_cache;
-    NodeMap<std::size_t> m_expr_ids;
     std::vector<Dependency> m_dependency_graph;
     bool m_negate;
   };

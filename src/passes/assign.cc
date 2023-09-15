@@ -34,34 +34,23 @@ namespace
     return path.str();
   }
 
-  bool needs_rewrite(
-    const NodeRange& n,
-    const FunctionArity& func_arity,
-    const std::shared_ptr<NodeMap<bool>>& cache)
+  bool needs_rewrite(const NodeRange& n, const FunctionArity& func_arity)
   {
     Node ruleref = n.first[0];
     Node argseq = n.first[1];
-    if (cache->contains(ruleref))
-    {
-      return cache->at(ruleref);
-    }
 
     if (!is_in(ruleref, {UnifyBody}))
     {
-      cache->insert({ruleref, false});
       return false;
     }
 
     std::string path = concat(ruleref);
     if (!func_arity->contains(path))
     {
-      cache->insert({ruleref, false});
       return false;
     }
 
     bool result = func_arity->at(path) == argseq->size() - 1;
-
-    cache->insert({ruleref, result});
     return result;
   }
 }
@@ -75,7 +64,6 @@ namespace rego
   // Transforms unification expressions into AssignInfix nodes.
   PassDef assign(const BuiltIns& builtins)
   {
-    auto cache = std::make_shared<NodeMap<bool>>();
     FunctionArity func_arity =
       std::make_shared<std::map<std::string, std::size_t>>();
 
@@ -118,10 +106,10 @@ namespace rego
       In(Literal) *
           (T(Expr)
            << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
-                 [func_arity, cache](auto& n) {
+                 [func_arity](auto& n) {
                    // tests if this is a function call that has an extra
                    // argument that should be unified with the result.
-                   return needs_rewrite(n, func_arity, cache);
+                   return needs_rewrite(n, func_arity);
                  }))) >>
         [](Match& _) {
           // A convention in the Golang implementation of Rego is
@@ -145,8 +133,8 @@ namespace rego
                    (T(AssignArg)
                     << (T(ExprCall)
                         << (T(RuleRef)[RuleRef] *
-                            T(ArgSeq)[ArgSeq])([func_arity, cache](auto& n) {
-                             return needs_rewrite(n, func_arity, cache) &&
+                            T(ArgSeq)[ArgSeq])([func_arity](auto& n) {
+                             return needs_rewrite(n, func_arity) &&
                                is_in(*n.first, {UnifyBody});
                            })))))) >>
         [](Match& _) {

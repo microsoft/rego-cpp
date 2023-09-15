@@ -182,7 +182,7 @@ namespace rego
     Node term = to_term();
     if (term->type() == Error)
     {
-      m_local->back() = term;
+      m_local->replace_at(1, term);
       return term;
     }
 
@@ -190,12 +190,12 @@ namespace rego
     {
       if (term->size() == 0)
       {
-        m_local->back() = Undefined;
+        m_local->replace_at(1, Undefined);
         return Undefined;
       }
     }
 
-    m_local->back() = term;
+    m_local->replace_at(1, term);
     return term;
   }
 

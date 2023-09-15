@@ -73,8 +73,8 @@ option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the inst
 
 FetchContent_Declare(
   trieste
-  GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        5f75cf7aeb74890066ff249a82fa14dc031a9642
+  GIT_REPOSITORY https://github.com/matajoh/trieste
+  GIT_TAG        ref-node-issue
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 

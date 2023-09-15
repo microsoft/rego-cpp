@@ -55,7 +55,7 @@ namespace
     return false;
   }
 
-  void prepend_refs(Node& node, Node& prefix_ref, RefHeads refheads)
+  void prepend_refs(const Node& node, Node& prefix_ref, RefHeads refheads)
   {
     if (node->type() == Term || node->type() == RuleRef)
     {
