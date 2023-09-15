@@ -155,7 +155,7 @@ jobs:
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
-        run: pytest -vv --emoji
+        run: pytest -vv
 
   windows:
     runs-on: windows-latest
@@ -251,7 +251,7 @@ jobs:
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
-        run: pytest -vv --emoji
+        run: pytest -vv
 
   macos:
     runs-on: macos-latest
@@ -359,6 +359,6 @@ jobs:
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
-        run: pytest -vv --emoji
+        run: pytest -vv
         env:
           PYTHONVERBOSE: 3
