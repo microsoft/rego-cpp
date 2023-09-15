@@ -68,6 +68,7 @@ option(REGOCPP_BUILD_DOCS "Specifies whether to build the documentation" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
 option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
 option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
+set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 
 # -------------------- Find packages --------------------------
 
