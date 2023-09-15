@@ -3,7 +3,7 @@
 namespace
 {
   using namespace rego;
-  using Scope = std::map<std::string, Node>;
+  using Scope = std::map<Location, bool>;
 
   void add_locals(
     Node unifybody, std::vector<Scope>& scopes, const BuiltIns& builtins);
@@ -21,12 +21,11 @@ namespace
     if (node->type() == Local)
     {
       Node var = node / Var;
-      std::string name = std::string(var->location().view());
       for (auto& scope : scopes)
       {
-        if (scope.contains(name))
+        if (scope.contains(var->location()))
         {
-          scope[name] = Undefined;
+          scope[var->location()] = false;
         }
       }
       return;
@@ -39,8 +38,7 @@ namespace
         return;
       }
 
-      std::string name = std::string(node->location().view());
-      if (name == "data")
+      if (node->location().view() == "data")
       {
         // reserved
         return;
@@ -48,7 +46,7 @@ namespace
 
       for (auto& scope : scopes)
       {
-        if (scope.contains(name))
+        if (scope.contains(node->location()))
         {
           return;
         }
@@ -60,7 +58,7 @@ namespace
         return;
       }
 
-      scopes.back().insert({name, Local << node->clone() << Undefined});
+      scopes.back().insert({node->location(), true});
     }
     else if (node->type() == UnifyBody)
     {
@@ -94,11 +92,11 @@ namespace
       find_free_vars(child, scopes, builtins);
     }
 
-    for (const auto& [name, local] : scopes.back())
+    for (const auto& [loc, add] : scopes.back())
     {
-      if (local->type() == Local)
+      if (add)
       {
-        unifybody->push_front(local);
+        unifybody->push_front(Local << (Var ^ loc) << Undefined);
       }
     }
 

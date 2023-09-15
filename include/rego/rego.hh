@@ -760,10 +760,10 @@ namespace rego
     | (Object <<= ObjectItem++)
     | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
     | (DataItem <<= Key * (Val >>= DataModule | Term))[Key]
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
-    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))[Var]
-    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int) * Key)[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int) * Key)[Var]
+    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Key)[Var]
+    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Key)[Var]
     ;
   // clang-format on
 
@@ -1343,12 +1343,13 @@ namespace rego
   /** Converts a node to JSON.
    *
    * @param node The node to convert.
-   * @param sort Whether to sort the keys of a JSON object or the values in a
-   * set.
    * @param set_as_array Whether to represent a set using array notation.
+   * Otherwise, sets are denoted using "<>" delimiters.
    */
   std::string to_json(
-    const trieste::Node& node, bool sort = false, bool set_as_array = false);
+    const trieste::Node& node,
+    bool set_as_array = false,
+    bool sort_arrays = false);
 
   /**
    * The logging level.

@@ -558,14 +558,14 @@ namespace rego
   {
     if (value->type() == Term || value->type() == TermSet)
     {
-      return value;
+      return value->clone();
     }
 
     if (
       value->type() == Array || value->type() == Set ||
       value->type() == Object || value->type() == Scalar)
     {
-      return Term << value;
+      return Term << value->clone();
     }
 
     if (
@@ -573,7 +573,7 @@ namespace rego
       value->type() == JSONString || value->type() == True ||
       value->type() == False || value->type() == Null)
     {
-      return Term << (Scalar << value);
+      return Term << (Scalar << value->clone());
     }
 
     return err(value, "Not a term");
@@ -1040,7 +1040,7 @@ namespace rego
       }
       else if (rulearg->type() == ArgVar)
       {
-        rulearg->at(1) = arg;
+        rulearg->replace_at(1, arg);
       }
     }
 
@@ -1113,7 +1113,7 @@ namespace rego
       if (!values.contains(repr))
       {
         values.insert(repr);
-        reduce->push_back(term);
+        reduce->push_back(term->clone());
       }
     }
 
@@ -1134,14 +1134,23 @@ namespace rego
     }
 
     Node rulebody = defs[0] / Val;
+    Location rulename{"query"};
+    UnifierCache cache = std::make_shared<std::map<UnifierKey, Unifier>>();
     auto unifier = UnifierDef::create(
-      {"query"},
+      UnifierKey{rulename, UnifierType::RuleBody},
+      rulename,
       rulebody,
       std::make_shared<std::vector<Location>>(),
       std::make_shared<std::vector<ValuesLookup>>(),
       builtins,
-      std::make_shared<NodeMap<Unifier>>());
+      cache);
     Node result = unifier->unify();
+
+    // now that unification is complete, we need to empty the
+    // Unifier cache. Since they all maintain a pointer to the
+    // cache, it will not be able to be freed otherwise.
+    cache->clear();
+
     if (result->type() == Error)
     {
       return Query << result;
@@ -1411,7 +1420,7 @@ namespace rego
 
     if (termset->type() == Term)
     {
-      terms->push_back(termset->front());
+      terms->push_back(termset->front()->clone());
       return;
     }
 
@@ -1429,7 +1438,7 @@ namespace rego
       }
       else if (term->type() == Term)
       {
-        terms->push_back(term->front());
+        terms->push_back(term->front()->clone());
       }
       else
       {
@@ -1443,8 +1452,8 @@ namespace rego
     if (termset->type() == Term)
     {
       Node array = termset->front();
-      items->push_back(array->front());
-      items->push_back(array->back());
+      items->push_back(array->front()->clone());
+      items->push_back(array->back()->clone());
       return;
     }
 
@@ -1463,8 +1472,8 @@ namespace rego
       else if (term->type() == Term)
       {
         Node array = term->front();
-        items->push_back(array->front());
-        items->push_back(array->back());
+        items->push_back(array->front()->clone());
+        items->push_back(array->back()->clone());
       }
       else
       {
@@ -1518,7 +1527,7 @@ namespace rego
 
     if (current->type() != Object)
     {
-      LOG(
+      LOG_WARN(
         "Conflict: cannot merge partials into non-object: ", term_str(current));
       Node replacement = NodeDef::create(Object);
       current->parent()->replace(current, replacement);
@@ -1541,12 +1550,13 @@ namespace rego
 
     if (existing == nullptr)
     {
-      current->push_back(ObjectItem << (Term << key) << (Term << value));
+      current->push_back(
+        ObjectItem << (Term << key) << (Term << value->clone()));
     }
     else
     {
       current->replace(
-        existing, ObjectItem << (Term << key) << (Term << value));
+        existing, ObjectItem << (Term << key) << (Term << value->clone()));
     }
   }
 }

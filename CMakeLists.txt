@@ -68,13 +68,14 @@ option(REGOCPP_BUILD_DOCS "Specifies whether to build the documentation" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
 option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
 option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
+set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 
 # -------------------- Find packages --------------------------
 
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        5f75cf7aeb74890066ff249a82fa14dc031a9642
+  GIT_TAG        9d4ae8a75597849cde54d1927b2ed5a5ee9d425b
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 

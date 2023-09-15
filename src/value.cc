@@ -194,10 +194,10 @@ namespace rego
   {
     if (m_node->type() == Term || m_node->type() == Error)
     {
-      return m_node;
+      return m_node->clone();
     }
 
-    Node term = m_node;
+    Node term = m_node->clone();
     if (scalar_tokens.contains(term->type()))
     {
       return Term << (Scalar << term);

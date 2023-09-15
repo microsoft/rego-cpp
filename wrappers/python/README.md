@@ -1,78 +1,23 @@
-# `rego-cpp`
+# `regopy`
 
-This project is an effort to create a C++ interpreter for the OPA policy language,
-[Rego](https://www.openpolicyagent.org/docs/latest/policy-language/). Our goal is
-to build both a standalone executable and a library such that programmers who are working
-in C++ can interpret Rego programs natively. To achieve this we are building our
-interpreter on top of the experimental term rewriter
-[Trieste](https://github.com/microsoft/trieste).
+[Rego](https://www.openpolicyagent.org/docs/latest/policy-language/)
+is the native query language of the Open Policy Agent project. If you want to
+learn more about Rego as a language, and its various use cases, we refer
+you to the language documentation above which OPA provides.
+
+This module is a wrapper around `rego-cpp`, an open source cross-platform C++
+implementation of the Rego language compiler and runtime developed and maintained
+by Microsoft. You can learn more about that project
+[here](https://github.com/microsoft/rego-cpp). As much as possible in this
+wrapper we try to provide idiomatic Python interfaces to the Rego query engine.
+We hope the project is of use to those wishing to leverage the power of Rego
+within a Python context.
 
 > **Warning**
 > While this project has progressed to the point that we support full Rego language
 > (see [Language Support](#language-support) below) we do not support all built-ins.
 > That said, we have verified compliance with the OPA Rego test suite. Even so, it
 > should still be considered experimental software and used with discretion.
-
-## Getting Started
-
-Start by installing [CMake](https://cmake.org/) in the way appropriate for your
-environment.
-
-### Linux
-
-Create a build directory and initialize the cmake project:
-
-    mkdir build
-    cd build
-    cmake .. --preset release-clang
-
-You can then build and run the tests using:
-
-    ninja install
-    ctest
-
-### Windows
-
-Create a build directory and initialize the cmake project:
-
-    mkdir build
-    cd build
-    cmake .. --preset release
-
-You can then build and run the tests using:
-
-    cmake --build . --config Release --target INSTALL
-    ctest -C Release
-
-### Using the `rego` CLI
-
-The interpreter tool will be located at `build/dist/bin/rego`. Here are
-some example commands using the provided example files and run from the suggested
-`dist` install directory:
-
-    ./bin/rego -d examples/scalars.rego -q data.scalars.greeting
-    "Hello"
-
-    ./bin/rego -d examples/objects.rego -q data.objects.sites[1].name
-    "smoke1"
-
-    ./bin/rego -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
-    [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
-
-    ./bin/rego -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
-    9.4
-
-    ./bin/rego -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
-    {"one": 15, "two": 15}
-
-You can run the test driver from the same directory:
-
-    ./bin/rego_test tests/regocpp.yaml
-
-### Using the `rego` Library
-
-See the [examples](examples/README.md) directory for examples of how to use the
-library from different langauages.
 
 ## Language Support
 
@@ -195,25 +140,3 @@ At present, we are **NOT** passing the following test suites in full:
 - `reachable`
 - `urlbuiltins`
 - `walkbuiltin`
-
-## Contributing
-
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.

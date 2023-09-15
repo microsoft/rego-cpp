@@ -124,6 +124,39 @@ jobs:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
 
+  linux-wrappers-python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: ["3.7", "3.8", "3.9", "3.10"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Python ${{matrix.python_version}}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{matrix.python_version}}
+
+      - name: Get dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Python build
+        working-directory: ${{github.workspace}}/wrappers/python/
+        run: pip install -e .[dev]
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+
+      - name: Python test
+        working-directory: ${{github.workspace}}/wrappers/python/ 
+        run: pytest -vv
+
   windows:
     runs-on: windows-latest
 
@@ -186,6 +219,40 @@ jobs:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
 
+  windows-wrappers-python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: ["3.7", "3.8", "3.9", "3.10"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Python ${{matrix.python_version}}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{matrix.python_version}}
+          architecture: x64
+
+      - name: Get dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Python build
+        working-directory: ${{github.workspace}}/wrappers/python/
+        run: pip install -e .[dev]
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+
+      - name: Python test
+        working-directory: ${{github.workspace}}/wrappers/python/ 
+        run: pytest -vv
+
   macos:
     runs-on: macos-latest
 
@@ -217,7 +284,7 @@ jobs:
 
       - name: Get dependencies
         run: |
-          brew update && brew install ninja
+          brew update && brew upgrade && brew install ninja
 
       - name: Git config for fetching pull requests
         run: |
@@ -247,7 +314,7 @@ jobs:
 
       - name: Get dependencies
         run: |
-          brew update && brew install rust
+          brew update && brew upgrade && brew install rust
 
       - name: Git config for fetching pull requests
         run: |
@@ -259,3 +326,40 @@ jobs:
         env:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+
+  macos-wrappers-python:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python_version: ["3.7", "3.8", "3.9", "3.10"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Python ${{matrix.python_version}}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{matrix.python_version}}
+
+      - name: Get dependencies
+        run: |
+          brew update && brew upgrade && brew install openssl
+          python -m pip install --upgrade pip
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Python build
+        working-directory: ${{github.workspace}}/wrappers/python/
+        run: pip install -e .[dev]
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          PYTHONVERBOSE: 3
+
+      - name: Python test
+        working-directory: ${{github.workspace}}/wrappers/python/ 
+        run: pytest -vv
+        env:
+          PYTHONVERBOSE: 3

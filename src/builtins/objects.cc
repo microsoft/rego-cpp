@@ -117,7 +117,7 @@ namespace
       return object;
     }
 
-    Node key = args[1];
+    Node key = args[1]->clone();
     if (key->type() != Array)
     {
       key = Array << key;
@@ -126,10 +126,10 @@ namespace
     auto maybe_value = get_key(object, key, 0);
     if (maybe_value.has_value())
     {
-      return maybe_value.value();
+      return maybe_value.value()->clone();
     }
 
-    return args[2];
+    return args[2]->clone();
   }
 
   Node keys(const Nodes& args)
@@ -144,7 +144,7 @@ namespace
     Node value = NodeDef::create(Set);
     for (auto& item : *object)
     {
-      value->push_back(item / Key);
+      value->push_back((item / Key)->clone());
     }
 
     return value;

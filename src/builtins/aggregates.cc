@@ -76,12 +76,12 @@ namespace
       return collection;
     }
 
-    Node sorted = collection->clone();
-    std::sort(sorted->begin(), sorted->end(), [](const Node& a, const Node& b) {
+    Nodes items(collection->begin(), collection->end());
+    std::sort(items.begin(), items.end(), [](const Node& a, const Node& b) {
       return to_json(a) < to_json(b);
     });
 
-    return sorted;
+    return collection->type() << NodeRange{items.begin(), items.end()};
   }
 
   Node sum(const Nodes& args)

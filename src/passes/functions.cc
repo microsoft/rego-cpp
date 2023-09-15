@@ -5,6 +5,17 @@ namespace
   using namespace rego;
   using namespace wf::ops;
 
+  int add_key(Node node)
+  {
+    if (node->back()->type() != Key)
+    {
+      node->push_back(Key ^ node->fresh({"rule"}));
+      return 1;
+    }
+
+    return 0;
+  }
+
   const auto inline VarOrTerm = T(Var) / T(Term);
   const auto inline RefArg = T(RefArgDot) / T(RefArgBrack);
 }
@@ -16,7 +27,7 @@ namespace rego
   // function that takes either <var> or <term> arguments.
   PassDef functions()
   {
-    return {
+    PassDef functions = {
       In(Input) * T(DataTerm)[DataTerm] >>
         [](Match& _) { return Term << *_[DataTerm]; },
 
@@ -272,5 +283,12 @@ namespace rego
             "Syntax error: module not allowed as object item value");
         },
     };
+
+    functions.post(RuleComp, add_key);
+    functions.post(RuleFunc, add_key);
+    functions.post(RuleSet, add_key);
+    functions.post(RuleObj, add_key);
+
+    return functions;
   }
 }

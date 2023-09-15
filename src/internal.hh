@@ -5,26 +5,6 @@
 
 #include "rego/rego.hh"
 
-#define LOG_ERROR(...) \
-  Logger::print(LogLevel::Error, Logger::indent, "Error: ", __VA_ARGS__)
-#define LOG_WARNING(...) \
-  Logger::print(LogLevel::Warning, Logger::indent, "Warning: ", __VA_ARGS__)
-#define LOG_INFO(...) Logger::print(LogLevel::Info, Logger::indent, __VA_ARGS__)
-#define LOG_DEBUG(...) \
-  Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
-#define LOG_Trace(...) \
-  Logger::print(LogLevel::Trace, Logger::indent, __VA_ARGS__)
-#define LOG(...) Logger::print(LogLevel::Debug, Logger::indent, __VA_ARGS__)
-#define LOG_HEADER(message, header) \
-  Logger::print(LogLevel::Debug, Logger::indent, (header), (message), (header))
-#define LOG_VECTOR(vector) \
-  Logger::print_vector_inline(LogLevel::Debug, (vector))
-#define LOG_VECTOR_CUSTOM(vector, transform) \
-  Logger::print_vector_custom(LogLevel::Debug, (vector), (transform))
-#define LOG_MAP_VALUES(map) Logger::print_map_values(LogLevel::Debug, (map))
-#define LOG_INDENT() Logger::increase_print_indent()
-#define LOG_UNINDENT() Logger::decrease_print_indent()
-
 namespace rego
 {
   std::vector<PassCheck> passes(const BuiltIns& builtins);
@@ -422,12 +402,25 @@ namespace rego
     std::size_t m_id;
   };
 
+  enum class UnifierType
+  {
+    RuleBody,
+    RuleValue
+  };
+
+  struct UnifierKey
+  {
+    Location key;
+    UnifierType type;
+    bool operator<(const UnifierKey& other) const;
+  };
+
   class UnifierDef;
   using Unifier = std::shared_ptr<UnifierDef>;
   using CallStack = std::shared_ptr<std::vector<Location>>;
   using ValuesLookup = std::map<std::string, Values>;
   using WithStack = std::shared_ptr<std::vector<ValuesLookup>>;
-  using UnifierCache = std::shared_ptr<NodeMap<Unifier>>;
+  using UnifierCache = std::shared_ptr<std::map<UnifierKey, Unifier>>;
 
   class UnifierDef
   {
@@ -438,19 +431,20 @@ namespace rego
       CallStack call_stack,
       WithStack with_stack,
       const BuiltIns& builtins,
-      UnifierCache cache);
+      UnifierCache unifier_cache);
     Node unify();
     Nodes expressions() const;
     Nodes bindings() const;
     std::string str() const;
     std::string dependency_str() const;
     static Unifier create(
+      const UnifierKey& key,
       const Location& rule,
       const Node& rulebody,
       const CallStack& call_stack,
       const WithStack& with_stack,
       const BuiltIns& builtins,
-      const UnifierCache& cache);
+      const UnifierCache& unifier_cache);
     std::optional<Node> resolve_rule(const Nodes& defs) const;
     std::optional<Node> resolve_rulecomp(const Nodes& rulecomp) const;
     std::optional<Node> resolve_ruleset(const Nodes& ruleset) const;
@@ -467,9 +461,19 @@ namespace rego
       std::size_t score;
     };
 
-    Unifier rule_unifier(const Location& rule, const Node& rulebody) const;
+    struct Statement
+    {
+      std::size_t id;
+      Node node;
+    };
+
+    static Resolver::NodePrinter stmt_str(const Statement& statement);
+    Unifier rule_unifier(
+      const UnifierKey& key, const Location& rule, const Node& rulebody) const;
     void init_from_body(
-      const Node& rulebody, std::vector<Node>& statements, std::size_t root);
+      const Node& rulebody,
+      std::vector<Statement>& statements,
+      std::size_t root);
     std::size_t add_variable(const Node& local);
     std::size_t add_unifyexpr(const Node& unifyexpr);
     void add_withpush(const Node& withpush);
@@ -480,7 +484,7 @@ namespace rego
     std::size_t compute_dependency_score(
       std::size_t index, std::set<size_t>& visited);
     std::size_t dependency_score(const Variable& var) const;
-    std::size_t dependency_score(const Node& expr) const;
+    std::size_t dependency_score(const Statement& stmt) const;
     std::size_t detect_cycles() const;
     bool has_cycle(std::size_t id) const;
 
@@ -499,7 +503,9 @@ namespace rego
     bool is_local(const Node& var);
     std::size_t scan_vars(const Node& expr, std::vector<Location>& locals);
     void pass();
-    void execute_statements(Nodes::iterator begin, Nodes::iterator end);
+    void execute_statements(
+      std::vector<Statement>::iterator begin,
+      std::vector<Statement>::iterator end);
     void remove_invalid_values();
     void mark_invalid_values();
     Variable& get_variable(const Location& name);
@@ -519,16 +525,46 @@ namespace rego
 
     Location m_rule;
     std::map<Location, Variable> m_variables;
-    std::vector<Node> m_statements;
-    NodeMap<std::vector<Node>> m_nested_statements;
+    std::vector<Statement> m_statements;
+    std::map<std::size_t, std::vector<Statement>> m_nested_statements;
     CallStack m_call_stack;
     WithStack m_with_stack;
-    BuiltIns m_builtins;
+    const BuiltIns& m_builtins;
+    UnifierCache m_cache;
     std::size_t m_retries;
     Token m_parent_type;
-    UnifierCache m_cache;
-    NodeMap<std::size_t> m_expr_ids;
     std::vector<Dependency> m_dependency_graph;
     bool m_negate;
   };
 }
+
+#define LOG_ERROR(...) \
+  rego::Logger::print( \
+    rego::LogLevel::Error, rego::Logger::indent, "Error: ", __VA_ARGS__)
+#define LOG_WARN(...) \
+  rego::Logger::print( \
+    rego::LogLevel::Warn, rego::Logger::indent, "Warning: ", __VA_ARGS__)
+#define LOG_INFO(...) \
+  rego::Logger::print(rego::LogLevel::Info, rego::Logger::indent, __VA_ARGS__)
+#define LOG_DEBUG(...) \
+  rego::Logger::print(rego::LogLevel::Debug, rego::Logger::indent, __VA_ARGS__)
+#define LOG_TRACE(...) \
+  rego::Logger::print(rego::LogLevel::Trace, rego::Logger::indent, __VA_ARGS__)
+#define LOG(...) \
+  rego::Logger::print(rego::LogLevel::Debug, rego::Logger::indent, __VA_ARGS__)
+#define LOG_HEADER(message, header) \
+  rego::Logger::print( \
+    rego::LogLevel::Debug, \
+    rego::Logger::indent, \
+    (header), \
+    (message), \
+    (header))
+#define LOG_VECTOR(vector) \
+  rego::Logger::print_vector_inline(rego::LogLevel::Debug, (vector))
+#define LOG_VECTOR_CUSTOM(vector, transform) \
+  rego::Logger::print_vector_custom( \
+    rego::LogLevel::Debug, (vector), (transform))
+#define LOG_MAP_VALUES(map) \
+  rego::Logger::print_map_values(rego::LogLevel::Debug, (map))
+#define LOG_INDENT() rego::Logger::increase_print_indent()
+#define LOG_UNINDENT() rego::Logger::decrease_print_indent()
