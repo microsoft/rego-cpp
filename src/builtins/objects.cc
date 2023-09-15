@@ -446,6 +446,6 @@ namespace rego
         BuiltInDef::create(Location("object.subset"), 2, subset),
         BuiltInDef::create(Location("object.union"), 2, union_),
         BuiltInDef::create(Location("object.union_n"), 1, union_n)};
-    };
+    }
   }
 }
