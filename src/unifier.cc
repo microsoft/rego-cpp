@@ -1608,7 +1608,7 @@ namespace rego
         {
           body_result =
             rule_unifier(
-              UnifierKey{rulekey, UnifierType::Body}, rulename, rulebody)
+              UnifierKey{rulekey, UnifierType::RuleBody}, rulename, rulebody)
               ->unify();
         }
         catch (const std::exception& e)
@@ -1632,7 +1632,7 @@ namespace rego
           try
           {
             Unifier unifier = rule_unifier(
-              UnifierKey{rulekey, UnifierType::Value}, rulename, value);
+              UnifierKey{rulekey, UnifierType::RuleValue}, rulename, value);
             unifier->unify();
             auto bindings = unifier->bindings();
             Node binding_val;
@@ -1733,7 +1733,7 @@ namespace rego
       {
         body_result =
           rule_unifier(
-            UnifierKey{rulekey, UnifierType::Body}, rulename, rulebody)
+            UnifierKey{rulekey, UnifierType::RuleBody}, rulename, rulebody)
             ->unify();
       }
       catch (const std::exception& e)
@@ -1763,7 +1763,7 @@ namespace rego
       try
       {
         Unifier unifier = rule_unifier(
-          UnifierKey{rulekey, UnifierType::Value}, rulename, value);
+          UnifierKey{rulekey, UnifierType::RuleValue}, rulename, value);
         unifier->unify();
         auto bindings = unifier->bindings();
         for (auto& binding : bindings)
@@ -1814,7 +1814,7 @@ namespace rego
         {
           body_result =
             rule_unifier(
-              UnifierKey{rulekey, UnifierType::Body}, rulename, rulebody)
+              UnifierKey{rulekey, UnifierType::RuleBody}, rulename, rulebody)
               ->unify();
         }
         catch (const std::exception& e)
@@ -1838,7 +1838,7 @@ namespace rego
           try
           {
             Unifier unifier = rule_unifier(
-              UnifierKey{rulekey, UnifierType::Value}, rulename, value);
+              UnifierKey{rulekey, UnifierType::RuleValue}, rulename, value);
             unifier->unify();
             auto bindings = unifier->bindings();
             Node result;
@@ -1917,7 +1917,7 @@ namespace rego
         {
           body_result =
             rule_unifier(
-              UnifierKey{rulekey, UnifierType::Body}, rulename, rulebody)
+              UnifierKey{rulekey, UnifierType::RuleBody}, rulename, rulebody)
               ->unify();
         }
         catch (const std::exception& e)
@@ -1941,7 +1941,7 @@ namespace rego
           try
           {
             Unifier unifier = rule_unifier(
-              UnifierKey{rulekey, UnifierType::Value}, rulename, value);
+              UnifierKey{rulekey, UnifierType::RuleValue}, rulename, value);
             unifier->unify();
             auto bindings = unifier->bindings();
             Node result;

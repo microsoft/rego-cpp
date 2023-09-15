@@ -404,8 +404,8 @@ namespace rego
 
   enum class UnifierType
   {
-    Body,
-    Value
+    RuleBody,
+    RuleValue
   };
 
   struct UnifierKey

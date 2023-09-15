@@ -1137,7 +1137,7 @@ namespace rego
     Location rulename{"query"};
     UnifierCache cache = std::make_shared<std::map<UnifierKey, Unifier>>();
     auto unifier = UnifierDef::create(
-      UnifierKey{rulename, UnifierType::Body},
+      UnifierKey{rulename, UnifierType::RuleBody},
       rulename,
       rulebody,
       std::make_shared<std::vector<Location>>(),
