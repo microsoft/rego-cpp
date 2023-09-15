@@ -74,8 +74,8 @@ set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by 
 
 FetchContent_Declare(
   trieste
-  GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        9d4ae8a75597849cde54d1927b2ed5a5ee9d425b
+  GIT_REPOSITORY https://github.com/matajoh/trieste
+  GIT_TAG        pedantic-warnings
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
