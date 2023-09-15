@@ -54,6 +54,11 @@ namespace rego
   std::string type_name(const Token& type, bool specify_number = false);
   std::string type_name(const Node& node, bool specify_number = false);
 
+  inline bool is_quoted(const std::string_view& str)
+  {
+    return str.size() >= 2 && str.front() == str.back() && str.front() == '"';
+  }
+
   using namespace trieste;
   using PrintNode = std::ostream& (*)(std::ostream&, const Node&);
 
@@ -536,6 +541,97 @@ namespace rego
     std::vector<Dependency> m_dependency_graph;
     bool m_negate;
   };
+
+#ifdef REGOCPP_USE_CXX_17
+  template <typename T, typename I>
+  inline bool contains(const std::shared_ptr<T>& container, const I& item)
+  {
+    return container->find(item) != container->end();
+  }
+
+  template <typename T, typename I>
+  inline bool contains(const T& container, const I& item)
+  {
+    return container.find(item) != container.end();
+  }
+
+  inline bool starts_with(const std::string_view& str, const std::string_view& prefix)
+  {
+    if(prefix.size() > str.size()){
+      return false;
+    }
+
+    auto str_it = str.begin();
+    for(auto prefix_it = prefix.begin(); prefix_it != prefix.end(); ++prefix_it, ++str_it){
+      if(*prefix_it != *str_it){
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  inline bool starts_with(const std::string_view& str, const char* prefix)
+  {
+    return starts_with(str, std::string_view(prefix));
+  }
+
+  inline bool starts_with(const std::string_view& s, char c)
+  {
+    return s.front() == c;
+  }
+
+  inline bool ends_with(const std::string_view& str, const std::string_view& suffix)
+  {
+    if(suffix.size() > str.size()){
+      return false;
+    }
+
+    auto str_it = str.rbegin();
+    for(auto suffix_it = suffix.rbegin(); suffix_it != suffix.rend(); ++suffix_it, ++str_it){
+      if(*suffix_it != *str_it){
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  inline bool ends_with(const std::string_view& str, const char* suffix)
+  {
+    return ends_with(str, std::string_view(suffix));
+  }
+
+  inline bool ends_with(const std::string_view& s, char c)
+  {
+    return s.back() == c;
+  }
+#else
+  template <typename T, typename I>
+  inline bool contains(const std::shared_ptr<T>& container, const I& item)
+  {
+    return container->contains(item);
+  }
+
+  template <typename T, typename I>
+  inline bool contains(const T& container, const I& item)
+  {
+    return container.contains(item);
+  }
+
+  template<typename S, typename P>
+  inline bool starts_with(const S& str, const P& prefix)
+  {
+    return str.starts_with(prefix);
+  }
+
+  template<typename S, typename P>
+  inline bool ends_with(const S& s, const P& suffix)
+  {
+    return s.ends_with(suffix);
+  }
+#endif
+
 }
 
 #define LOG_ERROR(...) \

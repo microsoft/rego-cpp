@@ -45,7 +45,7 @@ namespace
     }
 
     std::string path = concat(ruleref);
-    if (!func_arity->contains(path))
+    if (!contains(func_arity, path))
     {
       return false;
     }

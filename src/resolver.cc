@@ -591,7 +591,7 @@ namespace rego
       }
 
       std::string key = to_json(object_items->at(i));
-      if (items.contains(key))
+      if (contains(items, key))
       {
         std::string current = to_json(items[key] / Val);
         std::string next = to_json(object_items->at(i + 1));
@@ -660,7 +660,7 @@ namespace rego
       }
 
       std::string repr = to_json(member);
-      if (!members.contains(repr))
+      if (!contains(members, repr))
       {
         members[repr] = to_term(member);
       }
@@ -695,7 +695,7 @@ namespace rego
 
     for (auto term : *rhs)
     {
-      if (values.contains(to_json(term)))
+      if (contains(values, to_json(term)))
       {
         set->push_back(term);
       }
@@ -725,7 +725,7 @@ namespace rego
     for (auto term : *rhs)
     {
       std::string key = to_json(term);
-      if (!members.contains(key))
+      if (!contains(members, key))
       {
         members[key] = term;
       }
@@ -761,7 +761,7 @@ namespace rego
 
     for (auto term : *lhs)
     {
-      if (!values.contains(to_json(term)))
+      if (!contains(values, to_json(term)))
       {
         set->push_back(term);
       }
@@ -1110,7 +1110,7 @@ namespace rego
     for (Node term : *termset)
     {
       std::string repr = to_json(term);
-      if (!values.contains(repr))
+      if (!contains(values, repr))
       {
         values.insert(repr);
         reduce->push_back(term->clone());
@@ -1207,7 +1207,7 @@ namespace rego
 
       std::string name = std::string(var->location().view());
 
-      if (name.starts_with("value$"))
+      if (starts_with(name, "value$"))
       {
         result->push_back(term);
       }
@@ -1357,7 +1357,7 @@ namespace rego
         {
           Node current = queue.front();
           queue.pop_front();
-          if (RuleTypes.contains(current->type()))
+          if (contains(RuleTypes, current->type()))
           {
             os << current->type().str() << " ";
             os << (current / Var)->location().view();

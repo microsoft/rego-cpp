@@ -19,7 +19,7 @@ void load_testcases(
     rego_test::TestCase::load(path, debug_path);
   for (auto test_case : test_cases)
   {
-    if (!testcases.contains(test_case.category()))
+    if (testcases.find(test_case.category()) == testcases.end())
     {
       testcases[test_case.category()] = std::vector<rego_test::TestCase>();
     }

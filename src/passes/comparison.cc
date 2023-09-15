@@ -25,13 +25,13 @@ namespace rego
         [](Match& _) {
           std::set<Token> set_types = {Set, SetCompr};
           Node lhs = _(Lhs);
-          if (set_types.contains(lhs->type()))
+          if (contains(set_types, lhs->type()))
           {
             lhs = Term << lhs;
           }
 
           Node rhs = _(Rhs);
-          if (set_types.contains(rhs->type()))
+          if (contains(set_types, rhs->type()))
           {
             rhs = Term << rhs;
           }

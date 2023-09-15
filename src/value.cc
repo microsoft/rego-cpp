@@ -198,12 +198,12 @@ namespace rego
     }
 
     Node term = m_node->clone();
-    if (scalar_tokens.contains(term->type()))
+    if (contains(scalar_tokens, term->type()))
     {
       return Term << (Scalar << term);
     }
 
-    if (term_tokens.contains(term->type()))
+    if (contains(term_tokens, term->type()))
     {
       return Term << term;
     }

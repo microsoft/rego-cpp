@@ -32,7 +32,7 @@ namespace
     {
       (ref / RefArgSeq) << (RefArgDot << (Var ^ (leaf / Key)));
     }
-    else if (RuleTypes.contains(leaf->type()))
+    else if (contains(RuleTypes, leaf->type()))
     {
       (ref / RefArgSeq) << (RefArgDot << (leaf / Var)->clone());
     }

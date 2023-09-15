@@ -123,7 +123,7 @@ namespace
       return;
     }
 
-    if (node->type() == Var && lookup.contains(node->location()))
+    if (node->type() == Var && contains(lookup, node->location()))
     {
       node->parent()->replace(node, Var ^ lookup.at(node->location()));
     }
@@ -176,7 +176,7 @@ namespace rego
             // create the out variables
             for (auto& [var, out_var] : out_map)
             {
-              if (invars.contains(var))
+              if (contains(invars, var))
               {
                 // we don't want return values to be passed in as arguments.
                 // i.e. we implicitly disable an in/out pattern, as the

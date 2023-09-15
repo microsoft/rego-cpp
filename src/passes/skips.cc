@@ -35,7 +35,7 @@ namespace
 
       std::string path = buf.str();
 
-      if (!skips->contains(path) && path != "data" && path != "input")
+      if (!contains(skips, path) && path != "data" && path != "input")
       {
         skips->insert({path, Undefined});
       }
@@ -51,7 +51,7 @@ namespace
 
   std::string concat(const std::string& lhs, const Location& rhs)
   {
-    if (rhs.view().starts_with(lhs))
+    if (starts_with(rhs.view(), lhs))
     {
       return std::string(rhs.view());
     }

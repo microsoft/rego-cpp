@@ -71,7 +71,7 @@ namespace
     }
 
     std::set<Token> include_parents = {AssignArg, RefTerm, Object, Array};
-    if (!include_parents.contains(node->type()))
+    if (!contains(include_parents, node->type()))
     {
       return;
     }

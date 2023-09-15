@@ -34,7 +34,7 @@ namespace
 
   std::string strip_escaped_quotes(const std::string& s)
   {
-    if (s.starts_with("\\\"") && s.ends_with("\\\""))
+    if (starts_with(s, "\\\"") && ends_with(s, "\\\""))
     {
       return s.substr(2, s.size() - 4);
     }
@@ -60,7 +60,7 @@ namespace
       {
         num_decimals++;
       }
-      else if (!digits.contains(*it))
+      else if (!contains(digits, *it))
       {
         return -1;
       }
@@ -164,7 +164,7 @@ namespace
 
     for (auto [unit, value] : bytes)
     {
-      if (lower.ends_with(unit))
+      if (ends_with(lower, unit))
       {
         std::string num_str = lower.substr(0, lower.size() - unit.size());
         Node num = parse_number(errors, x, num_str);
@@ -181,9 +181,9 @@ namespace
     {
       for (auto [unit, value] : small_units)
       {
-        if (lower.ends_with(unit))
+        if (ends_with(lower, unit))
         {
-          if (unit == "m" && x_str.ends_with("M"))
+          if (unit == "m" && ends_with(x_str, "M"))
           {
             break;
           }
@@ -201,7 +201,7 @@ namespace
 
     for (auto [unit, value] : big_units)
     {
-      if (lower.ends_with(unit))
+      if (ends_with(lower, unit))
       {
         std::string num_str = lower.substr(0, lower.size() - unit.size());
         Node num = parse_number(errors, x, num_str);
@@ -247,7 +247,7 @@ namespace
     }
 
     std::string x_str = strip_escaped_quotes(get_string(x));
-    if (x_str.ends_with("b") || x_str.ends_with("B"))
+    if (ends_with(x_str, "b") || ends_with(x_str, "B"))
     {
       x_str = x_str.substr(0, x_str.size() - 1);
     }

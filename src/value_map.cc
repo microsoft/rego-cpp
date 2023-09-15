@@ -22,7 +22,7 @@ namespace rego
 
   bool ValueMap::contains(const Value& value) const
   {
-    return m_values.contains({value->json(), value->str()});
+    return rego::contains(m_values, std::make_pair(value->json(), value->str()));
   }
 
   bool ValueMap::intersect_with(const Values& values)
@@ -61,7 +61,7 @@ namespace rego
     bool changed = false;
     for (auto it = m_map.begin(); it != m_map.end(); ++it)
     {
-      if (!other.contains(it->first))
+      if (!rego::contains(other, it->first))
       {
         it->second->mark_as_invalid();
         to_remove.insert(it->first);
