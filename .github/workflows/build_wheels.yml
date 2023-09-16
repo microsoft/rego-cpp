@@ -21,7 +21,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.15.0
         env:
-          CIBW_BUILD: ${{matrix.python}}-win*
+          CIBW_BUILD: ${{ matrix.python }}-win*
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
@@ -46,7 +46,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.15.0
         env:
-          CIBW_BUILD: ${{matrix.python}}-macosx*
+          CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: x86_64 arm64
           CIBW_ENVIRONMENT_MACOS : MACOSX_DEPLOYMENT_TARGET=10.15
         with:
@@ -73,7 +73,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.15.0
         env:
-          CIBW_BUILD: ${matrix.python}-manylinux*
+          CIBW_BUILD: ${{ matrix.python }}-manylinux*
           CIBW_BEFORE_ALL: yum makecache && yum -y install devtoolset-10-libatomic-devel
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
@@ -99,7 +99,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.15.0
         env:
-          CIBW_BUILD: ${matrix.python}-musllinux*
+          CIBW_BUILD: ${{ matrix.python }}-musllinux*
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
