@@ -24,7 +24,7 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64 arm64
           CIBW_ENVIRONMENT_MACOS : MACOSX_DEPLOYMENT_TARGET=10.15
           CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
-          CIBW_BEFORE_ALL_LINUX: yum install devtoolset-7-libatomic-devel
+          CIBW_BEFORE_ALL_LINUX: yum makecache && yum -y install libatomic
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
