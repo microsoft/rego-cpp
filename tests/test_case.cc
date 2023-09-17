@@ -6,13 +6,17 @@ namespace rego_test
 {
   bool ends_with(const std::string_view& str, const std::string_view& suffix)
   {
-    if(suffix.size() > str.size()){
+    if (suffix.size() > str.size())
+    {
       return false;
     }
 
     auto str_it = str.rbegin();
-    for(auto suffix_it = suffix.rbegin(); suffix_it != suffix.rend(); ++suffix_it, ++str_it){
-      if(*suffix_it != *str_it){
+    for (auto suffix_it = suffix.rbegin(); suffix_it != suffix.rend();
+         ++suffix_it, ++str_it)
+    {
+      if (*suffix_it != *str_it)
+      {
         return false;
       }
     }

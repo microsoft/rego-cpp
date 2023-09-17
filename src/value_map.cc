@@ -22,7 +22,8 @@ namespace rego
 
   bool ValueMap::contains(const Value& value) const
   {
-    return rego::contains(m_values, std::make_pair(value->json(), value->str()));
+    return rego::contains(
+      m_values, std::make_pair(value->json(), value->str()));
   }
 
   bool ValueMap::intersect_with(const Values& values)

@@ -555,15 +555,20 @@ namespace rego
     return container.find(item) != container.end();
   }
 
-  inline bool starts_with(const std::string_view& str, const std::string_view& prefix)
+  inline bool starts_with(
+    const std::string_view& str, const std::string_view& prefix)
   {
-    if(prefix.size() > str.size()){
+    if (prefix.size() > str.size())
+    {
       return false;
     }
 
     auto str_it = str.begin();
-    for(auto prefix_it = prefix.begin(); prefix_it != prefix.end(); ++prefix_it, ++str_it){
-      if(*prefix_it != *str_it){
+    for (auto prefix_it = prefix.begin(); prefix_it != prefix.end();
+         ++prefix_it, ++str_it)
+    {
+      if (*prefix_it != *str_it)
+      {
         return false;
       }
     }
@@ -581,15 +586,20 @@ namespace rego
     return s.front() == c;
   }
 
-  inline bool ends_with(const std::string_view& str, const std::string_view& suffix)
+  inline bool ends_with(
+    const std::string_view& str, const std::string_view& suffix)
   {
-    if(suffix.size() > str.size()){
+    if (suffix.size() > str.size())
+    {
       return false;
     }
 
     auto str_it = str.rbegin();
-    for(auto suffix_it = suffix.rbegin(); suffix_it != suffix.rend(); ++suffix_it, ++str_it){
-      if(*suffix_it != *str_it){
+    for (auto suffix_it = suffix.rbegin(); suffix_it != suffix.rend();
+         ++suffix_it, ++str_it)
+    {
+      if (*suffix_it != *str_it)
+      {
         return false;
       }
     }
@@ -619,13 +629,13 @@ namespace rego
     return container.contains(item);
   }
 
-  template<typename S, typename P>
+  template <typename S, typename P>
   inline bool starts_with(const S& str, const P& prefix)
   {
     return str.starts_with(prefix);
   }
 
-  template<typename S, typename P>
+  template <typename S, typename P>
   inline bool ends_with(const S& s, const P& suffix)
   {
     return s.ends_with(suffix);
