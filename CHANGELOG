@@ -1,5 +1,9 @@
 # Changelog
 
+## 2023-09-17 - Version 0.3.7
+Adding the ability to build the library targeting the C++ 17 standard (as opposed to
+c++ 20). Also a series of fixes to make the `cibuildwheel` pipeline work.
+
 ## 2023-09-14 - Version 0.3.6
 Adding a Python wrapper.
 
