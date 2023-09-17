@@ -368,3 +368,7 @@ class Interpreter:
             raise RegoError(regoGetError(self._impl))
 
         return Output(impl)
+
+    def __repr__(self) -> str:
+        """Returns a string representation of the interpreter."""
+        return "Interpreter({})".format(self._impl)

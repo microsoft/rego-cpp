@@ -42,6 +42,32 @@ cmake --build . --config Release --target INSTALL
 The resulting executable can be called from within the `dist` directory:
 
 ```bash
-cd dist
-./bin/regoc -d examples/scalars.rego -q data.scalars.greeting
+a@host:~/build$ cd dist
+a@host:~/build/dist$ ./bin/regoc -d examples/scalars.rego -q data.scalars.greeting
+"Hello"
+```
+
+## Python
+The Python example is a [simple command line tool](python/rego.py) that takes one or more
+Rego data, module, and input files and evaluates a query against them.
+
+Examples:
+
+```bash
+a@host:~/$ pip install regopy
+a@host:~/$ python rego.py -d examples/scalars.rego data.scalars.greeting
+"Hello"
+
+a@host:~/$ python rego.py -d examples/objects.rego data.objects.sites[1].name
+"smoke1"
+
+a@host:~/$ python rego.py -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json "[data.one, input.b, data.objects.sites[1]]"
+[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]
+
+a@host:~/$ python rego.py "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4"
+x = 5
+y = 9.4
+
+a@host:~/$ python rego.py -d examples/bodies.rego -i examples/input1.json data.bodies.e
+{"one":15, "two": 15}
 ```

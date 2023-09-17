@@ -68,7 +68,6 @@ class Node:
     children, which are also nodes.
 
     Examples:
-
     >>> from regopy import Interpreter
     >>> rego = Interpreter()
     >>> output = rego.query('x={"a": 10, "b": "20", "c": [30.0, 60], "d": true, "e": null}')
@@ -273,3 +272,7 @@ class Node:
     def __str__(self) -> str:
         """Returns the node as a JSON string."""
         return self.json()
+
+    def __repr__(self) -> str:
+        """Returns the node as a JSON string."""
+        return "Node({}@{})".format(self.json(), self._impl)

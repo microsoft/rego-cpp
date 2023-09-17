@@ -53,6 +53,10 @@ class Output:
         """
         return regoOutputString(self._impl)
 
+    def __repr__(self) -> str:
+        """Returns a string representation of the output."""
+        return "Output({}@{})".format(regoOutputString(self._impl), self._impl)
+
     def node(self) -> Node:
         """Returns the root node of the output."""
         return Node(regoOutputNode(self._impl))

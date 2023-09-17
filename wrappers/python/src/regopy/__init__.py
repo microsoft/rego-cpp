@@ -9,6 +9,10 @@ from ._regopy import (
     REGO_LOG_LEVEL_NONE,
     REGO_LOG_LEVEL_TRACE,
     REGO_LOG_LEVEL_WARN,
+    REGOCPP_BUILD_DATE,
+    REGOCPP_BUILD_NAME,
+    REGOCPP_BUILD_TOOLCHAIN,
+    REGOCPP_PLATFORM,
     REGOCPP_VERSION,
     regoSetLogLevel
 )
@@ -42,3 +46,21 @@ def set_log_level(level: LogLevel):
         level (LogLevel): The log level.
     """
     regoSetLogLevel(level)
+
+
+def build_info() -> str:
+    """Returns the build information as a string.
+
+    The string will be in the format
+    "{version} ({name}, {date}) {toolchain} on {platform}."
+
+    Returns:
+        str: The build information.
+    """
+    return "{} ({}, {}) {} on {}.".format(
+        REGOCPP_VERSION,
+        REGOCPP_BUILD_NAME,
+        REGOCPP_BUILD_DATE,
+        REGOCPP_BUILD_TOOLCHAIN,
+        REGOCPP_PLATFORM
+    )
