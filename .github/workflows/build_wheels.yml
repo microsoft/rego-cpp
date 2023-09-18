@@ -22,6 +22,9 @@ jobs:
         uses: pypa/cibuildwheel@v2.15.0
         env:
           CIBW_BUILD: ${{ matrix.python }}-win*
+          CIBW_ENVIRONMENT: >
+            REGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}
+            REGOCPP_C_WRAPPER_TAG=${{github.sha}}
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
@@ -52,6 +55,8 @@ jobs:
             MACOSX_DEPLOYMENT_TARGET=10.15
             CC=/usr/local/opt/gcc/bin/gcc-11
             CXX=/usr/local/opt/gcc/bin/g++-11
+            REGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}
+            REGOCPP_C_WRAPPER_TAG=${{github.sha}}
           CIBW_BEFORE_ALL : brew update && brew install gcc@11
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
@@ -79,6 +84,9 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.python }}-manylinux*
           CIBW_BEFORE_ALL: yum makecache && yum -y install devtoolset-10-libatomic-devel
+          CIBW_ENVIRONMENT: >
+            REGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}
+            REGOCPP_C_WRAPPER_TAG=${{github.sha}}
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
@@ -104,6 +112,9 @@ jobs:
         uses: pypa/cibuildwheel@v2.15.0
         env:
           CIBW_BUILD: ${{ matrix.python }}-musllinux*
+          CIBW_ENVIRONMENT: >
+            REGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}
+            REGOCPP_C_WRAPPER_TAG=${{github.sha}}
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
