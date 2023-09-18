@@ -5,6 +5,7 @@ include!("bindings.rs");
 use std::ffi::{CStr, CString};
 use std::ops::Index;
 use std::path::Path;
+use std::fmt;
 
 /// Interface for the Rego interpreter.
 ///
@@ -794,6 +795,15 @@ impl PartialEq for Output {
     }
 }
 
+impl fmt::Display for Output {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.to_str() {
+            Ok(output_str) => write!(f, "{}", output_str),
+            Err(err_str) => write!(f, "{}", err_str),
+        }
+    }
+}
+
 impl NodeKind {
     fn new(c_kind: regoEnum) -> Self {
         match c_kind {
@@ -1107,6 +1117,15 @@ impl Index<usize> for Node {
 impl PartialEq for Node {
     fn eq(&self, other: &Self) -> bool {
         return self.c_ptr == other.c_ptr;
+    }
+}
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.json() {
+            Ok(json) => write!(f, "{}", json),
+            Err(err) => write!(f, "{}", err),
+        }
     }
 }
 
