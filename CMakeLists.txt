@@ -81,8 +81,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FetchContent_Declare(
   trieste
-  GIT_REPOSITORY https://github.com/matajoh/trieste
-  GIT_TAG        pedantic-warnings
+  GIT_REPOSITORY https://github.com/microsoft/trieste
+  GIT_TAG        main
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
