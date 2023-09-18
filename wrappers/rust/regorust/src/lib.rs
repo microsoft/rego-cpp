@@ -1,11 +1,27 @@
 #![allow(non_camel_case_types)]
 
-include!("bindings.rs");
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 use std::ffi::{CStr, CString};
+use std::fmt;
 use std::ops::Index;
 use std::path::Path;
-use std::fmt;
+use std::str;
+
+/// Returns the build information as a string.
+///
+/// The string will be in the format
+/// "{version} ({name}, {date}) {toolchain} on {platform}."
+pub fn build_info() -> String {
+    format!(
+        "{} ({}, {}) {} on {}.",
+        str::from_utf8(REGOCPP_VERSION).expect("cannot convert version to string"),
+        str::from_utf8(REGOCPP_BUILD_NAME).expect("cannot convert build name to string"),
+        str::from_utf8(REGOCPP_BUILD_DATE).expect("cannot convert build date to string"),
+        str::from_utf8(REGOCPP_BUILD_TOOLCHAIN).expect("cannot convert build toolchain to string"),
+        str::from_utf8(REGOCPP_PLATFORM).expect("cannot convert platform to string"),
+    )
+}
 
 /// Interface for the Rego interpreter.
 ///
