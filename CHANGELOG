@@ -1,5 +1,15 @@
 # Changelog
 
+## 2023-09-18 - Version 0.3.8
+Adding new examples for Python and Rust usage.
+
+**Python API**
+- `regopy.build_info()` method added to return useful information about the `rego-cpp` build.
+- `__repr__` implementations added to `Interpreter`, `Output`, and `Node` for easier repl usage
+
+**Rust API**
+- `Display` implementations added to `Node` and `Output`
+
 ## 2023-09-17 - Version 0.3.7
 Adding the ability to build the library targeting the C++ 17 standard (as opposed to
 c++ 20). Also a series of fixes to make the `cibuildwheel` pipeline work.
