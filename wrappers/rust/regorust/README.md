@@ -19,7 +19,7 @@ within a Rust context.
 > That said, we have verified compliance with the OPA Rego test suite. Even so, it
 > should still be considered experimental software and used with discretion.
 
-## Examples
+## Example Usage
 
 ```rust
 use regorust::Interpreter;
