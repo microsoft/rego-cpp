@@ -19,6 +19,113 @@ within a Rust context.
 > That said, we have verified compliance with the OPA Rego test suite. Even so, it
 > should still be considered experimental software and used with discretion.
 
+## Examples
+
+```rust
+use regorust::Interpreter;
+
+fn main() {
+    // The Interpreter is the main interface into the library
+    let rego = Interpreter::new();
+    match rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4") {
+      Ok(result) => {
+        let x = result.binding("x").expect("cannot get x");
+        let y = result.binding("y").expect("cannot get y");
+        println!("x = {}", x.json().unwrap());
+        println!("y = {}", y.json().unwrap());
+      }
+      Err(e) => {
+        panic!("error: {}", e);
+      }
+    }
+}
+```
+
+```rust
+use regorust::Interpreter;
+
+fn main() {
+  let input = r#"
+    {
+      "a": 10,
+      "b": "20",
+      "c": 30.0,
+      "d": true
+    }
+  "#;
+  let data0 = r#"
+    {
+      "one": {
+        "bar": "Foo",
+        "baz": 5,
+        "be": true,
+        "bop": 23.4
+      },
+      "two": {
+        "bar": "Bar",
+        "baz": 12.3,
+        "be": false,
+        "bop": 42
+      }
+    }
+  "#;
+  let data1 = r#"
+    {
+      "three": {
+        "bar": "Baz",
+        "baz": 15,
+        "be": true,
+        "bop": 4.23
+      }
+    }        
+  "#;
+  let module = r#"
+    package objects
+ 
+    rect := {`width`: 2, "height": 4}
+    cube := {"width": 3, `height`: 4, "depth": 5}
+    a := 42
+    b := false
+    c := null
+    d := {"a": a, "x": [b, c]}
+    index := 1
+    shapes := [rect, cube]
+    names := ["prod", `smoke1`, "dev"]
+    sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
+    e := {
+      a: "foo",
+      "three": c,
+      names[2]: b,
+      "four": d,
+    }
+    f := e["dev"]                
+  "#;
+  let rego = Interpreter::new();
+  rego.set_input_json(input);
+  rego.add_data_json(data0);
+  rego.add_data_json(data1);
+  rego.add_module("objects", module);
+  match rego.query("x=[data.one, input.b, data.objects.sites[1]]") {
+    Ok(result) => {
+      println!("{}", result.to_str().unwrap());
+      let x = result.binding("x").expect("cannot get x");
+      let data_one = x.index(0).unwrap();
+      if let NodeValue::String(bar) = data_one
+          .lookup("bar")
+          .unwrap()
+          .value()
+          .unwrap()
+      {
+        println!("data.one.bar = {}", bar);
+      }
+    }
+    Err(e) => {
+      panic!("error: {}", e);
+    }
+  }
+}
+```
+
 ## Language Support
 
 At present we support v0.55.0 of Rego as defined by OPA, with the following grammar:
