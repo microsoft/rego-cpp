@@ -50,7 +50,7 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64 arm64
           CIBW_ENVIRONMENT_MACOS : MACOSX_DEPLOYMENT_TARGET=10.15
           CIBW_BEFORE_ALL : |
-            brew install gcc
+            brew reinstall gcc
 
             print -v version /usr/local/opt/gcc@<->(n[-1])
             version=${version#*@}
