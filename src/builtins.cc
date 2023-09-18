@@ -24,7 +24,8 @@ namespace
       {
         return Resolver::scalar(false);
       }
-      buf << sep << to_json(arg);
+      std::string json = to_json(arg);
+      buf << sep << json;
       sep = " ";
     }
     buf << std::endl;

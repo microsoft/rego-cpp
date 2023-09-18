@@ -351,18 +351,13 @@ jobs:
 
       - name: Python build
         working-directory: ${{github.workspace}}/wrappers/python/
-        run: |
-          export CXX=g++-12
-          export CC=gcc-12
-
-          pip install -e .[dev]
+        run: pip install -e .[dev]
         env:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
-          PYTHONVERBOSE: 3
+          CXX: g++-12
+          CC: gcc-12
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
         run: pytest -vv
-        env:
-          PYTHONVERBOSE: 3
