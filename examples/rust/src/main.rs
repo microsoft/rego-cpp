@@ -2,6 +2,7 @@ use clap::Parser;
 use regorust::Interpreter;
 
 #[derive(Parser)]
+#[command(author, version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
     data: Vec<std::path::PathBuf>,
@@ -25,9 +26,14 @@ fn main() {
             rego.add_module_file(data.as_path())
                 .expect("Failed to load module file");
         } else {
-            rego.add_data_json_file(data.as_path()).expect("Failed to load data file");
+            rego.add_data_json_file(data.as_path())
+                .expect("Failed to load data file");
         }
     }
 
-    println!("{}", rego.query(args.query.as_str()).expect("Failed to evaluate query"));
+    println!(
+        "{}",
+        rego.query(args.query.as_str())
+            .expect("Failed to evaluate query")
+    );
 }
