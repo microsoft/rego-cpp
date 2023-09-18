@@ -48,18 +48,11 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: x86_64 arm64
-          CIBW_ENVIRONMENT_MACOS : MACOSX_DEPLOYMENT_TARGET=10.15
-          CIBW_BEFORE_ALL : |
-            brew reinstall gcc
-
-            print -v version /usr/local/opt/gcc@<->(n[-1])
-            version=${version#*@}
-            for file in /usr/local/opt/gcc@${version}/bin/*-${version}(*); do
-                tail=${file:t}
-                ln -sf ${file} /usr/local/bin/${tail%-*}
-            done
-            export CXX=/usr/local/bin/g++
-            export CC=/usr/local/bin/gcc
+          CIBW_ENVIRONMENT_MACOS : >
+            MACOSX_DEPLOYMENT_TARGET=10.15
+            CC=/usr/local/opt/gcc/bin/gcc-12
+            CXX=/usr/local/opt/gcc/bin/g++-12
+          CIBW_BEFORE_ALL : brew update && brew install gcc
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 

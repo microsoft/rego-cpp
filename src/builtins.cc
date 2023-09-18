@@ -17,16 +17,23 @@ namespace
   Node print(const Nodes& args)
   {
     std::ostringstream buf;
-    std::string sep = "";
+    bool inside = false;
     for (auto arg : args)
     {
       if (arg->type() == Undefined)
       {
         return Resolver::scalar(false);
       }
-      std::string json = to_json(arg);
-      buf << sep << json;
-      sep = " ";
+      if (inside)
+      {
+        buf << " ";
+      }
+      else
+      {
+        inside = true;
+      }
+
+      buf << to_json(arg);
     }
     buf << std::endl;
     std::cout << buf.str();
