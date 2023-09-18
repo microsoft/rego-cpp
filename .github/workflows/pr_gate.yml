@@ -284,7 +284,7 @@ jobs:
 
       - name: Get dependencies
         run: |
-          brew update && brew upgrade && brew install ninja
+          brew update && brew install ninja
 
       - name: Git config for fetching pull requests
         run: |
@@ -314,7 +314,7 @@ jobs:
 
       - name: Get dependencies
         run: |
-          brew update && brew upgrade && brew install rust
+          brew update && brew install rust
 
       - name: Git config for fetching pull requests
         run: |
@@ -343,8 +343,6 @@ jobs:
 
       - name: Get dependencies
         run: |
-          brew update && brew upgrade
-          brew reinstall gcc
           python -m pip install --upgrade pip
 
       - name: Git config for fetching pull requests
@@ -354,14 +352,8 @@ jobs:
       - name: Python build
         working-directory: ${{github.workspace}}/wrappers/python/
         run: |
-          print -v version /usr/local/opt/gcc@<->(n[-1])
-          version=${version#*@}
-          for file in /usr/local/opt/gcc@${version}/bin/*-${version}(*); do
-              tail=${file:t}
-              ln -sf ${file} /usr/local/bin/${tail%-*}
-          done
-          export CXX=/usr/local/bin/g++
-          export CC=/usr/local/bin/gcc
+          export CXX=g++-12
+          export CC=gcc-12
 
           pip install -e .[dev]
         env:
