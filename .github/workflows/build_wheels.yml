@@ -50,9 +50,9 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64 arm64
           CIBW_ENVIRONMENT_MACOS : >
             MACOSX_DEPLOYMENT_TARGET=10.15
-            CC=/usr/local/opt/gcc/bin/gcc-12
-            CXX=/usr/local/opt/gcc/bin/g++-12
-          CIBW_BEFORE_ALL : brew update && brew install gcc
+            CC=/usr/local/opt/gcc/bin/gcc-11
+            CXX=/usr/local/opt/gcc/bin/g++-11
+          CIBW_BEFORE_ALL : brew update && brew install gcc@11
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
