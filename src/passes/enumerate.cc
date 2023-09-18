@@ -158,7 +158,7 @@ namespace rego
 
           std::set<Token> term_types = {
             Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
-          if (term_types.contains(idx->type()))
+          if (contains(term_types, idx->type()))
           {
             idx = Term << idx;
           }
@@ -235,7 +235,7 @@ namespace rego
 
           std::set<Token> term_types = {
             Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
-          if (term_types.contains(idx->type()))
+          if (contains(term_types, idx->type()))
           {
             idx = Term << idx;
           }
@@ -277,7 +277,7 @@ namespace rego
         {
           return false;
         }
-        if ((local / Var)->location().view().starts_with("out$"))
+        if (starts_with((local / Var)->location().view(), "out$"))
         {
           return false;
         }

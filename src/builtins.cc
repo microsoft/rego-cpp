@@ -57,7 +57,7 @@ namespace rego
 
   bool BuiltIns::is_builtin(const Location& name) const
   {
-    return m_builtins.contains(name);
+    return contains(m_builtins, name);
   }
 
   Node BuiltIns::call(const Location& name, const Nodes& args) const

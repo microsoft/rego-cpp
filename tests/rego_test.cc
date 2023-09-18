@@ -290,7 +290,7 @@ namespace rego_test
   bool name_equals(const Node& node, const std::set<std::string>& names)
   {
     std::string name = std::string(node->location().view());
-    return names.contains(name);
+    return names.find(name) != names.end();
   }
 
   PassDef to_rego()

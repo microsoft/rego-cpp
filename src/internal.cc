@@ -127,7 +127,7 @@ namespace rego
 
   bool is_in(const Node& node, const std::set<Token>& types)
   {
-    if (types.contains(node->type()))
+    if (contains(types, node->type()))
     {
       return true;
     }
@@ -232,7 +232,7 @@ namespace rego
 
   std::string strip_quotes(const std::string_view& str)
   {
-    if (str.starts_with('"') && str.ends_with('"'))
+    if (is_quoted(str))
     {
       return std::string(str.substr(1, str.size() - 2));
     }
@@ -592,7 +592,7 @@ namespace rego
   UnwrapResult unwrap(const Node& node, const std::set<Token>& types)
   {
     Node value = node;
-    if (types.contains(value->type()))
+    if (contains(types, value->type()))
     {
       return {value, true};
     }
@@ -602,7 +602,7 @@ namespace rego
       value = value->front();
     }
 
-    if (types.contains(value->type()))
+    if (contains(types, value->type()))
     {
       return {value, true};
     }
@@ -612,7 +612,7 @@ namespace rego
       value = value->front();
     }
 
-    if (types.contains(value->type()))
+    if (contains(types, value->type()))
     {
       return {value, true};
     }
@@ -721,7 +721,7 @@ namespace rego
     Nodes defs = var->lookup();
     if (defs.size() > 0)
     {
-      return types.contains(defs[0]->type());
+      return contains(types, defs[0]->type());
     }
     else
     {

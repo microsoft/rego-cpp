@@ -46,7 +46,7 @@ namespace
       }
 
       path = path + refarg_str;
-      if (skips->contains(path))
+      if (contains(skips, path))
       {
         skip = i + 1;
         longest_path = path;
@@ -146,7 +146,7 @@ namespace rego
       // get all rule symbols
       Nodes rules;
       node->get_symbols(
-        rules, [](Node n) { return RuleTypes.contains(n->type()); });
+        rules, [](Node n) { return contains(RuleTypes, n->type()); });
       for (auto rule : rules)
       {
         std::string path = std::string((rule / Var)->location().view());
@@ -157,7 +157,7 @@ namespace rego
       std::set<Token> module_types = {DataItem, Submodule};
       Nodes dataitems;
       node->get_symbols(dataitems, [module_types](Node n) {
-        return module_types.contains(n->type());
+        return contains(module_types, n->type());
       });
       for (auto dataitem : dataitems)
       {
@@ -177,7 +177,7 @@ namespace rego
       int changes = 0;
       for (auto& builtin : used_builtins)
       {
-        if (!added_builtins->contains(builtin))
+        if (!contains(added_builtins, builtin))
         {
           skipseq << (Skip << (Key ^ builtin) << (BuiltInHook ^ builtin));
           added_builtins->insert(builtin);

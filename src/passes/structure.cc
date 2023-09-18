@@ -35,7 +35,7 @@ namespace rego
           (T(Group)[Lhs]([](auto& n) {
              // test if there was a newline inside an expression
              Node node = *n.first;
-             return Ops.contains(node->back()->type());
+             return contains(Ops, node->back()->type());
            }) *
            T(Group)[Rhs]) >>
         [](Match& _) { return Group << *_[Lhs] << *_[Rhs]; },

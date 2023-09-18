@@ -56,7 +56,7 @@ namespace
     for (auto& item : *object)
     {
       std::string key_str = to_json(item / Key);
-      if (keys.contains(key_str))
+      if (contains(keys, key_str))
       {
         filtered->push_back(item->clone());
       }
@@ -171,7 +171,7 @@ namespace
     for (auto& item : *object)
     {
       std::string key_str = to_json(item / Key);
-      if (!keys.contains(key_str))
+      if (!contains(keys, key_str))
       {
         output->push_back(item->clone());
       }
@@ -247,7 +247,7 @@ namespace
     auto sub_keys = get_key_set(sub);
     for (auto& key : sub_keys)
     {
-      if (!super_keys.contains(key))
+      if (!contains(super_keys, key))
       {
         return false;
       }
@@ -269,7 +269,7 @@ namespace
     auto sub_keys = get_key_set(sub);
     for (auto& key : sub_keys)
     {
-      if (!super_keys.contains(key))
+      if (!contains(super_keys, key))
       {
         return false;
       }
@@ -334,7 +334,7 @@ namespace
 
     for (auto& [key, value] : sub_map)
     {
-      if (!super_map.contains(key))
+      if (!contains(super_map, key))
       {
         return false;
       }
@@ -380,7 +380,7 @@ namespace
     for (auto& item : *lhs)
     {
       std::string key_str = to_json(item / Key);
-      if (!rhs_keys.contains(key_str))
+      if (!contains(rhs_keys, key_str))
       {
         output->push_back(item->clone());
       }
@@ -446,6 +446,6 @@ namespace rego
         BuiltInDef::create(Location("object.subset"), 2, subset),
         BuiltInDef::create(Location("object.union"), 2, union_),
         BuiltInDef::create(Location("object.union_n"), 1, union_n)};
-    };
+    }
   }
 }

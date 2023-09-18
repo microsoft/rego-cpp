@@ -24,7 +24,7 @@ namespace
       return false;
     }
 
-    if (tokens.contains(node->type()))
+    if (rego::contains(tokens, node->type()))
     {
       return true;
     }
@@ -393,7 +393,7 @@ namespace rego
         [](Match& _) { return err(_(Group), "Invalid every sequence"); },
 
       In(ExprEvery) * (T(VarSeq) * T(EverySeq)[EverySeq]([](auto& n) {
-                         return !contains(*n.first, {UnifyBody, Brace});
+                         return !::contains(*n.first, {UnifyBody, Brace});
                        })) >>
         [](Match& _) { return err(_(EverySeq), "Missing body of every"); },
 

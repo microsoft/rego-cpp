@@ -6,7 +6,7 @@ namespace
 
   Node merge(Node dst, Node src)
   {
-    if (dst->type() == DataModule && RuleTypes.contains(src->type()))
+    if (dst->type() == DataModule && contains(RuleTypes, src->type()))
     {
       Location key = src->front()->location();
       auto target = std::find_if(dst->begin(), dst->end(), [key](auto& item) {

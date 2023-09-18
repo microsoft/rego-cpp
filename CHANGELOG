@@ -1,5 +1,9 @@
 # Changelog
 
+## 2023-09-17 - Version 0.3.7
+Adding the ability to build the library targeting the C++ 17 standard (as opposed to
+c++ 20). Also a series of fixes to make the `cibuildwheel` pipeline work.
+
 ## 2023-09-14 - Version 0.3.6
 Adding a Python wrapper.
 
@@ -76,7 +80,7 @@ Adding tests based upon the Confidential ACI Rego framework.
   correctly parsed.
 - A few fuzzer errors have been resolved
 
-## 2023-09-03 - [Version 0.3.1](https://github.com/microsoft/scenepic/releases/tag/v0.3.1)
+## 2023-09-03 - Version 0.3.1
 Adding further builtins and test coverage, plus some minor
 refactoring.
 
@@ -117,7 +121,7 @@ add later along with the `globs` builtins.
   the expected error messages for type mismatch.
 - `unwrap` provides a set-based way to do optional unwrapping of terms.
 
-## 2023-09-02 - [Version 0.3.0](https://github.com/microsoft/scenepic/releases/tag/v0.3.0)
+## 2023-09-02 - Version 0.3.0
 Minor release. From this point the implementation passes the Rego
 test suite and can be considered a compatible Rego implementation.
 
@@ -241,7 +245,7 @@ Adding a test driver that can execute OPA Rego-style YAML test files against the
 **Improvements**
 - All existing tests have been converted to use the test driver
 
-## [2023-08-08 - Version 0.2.3](https://github.com/microsoft/scenepic/releases/tag/v0.2.3)
+## 2023-08-08 - Version 0.2.3
 Adding the remainder of the missing language features, bringing the implementation fully
 compliant with the published v0.55.0 grammar.
 
@@ -269,7 +273,7 @@ compliant with the published v0.55.0 grammar.
 - Passes have been broken out for better comprehensibility
 - Build time has been reduced
 
-## [2023-07-11 - Version 0.2.2](https://github.com/microsoft/scenepic/releases/tag/v0.2.2)
+## 2023-07-11 - Version 0.2.2
 Adding the `in`, `if`, `contains`, and `else` keywords.
 
 **New Features**
@@ -287,7 +291,7 @@ Adding the `in`, `if`, `contains`, and `else` keywords.
 - Function calls are now represented interally via a `ExprCall` node as opposed to
   a `RefArgCall` node, to better reflect the target grammar.
 
-## [2023-06-27 - Version 0.2.1](https://github.com/microsoft/scenepic/releases/tag/v0.2.1)
+## 2023-06-27 - Version 0.2.1
 Addressing various minor improvements, bugs, and documentation issues.
 
 **Bug fixes**
@@ -303,5 +307,5 @@ Addressing various minor improvements, bugs, and documentation issues.
   robustness.
 
 
-## [2023-06-21 - Version 0.2.0](https://github.com/microsoft/scenepic/releases/tag/v0.2.0)
+## 2023-06-21 - Version 0.2.0
 Initial Release.

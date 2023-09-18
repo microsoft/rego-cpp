@@ -1,7 +1,7 @@
-"""Setup script for scenepic."""
+"""Setup script for regopy."""
 
-import os
 import multiprocessing
+import os
 import platform
 import subprocess
 import sys
@@ -107,11 +107,11 @@ setup(
         "License :: OSI Approved :: MIT License"
     ],
     project_urls={
-        "Documentation": "https://microsoft.github.io/scenepic/",
-        "Bug Reports": "https://github.com/microsoft/scenepic/issues",
-        "Source": "https://github.com/microsoft/scenepic",
+        "Documentation": "https://microsoft.github.io/rego-cpp/",
+        "Bug Reports": "https://github.com/microsoft/rego-cpp/issues",
+        "Source": "https://github.com/microsoft/rego-cpp",
     },
-    url="https://microsoft.github.io/scenepic/",
+    url="https://microsoft.github.io/rego-cpp/",
     install_requires=[],
     extras_require={
         "dev": REQUIRES_DEV,

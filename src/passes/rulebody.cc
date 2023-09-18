@@ -13,7 +13,7 @@ namespace
   void find_locs_from(
     const Node& node, const std::set<Location>& vars, Node varseq)
   {
-    if (node->type() == Var && vars.contains(node->location()))
+    if (node->type() == Var && contains(vars, node->location()))
     {
       varseq->push_back(node->clone());
     }
@@ -66,7 +66,7 @@ namespace
         find_locs_from(lhsval, lhs_vars, lhs_init_vars);
         Node rhsval;
         Node rhs_init_vars = NodeDef::create(VarSeq);
-        if (rhsmap.contains(key_str))
+        if (contains(rhsmap, key_str))
         {
           // if the rvalue has a constant key, we can use that value
           // and perform variable initialization analysis.

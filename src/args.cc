@@ -73,7 +73,7 @@ namespace rego
     {
       for (auto& value : values)
       {
-        if (active.contains(value))
+        if (contains(active, value))
         {
           value->mark_as_invalid();
         }
@@ -87,7 +87,7 @@ namespace rego
     {
       for (auto& value : values)
       {
-        if (!active.contains(value))
+        if (!contains(active, value))
         {
           value->mark_as_invalid();
         }

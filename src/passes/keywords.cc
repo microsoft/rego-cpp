@@ -11,7 +11,7 @@ namespace
       return false;
     }
     std::string name = std::string(node->location().view());
-    return Keywords.contains(name);
+    return contains(Keywords, name);
   }
 }
 

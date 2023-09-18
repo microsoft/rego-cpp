@@ -566,7 +566,7 @@ namespace rego
 
     for (; it != end; ++it)
     {
-      if (!digits.contains(*it))
+      if (!contains(digits, *it))
       {
         return false;
       }

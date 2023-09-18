@@ -78,7 +78,7 @@ namespace rego
         return true;
       }
 
-      if (visited.contains(current))
+      if (contains(visited, current))
       {
         continue;
       }
@@ -189,7 +189,7 @@ namespace rego
   std::size_t UnifierDef::compute_dependency_score(
     std::size_t id, std::set<std::size_t>& visited)
   {
-    if (visited.contains(id))
+    if (contains(visited, id))
     {
       return m_dependency_graph[id].score;
     }
@@ -1315,7 +1315,7 @@ namespace rego
             LOG("Already overridden with higher precedence.");
           }
         }
-        else if (key.starts_with(key_str) && !partials.contains(key))
+        else if (starts_with(key, key_str) && !contains(partials, key))
         {
           LOG("Found prefix match: ", key_str, " in with stack");
           partials[key.substr(key_str.size() + 1)] = val;
@@ -1483,7 +1483,7 @@ namespace rego
         name.len -= 4;
       }
 
-      if (!rule_nodes.contains(name))
+      if (!contains(rule_nodes, name))
       {
         LOG("adding rule ", name.view());
         rule_nodes[name] = Nodes();
@@ -1537,18 +1537,18 @@ namespace rego
       rules_by_type[def->type()].push_back(def);
     }
 
-    if (rules_by_type.contains(RuleComp))
+    if (contains(rules_by_type, RuleComp))
     {
       return resolve_rulecomp(rules_by_type[RuleComp]);
     }
 
-    if (rules_by_type.contains(RuleSet))
+    if (contains(rules_by_type, RuleSet))
     {
       return resolve_ruleset(rules_by_type[RuleSet]);
     }
 
     Node object = NodeDef::create(Object);
-    if (rules_by_type.contains(RuleObj))
+    if (contains(rules_by_type, RuleObj))
     {
       auto maybe_node = resolve_ruleobj(rules_by_type[RuleObj]);
       if (maybe_node.has_value())
@@ -1561,7 +1561,7 @@ namespace rego
       }
     }
 
-    if (rules_by_type.contains(Submodule))
+    if (contains(rules_by_type, Submodule))
     {
       for (auto& submodule : rules_by_type[Submodule])
       {
@@ -1639,7 +1639,7 @@ namespace rego
             for (auto& binding : bindings)
             {
               Node var = binding->front();
-              if (var->location().view().starts_with("value$"))
+              if (starts_with(var->location().view(), "value$"))
               {
                 binding_val = binding / Term;
                 break;
@@ -1769,7 +1769,7 @@ namespace rego
         for (auto& binding : bindings)
         {
           Node var = binding / Var;
-          if (var->location().view().starts_with("value$"))
+          if (starts_with(var->location().view(), "value$"))
           {
             value = binding / Term;
             break;
@@ -1845,7 +1845,7 @@ namespace rego
             for (auto& binding : bindings)
             {
               Node var = binding / Var;
-              if (var->location().view().starts_with("value$"))
+              if (starts_with(var->location().view(), "value$"))
               {
                 result = binding / Term;
                 break;
@@ -1948,7 +1948,7 @@ namespace rego
             for (auto& binding : bindings)
             {
               Node var = binding / Var;
-              if (var->location().view().starts_with("value$"))
+              if (starts_with(var->location().view(), "value$"))
               {
                 result = binding / Term;
                 break;
@@ -1993,7 +1993,7 @@ namespace rego
     Nodes terms;
     for (auto& [loc, var] : m_variables)
     {
-      if (loc.view().starts_with("unify$"))
+      if (starts_with(loc.view(), "unify$"))
       {
         terms.push_back(var.to_term());
       }
@@ -2046,7 +2046,7 @@ namespace rego
     const BuiltIns& builtins,
     const UnifierCache& cache)
   {
-    if (cache->contains(key))
+    if (contains(cache, key))
     {
       Unifier unifier = cache->at(key);
       unifier->reset();
@@ -2070,7 +2070,7 @@ namespace rego
 
   bool UnifierDef::is_variable(const Location& name) const
   {
-    if (m_variables.contains(name))
+    if (contains(m_variables, name))
     {
       return true;
     }
@@ -2080,7 +2080,7 @@ namespace rego
 
   Variable& UnifierDef::get_variable(const Location& name)
   {
-    if (m_variables.contains(name))
+    if (contains(m_variables, name))
     {
       return m_variables.at(name);
     }

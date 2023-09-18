@@ -121,7 +121,7 @@ namespace rego
     else if (node->type() == JSONString)
     {
       std::string str = std::string(node->location().view());
-      if (!str.starts_with('"'))
+      if (!starts_with(str, '"'))
       {
         buf << '"' << str << '"';
       }
@@ -228,7 +228,7 @@ namespace rego
         auto key = child / Key;
         auto value = child / Val;
         std::string key_str = to_json(key, set_as_array, sort_arrays);
-        if (!key_str.starts_with('"') || !key_str.ends_with('"'))
+        if (!is_quoted(key_str))
         {
           key_str = '"' + key_str + '"';
         }
@@ -275,7 +275,7 @@ namespace rego
     {
       buf << node;
     }
-    else if (RuleTypes.contains(node->type()))
+    else if (contains(RuleTypes, node->type()))
     {
       buf << node->type().str() << "(" << (node / Var)->location().view() << ":"
           << static_cast<void*>(node.get()) << ")";

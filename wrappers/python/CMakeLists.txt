@@ -35,11 +35,12 @@ FetchContent_Declare(
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 set(SNMALLOC_ENABLE_DYNAMIC_LOADING ON)
+set(REGOCPP_USE_CXX_17 ON)
 
 FetchContent_MakeAvailable(regocpp)
 FetchContent_MakeAvailable(pybind11)
 
-set(PYBIND11_CPP_STANDARD -std=c++20)
+set(PYBIND11_CPP_STANDARD -std=c++17)
 pybind11_add_module(_regopy src/_regopy.cc)
 target_link_libraries(_regopy PRIVATE regocpp::rego)
 set_property(TARGET rego PROPERTY POSITION_INDEPENDENT_CODE ON)

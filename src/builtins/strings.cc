@@ -79,7 +79,7 @@ namespace
 
     std::string search = get_string(search_node);
     std::string base = get_string(base_node);
-    return Resolver::scalar(search.starts_with(base));
+    return Resolver::scalar(starts_with(search, base));
   }
 
   Node endswith(const Nodes& args)
@@ -101,7 +101,7 @@ namespace
     std::string search = get_string(search_node);
     std::string base = get_string(base_node);
 
-    return Resolver::scalar(search.ends_with(base));
+    return Resolver::scalar(ends_with(search, base));
   }
 
   Node contains(const Nodes& args)
@@ -577,7 +577,7 @@ namespace
     {
       for (auto& base_str : base_strings)
       {
-        if (search_str.starts_with(base_str))
+        if (starts_with(search_str, base_str))
         {
           return True ^ "true";
         }
@@ -647,7 +647,7 @@ namespace
     {
       for (auto& base_str : base_strings)
       {
-        if (search_str.ends_with(base_str))
+        if (ends_with(search_str, base_str))
         {
           return True ^ "true";
         }
@@ -903,7 +903,7 @@ namespace
 
     std::string value_str = get_string(value);
     std::string prefix_str = get_string(prefix);
-    if (value_str.starts_with(prefix_str))
+    if (starts_with(value_str, prefix_str))
     {
       return JSONString ^ value_str.substr(prefix_str.size());
     }
@@ -928,7 +928,7 @@ namespace
 
     std::string value_str = get_string(value);
     std::string suffix_str = get_string(suffix);
-    if (value_str.ends_with(suffix_str))
+    if (ends_with(value_str, suffix_str))
     {
       return JSONString ^
         value_str.substr(0, value_str.size() - suffix_str.size());
@@ -948,7 +948,7 @@ namespace rego
         BuiltInDef::create(Location("concat"), 2, concat),
         BuiltInDef::create(Location("startswith"), 2, startswith),
         BuiltInDef::create(Location("endswith"), 2, endswith),
-        BuiltInDef::create(Location("contains"), 2, contains),
+        BuiltInDef::create(Location("contains"), 2, ::contains),
         BuiltInDef::create(Location("format_int"), 2, format_int),
         BuiltInDef::create(Location("indexof"), 2, indexof),
         BuiltInDef::create(Location("indexof_n"), 2, indexof_n),

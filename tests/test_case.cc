@@ -4,6 +4,30 @@
 
 namespace rego_test
 {
+  bool ends_with(const std::string_view& str, const std::string_view& suffix)
+  {
+    if (suffix.size() > str.size())
+    {
+      return false;
+    }
+
+    auto str_it = str.rbegin();
+    for (auto suffix_it = suffix.rbegin(); suffix_it != suffix.rend();
+         ++suffix_it, ++str_it)
+    {
+      if (*suffix_it != *str_it)
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool ends_with(const std::string_view& str, const char* suffix)
+  {
+    return ends_with(str, std::string_view(suffix));
+  }
 
   void TestCase::write_ast(
     const std::filesystem::path& debug_path,
@@ -173,7 +197,7 @@ namespace rego_test
         Node module = scalar->front();
         assert(module->type() == rego_test::String);
         std::string code = std::string(module->location().view());
-        if (code.ends_with(".rego"))
+        if (ends_with(code, ".rego"))
         {
           if (std::filesystem::exists(dir / code))
           {
@@ -249,7 +273,7 @@ namespace rego_test
     os << "          ";
     for (std::size_t i = 0; i < length; ++i)
     {
-      if (errors.contains(i))
+      if (errors.find(i) != errors.end())
       {
         os << "^";
       }
@@ -268,7 +292,7 @@ namespace rego_test
     BindingMap wanted_bindings = to_binding_map(wanted);
     for (auto& [key, value] : wanted_bindings)
     {
-      if (!actual_bindings.contains(key))
+      if (actual_bindings.find(key) == actual_bindings.end())
       {
         os << "Missing binding for " << key << std::endl;
         return false;
@@ -283,7 +307,7 @@ namespace rego_test
 
     for (auto& [key, value] : actual_bindings)
     {
-      if (!wanted_bindings.contains(key))
+      if (wanted_bindings.find(key) == wanted_bindings.end())
       {
         os << "Unexpected binding for " << key << std::endl;
         return false;
@@ -299,7 +323,7 @@ namespace rego_test
     std::ostream& os) const
   {
     // some rego tests cases add a non-standard prefix to the expected error
-    if (wanted.ends_with(actual))
+    if (ends_with(wanted, actual))
     {
       return true;
     }

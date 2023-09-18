@@ -12,25 +12,25 @@ namespace rego
 
   bool Variable::is_unify(const std::string_view& name)
   {
-    return name.starts_with("unify$");
+    return starts_with(name, "unify$");
   }
 
   bool Variable::is_user_var(const std::string_view& name)
   {
-    if (name.starts_with("__") && name.ends_with("__"))
+    if (starts_with(name, "__") && ends_with(name, "__"))
     {
       // OPA test local variables use this convention
       return true;
     }
 
-    if (name.starts_with("_$"))
+    if (starts_with(name, "_$"))
     {
       // placeholder var
       return true;
     }
 
     return name.find('$') == std::string::npos || name[0] == '$' ||
-      name.starts_with("value$") || name.starts_with("out$");
+      starts_with(name, "value$") || starts_with(name, "out$");
   }
 
   std::string Variable::str() const

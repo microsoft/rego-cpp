@@ -13,7 +13,7 @@ namespace
   {
     std::set<Token> exclude_parents = {
       RefArgDot, RuleRef, VarSeq, ArrayCompr, SetCompr, ObjectCompr, WithSeq};
-    if (exclude_parents.contains(node->type()))
+    if (contains(exclude_parents, node->type()))
     {
       return;
     }
@@ -23,7 +23,7 @@ namespace
       Node var = node / Var;
       for (auto& scope : scopes)
       {
-        if (scope.contains(var->location()))
+        if (contains(scope, var->location()))
         {
           scope[var->location()] = false;
         }
@@ -46,7 +46,7 @@ namespace
 
       for (auto& scope : scopes)
       {
-        if (scope.contains(node->location()))
+        if (contains(scope, node->location()))
         {
           return;
         }

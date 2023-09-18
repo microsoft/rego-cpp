@@ -46,7 +46,7 @@ namespace
   {
     for (auto& refhead : *refheads)
     {
-      if (ref.starts_with(refhead))
+      if (rego::starts_with(ref, refhead))
       {
         return true;
       }
