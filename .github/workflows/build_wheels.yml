@@ -53,11 +53,10 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64 arm64
           CIBW_ENVIRONMENT_MACOS : >
             MACOSX_DEPLOYMENT_TARGET=10.15
-            CC=/usr/local/opt/gcc/bin/gcc-11
-            CXX=/usr/local/opt/gcc/bin/g++-11
+            CC=gcc-11
+            CXX=g++-11
             REGOCPP_C_WRAPPER_REPO=https://github.com/${{github.repository}}
             REGOCPP_C_WRAPPER_TAG=${{github.sha}}
-          CIBW_BEFORE_ALL : brew update && brew install gcc@11
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
