@@ -8,10 +8,10 @@
     <title>rego-cpp Documentation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    <link rel="stylesheet" href="/scripts/highlight/styles/default.min.css">
-    <link rel="stylesheet" href="/styles/regocpp.css">
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="scripts/highlight/styles/default.min.css">
+    <link rel="stylesheet" href="styles/regocpp.css">
+    <link rel="shortcut icon" href="/rego-cpp/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/rego-cpp/favicon.ico" type="image/x-icon">
     <meta property="og:title" content="rego-cpp: a C++ Rego interpreter and runtime" />
     <meta property="og:url" content="https://microsoft.github.io/rego-cpp/" />
     <meta property="og:image" content="https://microsoft.github.io/rego-cpp/images/regocpp-logo.svg" />
@@ -24,12 +24,12 @@
     <main>
         <div class="container py-4">
             <header class="pb-3 mb-4 border-bottom">
-                <img src="/images/regocpp-logo.svg" width="24" height="24">
+                <img src="images/regocpp-logo.svg" width="24" height="24">
                 <span class="fs-4">rego-cpp</span>
             </header>
             <div class="mx-auto col-md-8">
                 <div class="container-fluid py-5 text-center">
-                    <img src="/images/regocpp-logo.svg" width="165" height="165" alt="rego-cpp"
+                    <img src="images/regocpp-logo.svg" width="165" height="165" alt="rego-cpp"
                         class="d-none d-sm-block mx-auto mb-3">
                     <h1 class="lh-1 fw-semibold">Perform Rego queries from multiple languages with rego-cpp</h1>
                     <p class="fs-4">A <a href="https://www.openpolicyagent.org/docs/latest/policy-language/">Rego</a>
@@ -44,7 +44,7 @@
             <div class="mx-auto col-md-8">
                 <div class="container-fluid py-5">
                     <a href="https://www.openpolicyagent.org/">
-                        <img src="/images/opa-logo.png" width="92" height="101" alt="Open Policy Agent"
+                        <img src="images/opa-logo.png" width="92" height="101" alt="Open Policy Agent"
                             class="d-block mx-auto mb-3">
                     </a>
                     <h1 class="lh-2 fw-semibold text-center">What is Rego?</h1>
@@ -71,28 +71,28 @@
                     <div class="d-flex flex-wrap align-items-center justify-content-center gap-4 mt-4">
                         <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
                             href="#cpp-example">
-                            <img class="d-block mb-2" src="/images/cpp-logo.svg" alt="" width="64" height="64"
+                            <img class="d-block mb-2" src="images/cpp-logo.svg" alt="" width="64" height="64"
                                 loading="lazy">
                             <span class="text-body-secondary">C++</span>
                         </a>
 
                         <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
                             href="#c-example">
-                            <img class="d-block mb-2" src="/images/c-logo.svg" alt="" width="64" height="64"
+                            <img class="d-block mb-2" src="images/c-logo.svg" alt="" width="64" height="64"
                                 loading="lazy">
                             <span class="text-body-secondary">C</span>
                         </a>
 
                         <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
                             href="#rust-example">
-                            <img class="d-block mb-2" src="/images/rust-logo-blk.svg" alt="" width="80" height="80"
+                            <img class="d-block mb-2" src="images/rust-logo-blk.svg" alt="" width="80" height="80"
                                 loading="lazy">
                             <span class="text-body-secondary">Rust</span>
                         </a>
 
                         <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
                             href="#python-example">
-                            <img class="d-block mb-2" src="/images/python-logo-only.svg" alt="" width="53" height="64"
+                            <img class="d-block mb-2" src="images/python-logo-only.svg" alt="" width="53" height="64"
                                 loading="lazy">
                             <span class="text-body-secondary">Python</span>
                         </a>
@@ -101,14 +101,14 @@
             </div>
 
             <section id="cpp-example" class="col-lg-8 mb-5">
-                <img class="d-inline-block mb-3" src="/images/cpp-logo.svg" alt="c++" width="72" height="72"
+                <img class="d-inline-block mb-3" src="images/cpp-logo.svg" alt="c++" width="72" height="72"
                     loading="lazy">
                 <p class="lead fw-normal">You can compile rego-cpp directly into your C++ program, which gives you full
                     access to our API. We recommend using CMake FetchContent to add rego-cpp to your project.</p>
                 <p class="d-flex justify-content-start lead fw-normal">
                     <a href="cpp/index.html" class="icon-link icon-link-hover fw-semibold">
                         Learn more about the C++ API
-                        <img class="bi" src="/images/arrow-right.svg">
+                        <img class="bi" src="images/arrow-right.svg">
                     </a>
                 </p>
                 <div>
@@ -188,14 +188,14 @@ f := e["dev"])");
 
             </section>
             <section id="c-example" class="col-lg-8 mb-5">
-                <img class="d-inline-block mb-3" src="/images/c-logo.svg" alt="C" width="72" height="72" loading="lazy">
+                <img class="d-inline-block mb-3" src="images/c-logo.svg" alt="C" width="72" height="72" loading="lazy">
                 <p class="lead fw-normal">You can also compile rego-cpp directly into your C program. The C API provides most
                     of the functionality of the full C++ API while providing a stable interface which is amenable to
                     FFI. We recommend using CMake FetchContent to add rego-cpp to your project.</p>
                 <p class="d-flex justify-content-start lead fw-normal">
                     <a href="cpp/rego__c_8h.html" class="icon-link icon-link-hover fw-semibold">
                         Learn more about the C API
-                        <img class="bi" src="/images/arrow-right.svg">
+                        <img class="bi" src="images/arrow-right.svg">
                     </a>
                 </p>
                 <div>
@@ -282,7 +282,7 @@ exit:
             </section>
 
             <section id="rust-example" class="col-lg-8 mb-5">
-                <img class="d-inline-block mb-3" src="/images/rust-logo-blk.svg" alt="Rust" width="80" height="80"
+                <img class="d-inline-block mb-3" src="images/rust-logo-blk.svg" alt="Rust" width="80" height="80"
                     loading="lazy">
                 <p class="lead fw-normal">We provide a Rust crate called <a
                         href="https://crates.io/crates/regorust">regorust</a> which exposes the C API in idiomatic Rust.
@@ -290,7 +290,7 @@ exit:
                 <p class="d-flex justify-content-start lead fw-normal">
                     <a href="rust/regorust/index.html" class="icon-link icon-link-hover fw-semibold">
                         Learn more about the Rust API
-                        <img class="bi" src="/images/arrow-right.svg">
+                        <img class="bi" src="images/arrow-right.svg">
                     </a>
                 </p>
                 <div>
@@ -344,7 +344,7 @@ fn main() {
                 </div>
             </section>
             <section id="python-example" class="col-lg-8 mb-5">
-                <img class="d-inline-block mb-3" src="/images/python-logo-only.svg" alt="Python" width="60" height="72"
+                <img class="d-inline-block mb-3" src="images/python-logo-only.svg" alt="Python" width="60" height="72"
                     loading="lazy">
                 <p class="lead fw-normal">We provide a Python wheel called <a
                         href="https://pypi.org/project/regopy/">regopy</a> which exposes the C API in a pythonic way.
@@ -352,7 +352,7 @@ fn main() {
                 <p class="d-flex justify-content-start lead fw-normal">
                     <a href="python/index.html" class="icon-link icon-link-hover fw-semibold">
                         Learn more about the Python API
-                        <img class="bi" src="/images/arrow-right.svg">
+                        <img class="bi" src="images/arrow-right.svg">
                     </a>
                 </p>
                 <div>
@@ -409,7 +409,7 @@ print(rego.query("[data.one, input.b, data.objects.sites[1]] = x"))</code></pre>
                     <div class="col-lg-3 mb-3">
                         <a class="d-inline-flex align-items-center mb-2 text-body-emphasis text-decoration-none"
                             href="/" aria-label="rego-cpp">
-                            <img src="/images/regocpp-logo.svg" class="d-block me-2" width="32" height="32"
+                            <img src="images/regocpp-logo.svg" class="d-block me-2" width="32" height="32"
                                 alt="rego-cpp">
                             <span class="fs-5">rego-cpp</span>
                         </a>
@@ -423,11 +423,10 @@ print(rego.query("[data.one, input.b, data.objects.sites[1]] = x"))</code></pre>
                     <div class="col-6 col-lg-2 offset-lg-1 mb-3">
                         <h5>Links</h5>
                         <ul class="list-unstyled">
-                            <li class="mb2"><a href="/">Home</a></li>
-                            <li class="mb2"><a href="/cpp/index.html">C++ API</a></li>
-                            <li class="mb2"><a href="/c/rego__c_8h.html">C API</a></li>
-                            <li class="mb2"><a href="/rust/regorust/index.html">Rust API</a></li>
-                            <li class="mb2"><a href="/python/index.html">Python API</a></li>
+                            <li class="mb2"><a href="cpp/index.html">C++ API</a></li>
+                            <li class="mb2"><a href="c/rego__c_8h.html">C API</a></li>
+                            <li class="mb2"><a href="rust/regorust/index.html">Rust API</a></li>
+                            <li class="mb2"><a href="python/index.html">Python API</a></li>
                             <li class="mb2"><a href="https://github.com/microsoft/rego-cpp">Github</a></li>
                         </ul>
                     </div>
