@@ -116,6 +116,9 @@ namespace rego
 
   Node Interpreter::get_errors(const Node& node) const
   {
+    if (!node->get_and_reset_contains_error())
+      return {};
+
     if (node->type() == Error)
     {
       return node->clone();
@@ -201,7 +204,7 @@ namespace rego
           .count());
 
       Node errors = get_errors(ast);
-      if (errors->size() > 0)
+      if (errors && errors->size() > 0)
       {
         ok = false;
       }
