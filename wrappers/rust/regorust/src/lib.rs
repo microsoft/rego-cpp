@@ -1,10 +1,27 @@
 #![allow(non_camel_case_types)]
 
-include!("bindings.rs");
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 use std::ffi::{CStr, CString};
+use std::fmt;
 use std::ops::Index;
 use std::path::Path;
+use std::str;
+
+/// Returns the build information as a string.
+///
+/// The string will be in the format
+/// "{version} ({name}, {date}) {toolchain} on {platform}."
+pub fn build_info() -> String {
+    format!(
+        "{} ({}, {}) {} on {}.",
+        str::from_utf8(REGOCPP_VERSION).expect("cannot convert version to string"),
+        str::from_utf8(REGOCPP_BUILD_NAME).expect("cannot convert build name to string"),
+        str::from_utf8(REGOCPP_BUILD_DATE).expect("cannot convert build date to string"),
+        str::from_utf8(REGOCPP_BUILD_TOOLCHAIN).expect("cannot convert build toolchain to string"),
+        str::from_utf8(REGOCPP_PLATFORM).expect("cannot convert platform to string"),
+    )
+}
 
 /// Interface for the Rego interpreter.
 ///
@@ -794,6 +811,15 @@ impl PartialEq for Output {
     }
 }
 
+impl fmt::Display for Output {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.to_str() {
+            Ok(output_str) => write!(f, "{}", output_str),
+            Err(err_str) => write!(f, "{}", err_str),
+        }
+    }
+}
+
 impl NodeKind {
     fn new(c_kind: regoEnum) -> Self {
         match c_kind {
@@ -1107,6 +1133,15 @@ impl Index<usize> for Node {
 impl PartialEq for Node {
     fn eq(&self, other: &Self) -> bool {
         return self.c_ptr == other.c_ptr;
+    }
+}
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.json() {
+            Ok(json) => write!(f, "{}", json),
+            Err(err) => write!(f, "{}", err),
+        }
     }
 }
 

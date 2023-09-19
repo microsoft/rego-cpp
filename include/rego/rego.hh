@@ -423,7 +423,6 @@ namespace rego
     | (ModuleSeq <<= Module++)
     | (Query <<= Literal++[1])
     | (Error <<= ErrorMsg * ErrorAst * ErrorCode)
-    // Below this point is the grammar of the version of Rego we support
     | (Module <<= Package * ImportSeq * Policy)
     | (ImportSeq <<= (Import | Keyword)++)
     | (Import <<= Ref * As * Var)
