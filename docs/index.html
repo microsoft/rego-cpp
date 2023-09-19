@@ -10,8 +10,11 @@
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="stylesheet" href="/scripts/highlight/styles/default.min.css">
     <link rel="stylesheet" href="/styles/regocpp.css">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <meta property="og:title" content="rego-cpp: a C++ Rego interpreter and runtime" />
     <meta property="og:url" content="https://microsoft.github.io/rego-cpp/" />
+    <meta property="og:image" content="https://microsoft.github.io/rego-cpp/images/regocpp-logo.svg" />
     <meta property="og:type" content="website" />
     <meta property="og:description" content="rego-cpp is a C++ implementation of the OPA Rego language and runtime." />
     <meta property="og:locale" content="en_GB" />
@@ -50,18 +53,14 @@
                             Policy Agent (OPA)</a> for use in defining policies in cloud systems.</p>
 
                     <p>We think Rego is a great language, and you can learn more about it <a
-                            href="https://www.openpolicyagent.org/docs/latest/policy-language/">here</a>. However, it has
-                        some
-                        limitations. Primarily, the interpreter is only accessible via the command line or a web server.
-                        Further, the
-                        only
-                        option for using the language in-process is via an interface in Go.</p>
+                            href="https://www.openpolicyagent.org/docs/latest/policy-language/">here</a>.
+                        However, it has some limitations.
+                        Primarily, the interpreter is only accessible via the command line or a web server.
+                        Further, the only option for using the language in-process is via an interface in Go.</p>
 
-                    <p>The rego-cpp project provides the ability to
-                        integrate Rego natively to a wider
-                        range of languages. We currrently support C, C++, Rust, and Python, and are largely compatible
-                        with
-                        v0.55.0 of the language. You can learn more about our implementation <a
+                    <p>The rego-cpp project provides the ability to integrate Rego natively into a wider range of languages.
+                        We currrently support C, C++, Rust, and Python, and are largely compatible with v0.55.0 of the language.
+                        You can learn more about our implementation <a
                             href="https://github.com/microsoft/rego-cpp">here</a>.</p>
                 </div>
             </div>
@@ -104,11 +103,11 @@
             <section id="cpp-example" class="col-lg-8 mb-5">
                 <img class="d-inline-block mb-3" src="/images/cpp-logo.svg" alt="c++" width="72" height="72"
                     loading="lazy">
-                <p class="lead fw-normal">You can compile rego-cpp directly into your C++ program. This gives you full
+                <p class="lead fw-normal">You can compile rego-cpp directly into your C++ program, which gives you full
                     access to our API. We recommend using CMake FetchContent to add rego-cpp to your project.</p>
                 <p class="d-flex justify-content-start lead fw-normal">
                     <a href="cpp/index.html" class="icon-link icon-link-hover fw-semibold">
-                        Learn more about the C API
+                        Learn more about the C++ API
                         <img class="bi" src="/images/arrow-right.svg">
                     </a>
                 </p>
@@ -190,8 +189,8 @@ f := e["dev"])");
             </section>
             <section id="c-example" class="col-lg-8 mb-5">
                 <img class="d-inline-block mb-3" src="/images/c-logo.svg" alt="C" width="72" height="72" loading="lazy">
-                <p class="lead fw-normal">You can compile rego-cpp directly into your C program. The C API provides most
-                    of the functionality of the main library while providing a stable interface which is amenable to
+                <p class="lead fw-normal">You can also compile rego-cpp directly into your C program. The C API provides most
+                    of the functionality of the full C++ API while providing a stable interface which is amenable to
                     FFI. We recommend using CMake FetchContent to add rego-cpp to your project.</p>
                 <p class="d-flex justify-content-start lead fw-normal">
                     <a href="cpp/rego__c_8h.html" class="icon-link icon-link-hover fw-semibold">
@@ -408,16 +407,18 @@ print(rego.query("[data.one, input.b, data.objects.sites[1]] = x"))</code></pre>
             <div class="container">
                 <div class="row">
                     <div class="col-lg-3 mb-3">
-                        <a class="d-inline-flex align-items-center mb-2 text-body-emphasis text-decoration-none" href="/" aria-label="rego-cpp">
-                            <img src="/images/regocpp-logo.svg" class="d-block me-2" width="32" height="32" alt="rego-cpp">
+                        <a class="d-inline-flex align-items-center mb-2 text-body-emphasis text-decoration-none"
+                            href="/" aria-label="rego-cpp">
+                            <img src="/images/regocpp-logo.svg" class="d-block me-2" width="32" height="32"
+                                alt="rego-cpp">
                             <span class="fs-5">rego-cpp</span>
-                          </a>
-                          <ul class="list-unstyled small">
+                        </a>
+                        <ul class="list-unstyled small">
                             <li class="mb-2">Designed and build by the rego-cpp team.</li>
                             <li class="mb-2">&copy; Microsoft 2023.</li>
                             <li class="mb-2">Code licensed MIT, docs CC BY 3.0</li>
                             <li class="mb-2">Currently v0.3.8</li>
-                          </ul>
+                        </ul>
                     </div>
                     <div class="col-6 col-lg-2 offset-lg-1 mb-3">
                         <h5>Links</h5>
