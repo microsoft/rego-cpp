@@ -2,8 +2,8 @@
 
 int main()
 {
-    rego::Interpreter rego;
-    rego.add_module("objects", R"(package objects
+  rego::Interpreter rego;
+  rego.add_module("objects", R"(package objects
 
 rect := {`width`: 2, "height": 4}
 cube := {"width": 3, `height`: 4, "depth": 5}
@@ -22,7 +22,7 @@ e := {
     "four": d,
 }
 f := e["dev"])");
-    rego.add_data_json(R"({
+  rego.add_data_json(R"({
     "one": {
         "bar": "Foo",
         "baz": 5,
@@ -36,7 +36,7 @@ f := e["dev"])");
         "bop": 42
     }
 })");
-    rego.add_data_json(R"({
+  rego.add_data_json(R"({
     "three": {
         "bar": "Baz",
         "baz": 15,
@@ -44,11 +44,12 @@ f := e["dev"])");
         "bop": 4.23
     }
 })");
-    rego.set_input_json(R"({
+  rego.set_input_json(R"({
     "a": 10,
     "b": "20",
     "c": 30.0,
     "d": true
 })");
-    std::cout << rego.query("[data.one, input.b, data.objects.sites[1]] = x") << std::endl;
+  std::cout << rego.query("[data.one, input.b, data.objects.sites[1]] = x")
+            << std::endl;
 }

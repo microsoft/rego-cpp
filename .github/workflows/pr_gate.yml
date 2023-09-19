@@ -17,6 +17,8 @@ jobs:
             exclude: ''
           - check: tools
             exclude: ''
+          - check: examples/c
+          - check: examples/cpp
     steps:
       - name: Checkout
         uses: actions/checkout@v3

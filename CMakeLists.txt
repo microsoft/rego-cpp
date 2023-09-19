@@ -125,7 +125,8 @@ else()
         tools/*.cc
         tests/*.cc
         tests/*.h
-        examples/c/main.c
+        examples/c/*.c
+        examples/cpp/*.cc
   )
 
   add_custom_target(regocpp_format
