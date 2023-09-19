@@ -779,4 +779,9 @@ namespace rego
   {
     return Set << set_members;
   }
+
+  bool is_module(const Node& var)
+  {
+    return var->type().in({Submodule, DataItem, Data});
+  }
 }

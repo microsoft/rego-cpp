@@ -766,7 +766,11 @@ namespace rego
         source_values.begin(),
         source_values.end(),
         std::back_inserter(values),
-        [var](auto& source_value) {
+        [var, this](auto& source_value) {
+          if(is_module(source_value->node())){
+            Node module_obj = resolve_module(source_value->node());
+            return ValueDef::copy_to(ValueDef::create(module_obj), var);
+          }
           return ValueDef::copy_to(source_value, var);
         });
     }
@@ -910,11 +914,10 @@ namespace rego
         }
         else if (def->type() == Data)
         {
-          values.push_back(ValueDef::create(resolve_module(def)));
+          values.push_back(ValueDef::create(def));
         }
         else if (def->type() == RuleFunc)
         {
-          // these will always be an argument to apply_access
           values.push_back(ValueDef::create(def));
         }
         else if (def->type() == DataItem)
@@ -922,7 +925,7 @@ namespace rego
           Node value = def / Val;
           if (value->type() == DataModule)
           {
-            values.push_back(ValueDef::create(resolve_module(def)));
+            values.push_back(ValueDef::create(def));
           }
           else
           {
@@ -966,7 +969,6 @@ namespace rego
     {
       values.push_back(ValueDef::create(var, container, sources));
     }
-
     else
     {
       auto maybe_nodes = Resolver::apply_access(container, args[1]->node());
