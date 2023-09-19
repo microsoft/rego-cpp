@@ -4,10 +4,12 @@
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>rego-cpp Documentation</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="stylesheet" href="/scripts/highlight/styles/default.min.css">
+    <link rel="stylesheet" href="/styles/regocpp.css">
     <meta property="og:title" content="rego-cpp: a C++ Rego interpreter and runtime" />
     <meta property="og:url" content="https://microsoft.github.io/rego-cpp/" />
     <meta property="og:type" content="website" />
@@ -16,34 +18,430 @@
 </head>
 
 <body>
-    <div class="container">
-        <div class="jumbotron">
-            <div class="row row justify-content-between">
-                <div class="col align-self-end">
-                    <h1 class="display-3">rego-cpp</h1>
-                    <p class="lead">A C++ Runtime for <a
-                            href="https://www.openpolicyagent.org/docs/latest/policy-language/">Rego</a></p>
+    <main>
+        <div class="container py-4">
+            <header class="pb-3 mb-4 border-bottom">
+                <img src="/images/regocpp-logo.svg" width="24" height="24">
+                <span class="fs-4">rego-cpp</span>
+            </header>
+            <div class="mx-auto col-md-8">
+                <div class="container-fluid py-5 text-center">
+                    <img src="/images/regocpp-logo.svg" width="165" height="165" alt="rego-cpp"
+                        class="d-none d-sm-block mx-auto mb-3">
+                    <h1 class="lh-1 fw-semibold">Perform Rego queries from multiple languages with rego-cpp</h1>
+                    <p class="fs-4">A <a href="https://www.openpolicyagent.org/docs/latest/policy-language/">Rego</a>
+                        language
+                        interpreter in C++ with wrappers for C, Rust, and Python.</p>
+                    <p class="text-body-secondary mb-0">
+                        Currently <strong>v0.3.8</strong><span class="px-1">·</span><a
+                            href="https://github.com/microsoft/rego-cpp/releases">All releases</a>
+                    </p>
                 </div>
             </div>
-            <hr class="my-4">
-            <p>Want to dive right in? Find out more about our language-specific client APIs by clicking these buttons:
-            </p>
-            <a class="btn btn-primary btn-lg" href="rust/regorust/index.html" role="button">Rust API</a>
-            <a class="btn btn-info btn-lg" href="cpp/index.html" role="button">C++ API</a>
+            <div class="mx-auto col-md-8">
+                <div class="container-fluid py-5">
+                    <a href="https://www.openpolicyagent.org/">
+                        <img src="/images/opa-logo.png" width="92" height="101" alt="Open Policy Agent"
+                            class="d-block mx-auto mb-3">
+                    </a>
+                    <h1 class="lh-2 fw-semibold text-center">What is Rego?</h1>
+                    <p class="lead text-center">Rego is a language developed by <a
+                            href="https://www.openpolicyagent.org/">Open
+                            Policy Agent (OPA)</a> for use in defining policies in cloud systems.</p>
+
+                    <p>We think Rego is a great language, and you can learn more about it <a
+                            href="https://www.openpolicyagent.org/docs/latest/policy-language/">here</a>. However, it has
+                        some
+                        limitations. Primarily, the interpreter is only accessible via the command line or a web server.
+                        Further, the
+                        only
+                        option for using the language in-process is via an interface in Go.</p>
+
+                    <p>The rego-cpp project provides the ability to
+                        integrate Rego natively to a wider
+                        range of languages. We currrently support C, C++, Rust, and Python, and are largely compatible
+                        with
+                        v0.55.0 of the language. You can learn more about our implementation <a
+                            href="https://github.com/microsoft/rego-cpp">here</a>.</p>
+                </div>
+            </div>
+            <div class="mx-auto col-md-8">
+                <div class="container-fluid py-5 text-center">
+                    <h4 class="fw-semibold">Take a look at our examples</h4>
+                    <p>A great way to get started is by looking at one of our code examples.</p>
+                    <div class="d-flex flex-wrap align-items-center justify-content-center gap-4 mt-4">
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#cpp-example">
+                            <img class="d-block mb-2" src="/images/cpp-logo.svg" alt="" width="64" height="64"
+                                loading="lazy">
+                            <span class="text-body-secondary">C++</span>
+                        </a>
+
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#c-example">
+                            <img class="d-block mb-2" src="/images/c-logo.svg" alt="" width="64" height="64"
+                                loading="lazy">
+                            <span class="text-body-secondary">C</span>
+                        </a>
+
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#rust-example">
+                            <img class="d-block mb-2" src="/images/rust-logo-blk.svg" alt="" width="80" height="80"
+                                loading="lazy">
+                            <span class="text-body-secondary">Rust</span>
+                        </a>
+
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#python-example">
+                            <img class="d-block mb-2" src="/images/python-logo-only.svg" alt="" width="53" height="64"
+                                loading="lazy">
+                            <span class="text-body-secondary">Python</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <section id="cpp-example" class="col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="/images/cpp-logo.svg" alt="c++" width="72" height="72"
+                    loading="lazy">
+                <p class="lead fw-normal">You can compile rego-cpp directly into your C++ program. This gives you full
+                    access to our API. We recommend using CMake FetchContent to add rego-cpp to your project.</p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="cpp/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the C API
+                        <img class="bi" src="/images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-cmake">FetchContent_Declare(
+  regocpp
+  GIT_REPOSITORY https://github.com/microsoft/rego-cpp.git
+  GIT_TAG        main
+)
+       
+FetchContent_MakeAvailable(regocpp)
+
+# ...
+
+target_link_libraries(myproject PRIVATE regocpp::rego)</code></pre>
+                    <a
+                        href="https://github.com/microsoft/rego-cpp/blob/main/examples/cpp/CMakeLists.txt">CMakeLists.txt</a>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-cpp">#include &lt;rego/rego.hh&gt;
+
+int main()
+{
+    rego::Interpreter rego;
+    rego.add_module("objects", R"(package objects
+
+rect := {`width`: 2, "height": 4}
+cube := {"width": 3, `height`: 4, "depth": 5}
+a := 42
+b := false
+c := null
+d := {"a": a, "x": [b, c]}
+index := 1
+shapes := [rect, cube]
+names := ["prod", `smoke1`, "dev"]
+sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
+e := {
+    a: "foo",
+    "three": c,
+    names[2]: b,
+    "four": d,
+}
+f := e["dev"])");
+    rego.add_data_json(R"({
+    "one": {
+        "bar": "Foo",
+        "baz": 5,
+        "be": true,
+        "bop": 23.4
+    },
+    "two": {
+        "bar": "Bar",
+        "baz": 12.3,
+        "be": false,
+        "bop": 42
+    }
+})");
+    rego.add_data_json(R"({
+    "three": {
+        "bar": "Baz",
+        "baz": 15,
+        "be": true,
+        "bop": 4.23
+    }
+})");
+    rego.set_input_json(R"({
+    "a": 10,
+    "b": "20",
+    "c": 30.0,
+    "d": true
+})");
+    std::cout &lt;&lt; rego.query("[data.one, input.b, data.objects.sites[1]] = x") &lt;&lt; std::endl;
+}</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/cpp/example.cc">example.cc</a>
+                </div>
+
+            </section>
+            <section id="c-example" class="col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="/images/c-logo.svg" alt="C" width="72" height="72" loading="lazy">
+                <p class="lead fw-normal">You can compile rego-cpp directly into your C program. The C API provides most
+                    of the functionality of the main library while providing a stable interface which is amenable to
+                    FFI. We recommend using CMake FetchContent to add rego-cpp to your project.</p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="cpp/rego__c_8h.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the C API
+                        <img class="bi" src="/images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre><code class="language-cmake">FetchContent_Declare(
+  regocpp
+  GIT_REPOSITORY https://github.com/microsoft/rego-cpp.git
+  GIT_TAG        main
+)
+       
+FetchContent_MakeAvailable(regocpp)
+
+# ...
+
+target_link_libraries(myproject PRIVATE regocpp::rego)</code></pre>
+                    <a
+                        href="https://github.com/microsoft/rego-cpp/blob/main/examples/c/CMakeLists.txt">CMakeLists.txt</a>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-cpp">#include &lt;rego/rego_c.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    regoEnum err;
+    int rc = EXIT_SUCCESS;
+    regoOutput* output = NULL;
+    regoInterpreter* rego = regoNew();
+
+    err = regoAddModuleFile(rego, "examples/objects.rego");
+    if (err != REGO_OK)
+    {
+        goto error;
+    }
+
+    err = regoAddDataJSONFile(rego, "examples/data0.json");
+    if (err != REGO_OK)
+    {
+        goto error;
+    }
+
+    err = regoAddDataJSONFile(rego, "examples/data1.json");
+    if (err != REGO_OK)
+    {
+        goto error;
+    }
+
+    err = regoSetInputJSONFile(rego, "examples/input0.json");
+    if (err != REGO_OK)
+    {
+        goto error;
+    }
+
+    output = regoQuery(rego, "[data.one, input.b, data.objects.sites[1]] = x");
+    if(output == NULL)
+    {
+        goto error;
+    }
+
+    printf("%s\n", regoOutputString(output));
+    goto exit;
+    
+error:
+  printf("%s\n", regoGetError(rego));
+  rc = EXIT_FAILURE;
+
+exit:
+  if (output != NULL)
+  {
+    regoFreeOutput(output);
+  }
+
+  if (rego != NULL)
+  {
+    regoFree(rego);
+  }
+
+  return rc;
+}</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/c/example.c">example.c</a>
+                </div>
+
+            </section>
+
+            <section id="rust-example" class="col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="/images/rust-logo-blk.svg" alt="Rust" width="80" height="80"
+                    loading="lazy">
+                <p class="lead fw-normal">We provide a Rust crate called <a
+                        href="https://crates.io/crates/regorust">regorust</a> which exposes the C API in idiomatic Rust.
+                    This example shows a CLI interpreter implemented in Rust.</p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="rust/regorust/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the Rust API
+                        <img class="bi" src="/images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-ini">[dependencies]
+regorust = "0.3.8"</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/rust/Cargo.toml">Cargo.toml</a>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-rust">use clap::Parser;
+use regorust::Interpreter;
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    data: Vec&lt;std::path::PathBuf&gt;,
+
+    #[arg(short, long)]
+    input: Option&lt;std::path::PathBuf&gt;,
+
+    query: String,
+}
+
+fn main() {
+    let args = Args::parse();
+    let rego = Interpreter::new();
+    if let Some(input) = args.input {
+        rego.set_input_json_file(input.as_path())
+            .expect("Failed to read input file");
+    }
+
+    for data in args.data {
+        if data.extension().unwrap() == "rego" {
+            rego.add_module_file(data.as_path())
+                .expect("Failed to load module file");
+        } else {
+            rego.add_data_json_file(data.as_path())
+                .expect("Failed to load data file");
+        }
+    }
+
+    println!(
+        "{}",
+        rego.query(args.query.as_str())
+            .expect("Failed to evaluate query")
+    );
+}</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/rust/src/main.rs">main.rs</a>
+                </div>
+            </section>
+            <section id="python-example" class="col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="/images/python-logo-only.svg" alt="Python" width="60" height="72"
+                    loading="lazy">
+                <p class="lead fw-normal">We provide a Python wheel called <a
+                        href="https://pypi.org/project/regopy/">regopy</a> which exposes the C API in a pythonic way.
+                </p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="python/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the Python API
+                        <img class="bi" src="/images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-bash">$ pip install regopy</code></pre>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-python">from regopy import Interpreter
+
+rego = Interpreter()
+with open("examples/objects.rego") as f:
+    rego.add_module("objects", f.read())
+
+rego.add_data({
+    "one": {
+        "bar": "Foo",
+        "baz": 5,
+        "be": True,
+        "bop": 23.4
+    },
+    "two": {
+        "bar": "Bar",
+        "baz": 12.3,
+        "be": False,
+        "bop": 42
+    }
+})
+
+rego.add_data({
+    "three": {
+        "bar": "Baz",
+        "baz": 15,
+        "be": True,
+        "bop": 4.23
+    }
+})
+
+rego.set_input({
+    "a": 10,
+    "b": "20",
+    "c": 30.0,
+    "d": True
+})
+
+print(rego.query("[data.one, input.b, data.objects.sites[1]] = x"))</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/python/example.py">example.py</a>
+                </div>
         </div>
-    </div>
 
+        <footer class="rc-footer py-4 py-md-5 mt-5 bg-body-tertiary">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 mb-3">
+                        <a class="d-inline-flex align-items-center mb-2 text-body-emphasis text-decoration-none" href="/" aria-label="rego-cpp">
+                            <img src="/images/regocpp-logo.svg" class="d-block me-2" width="32" height="32" alt="rego-cpp">
+                            <span class="fs-5">rego-cpp</span>
+                          </a>
+                          <ul class="list-unstyled small">
+                            <li class="mb-2">Designed and build by the rego-cpp team.</li>
+                            <li class="mb-2">&copy; Microsoft 2023.</li>
+                            <li class="mb-2">Code licensed MIT, docs CC BY 3.0</li>
+                            <li class="mb-2">Currently v0.3.8</li>
+                          </ul>
+                    </div>
+                    <div class="col-6 col-lg-2 offset-lg-1 mb-3">
+                        <h5>Links</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb2"><a href="/">Home</a></li>
+                            <li class="mb2"><a href="/cpp/index.html">C++ API</a></li>
+                            <li class="mb2"><a href="/c/rego__c_8h.html">C API</a></li>
+                            <li class="mb2"><a href="/rust/regorust/index.html">Rust API</a></li>
+                            <li class="mb2"><a href="/python/index.html">Python API</a></li>
+                            <li class="mb2"><a href="https://github.com/microsoft/rego-cpp">Github</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </footer>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-        crossorigin="anonymous"></script>
-    <script src="scripts/logo.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous"></script>
+        <script src="scripts/highlight/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script>
+    </main>
 </body>
 
 </html>

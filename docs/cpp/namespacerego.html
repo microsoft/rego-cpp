@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;0.3.5</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;0.3.8</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -156,8 +156,8 @@ Functions</h2></td></tr>
 <tr class="separator:a1ca026e2a9639ab3827c2cef015d7aa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a4e1c0ca79a3754c1ee8b95eabc8a5a"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacerego.html#a8a4e1c0ca79a3754c1ee8b95eabc8a5a">version</a> ()</td></tr>
 <tr class="separator:a8a4e1c0ca79a3754c1ee8b95eabc8a5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cb19c55c3e556282de41dd67c59f4b8"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacerego.html#a4cb19c55c3e556282de41dd67c59f4b8">to_json</a> (const trieste::Node &amp;node, bool sort=false, bool set_as_array=false)</td></tr>
-<tr class="separator:a4cb19c55c3e556282de41dd67c59f4b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc7b6b6fe5e4277b1b328ef6b1c3bdc3"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacerego.html#adc7b6b6fe5e4277b1b328ef6b1c3bdc3">to_json</a> (const trieste::Node &amp;node, bool set_as_array=false, bool sort_arrays=false)</td></tr>
+<tr class="separator:adc7b6b6fe5e4277b1b328ef6b1c3bdc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0172944422e39c3ea5d0465ddfa96c35"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacerego.html#a0172944422e39c3ea5d0465ddfa96c35">set_log_level</a> (<a class="el" href="namespacerego.html#adac8d274e73c31ba9551c9953d72eb3f">LogLevel</a> level)</td></tr>
 <tr class="separator:a0172944422e39c3ea5d0465ddfa96c35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -1453,8 +1453,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RuntimeE
 
 </div>
 </div>
-<a id="a4cb19c55c3e556282de41dd67c59f4b8" name="a4cb19c55c3e556282de41dd67c59f4b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4cb19c55c3e556282de41dd67c59f4b8">&#9670;&nbsp;</a></span>to_json()</h2>
+<a id="adc7b6b6fe5e4277b1b328ef6b1c3bdc3" name="adc7b6b6fe5e4277b1b328ef6b1c3bdc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc7b6b6fe5e4277b1b328ef6b1c3bdc3">&#9670;&nbsp;</a></span>to_json()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1469,13 +1469,13 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RuntimeE
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>sort</em> = <code>false</code>, </td>
+          <td class="paramname"><em>set_as_array</em> = <code>false</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>set_as_array</em> = <code>false</code>&#160;</td>
+          <td class="paramname"><em>sort_arrays</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1488,8 +1488,7 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RuntimeE
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node to convert. </td></tr>
-    <tr><td class="paramname">sort</td><td>Whether to sort the keys of a JSON object or the values in a set. </td></tr>
-    <tr><td class="paramname">set_as_array</td><td>Whether to represent a set using array notation. </td></tr>
+    <tr><td class="paramname">set_as_array</td><td>Whether to represent a set using array notation. Otherwise, sets are denoted using "&lt;&gt;" delimiters. </td></tr>
   </table>
   </dd>
 </dl>
@@ -2443,10 +2442,10 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RuntimeE
 <div class="line">    | (Object &lt;&lt;= ObjectItem++)</div>
 <div class="line">    | (ObjectItem &lt;&lt;= (Key &gt;&gt;= Term) * (Val &gt;&gt;= Term))</div>
 <div class="line">    | (DataItem &lt;&lt;= Key * (Val &gt;&gt;= DataModule | Term))[Key]</div>
-<div class="line">    | (RuleComp &lt;&lt;= Var * (Body &gt;&gt;= UnifyBody | Empty) * (Val &gt;&gt;= UnifyBody | Term) * (Idx &gt;&gt;= Int))[Var]</div>
-<div class="line">    | (RuleFunc &lt;&lt;= Var * RuleArgs * (Body &gt;&gt;= UnifyBody | Empty) * (Val &gt;&gt;= UnifyBody | Term) * (Idx &gt;&gt;= Int))[Var]</div>
-<div class="line">    | (RuleSet &lt;&lt;= Var * (Body &gt;&gt;= UnifyBody | Empty) * (Val &gt;&gt;= UnifyBody | Term))[Var]</div>
-<div class="line">    | (RuleObj &lt;&lt;= Var * (Body &gt;&gt;= UnifyBody | Empty) * (Val &gt;&gt;= UnifyBody | Term))[Var]</div>
+<div class="line">    | (RuleComp &lt;&lt;= Var * (Body &gt;&gt;= UnifyBody | Empty) * (Val &gt;&gt;= UnifyBody | Term) * (Idx &gt;&gt;= Int) * Key)[Var]</div>
+<div class="line">    | (RuleFunc &lt;&lt;= Var * RuleArgs * (Body &gt;&gt;= UnifyBody | Empty) * (Val &gt;&gt;= UnifyBody | Term) * (Idx &gt;&gt;= Int) * Key)[Var]</div>
+<div class="line">    | (RuleSet &lt;&lt;= Var * (Body &gt;&gt;= UnifyBody | Empty) * (Val &gt;&gt;= UnifyBody | Term) * Key)[Var]</div>
+<div class="line">    | (RuleObj &lt;&lt;= Var * (Body &gt;&gt;= UnifyBody | Empty) * (Val &gt;&gt;= UnifyBody | Term) * Key)[Var]</div>
 </div><!-- fragment -->
 </div>
 </div>

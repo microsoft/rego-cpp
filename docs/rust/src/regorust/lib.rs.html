@@ -1416,13 +1416,36 @@
 <span id="1416">1416</span>
 <span id="1417">1417</span>
 <span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
 </pre><pre class="rust"><code><span class="attribute">#![allow(non_camel_case_types)]
 
 </span><span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/bindings.rs&quot;</span>));
 
 <span class="kw">use </span>std::ffi::{CStr, CString};
+<span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::ops::Index;
 <span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::str;
+
+<span class="doccomment">/// Returns the build information as a string.
+///
+/// The string will be in the format
+/// &quot;{version} ({name}, {date}) {toolchain} on {platform}.&quot;
+</span><span class="kw">pub fn </span>build_info() -&gt; String {
+    <span class="macro">format!</span>(
+        <span class="string">&quot;{} ({}, {}) {} on {}.&quot;</span>,
+        str::from_utf8(REGOCPP_VERSION).expect(<span class="string">&quot;cannot convert version to string&quot;</span>),
+        str::from_utf8(REGOCPP_BUILD_NAME).expect(<span class="string">&quot;cannot convert build name to string&quot;</span>),
+        str::from_utf8(REGOCPP_BUILD_DATE).expect(<span class="string">&quot;cannot convert build date to string&quot;</span>),
+        str::from_utf8(REGOCPP_BUILD_TOOLCHAIN).expect(<span class="string">&quot;cannot convert build toolchain to string&quot;</span>),
+        str::from_utf8(REGOCPP_PLATFORM).expect(<span class="string">&quot;cannot convert platform to string&quot;</span>),
+    )
+}
 
 <span class="doccomment">/// Interface for the Rego interpreter.
 ///
@@ -1796,17 +1819,6 @@
 
     <span class="doccomment">/// Adds a Rego module from a string.
     ///
-    /// # Example module string
-    /// ```rego
-    /// package scalars
-    ///
-    /// greeting := &quot;Hello&quot;
-    /// max_height := 42
-    /// pi := 3.14159
-    /// allowed := true
-    /// location := null
-    /// ```
-    ///
     /// # Example
     /// ```
     /// # use regorust::*;
@@ -1875,24 +1887,6 @@
     <span class="doccomment">/// Adds a base document from a string.
     ///
     /// The string must contain a valid JSON object.
-    ///
-    /// # Example document file
-    /// ```json
-    /// {
-    ///    &quot;one&quot;: {
-    ///        &quot;bar&quot;: &quot;Foo&quot;,
-    ///        &quot;baz&quot;: 5,
-    ///        &quot;be&quot;: true,
-    ///        &quot;bop&quot;: 23.4
-    ///    },
-    ///    &quot;two&quot;: {
-    ///        &quot;bar&quot;: &quot;Bar&quot;,
-    ///      &quot;baz&quot;: 12.3,
-    ///        &quot;be&quot;: false,
-    ///        &quot;bop&quot;: 42
-    ///    }
-    /// }
-    /// ```
     ///
     /// # Example
     /// ```
@@ -2241,6 +2235,15 @@
     }
 }
 
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Output {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self</span>.to_str() {
+            <span class="prelude-val">Ok</span>(output_str) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, output_str),
+            <span class="prelude-val">Err</span>(err_str) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, err_str),
+        }
+    }
+}
+
 <span class="kw">impl </span>NodeKind {
     <span class="kw">fn </span>new(c_kind: regoEnum) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>c_kind {
@@ -2554,6 +2557,15 @@
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>Node {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="kw">return </span><span class="self">self</span>.c_ptr == other.c_ptr;
+    }
+}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Node {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self</span>.json() {
+            <span class="prelude-val">Ok</span>(json) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, json),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, err),
+        }
     }
 }
 
