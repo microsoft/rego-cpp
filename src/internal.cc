@@ -256,7 +256,7 @@ namespace rego
     return in_query(node->parent()->shared_from_this());
   }
 
-  Node err(NodeRange& r, const std::string& msg, const std::string& code)
+  Node err(const NodeRange& r, const std::string& msg, const std::string& code)
   {
     return Error << (ErrorMsg ^ msg) << (ErrorAst << r) << (ErrorCode ^ code);
   }

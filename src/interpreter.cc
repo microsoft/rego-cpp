@@ -121,10 +121,17 @@ namespace rego
       return node->clone();
     }
 
+    if (!node->get_and_reset_contains_error())
+      return {};
+
     Node errorseq = NodeDef::create(ErrorSeq);
     for (auto& child : *node)
     {
       Node error = get_errors(child);
+      if (!error)
+      {
+        continue;
+      }
       if (error->type() == Error)
       {
         errorseq->push_back(error);
@@ -201,7 +208,7 @@ namespace rego
           .count());
 
       Node errors = get_errors(ast);
-      if (errors->size() > 0)
+      if (errors && errors->size() > 0)
       {
         ok = false;
       }
