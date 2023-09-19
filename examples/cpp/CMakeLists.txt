@@ -32,9 +32,13 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 FetchContent_MakeAvailable(regocpp)
 
 add_executable(custom_builtin custom_builtin.cc)
+add_executable(example example.cc)
+
 target_link_libraries(custom_builtin PRIVATE regocpp::rego)
+target_link_libraries(example PRIVATE regocpp::rego)
 
 install(TARGETS custom_builtin DESTINATION bin)
+install(TARGETS example DESTINATION bin)
 
 enable_testing()
 add_test(
