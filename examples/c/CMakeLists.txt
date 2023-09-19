@@ -41,7 +41,10 @@ FetchContent_MakeAvailable(cargs)
 add_executable(regoc main.c)
 target_link_libraries(regoc PRIVATE regocpp::rego cargs)
 
-install(TARGETS regoc DESTINATION bin)
+add_executable(example example.c)
+target_link_libraries(example PRIVATE regocpp::rego)
+
+install(TARGETS regoc example DESTINATION bin)
 
 enable_testing()
 add_test(
