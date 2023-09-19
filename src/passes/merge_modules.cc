@@ -145,8 +145,8 @@ namespace rego
       In(ModuleSeq) * (T(Module) << T(Package)[Package]) >>
         [](Match& _) { return err(_(Package), "Invalid package reference."); },
 
-      In(Rego) * (T(ModuleSeq)[ModuleSeq] << T(Error)) >>
-        [](Match& _) { return _(ModuleSeq); },
+      In(Rego) * (T(ModuleSeq) << T(Error)[Error]) >>
+        [](Match& _) { return _(Error); },
 
       In(DataModule) * T(Import)[Import] >>
         [](Match& _) { return err(_(Import), "Invalid import"); }};
