@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['interpreter_0',['Interpreter',['../classrego_1_1Interpreter.html#a8e59175363a7ce01233abc4d9dcc37f3',1,'rego::Interpreter::Interpreter()'],['../classrego_1_1Interpreter.html',1,'rego::Interpreter']]],
-  ['is_5fbuiltin_1',['is_builtin',['../classrego_1_1BuiltIns.html#a0e45da1ae26d6dd74e2a647bf484fde8',1,'rego::BuiltIns']]]
+  ['language_20support_0',['Language Support',['../index.html#autotoc_md6',1,'']]],
+  ['library_1',['Using the &lt;tt&gt;rego&lt;/tt&gt; Library',['../index.html#autotoc_md5',1,'']]],
+  ['linux_2',['Linux',['../index.html#autotoc_md2',1,'']]],
+  ['loglevel_3',['LogLevel',['../namespacerego.html#adac8d274e73c31ba9551c9953d72eb3f',1,'rego']]]
 ];

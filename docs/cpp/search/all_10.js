@@ -1,12 +1,13 @@
 var searchData=
 [
-  ['scalar_0',['scalar',['../namespacerego.html#ae2472135737157347c38796f6a17abbc',1,'rego::scalar(BigInt value)'],['../namespacerego.html#a6070c3433d84fa888d941d7d7ef4b71d',1,'rego::scalar(double value)'],['../namespacerego.html#ad5095fabc1594a8bbcfba9109964862a',1,'rego::scalar(bool value)'],['../namespacerego.html#abe6baed88ebc54487bd3445c582c1ae9',1,'rego::scalar(const char *value)'],['../namespacerego.html#a74d622bc7e659ec2a055f77b2c0bf332',1,'rego::scalar(const std::string &amp;value)'],['../namespacerego.html#a0f699011db385484155281fb1d9bc719',1,'rego::scalar()']]],
-  ['set_1',['set',['../namespacerego.html#a33a98122316fbfa443bc71f963fe299f',1,'rego']]],
-  ['set_5finput_2',['set_input',['../classrego_1_1Interpreter.html#a96bab7f3d7d37e89cdf23d7c2a1f095b',1,'rego::Interpreter']]],
-  ['set_5finput_5fjson_3',['set_input_json',['../classrego_1_1Interpreter.html#a4b946e68f18199ab20ab8e9b27018aa7',1,'rego::Interpreter']]],
-  ['set_5finput_5fjson_5ffile_4',['set_input_json_file',['../classrego_1_1Interpreter.html#ace224e20d8134d15e170d9a3bd354a87',1,'rego::Interpreter']]],
-  ['set_5flog_5flevel_5',['set_log_level',['../namespacerego.html#a0172944422e39c3ea5d0465ddfa96c35',1,'rego']]],
-  ['specify_5fnumber_6',['specify_number',['../classrego_1_1UnwrapOpt.html#a63e485df5c3626486194164aae2523d3',1,'rego::UnwrapOpt']]],
-  ['strict_5ferrors_7',['strict_errors',['../classrego_1_1BuiltIns.html#a5f659451590d4aa75b5e5dce195444a9',1,'rego::BuiltIns']]],
-  ['success_8',['success',['../structrego_1_1UnwrapResult.html#a0a62a0476eeb588c52e57042882b6935',1,'rego::UnwrapResult']]]
+  ['the_20opa_20rego_20go_20implementation_0',['Compatibility with the OPA Rego Go implementation',['../index.html#autotoc_md8',1,'']]],
+  ['the_20tt_20rego_20tt_20cli_1',['Using the &lt;tt&gt;rego&lt;/tt&gt; CLI',['../index.html#autotoc_md4',1,'']]],
+  ['the_20tt_20rego_20tt_20library_2',['Using the &lt;tt&gt;rego&lt;/tt&gt; Library',['../index.html#autotoc_md5',1,'']]],
+  ['to_5fjson_3',['to_json',['../namespacerego.html#adc7b6b6fe5e4277b1b328ef6b1c3bdc3',1,'rego']]],
+  ['trademarks_4',['Trademarks',['../index.html#autotoc_md10',1,'']]],
+  ['tt_20rego_20cpp_20tt_5',['&lt;tt&gt;rego-cpp&lt;/tt&gt;',['../index.html',1,'']]],
+  ['tt_20rego_20tt_20cli_6',['Using the &lt;tt&gt;rego&lt;/tt&gt; CLI',['../index.html#autotoc_md4',1,'']]],
+  ['tt_20rego_20tt_20library_7',['Using the &lt;tt&gt;rego&lt;/tt&gt; Library',['../index.html#autotoc_md5',1,'']]],
+  ['type_8',['type',['../classrego_1_1UnwrapOpt.html#a1baa3498055407ef83b6d0f67b0acfa5',1,'rego::UnwrapOpt']]],
+  ['types_9',['types',['../classrego_1_1UnwrapOpt.html#af826c41849770e1daa53c72ab6cb07f6',1,'rego::UnwrapOpt']]]
 ];

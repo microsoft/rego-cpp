@@ -1,10 +1,10 @@
 var searchData=
 [
-  ['behavior_0',['behavior',['../structrego_1_1BuiltInDef.html#aded779c480058b167a6e83d3ced8604e',1,'rego::BuiltInDef']]],
-  ['bigint_1',['BigInt',['../classrego_1_1BigInt.html',1,'rego']]],
-  ['builtin_2',['BuiltIn',['../namespacerego.html#a1fd7e35ad0e78ff3fac42f2aea84bee9',1,'rego']]],
-  ['builtinbehavior_3',['BuiltInBehavior',['../namespacerego.html#aebcf30ac1a87d367ac9366adf0bdc280',1,'rego']]],
-  ['builtindef_4',['BuiltInDef',['../structrego_1_1BuiltInDef.html',1,'rego']]],
-  ['builtins_5',['builtins',['../classrego_1_1Interpreter.html#a5b235c5fa74bd75511a0aadb8cd3a8d1',1,'rego::Interpreter']]],
-  ['builtins_6',['BuiltIns',['../classrego_1_1BuiltIns.html#a73a171c3d702554c882ef5576aa21032',1,'rego::BuiltIns::BuiltIns()'],['../classrego_1_1BuiltIns.html',1,'rego::BuiltIns']]]
+  ['call_0',['call',['../classrego_1_1BuiltIns.html#a648b6f917cbc4bd5dcc2d8238151cded',1,'rego::BuiltIns']]],
+  ['cli_1',['Using the &lt;tt&gt;rego&lt;/tt&gt; CLI',['../index.html#autotoc_md4',1,'']]],
+  ['code_2',['code',['../classrego_1_1UnwrapOpt.html#a8cc4950557b948f4edfdc029b370424e',1,'rego::UnwrapOpt']]],
+  ['compatibility_20with_20the_20opa_20rego_20go_20implementation_3',['Compatibility with the OPA Rego Go implementation',['../index.html#autotoc_md8',1,'']]],
+  ['contributing_4',['Contributing',['../index.html#autotoc_md9',1,'']]],
+  ['cpp_20tt_5',['&lt;tt&gt;rego-cpp&lt;/tt&gt;',['../index.html',1,'']]],
+  ['create_6',['create',['../structrego_1_1BuiltInDef.html#afe42c3b9ebfbd569538f8e3b9fd26495',1,'rego::BuiltInDef']]]
 ];

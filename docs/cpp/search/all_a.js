@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['message_0',['message',['../classrego_1_1UnwrapOpt.html#aa7b20e6f767103e057ea4eab49710aa3',1,'rego::UnwrapOpt']]]
+  ['name_0',['name',['../structrego_1_1BuiltInDef.html#afada2c94fd89fd8e0dfd47cd58a46a3d',1,'rego::BuiltInDef']]],
+  ['node_1',['node',['../structrego_1_1UnwrapResult.html#a9ec5a75faea289471be116708295a0a8',1,'rego::UnwrapResult']]]
 ];

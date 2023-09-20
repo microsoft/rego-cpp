@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['well_5fformed_5fchecks_5fenabled_0',['well_formed_checks_enabled',['../classrego_1_1Interpreter.html#a2dbde35ebdfd1b69667256a1158b6ec9',1,'rego::Interpreter']]]
+  ['_7einterpreter_0',['~Interpreter',['../classrego_1_1Interpreter.html#affb5bb5a5881b407d6010d86f42033e5',1,'rego::Interpreter']]]
 ];

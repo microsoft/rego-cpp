@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['loglevel_0',['LogLevel',['../namespacerego.html#adac8d274e73c31ba9551c9953d72eb3f',1,'rego']]]
+  ['message_0',['message',['../classrego_1_1UnwrapOpt.html#aa7b20e6f767103e057ea4eab49710aa3',1,'rego::UnwrapOpt']]]
 ];
