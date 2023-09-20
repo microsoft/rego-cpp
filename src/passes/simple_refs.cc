@@ -6,7 +6,7 @@ namespace rego
   // which only have a single argument by the use of temporary variables.
   PassDef simple_refs()
   {
-    PassDef simple_refs = {
+    return {
       In(Module) * T(Import) >> [](Match&) -> Node { return {}; },
 
       // non-var refhead
@@ -159,7 +159,5 @@ namespace rego
       In(RuleRef) * T(Ref)[Ref] >>
         [](Match& _) { return err(_(Ref), "Invalid rule reference call"); },
     };
-
-    return simple_refs;
   }
 }

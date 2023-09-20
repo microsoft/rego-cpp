@@ -113,6 +113,7 @@ namespace rego
     static Node set_difference(const Node& lhs, const Node& rhs);
     static Nodes resolve_varseq(const Node& varseq);
     static Nodes object_lookdown(const Node& object, const Node& query);
+    static Nodes module_lookdown(const Node& module, const std::string& name);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
     static Node membership(
       const Node& index, const Node& item, const Node& itemseq);

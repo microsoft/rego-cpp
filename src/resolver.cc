@@ -496,43 +496,12 @@ namespace rego
       return object_lookdown(container, query);
     }
 
-    if (container->type() == Data || container->type() == DataModule)
+    if (container->type() == Data || container->type() == DataItem || container->type() == Submodule)
     {
       Node key = arg->front();
-      std::string key_str = strip_quotes(to_json(key));
-      Nodes defs = container->lookdown(key_str);
-      if (defs.size() == 0)
-      {
-        return Nodes({err(container, "No definition found for " + key_str)});
-      }
-
-      if (defs[0]->type() == RuleComp || defs[0]->type() == RuleFunc)
-      {
-        return defs;
-      }
-
-      Nodes nodes;
-      for (auto& def : defs)
-      {
-        if (def->type() == DataItem)
-        {
-          nodes.push_back(def / Val);
-        }
-        else if (def->type() == ObjectItem)
-        {
-          nodes.push_back(def / Val);
-        }
-        else if (def->type() == Submodule)
-        {
-          nodes.push_back(def / DataModule);
-        }
-        else
-        {
-          throw std::runtime_error("Not implemented");
-        }
-      }
-
-      return nodes;
+      std::string key_str = std::string((container / Key)->location().view());
+      key_str += "." + strip_quotes(to_json(key));
+      return module_lookdown(container, key_str);
     }
 
     if (container->type() == Set)
@@ -1045,6 +1014,51 @@ namespace rego
     }
 
     return rulefunc;
+  }
+
+  Nodes Resolver::module_lookdown(const Node& container, const std::string& query)
+  {
+    Node module = container;
+    if(module->type() == Submodule || module->type() == Data || module->type() == DataItem)
+    {
+      module = module / Val;
+    }
+
+    if(module->type() != DataModule)
+    {
+      return {err(container, "Not a module")};
+    }
+
+    Nodes rules;
+    for (auto& rule : *module)
+    {
+      if (rule->type() == RuleFunc)
+      {
+        Node args = rule / RuleArgs;
+        if (args->size() > 0)
+        {
+          // no way to include this without arguments
+          continue;
+        }
+      }
+
+      Location name;
+      if (rule->type() == Submodule)
+      {
+        name = (rule / Key)->location();
+      }
+      else
+      {
+        name = (rule / Var)->location();
+      }
+
+      if (name == query)
+      {
+        rules.push_back(rule);
+      }
+    }
+
+    return rules;
   }
 
   Nodes Resolver::object_lookdown(const Node& object, const Node& query)
