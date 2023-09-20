@@ -290,6 +290,16 @@ namespace rego_test
   {
     BindingMap actual_bindings = to_binding_map(actual);
     BindingMap wanted_bindings = to_binding_map(wanted);
+
+    if (wanted_bindings.size() == 0)
+    {
+      if (wanted->size() > 0)
+      {
+        os << "No wanted bindings found (invalid test case?)" << std::endl;
+        return false;
+      }
+    }
+
     for (auto& [key, value] : wanted_bindings)
     {
       if (actual_bindings.find(key) == actual_bindings.end())

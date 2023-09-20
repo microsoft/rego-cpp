@@ -50,6 +50,7 @@ namespace rego
   bool is_truthy(const Node& node);
   bool is_undefined(const Node& node);
   bool is_ref_to_type(const Node& var, const std::set<Token>& types);
+  bool is_module(const Node& var);
   std::string strip_quotes(const std::string_view& str);
   std::string type_name(const Token& type, bool specify_number = false);
   std::string type_name(const Node& node, bool specify_number = false);
@@ -112,6 +113,7 @@ namespace rego
     static Node set_difference(const Node& lhs, const Node& rhs);
     static Nodes resolve_varseq(const Node& varseq);
     static Nodes object_lookdown(const Node& object, const Node& query);
+    static Nodes module_lookdown(const Node& module, const std::string& name);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
     static Node membership(
       const Node& index, const Node& item, const Node& itemseq);

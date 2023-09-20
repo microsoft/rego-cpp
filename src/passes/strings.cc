@@ -20,10 +20,6 @@ namespace
           buf << "\\\\";
           break;
 
-        case '/':
-          buf << "\\/";
-          break;
-
         case '\b':
           buf << "\\b";
           break;

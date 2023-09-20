@@ -3,7 +3,6 @@
 namespace rego
 {
   // Converts all rules with constant terms to be DataTerm nodes.
-  // Also reshapes ExprEvery nodes so they can be lifted later.
   PassDef constants()
   {
     return {
@@ -101,72 +100,6 @@ namespace rego
           }
 
           return DataObjectItem << (DataTerm << key) << (DataTerm << val);
-        },
-
-      In(Expr) *
-          (T(ExprEvery)([](auto& n) {
-             return is_in(*n.first, {Policy}) && is_in(*n.first, {UnifyBody});
-           })
-           << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
-               (T(IsIn) << T(Expr)[Expr]))) >>
-        [](Match& _) {
-          Location item = _.fresh({"item"});
-          Location every = _.fresh({"every"});
-
-          return ExprEvery
-            << (UnifyBody
-                << (Local << (Var ^ item) << Undefined)
-                << (LiteralNot
-                    << (UnifyBody
-                        << (LiteralEnum << (Var ^ item) << _(Expr))
-                        << (Literal
-                            << (Expr
-                                << (RefTerm << _(Val)) << Unify
-                                << (RefTerm
-                                    << (Ref
-                                        << (RefHead << (Var ^ item))
-                                        << (RefArgSeq
-                                            << (RefArgBrack
-                                                << (Scalar << (Int ^ "1"))))))))
-                        << (LiteralNot << _(UnifyBody)))));
-        },
-
-      In(Expr) *
-          (T(ExprEvery)([](auto& n) {
-             return is_in(*n.first, {Policy}) && is_in(*n.first, {UnifyBody});
-           })
-           << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
-               T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
-        [](Match& _) {
-          Location item = _.fresh({"item"});
-          Location every = _.fresh({"every"});
-
-          return ExprEvery
-            << (UnifyBody
-                << (Local << (Var ^ item) << Undefined)
-                << (LiteralNot
-                    << (UnifyBody
-                        << (LiteralEnum << (Var ^ item) << _(Expr))
-                        << (Literal
-                            << (Expr
-                                << (RefTerm << _(Idx)->clone()) << Unify
-                                << (RefTerm
-                                    << (Ref
-                                        << (RefHead << (Var ^ item))
-                                        << (RefArgSeq
-                                            << (RefArgBrack
-                                                << (Scalar << (Int ^ "0"))))))))
-
-                        << (Literal
-                            << (Expr
-                                << (RefTerm << _(Val)->clone()) << Unify
-                                << (RefTerm
-                                    << (Ref
-                                        << (RefHead << (Var ^ item))
-                                        << (RefArgSeq
-                                            << (RefArgBrack
-                                                << (Scalar << (Int ^ "1"))))))))
-                        << (LiteralNot << _(UnifyBody)))));
         },
 
       In(ModuleSeq) * (T(Module)[Lhs] * T(Module)[Rhs])([](auto& n) {

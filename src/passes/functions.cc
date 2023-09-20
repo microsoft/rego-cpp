@@ -199,6 +199,17 @@ namespace rego
           (T(RefTerm)
            << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
         [](Match& _) {
+          auto defs = _(Var)->lookup();
+          if (!defs.empty() && defs.front()->type().in({Submodule, Data}))
+          {
+            // At this point all possible documents are fully qualified and in
+            // the symbol table. As such, a reference such as this, which points
+            // to a top-level module or rule, is a dead link and can be
+            // replaced.
+            Location dead = _.fresh({"dead"});
+            return Var ^ dead;
+          }
+
           Location field_name = _(RefArgDot)->front()->location();
           Node arg = Scalar << (JSONString ^ field_name);
           return Function << (JSONString ^ "apply_access")
@@ -219,6 +230,17 @@ namespace rego
           }
           else
           {
+            auto defs = _(Var)->lookup();
+            if (!defs.empty() && defs.front()->type().in({Submodule, Data}))
+            {
+              // At this point all possible documents are fully qualified and in
+              // the symbol table. As such, a reference such as this, which
+              // points to a top-level module or rule, is a dead link and can be
+              // replaced.
+              Location dead = _.fresh({"dead"});
+              return Var ^ dead;
+            }
+
             return Function << (JSONString ^ "apply_access")
                             << (ArgSeq << _(Var) << (Term << arg));
           }

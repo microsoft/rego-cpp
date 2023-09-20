@@ -1075,3 +1075,22 @@ cases:
           name: orange
           size: 5.3
       y: "green apple"
+- note: regocpp/every_some
+  modules:
+  - |
+    package every_some
+
+    import future.keywords.every
+
+    a := [2, 4, 6, 8, 10, 12]
+    b := [2, 4]
+
+    output {
+      every x in a {
+        some m in b
+        x % m == 0
+      }
+    }
+  query: data.every_some.output = x
+  want_result:
+    - x: true
