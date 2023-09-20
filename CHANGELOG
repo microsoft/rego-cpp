@@ -1,5 +1,19 @@
 # Changelog
 
+## 2023-09-20 - Version 0.3.9
+Fixing several impactful bugs.
+
+**Bug fixes**
+- The ACI tests were incorrectly written in such a way that they would always pass. This has been addressed,
+  and safeguards put in place in the test driver to detect this in the future.
+- Some statements nested in an every block would break the conditions if the item sequence was an array for
+  which multiple elements could be identified by the some that were valid (see the new `every_some` test for
+  a minimal reproduction). This has been fixed.
+- Dead links were being incorrectly identified in some cases. This has been addressed by making the check
+  more precise and moving it to the functions pass.
+- Var lookups into a virtual or base document would resolve the entire document, causing needless recursion.
+  This has been fixed. 
+
 ## 2023-09-18 - Version 0.3.8
 Adding new examples for Python and Rust usage.
 
