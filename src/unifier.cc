@@ -767,7 +767,8 @@ namespace rego
         source_values.end(),
         std::back_inserter(values),
         [var, this](auto& source_value) {
-          if(is_module(source_value->node())){
+          if (is_module(source_value->node()))
+          {
             Node module_obj = resolve_module(source_value->node());
             return ValueDef::copy_to(ValueDef::create(module_obj), var);
           }

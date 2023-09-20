@@ -619,7 +619,7 @@ namespace rego_test
             }
           },
 
-        ":" >>
+        ": " >>
           [in_value](auto& m) {
             if (*in_value)
             {
@@ -630,6 +630,22 @@ namespace rego_test
               *in_value = true;
               m.add(Colon);
               m.mode("start");
+            }
+          },
+
+        ":[ ]*\n" >>
+          [in_value, indent](auto& m) {
+            if (*in_value)
+            {
+              m.extend(String);
+            }
+            else
+            {
+              m.add(Colon);
+              *in_value = false;
+              indent->newline();
+              m.term();
+              m.mode("indent");
             }
           },
 

@@ -385,25 +385,29 @@ namespace rego
                                              << (Scalar << (Int ^ "1"))))))))
             << *_[UnifyBody];
 
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ itemseq) << Undefined))
-                     << (Lift << UnifyBody
-                              << (Literal
-                                  << (Expr << (RefTerm << (Var ^ itemseq))
-                                           << Unify << *_[Expr])))
-                     << (ExprCall
-                         << (RuleRef << (Var ^ "count"))
+          return Seq
+            << (Lift << UnifyBody << (Local << (Var ^ itemseq) << Undefined))
+            << (Lift << UnifyBody
+                     << (Literal
+                         << (Expr << (RefTerm << (Var ^ itemseq)) << Unify
+                                  << *_[Expr])))
+            << (ExprCall << (RuleRef << (Var ^ "count"))
                          << (ArgSeq
                              << (Expr
                                  << (Term
-                                     << (ArrayCompr
+                                     << (SetCompr
                                          << (Expr
                                              << (RefTerm << _(Val)->clone()))
                                          << rulebody)))))
-                     << Equals
-                     << (ExprCall
-                         << (RuleRef << (Var ^ "count"))
-                         << (ArgSeq << (Expr << (RefTerm << (Var ^ itemseq)))));
+            << Equals
+            << (ExprCall
+                << (RuleRef << (Var ^ "count"))
+                << (ArgSeq
+                    << (Expr
+                        << (ExprCall
+                            << (RuleRef << (Var ^ "cast_set"))
+                            << (ArgSeq
+                                << (Expr << (RefTerm << (Var ^ itemseq))))))));
         },
 
       In(Expr) *

@@ -496,7 +496,9 @@ namespace rego
       return object_lookdown(container, query);
     }
 
-    if (container->type() == Data || container->type() == DataItem || container->type() == Submodule)
+    if (
+      container->type() == Data || container->type() == DataItem ||
+      container->type() == Submodule)
     {
       Node key = arg->front();
       std::string key_str = std::string((container / Key)->location().view());
@@ -1016,15 +1018,18 @@ namespace rego
     return rulefunc;
   }
 
-  Nodes Resolver::module_lookdown(const Node& container, const std::string& query)
+  Nodes Resolver::module_lookdown(
+    const Node& container, const std::string& query)
   {
     Node module = container;
-    if(module->type() == Submodule || module->type() == Data || module->type() == DataItem)
+    if (
+      module->type() == Submodule || module->type() == Data ||
+      module->type() == DataItem)
     {
       module = module / Val;
     }
 
-    if(module->type() != DataModule)
+    if (module->type() != DataModule)
     {
       return {err(container, "Not a module")};
     }

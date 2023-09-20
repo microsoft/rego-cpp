@@ -200,7 +200,8 @@ namespace rego
            << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
         [](Match& _) {
           auto defs = _(Var)->lookup();
-          if(!defs.empty() && defs.front()->type().in({Submodule, Data})){
+          if (!defs.empty() && defs.front()->type().in({Submodule, Data}))
+          {
             // At this point all possible documents are fully qualified and in
             // the symbol table. As such, a reference such as this, which points
             // to a top-level module or rule, is a dead link and can be
@@ -230,10 +231,11 @@ namespace rego
           else
           {
             auto defs = _(Var)->lookup();
-            if(!defs.empty() && defs.front()->type().in({Submodule, Data})){
+            if (!defs.empty() && defs.front()->type().in({Submodule, Data}))
+            {
               // At this point all possible documents are fully qualified and in
-              // the symbol table. As such, a reference such as this, which points
-              // to a top-level module or rule, is a dead link and can be
+              // the symbol table. As such, a reference such as this, which
+              // points to a top-level module or rule, is a dead link and can be
               // replaced.
               Location dead = _.fresh({"dead"});
               return Var ^ dead;
