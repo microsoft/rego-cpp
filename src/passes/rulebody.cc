@@ -430,8 +430,7 @@ namespace rego
 
       In(UnifyBody) *
           (T(LiteralInit)
-           << ((T(VarSeq)[LhsVars] << End) *
-               (T(VarSeq)[RhsVars] << Any) *
+           << ((T(VarSeq)[LhsVars] << End) * (T(VarSeq)[RhsVars] << Any) *
                (T(AssignInfix) << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
         [](Match& _) {
           return LiteralInit << _(RhsVars) << _(LhsVars)
@@ -440,8 +439,7 @@ namespace rego
 
       In(UnifyBody) *
           (T(LiteralInit)
-           << ((T(VarSeq)[LhsVars] << Any) *
-               (T(VarSeq)[RhsVars] << End) *
+           << ((T(VarSeq)[LhsVars] << Any) * (T(VarSeq)[RhsVars] << End) *
                (T(AssignInfix)
                 << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs])) *
                     T(AssignArg)[Rhs])))) >>

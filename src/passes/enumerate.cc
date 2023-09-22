@@ -105,8 +105,7 @@ namespace rego
     return {
       In(UnifyBody) *
           (T(LiteralInit)
-           << ((T(VarSeq) << Any)[LhsVars] *
-               T(VarSeq)[RhsVars] *
+           << ((T(VarSeq) << Any)[LhsVars] * T(VarSeq)[RhsVars] *
                (T(AssignInfix)
                 << ((T(AssignArg)[Lhs]
                      << (T(RefTerm)
@@ -121,8 +120,7 @@ namespace rego
       In(UnifyBody) *
           ((
              T(LiteralInit)
-             << ((T(VarSeq) << Any)[LhsVars] *
-                 (T(VarSeq) << Any)[RhsVars] *
+             << ((T(VarSeq) << Any)[LhsVars] * (T(VarSeq) << Any)[RhsVars] *
                  (T(AssignInfix)
                   << (T(AssignArg)[Lhs] *
                       (T(AssignArg)
@@ -197,8 +195,7 @@ namespace rego
       In(UnifyBody) *
           ((
              T(LiteralInit)
-             << ((T(VarSeq) << End) *
-                 (T(VarSeq) << Any)[RhsVars] *
+             << ((T(VarSeq) << End) * (T(VarSeq) << Any)[RhsVars] *
                  (T(AssignInfix)
                   << (T(AssignArg)[Lhs] *
                       (T(AssignArg)
@@ -293,11 +290,11 @@ namespace rego
 
       In(UnifyBody) * T(Local)[Local] * In(LiteralEnum)++ >>
         [](Match& _) -> Node {
-          Node unifybody = _(Local)->parent()->shared_from_this();
-          if (can_grab(_(Local), unifybody))
-            return NoChange;
-          return Lift << LiteralEnum << _(Local);
-        },
+        Node unifybody = _(Local)->parent()->shared_from_this();
+        if (can_grab(_(Local), unifybody))
+          return NoChange;
+        return Lift << LiteralEnum << _(Local);
+      },
 
       In(LiteralEnum) * T(Local)[Local] >>
         [](Match& _) { return Lift << UnifyBody << _(Local); }
