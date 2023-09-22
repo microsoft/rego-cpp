@@ -173,6 +173,7 @@ namespace rego
   PassDef simple_refs();
   PassDef init();
   PassDef implicit_enums();
+  PassDef enum_locals();
   PassDef rulebody();
   PassDef lift_to_rule();
   PassDef functions();
