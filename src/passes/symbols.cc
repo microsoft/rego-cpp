@@ -366,7 +366,7 @@ namespace rego
         },
 
       In(Expr) *
-          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
+          ((T(ExprEvery) * In(UnifyBody)++)
            << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
                (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
@@ -411,7 +411,7 @@ namespace rego
         },
 
       In(Expr) *
-          (T(ExprEvery)([](auto& n) { return is_in(*n.first, {UnifyBody}); })
+          ((T(ExprEvery) * In(UnifyBody)++)
            << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
                T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {

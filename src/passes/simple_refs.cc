@@ -127,10 +127,7 @@ namespace rego
       In(ExprCall) * (T(RuleRef) << T(Var)[Var]) >>
         [](Match& _) { return _(Var); },
 
-      In(ExprCall) *
-          (T(RuleRef)[RuleRef](
-             [](auto& n) { return is_in(*n.first, {UnifyBody}); })
-           << T(Ref)) >>
+      In(ExprCall) * ((T(RuleRef)[RuleRef] * In(UnifyBody)++) << T(Ref)) >>
         [](Match& _) {
           Location call_func = _.fresh({"call_func"});
           return Seq
@@ -152,8 +149,7 @@ namespace rego
       In(ExprCall) * T(RuleRef)[RuleRef] >>
         [](Match& _) { return err(_(RuleRef), "Invalid function call"); },
 
-      In(RefTerm) *
-          T(Ref)[Ref]([](auto& n) { return !is_in(*n.first, {UnifyBody}); }) >>
+      In(RefTerm) * T(Ref)[Ref] * --In(UnifyBody)++ >>
         [](Match& _) { return err(_(Ref), "Unable to simplify reference"); },
 
       In(RuleRef) * T(Ref)[Ref] >>

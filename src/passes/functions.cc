@@ -142,9 +142,7 @@ namespace rego
       (In(UnifyExpr, ArgSeq) * T(NumTerm)[NumTerm]) >>
         [](Match& _) { return Scalar << _(NumTerm)->front(); },
 
-      In(ArgSeq) * T(Function)[Function]([](auto& n) {
-        return is_in(*n.first, {UnifyBody});
-      }) >>
+      In(ArgSeq) * T(Function)[Function] * In(UnifyBody)++ >>
         [](Match& _) {
           Node seq = NodeDef::create(Seq);
           Location temp = _.fresh({"func"});

@@ -69,10 +69,8 @@ namespace rego
 
     PassDef assign = {
       In(Expr) *
-          (AssignInfixArg[Head](
-             [](auto& n) { return is_in(*n.first, {UnifyBody}); }) *
-           T(Unify) * AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs] *
-           End) >>
+          (AssignInfixArg[Head] * In(UnifyBody)++ * T(Unify) *
+           AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs] * End) >>
         [](Match& _) {
           return Seq << (Lift
                          << UnifyBody
@@ -132,10 +130,9 @@ namespace rego
                << (T(AssignArg)[Lhs] *
                    (T(AssignArg)
                     << (T(ExprCall)
-                        << (T(RuleRef)[RuleRef] *
-                            T(ArgSeq)[ArgSeq])([func_arity](auto& n) {
-                             return needs_rewrite(n, func_arity) &&
-                               is_in(*n.first, {UnifyBody});
+                        << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq] *
+                            In(UnifyBody)++)([func_arity](auto& n) {
+                             return needs_rewrite(n, func_arity);
                            })))))) >>
         [](Match& _) {
           // see above comment.

@@ -147,7 +147,7 @@ int main(int argc, char** argv)
         {
           std::cout << Green << "  PASS: " << Reset << note << std::fixed
                     << std::setw(62 - note.length()) << std::internal
-                    << std::setprecision(2) << elapsed.count() << " sec"
+                    << std::setprecision(3) << elapsed.count() << " sec"
                     << std::endl;
         }
         else
@@ -155,7 +155,7 @@ int main(int argc, char** argv)
           failures++;
           std::cout << Red << "  FAIL: " << Reset << note << std::fixed
                     << std::setw(62 - note.length()) << std::internal
-                    << std::setprecision(2) << elapsed.count() << " sec"
+                    << std::setprecision(3) << elapsed.count() << " sec"
                     << std::endl;
           std::cout << "  " << result.error << std::endl;
           std::cout << "(from " << testcase.filename() << ")" << std::endl;

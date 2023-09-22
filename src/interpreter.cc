@@ -176,7 +176,7 @@ namespace rego
     }
 
     const std::string delim = "\t";
-    LOG_INFO("Name\tPasses\tChanges\tTime(ms)");
+    LOG_INFO("Name\tPasses\tChanges\tTime(us)");
     auto passes = rego::passes(m_builtins);
     timestamp start = clock::now();
     for (std::size_t i = 0; i < passes.size(); ++i)
@@ -204,7 +204,7 @@ namespace rego
         delim,
         changes,
         delim,
-        std::chrono::duration_cast<std::chrono::milliseconds>(pass_elapsed)
+        std::chrono::duration_cast<std::chrono::microseconds>(pass_elapsed)
           .count());
 
       Node errors = get_errors(ast);
@@ -236,7 +236,7 @@ namespace rego
       delim,
       "-",
       delim,
-      std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+      std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count());
 
     LOG_INFO("Query result: ", ast);
     return ast;
