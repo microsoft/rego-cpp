@@ -121,6 +121,7 @@ namespace rego
         return skip_prefix_ref(skips, *n.first).length > 0;
       }) >>
         [skips](Match& _) {
+          ACTION();
           SkipPrefix skip = skip_prefix_ref(skips, _(Ref));
           Node refargseq = (_(Ref) / RefArgSeq);
           refargseq->erase(

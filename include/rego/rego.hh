@@ -750,9 +750,9 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_functions =
     wf_pass_lift_to_rule
-    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
+    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Array | Set | Object | Function))
     | (Function <<= JSONString * ArgSeq)
-    | (ArgSeq <<= (Scalar | Var | wf_arith_op | wf_bin_op | wf_bool_op | NestedBody | VarSeq)++)
+    | (ArgSeq <<= (Scalar | Object | Array | Set | Var | wf_arith_op | wf_bin_op | wf_bool_op | NestedBody | VarSeq)++)
     | (Input <<= Key * (Val >>= Term | Undefined))[Key]
     | (Array <<= Term++)
     | (Set <<= Term++)

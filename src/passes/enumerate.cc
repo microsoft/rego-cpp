@@ -77,6 +77,7 @@ namespace rego
           ((T(LiteralEnum) << (T(Var)[Item] * T(Expr)[ItemSeq])) *
            LiteralToken++[Tail] * End) >>
         [](Match& _) {
+          ACTION();
           auto temp = _.fresh({"enum"});
           auto itemseq = _.fresh({"itemseq"});
           // all statements under the LiteralEnum node must be moved to its
@@ -113,6 +114,7 @@ namespace rego
                              << ((T(Var)[ItemSeq]) * T(RefArgBrack))))) *
                     T(AssignArg)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           return LiteralInit << _(RhsVars) << _(LhsVars)
                              << (AssignInfix << _(Rhs) << _(Lhs));
         },
@@ -130,6 +132,7 @@ namespace rego
                                    (T(RefArgBrack)[Idx]))))))))) *
            LiteralToken++[Tail] * End) >>
         [](Match& _) {
+          ACTION();
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
@@ -205,6 +208,7 @@ namespace rego
                                    T(RefArgBrack)[Idx])))))))) *
            LiteralToken++[Tail] * End) >>
         [](Match& _) {
+          ACTION();
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
@@ -283,6 +287,7 @@ namespace rego
         return can_grab(local, literalenum / UnifyBody);
       }) >>
         [](Match& _) {
+          ACTION();
           Node unifybody = next_enum(_(Local)) / UnifyBody;
           unifybody->push_front(_(Local));
           return Node{};
@@ -290,6 +295,7 @@ namespace rego
 
       In(UnifyBody) * T(Local)[Local] * In(LiteralEnum)++ >>
         [](Match& _) -> Node {
+          ACTION();
         Node unifybody = _(Local)->parent()->shared_from_this();
         if (can_grab(_(Local), unifybody))
           return NoChange;
@@ -297,7 +303,10 @@ namespace rego
       },
 
       In(LiteralEnum) * T(Local)[Local] >>
-        [](Match& _) { return Lift << UnifyBody << _(Local); }
+        [](Match& _) {
+          ACTION();
+          return Lift << UnifyBody << _(Local);
+        }
 
     };
   }

@@ -16,19 +16,24 @@ namespace
 
   Node print(const Nodes& args)
   {
-    std::ostringstream buf;
-    std::string sep = "";
     for (auto arg : args)
     {
       if (arg->type() == Undefined)
       {
         return Resolver::scalar(false);
       }
-      buf << sep << to_json(arg);
-      sep = " ";
     }
-    buf << std::endl;
-    std::cout << buf.str();
+
+    join(
+      std::cout,
+      args.begin(),
+      args.end(),
+      " ",
+      [](std::ostream& stream, const Node& n) {
+        stream << to_json(n, true);
+        return true;
+      })
+      << std::endl;
     return Resolver::scalar(true);
   }
 

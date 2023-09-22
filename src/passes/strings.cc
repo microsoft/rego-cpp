@@ -61,12 +61,16 @@ namespace rego
     return {
       In(String) * T(RawString)[RawString] >>
         [](Match& _) {
+          ACTION();
           std::string raw_string = std::string(_(RawString)->location().view());
           return JSONString ^ raw_to_json(raw_string);
         },
 
       In(Scalar) * (T(String) << T(JSONString)[JSONString]) >>
-        [](Match& _) { return _(JSONString); },
+        [](Match& _) {
+          ACTION();
+          return _(JSONString);
+        },
     };
   }
 }

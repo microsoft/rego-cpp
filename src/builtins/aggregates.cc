@@ -76,7 +76,12 @@ namespace
       return collection;
     }
 
-    Nodes items(collection->begin(), collection->end());
+    Nodes items;
+    for (const Node& item : *collection)
+    {
+      items.push_back(item->clone());
+    }
+
     std::sort(items.begin(), items.end(), [](const Node& a, const Node& b) {
       return to_json(a) < to_json(b);
     });

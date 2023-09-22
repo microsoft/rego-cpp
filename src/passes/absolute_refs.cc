@@ -56,6 +56,7 @@ namespace rego
         return is_ref_to_type(*n.first, RuleTypes);
       }) >>
         [](Match& _) {
+          ACTION();
           // <rule>
           Nodes defs = _(Var)->lookup();
           Node rule = defs[0];
@@ -69,6 +70,7 @@ namespace rego
                 })) *
                T(RefArgSeq)[RefArgSeq])) >>
         [](Match& _) {
+          ACTION();
           // <rule>.dot <rule>[brack]
           Nodes defs = _(Var)->lookup();
           Node rule = defs[0];
@@ -78,7 +80,11 @@ namespace rego
           return ref;
         },
 
-      In(Policy) * T(Import) >> [](Match&) { return Node{}; },
+      In(Policy) * T(Import) >>
+        [](Match&) {
+          ACTION();
+          return Node{};
+        },
     };
   }
 }

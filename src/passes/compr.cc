@@ -13,12 +13,14 @@ namespace rego
              << (T(Var)[Var] * (T(UnifyBody) / T(Empty))[Body] *
                  T(DataTerm)[Val])) >>
           [](Match& _) {
+            ACTION();
             return RuleSet << _(Var) << _(Body)
                            << (DataTerm << (DataSet << _[Val]));
           },
 
         In(Policy) * T(RuleSet) << (T(Var)[Var] * T(Empty) * T(Expr)[Val]) >>
           [](Match& _) {
+            ACTION();
             Location value = _.fresh({"value"});
             return RuleSet
               << _(Var) << Empty
@@ -32,6 +34,7 @@ namespace rego
         In(Policy) * T(RuleSet)
             << (T(Var)[Var] * T(UnifyBody)[Body] * T(Expr)[Val]) >>
           [](Match& _) {
+            ACTION();
             Location value = _.fresh({"value"});
             Location compr = _.fresh({"setcompr"});
             Node body = NestedBody << (Key ^ compr) << _(Body);
@@ -48,6 +51,7 @@ namespace rego
             (T(RuleObj)
              << (T(Var)[Var] * T(Empty) * T(Expr)[Key] * T(Expr)[Val])) >>
           [](Match& _) {
+            ACTION();
             Location value = _.fresh({"value"});
             Location key = _.fresh({"key"});
             return RuleObj
@@ -73,6 +77,7 @@ namespace rego
              << (T(Var)[Var] * (T(UnifyBody) / T(Empty))[Body] *
                  (T(DataTerm)[Key]) * T(DataTerm)[Val])) >>
           [](Match& _) {
+            ACTION();
             return RuleObj << _(Var) << _(Body)
                            << (DataTerm
                                << (DataObject
@@ -84,6 +89,7 @@ namespace rego
              << (T(Var)[Var] * T(UnifyBody)[Body] * T(Expr)[Key] *
                  T(Expr)[Val])) >>
           [](Match& _) {
+            ACTION();
             Location value = _.fresh({"value"});
             Location compr = _.fresh({"objcompr"});
             Node body = _(Body);
@@ -111,12 +117,14 @@ namespace rego
 
         In(RuleObj) * (T(Expr)[Expr] * T(DataTerm)) >>
           [](Match& _) {
+            ACTION();
             return err(
               _(Expr), "Syntax error: expected matching key/value node types");
           },
 
         In(RuleObj) * (T(DataTerm) * T(Expr)[Expr]) >>
           [](Match& _) {
+            ACTION();
             return err(
               _(Expr), "Syntax error: expected matching key/value node types");
           },
@@ -134,6 +142,7 @@ namespace rego
         In(ArrayCompr, SetCompr) *
             (T(Expr)[Expr] * T(NestedBody)[NestedBody]) >>
           [](Match& _) {
+            ACTION();
             Location out = _.fresh({"out"});
 
             // the comprehension logic needs to live in the inner-most
@@ -157,6 +166,7 @@ namespace rego
         In(ObjectCompr) *
             (T(Expr)[Key] * T(Expr)[Val] * T(NestedBody)[NestedBody]) >>
           [](Match& _) {
+            ACTION();
             Location out = _.fresh({"out"});
             Node innermost = _(NestedBody) / Val;
             // see comment above

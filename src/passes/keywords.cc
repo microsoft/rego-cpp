@@ -32,6 +32,7 @@ namespace rego
         return false;
       }) >>
         [](Match& _) {
+          ACTION();
           auto name = _(Var)->location().view();
           if (name == "if")
           {

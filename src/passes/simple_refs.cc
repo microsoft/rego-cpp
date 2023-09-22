@@ -15,6 +15,7 @@ namespace rego
         return is_in(head, {UnifyBody}) && head->front()->type() != Var;
       }) >>
         [](Match& _) {
+          ACTION();
           LOG("non-var refhead");
           Location refhead = _.fresh({"refhead"});
           Node head = _(RefHead)->front();
@@ -38,6 +39,7 @@ namespace rego
       In(RefTerm) *
           (T(Ref) << ((T(RefHead) << T(Var)[Var]) * (T(RefArgSeq) << End))) >>
         [](Match& _) {
+          ACTION();
           LOG("var");
           return _(Var);
         },
@@ -47,6 +49,7 @@ namespace rego
         return is_in(*n.first, {UnifyBody});
       }) >>
         [](Match& _) {
+          ACTION();
           LOG("expr-call refhead");
           Location call = _.fresh({"call"});
           return Seq << (Lift << UnifyBody
@@ -69,6 +72,7 @@ namespace rego
                    << ((T(AssignArg) << (T(RefTerm)[Lhs] << T(Ref))) *
                        (T(AssignArg) << (T(RefTerm)[Rhs] << T(Ref))))))) >>
         [](Match& _) {
+          ACTION();
           LOG("ref = ref");
           Node seq = NodeDef::create(Seq);
           Location ref0 = _.fresh({"ref"});
@@ -99,6 +103,7 @@ namespace rego
               << ((T(RefHead) << T(Var)[Var]) *
                   (T(RefArgSeq) << (RefArg[Head] * RefArg++[Tail])))) >>
         [](Match& _) {
+          ACTION();
           LOG("ref.a/ref[a]");
           NodeRange tail = _[Tail];
           Location ref = _.fresh({"ref"});
@@ -125,10 +130,14 @@ namespace rego
         },
 
       In(ExprCall) * (T(RuleRef) << T(Var)[Var]) >>
-        [](Match& _) { return _(Var); },
+        [](Match& _) {
+          ACTION();
+          return _(Var);
+        },
 
       In(ExprCall) * ((T(RuleRef)[RuleRef] * In(UnifyBody)++) << T(Ref)) >>
         [](Match& _) {
+          ACTION();
           Location call_func = _.fresh({"call_func"});
           return Seq
             << (Lift << UnifyBody << (Local << (Var ^ call_func) << Undefined))
@@ -144,16 +153,27 @@ namespace rego
 
       // errors
       T(Expr)[Expr] << (Any * Any) >>
-        [](Match& _) { return err(_(Expr), "Invalid expression"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Invalid expression");
+        },
 
       In(ExprCall) * T(RuleRef)[RuleRef] >>
-        [](Match& _) { return err(_(RuleRef), "Invalid function call"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(RuleRef), "Invalid function call");
+        },
 
       In(RefTerm) * T(Ref)[Ref] * --In(UnifyBody)++ >>
-        [](Match& _) { return err(_(Ref), "Unable to simplify reference"); },
+        [](Match& _) { 
+          ACTION();
+          return err(_(Ref), "Unable to simplify reference"); },
 
       In(RuleRef) * T(Ref)[Ref] >>
-        [](Match& _) { return err(_(Ref), "Invalid rule reference call"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Ref), "Invalid rule reference call");
+        },
     };
   }
 }

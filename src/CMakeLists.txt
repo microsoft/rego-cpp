@@ -97,11 +97,15 @@ if (REGOCPP_SANITIZE)
   target_link_libraries(rego PUBLIC -fsanitize=${REGOCPP_SANITIZE})
 endif()
 
-if(REGOCPP_USE_CXX_17)
+if(REGOCPP_USE_CXX17)
   target_compile_features(rego PUBLIC cxx_std_17)
-  target_compile_definitions(rego PUBLIC REGOCPP_USE_CXX_17)
+  target_compile_definitions(rego PUBLIC REGOCPP_USE_CXX17)
 else()
   target_compile_features(rego PUBLIC cxx_std_20)
+endif()
+
+if(REGOCPP_ACTION_METRICS)
+  target_compile_definitions(rego PUBLIC REGOCPP_ACTION_METRICS)
 endif()
 
 target_include_directories( rego

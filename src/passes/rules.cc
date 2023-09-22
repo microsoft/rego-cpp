@@ -45,6 +45,7 @@ namespace rego
            << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
+          ACTION();
           return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadSet << _(Item)))
@@ -56,6 +57,7 @@ namespace rego
            << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) * T(If) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
+          ACTION();
           // this has the form of a set rule but the reference implementation
           // interprets it as an object rule instead.
           return Rule << False
@@ -70,6 +72,7 @@ namespace rego
           (T(Group)
            << (T(Var)[Id] * (T(Array) << (T(Group)[Item] * End)) * End)) >>
         [](Match& _) {
+          ACTION();
           return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadSet << _(Item)))
@@ -82,6 +85,7 @@ namespace rego
                (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail] *
                ~T(If) * T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
+          ACTION();
           return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadObj
@@ -95,6 +99,7 @@ namespace rego
            << (T(Var)[Id] * (T(Array) << (T(Group)[Key] * End)) *
                (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
+          ACTION();
           return Rule << False
                       << (RuleHead << (RuleRef << _(Id))
                                    << (RuleHeadObj
@@ -108,6 +113,7 @@ namespace rego
            << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] * ~T(If) *
                T(UnifyBody)[UnifyBody] * (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
+          ACTION();
           Node value = Group << True;
           return Rule << False
                       << (RuleHead << (RuleRef << _(RefHead) << _[RefArgSeq])
@@ -123,6 +129,7 @@ namespace rego
                ~T(If) * T(UnifyBody)[UnifyBody] *
                (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
+          ACTION();
           Node value = (Group << _(Head) << _[Tail]);
           return Rule << False
                       << (RuleHead << (RuleRef << _(RefHead) << _[RefArgSeq])
@@ -137,6 +144,7 @@ namespace rego
                RuleRefToken++[RefArgSeq] * (T(Assign) / T(Unify)) * ~T(If) *
                ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
+          ACTION();
           Node is_default = _(Default) != nullptr ? True : False;
           return Rule << is_default
                       << (RuleHead
@@ -152,6 +160,7 @@ namespace rego
                RuleRefToken++[RefArgSeq] * (T(Assign) / T(Unify)) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
+          ACTION();
           // a misclassified single-element set
           Node is_default = _(Default) != nullptr ? True : False;
           return Rule << is_default
@@ -168,6 +177,7 @@ namespace rego
                T(Paren)[Paren] * ~T(If) * T(UnifyBody)[UnifyBody] *
                (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
+          ACTION();
           Node args = NodeDef::create(RuleArgs);
           Node paren = _(Paren);
           if (paren->front()->type() == List)
@@ -202,6 +212,7 @@ namespace rego
                ExprToken++[Tail] * ~T(If) * T(UnifyBody)[UnifyBody] *
                (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
+          ACTION();
           Node args = NodeDef::create(RuleArgs);
           Node paren = _(Paren);
           if (paren->front()->type() == List)
@@ -236,6 +247,7 @@ namespace rego
                (T(Assign) / T(Unify)) * ExprToken[Head] * ExprToken++[Tail] *
                (T(Else) / T(UnifyBody))++[Else])) >>
         [](Match& _) {
+          ACTION();
           Node args = NodeDef::create(RuleArgs);
           Node paren = _(Paren);
           if (paren->front()->type() == List)
@@ -270,6 +282,7 @@ namespace rego
                ExprToken[Head] * ExprToken++[Tail] * ~T(If) *
                T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
+          ACTION();
           return Rule << False
                       << (RuleHead
                           << (RuleRef << _(RefHead) << _[RefArgSeq])
@@ -282,6 +295,7 @@ namespace rego
            << (RuleRefToken[RefHead] * RuleRefToken++[RefArgSeq] * T(Contains) *
                ExprToken[Head] * ExprToken++[Tail])) >>
         [](Match& _) {
+          ACTION();
           return Rule << False
                       << (RuleHead
                           << (RuleRef << _(RefHead) << _[RefArgSeq])
@@ -290,27 +304,48 @@ namespace rego
         },
 
       In(RuleRef) * (T(Group) << (RuleRefToken++[RuleRef] * End)) >>
-        [](Match& _) { return Seq << _[RuleRef]; },
+        [](Match& _) {
+          ACTION();
+          return Seq << _[RuleRef];
+        },
 
       // errors
 
       In(Policy) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid rule"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Invalid rule");
+        },
 
       In(Group) * T(Else)[Else] >>
-        [](Match& _) { return err(_(Else), "Invalid else"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Else), "Invalid else");
+        },
 
       In(Group) * T(Default)[Default] >>
-        [](Match& _) { return err(_(Default), "Invalid default rule"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Default), "Invalid default rule");
+        },
 
       In(Group) * T(If)[If] >>
-        [](Match& _) { return err(_(If), "Invalid if"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(If), "Invalid if");
+        },
 
       In(RuleRef) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid rule reference"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Invalid rule reference");
+        },
 
       In(With) * (T(RuleRef)[RuleRef] << (T(Group) << End)) >>
-        [](Match& _) { return err(_(RuleRef), "Empty rule ref"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(RuleRef), "Empty rule ref");
+        },
     };
   }
 }

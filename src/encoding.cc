@@ -176,12 +176,15 @@ namespace rego
       }
 
       buf << "[";
-      std::string sep = "";
-      for (const auto& item : items)
-      {
-        buf << sep << item;
-        sep = ", ";
-      }
+      join(
+        buf,
+        items.begin(),
+        items.end(),
+        ", ",
+        [](std::ostream& stream, const std::string& item) {
+          stream << item;
+          return true;
+        });
       buf << "]";
     }
     else if (node->type() == Set || node->type() == DataSet)
@@ -202,13 +205,17 @@ namespace rego
       {
         buf << "<";
       }
-      std::string sep = "";
-      for (const auto& node_key : node_keys)
-      {
-        std::string key_str = to_json(node_key.node, set_as_array, sort_arrays);
-        buf << sep << key_str;
-        sep = ", ";
-      }
+
+      join(
+        buf,
+        node_keys.begin(),
+        node_keys.end(),
+        ", ",
+        [set_as_array,
+         sort_arrays](std::ostream& stream, const NodeKey& node_key) {
+          stream << to_json(node_key.node, set_as_array, sort_arrays);
+          return true;
+        });
 
       if (set_as_array)
       {
@@ -222,7 +229,6 @@ namespace rego
     else if (node->type() == Object || node->type() == DataObject)
     {
       std::map<std::string, std::string> items;
-      std::vector<NodeKey> keys;
       for (const auto& child : *node)
       {
         auto key = child / Key;
@@ -236,13 +242,15 @@ namespace rego
       }
 
       buf << "{";
-      std::string sep = "";
-      for (const auto& [key, value] : items)
-      {
-        buf << sep << key << ":" << value;
-        sep = ", ";
-      }
-
+      join(
+        buf,
+        items.begin(),
+        items.end(),
+        ", ",
+        [](std::ostream& stream, const auto& item) {
+          stream << item.first << ":" << item.second;
+          return true;
+        });
       buf << "}";
     }
     else if (
@@ -259,12 +267,15 @@ namespace rego
     else if (node->type() == TermSet)
     {
       buf << "termset{";
-      std::string sep = "";
-      for (const auto& child : *node)
-      {
-        buf << sep << to_json(child, set_as_array, sort_arrays);
-        sep = ", ";
-      }
+      join(
+        buf,
+        node->begin(),
+        node->end(),
+        ", ",
+        [set_as_array, sort_arrays](std::ostream& stream, const Node& n) {
+          stream << to_json(n, set_as_array, sort_arrays);
+          return true;
+        });
       buf << "}";
     }
     else if (node->type() == BuiltInHook)

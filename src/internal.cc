@@ -206,26 +206,32 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const std::set<Location>& locs)
   {
-    std::string sep = "";
     os << "{";
-    for (const auto& loc : locs)
-    {
-      os << sep << loc.view();
-      sep = ", ";
-    }
+    join(
+      os,
+      locs.begin(),
+      locs.end(),
+      ", ",
+      [](std::ostream& stream, const Location& loc) {
+        stream << loc.view();
+        return true;
+      });
     os << "}";
     return os;
   }
 
   std::ostream& operator<<(std::ostream& os, const std::vector<Location>& locs)
   {
-    std::string sep = "";
     os << "[";
-    for (const auto& loc : locs)
-    {
-      os << sep << loc.source->origin() << ":" << loc.view();
-      sep = ", ";
-    }
+    join(
+      os,
+      locs.begin(),
+      locs.end(),
+      ", ",
+      [](std::ostream& stream, const Location& loc) {
+        stream << loc.view();
+        return true;
+      });
     os << "]";
     return os;
   }
@@ -564,12 +570,15 @@ namespace rego
       if (m_types.size() > 1)
       {
         error << "must be one of {";
-        std::string sep = "";
-        for (auto& type : m_types)
-        {
-          error << sep << type_name(type, m_specify_number);
-          sep = ", ";
-        }
+        join(
+          error,
+          m_types.begin(),
+          m_types.end(),
+          ", ",
+          [&](std::ostream& stream, const Token& type) {
+            stream << type_name(type, m_specify_number);
+            return true;
+          });
         error << "}";
       }
       else if (m_types.size() == 1)
@@ -783,5 +792,46 @@ namespace rego
   bool is_module(const Node& var)
   {
     return var->type().in({Submodule, DataItem, Data});
+  }
+
+  ActionMetrics::ActionMetrics(const char* file, std::size_t line) :
+    m_key{file, line}, m_start(ActionMetrics::clock::now())
+  {}
+
+  ActionMetrics::~ActionMetrics()
+  {
+    if (!contains(ActionMetrics::s_action_info, m_key))
+    {
+      ActionMetrics::s_action_info.insert(
+        {m_key, {0, ActionMetrics::duration::zero()}});
+    }
+
+    auto elapsed = ActionMetrics::clock::now() - m_start;
+    ActionMetrics::s_action_info[m_key].count++;
+    ActionMetrics::s_action_info[m_key].time_spent += elapsed;
+  }
+
+  std::map<ActionMetrics::key_t, ActionMetrics::info_t>
+    ActionMetrics::s_action_info = {};
+
+  void ActionMetrics::print()
+  {
+    std::cout << "Action\tCount\tTime(ms)" << std::endl;
+    for (auto& [key, info] : ActionMetrics::s_action_info)
+    {
+      std::chrono::duration<double, std::milli> fp_ms = info.time_spent;
+      std::cout << key.file << ":" << key.line << "\t" << info.count << "\t"
+                << fp_ms.count() << std::endl;
+    }
+  }
+
+  bool ActionMetrics::key_t::operator<(const ActionMetrics::key_t& other) const
+  {
+    if (file != other.file)
+    {
+      return file < other.file;
+    }
+
+    return line < other.line;
   }
 }

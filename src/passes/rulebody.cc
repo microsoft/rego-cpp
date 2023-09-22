@@ -122,12 +122,16 @@ namespace rego
     PassDef rulebody = {
       In(UnifyBody) *
           (T(LiteralWith) << (T(UnifyBody)[UnifyBody] * T(WithSeq)[WithSeq])) >>
-        [](Match& _) { return UnifyExprWith << _(UnifyBody) << _(WithSeq); },
+        [](Match& _) {
+          ACTION();
+          return UnifyExprWith << _(UnifyBody) << _(WithSeq);
+        },
 
       In(UnifyBody) *
           (T(LiteralEnum)
            << (T(Var)[Lhs] * T(Var)[Rhs] * T(UnifyBody)[UnifyBody])) >>
         [](Match& _) {
+          ACTION();
           LOG("enum");
           Location value = _.fresh({"value"});
           return Seq << (Lift << UnifyBody
@@ -153,6 +157,7 @@ namespace rego
                 << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
                     T(AssignArg)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           LOG("<array> := indexable");
           Node seq = NodeDef::create(Seq);
           Node rhs = _(Rhs)->front();
@@ -220,6 +225,7 @@ namespace rego
                 << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
                     T(AssignArg)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           LOG("<object> := indexable");
           Node seq = NodeDef::create(Seq);
           Node rhs = _(Rhs)->front();
@@ -294,6 +300,7 @@ namespace rego
                 << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
                     (T(AssignArg) << (T(Term) << T(Array)[Rhs])))))) >>
         [](Match& _) {
+          ACTION();
           LOG("<array> :=: <array>");
 
           if (_(Lhs)->size() != _(Rhs)->size())
@@ -360,6 +367,7 @@ namespace rego
                 << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
                     (T(AssignArg) << (T(Term) << T(Object)[Rhs])))))) >>
         [](Match& _) {
+          ACTION();
           LOG("<object> :=: <object>");
           // first, we set up all equalities going lhs <- rhs
           // so for example, if we have {"a": x, "b": 2, c: 3, "d": 4} = {"a":
@@ -433,6 +441,7 @@ namespace rego
            << ((T(VarSeq)[LhsVars] << End) * (T(VarSeq)[RhsVars] << Any) *
                (T(AssignInfix) << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           return LiteralInit << _(RhsVars) << _(LhsVars)
                              << (AssignInfix << _(Rhs) << _(Lhs));
         },
@@ -444,6 +453,7 @@ namespace rego
                 << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs])) *
                     T(AssignArg)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           // eventually, most init statements will reduce down
           // to this.
           return UnifyExpr << _(Lhs) << (Expr << _(Rhs)->front());
@@ -456,6 +466,7 @@ namespace rego
                 << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs])) *
                     T(AssignArg)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           // this occurs when there is a loop in the init. This is allowed,
           // so we unify, but we may want to warn the user.
           return UnifyExpr << _(Lhs) << (Expr << _(Rhs)->front());
@@ -467,6 +478,7 @@ namespace rego
                (T(AssignInfix)
                 << (T(AssignArg)[Lhs] * (T(RefTerm) << T(Var)[Rhs]))))) >>
         [](Match& _) {
+          ACTION();
           // this occurs when there is a loop in the init. This is allowed,
           // so we unify, but we may want to warn the user.
           return UnifyExpr << _(Rhs) << (Expr << _(Lhs)->front());
@@ -474,10 +486,14 @@ namespace rego
 
       In(UnifyBody) *
           (T(Literal) << ((T(Expr) << T(AssignInfix)[AssignInfix]))) >>
-        [](Match& _) { return _(AssignInfix); },
+        [](Match& _) {
+          ACTION();
+          return _(AssignInfix);
+        },
 
       In(With) * T(Expr)[Expr] * In(UnifyBody)++ >>
         [](Match& _) {
+          ACTION();
           LOG("with");
           Location temp = _.fresh({"with"});
           return Seq << (Lift << UnifyBody
@@ -490,6 +506,7 @@ namespace rego
       // <expr>
       In(UnifyBody) * (T(Literal) << T(Expr)[Expr]) >>
         [](Match& _) {
+          ACTION();
           std::string prefix = in_query(_(Expr)) ? "value" : "unify";
           Location temp = _.fresh({prefix});
           return Seq << (Local << (Var ^ temp) << Undefined)
@@ -500,6 +517,7 @@ namespace rego
       In(UnifyBody) *
           (T(AssignInfix) << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])) >>
         [](Match& _) {
+          ACTION();
           LOG("<any> = <any>");
           Node seq = NodeDef::create(Seq);
           Location unify = _.fresh({"unify"});
@@ -519,6 +537,7 @@ namespace rego
                << (T(AssignInfix)
                    << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           LOG("not any = any");
           Location unify = _.fresh({"unify"});
           return Seq << (Local << (Var ^ unify) << Undefined)
@@ -532,7 +551,10 @@ namespace rego
 
       // <notexpr>
       In(UnifyBody) * (T(LiteralNot) << T(UnifyBody)[UnifyBody]) >>
-        [](Match& _) { return UnifyExprNot << _(UnifyBody); },
+        [](Match& _) {
+          ACTION();
+          return UnifyExprNot << _(UnifyBody);
+        },
 
       // <array> = <array>
       In(UnifyBody) *
@@ -540,6 +562,7 @@ namespace rego
            << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
                (T(AssignArg) << (T(Term) << T(Array)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           LOG("<array> = <array>");
           Node lhs = _(Lhs);
           Node rhs = _(Rhs);
@@ -564,6 +587,7 @@ namespace rego
            << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
                (T(AssignArg) << (T(Term) << T(Object)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           LOG("<object> = <object>");
 
           Node lhs = _(Lhs);
@@ -584,7 +608,10 @@ namespace rego
         },
 
       In(UnifyBody) * (T(LiteralEnum) << T(UnifyExpr)[UnifyExpr]) >>
-        [](Match& _) { return _(UnifyExpr); },
+        [](Match& _) {
+          ACTION();
+          return _(UnifyExpr);
+        },
 
       // <compr>
       In(UnifyBody) *
@@ -595,6 +622,7 @@ namespace rego
                     << (T(ArrayCompr) / T(SetCompr) /
                         T(ObjectCompr))[Compr])))) >>
         [](Match& _) {
+          ACTION();
           LOG("<compr>");
           return UnifyExprCompr << _(Var)
                                 << (_(Compr)->type() << (_(Compr) / Var))
@@ -608,6 +636,7 @@ namespace rego
                (T(Expr)
                 << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr]))) >>
         [](Match& _) {
+          ACTION();
           LOG("<compr>");
           return UnifyExprCompr << _(Var)
                                 << (_(Compr)->type() << (_(Compr) / Var))
@@ -618,6 +647,7 @@ namespace rego
       T(Term) << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] *
             In(UnifyBody)++ >>
         [](Match& _) {
+          ACTION();
           LOG("<compr> (other)");
           Location term = _.fresh({"term"});
           return Seq << (Lift << UnifyBody
@@ -631,6 +661,7 @@ namespace rego
       // <binarg>.<setcompr>
       In(BinArg) * T(SetCompr)[SetCompr] * In(UnifyBody)++ >>
         [](Match& _) {
+          ACTION();
           LOG("<binarg>.<setcompr>");
           Location set = _.fresh({"setcompr"});
           return Seq << (Lift << UnifyBody
@@ -642,42 +673,66 @@ namespace rego
         },
 
       In(RefArgBrack) * T(NumTerm)[NumTerm] >>
-        [](Match& _) { return Scalar << _(NumTerm)->front(); },
+        [](Match& _) {
+          ACTION();
+          return Scalar << _(NumTerm)->front();
+        },
 
       // errors
 
       In(BoolArg) * T(BoolInfix)[BoolInfix] >>
         [](Match& _) {
+          ACTION();
           return err(_(BoolInfix), "Invalid boolean expression");
         },
 
       In(Term, BinArg) * T(SetCompr)[SetCompr] >>
-        [](Match& _) { return err(_(SetCompr), "Invalid set comprehension"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(SetCompr), "Invalid set comprehension");
+        },
 
       In(Term) * T(ArrayCompr)[ArrayCompr] >>
         [](Match& _) {
+          ACTION();
           return err(_(ArrayCompr), "Invalid array comprehension");
         },
 
       In(Term) * T(ObjectCompr)[ObjectCompr] >>
         [](Match& _) {
+          ACTION();
           return err(_(ObjectCompr), "Invalid object comprehension");
         },
 
       In(ObjectItem) * (T(Expr)[Expr] << T(AssignInfix)) >>
-        [](Match& _) { return err(_(Expr), "Invalid object item"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Invalid object item");
+        },
 
       In(UnifyBody) * T(AssignInfix)[AssignInfix] >>
-        [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(AssignInfix), "Invalid assignment");
+        },
 
       In(Expr) * T(AssignInfix)[AssignInfix] >>
-        [](Match& _) { return err(_(AssignInfix), "Invalid assignment"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(AssignInfix), "Invalid assignment");
+        },
 
       In(BoolArg) * (T(Membership) / T(AssignInfix))[Arg] >>
-        [](Match& _) { return err(_(Arg), "Invalid boolean argument"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Arg), "Invalid boolean argument");
+        },
 
       In(RefArgBrack) * (T(Membership) / T(AssignInfix))[Arg] >>
-        [](Match& _) { return err(_(Arg), "Invalid index"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Arg), "Invalid index");
+        },
     };
 
     rulebody.post(UnifyBody, [](Node n) {

@@ -16,18 +16,21 @@ namespace rego
     return {
       In(Group) * (RefHeadToken[RefHead] * T(Dot) * T(Var)[Rhs]) >>
         [](Match& _) {
+          ACTION();
           return Ref << (RefHead << _(RefHead))
                      << (RefArgSeq << (RefArgDot << _(Rhs)));
         },
 
       In(Group) * (RefHeadToken[RefHead] * T(Array)[Array]) >>
         [](Match& _) {
+          ACTION();
           return Ref << (RefHead << _(RefHead))
                      << (RefArgSeq << (RefArgBrack << *_[Array]));
         },
 
       In(RuleRef) * (T(Var)[RefHead] * T(Dot) * T(Var)[Rhs]) >>
         [](Match& _) {
+          ACTION();
           return Ref << (RefHead << _(RefHead))
                      << (RefArgSeq << (RefArgDot << _(Rhs)));
         },
@@ -36,6 +39,7 @@ namespace rego
           (T(Var)[RefHead] *
            (T(Array) << ((T(Group)[Arg] << StringToken) * End))) >>
         [](Match& _) {
+          ACTION();
           return Ref << (RefHead << _(RefHead))
                      << (RefArgSeq << (RefArgBrack << _(Arg)));
         },
@@ -44,6 +48,7 @@ namespace rego
           ((T(Ref) << (T(RefHead)[RefHead] * T(RefArgSeq)[RefArgSeq])) *
            T(Dot) * T(Var)[Rhs]) >>
         [](Match& _) {
+          ACTION();
           return Ref << _(RefHead)
                      << (RefArgSeq << *_[RefArgSeq] << (RefArgDot << _(Rhs)));
         },
@@ -52,6 +57,7 @@ namespace rego
           ((T(Ref) << (T(RefHead)[RefHead] * T(RefArgSeq)[RefArgSeq])) *
            T(Array)[Array]) >>
         [](Match& _) {
+          ACTION();
           return Ref << _(RefHead)
                      << (RefArgSeq << *_[RefArgSeq]
                                    << (RefArgBrack << *_[Array]));
@@ -61,6 +67,7 @@ namespace rego
           ((T(Ref) << (T(RefHead)[RefHead] * T(RefArgSeq)[RefArgSeq])) *
            (T(Array) << ((T(Group)[Arg] << StringToken) * End))) >>
         [](Match& _) {
+          ACTION();
           return Ref << _(RefHead)
                      << (RefArgSeq << *_[RefArgSeq] << (RefArgBrack << _(Arg)));
         },
@@ -68,12 +75,14 @@ namespace rego
       // errors
       In(RefArgBrack) * (T(Group) * T(Group)[Group]) >>
         [](Match& _) {
+          ACTION();
           return err(
             _(Group), "Multi-dimensional array references are not supported");
         },
 
       In(RefArgSeq) * (T(RefArgBrack)[RefArgBrack] << End) >>
         [](Match& _) {
+          ACTION();
           return err(_(RefArgBrack), "Must provide an index argument");
         },
     };

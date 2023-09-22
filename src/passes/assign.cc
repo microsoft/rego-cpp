@@ -72,6 +72,7 @@ namespace rego
           (AssignInfixArg[Head] * In(UnifyBody)++ * T(Unify) *
            AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs] * End) >>
         [](Match& _) {
+          ACTION();
           return Seq << (Lift
                          << UnifyBody
                          << (Literal
@@ -84,12 +85,14 @@ namespace rego
 
       In(Expr) * (AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>
         [](Match& _) {
+          ACTION();
           return AssignInfix << (AssignArg << _(Lhs)) << (AssignArg << _(Rhs));
         },
 
       In(Expr) *
           (AssignInfixArg[Lhs] * T(Unify) * (T(Set) / T(SetCompr))[Rhs]) >>
         [](Match& _) {
+          ACTION();
           return AssignInfix << (AssignArg << _(Lhs))
                              << (AssignArg << (Term << _(Rhs)));
         },
@@ -97,6 +100,7 @@ namespace rego
       In(Expr) *
           ((T(Set) / T(SetCompr))[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>
         [](Match& _) {
+          ACTION();
           return AssignInfix << (AssignArg << (Term << _(Lhs)))
                              << (AssignArg << _(Rhs));
         },
@@ -110,6 +114,7 @@ namespace rego
                    return needs_rewrite(n, func_arity);
                  }))) >>
         [](Match& _) {
+          ACTION();
           // A convention in the Golang implementation of Rego is
           // that you can call any function with an additional argument
           // that will be unified with its result. This is not documented
@@ -135,6 +140,7 @@ namespace rego
                              return needs_rewrite(n, func_arity);
                            })))))) >>
         [](Match& _) {
+          ACTION();
           // see above comment.
           Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
           Node argseq = _(ArgSeq);
@@ -155,6 +161,7 @@ namespace rego
 
       In(Literal) * (T(Expr) << (AssignInfixArg[Arg] * End)) >>
         [](Match& _) {
+          ACTION();
           // bare expressions are treated as unification requirements
           // in non-query rules.
           std::string prefix = in_query(_(Arg)) ? "value" : "unify";
@@ -169,19 +176,34 @@ namespace rego
 
       // errors
       In(Expr) * T(Expr)[Expr] >>
-        [](Match& _) { return err(_(Expr), "Syntax error"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Syntax error");
+        },
 
       In(AssignArg) * T(Expr)[Expr] >>
-        [](Match& _) { return err(_(Expr), "Invalid assignment argument"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Invalid assignment argument");
+        },
 
       In(Expr) * T(Unify)[Unify] >>
-        [](Match& _) { return err(_(Unify), "Invalid assignment"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Unify), "Invalid assignment");
+        },
 
       In(RuleComp, RuleFunc, RuleSet, RuleObj) * T(Expr)[Expr] >>
-        [](Match& _) { return err(_(Expr), "Invalid rule value"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Invalid rule value");
+        },
 
       In(Expr) * (T(Set) / T(SetCompr))[Set] >>
-        [](Match& _) { return err(_(Set), "Invalid set in expression"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Set), "Invalid set in expression");
+        },
     };
 
     assign.pre(Rego, [func_arity, builtins](Node node) {

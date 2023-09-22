@@ -126,11 +126,13 @@ namespace rego_test
       In(Group) * (T(LiteralString) << (T(String)++[String])) >>
         [](Match& _) {
           std::ostringstream buf;
-          std::string sep = "";
           for (auto it = _[String].first; it != _[String].second; ++it)
           {
-            buf << sep << (*it)->location().view();
-            sep = "\n";
+            if (it != _[String].first)
+            {
+              buf << "\n";
+            }
+            buf << (*it)->location().view();
           }
           return String ^ buf.str();
         },
@@ -140,11 +142,13 @@ namespace rego_test
            << (T(String)++[String])) >>
         [](Match& _) {
           std::ostringstream buf;
-          std::string sep = "";
           for (auto it = _[String].first; it != _[String].second; ++it)
           {
-            buf << sep << (*it)->location().view();
-            sep = " ";
+            if (it != _[String].first)
+            {
+              buf << " ";
+            }
+            buf << (*it)->location().view();
           }
           return String ^ buf.str();
         },

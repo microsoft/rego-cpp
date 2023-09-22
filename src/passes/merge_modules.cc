@@ -91,6 +91,7 @@ namespace rego
                          T(RefArgSeq)[RefArgSeq]))) *
                T(Policy)[Policy])) >>
         [](Match& _) {
+          ACTION();
           Node args = _(RefArgSeq);
           Node module = DataModule << *_[Policy];
           while (args->size() > 0)
@@ -137,18 +138,28 @@ namespace rego
           ((T(Data) << (T(Key)[Key] * T(DataModule)[DataModule])) *
            T(Submodule)[Submodule]) >>
         [](Match& _) {
+          ACTION();
           return Data << _(Key) << merge(_(DataModule), _(Submodule));
         },
 
       // errors
 
       In(ModuleSeq) * (T(Module) << T(Package)[Package]) >>
-        [](Match& _) { return err(_(Package), "Invalid package reference."); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Package), "Invalid package reference.");
+        },
 
       In(Rego) * (T(ModuleSeq) << T(Error)[Error]) >>
-        [](Match& _) { return _(Error); },
+        [](Match& _) {
+          ACTION();
+          return _(Error);
+        },
 
       In(DataModule) * T(Import)[Import] >>
-        [](Match& _) { return err(_(Import), "Invalid import"); }};
+        [](Match& _) {
+          ACTION();
+          return err(_(Import), "Invalid import");
+        }};
   }
 }
