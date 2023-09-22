@@ -105,10 +105,8 @@ namespace rego
     return {
       In(UnifyBody) *
           (T(LiteralInit)
-           << (T(VarSeq)[LhsVars](
-                 [](auto& n) { return (*n.first)->size() > 0; }) *
-               T(VarSeq)[RhsVars](
-                 [](auto& n) { return (*n.first)->size() >= 0; }) *
+           << ((T(VarSeq) << Any)[LhsVars] *
+               T(VarSeq)[RhsVars] *
                (T(AssignInfix)
                 << ((T(AssignArg)[Lhs]
                      << (T(RefTerm)
@@ -123,10 +121,8 @@ namespace rego
       In(UnifyBody) *
           ((
              T(LiteralInit)
-             << (T(VarSeq)[LhsVars](
-                   [](auto& n) { return (*n.first)->size() > 0; }) *
-                 T(VarSeq)[RhsVars](
-                   [](auto& n) { return (*n.first)->size() > 0; }) *
+             << ((T(VarSeq) << Any)[LhsVars] *
+                 (T(VarSeq) << Any)[RhsVars] *
                  (T(AssignInfix)
                   << (T(AssignArg)[Lhs] *
                       (T(AssignArg)
@@ -201,9 +197,8 @@ namespace rego
       In(UnifyBody) *
           ((
              T(LiteralInit)
-             << (T(VarSeq)([](auto& n) { return (*n.first)->size() == 0; }) *
-                 T(VarSeq)[RhsVars](
-                   [](auto& n) { return (*n.first)->size() > 0; }) *
+             << ((T(VarSeq) << End) *
+                 (T(VarSeq) << Any)[RhsVars] *
                  (T(AssignInfix)
                   << (T(AssignArg)[Lhs] *
                       (T(AssignArg)
@@ -296,11 +291,13 @@ namespace rego
           return Node{};
         },
 
-      In(UnifyBody) * T(Local)[Local]([](auto& n) {
-        Node unifybody = (*n.first)->parent()->shared_from_this();
-        return is_in(*n.first, {LiteralEnum}) && !can_grab(*n.first, unifybody);
-      }) >>
-        [](Match& _) { return Lift << LiteralEnum << _(Local); },
+      In(UnifyBody) * T(Local)[Local] * In(LiteralEnum)++ >>
+        [](Match& _) -> Node {
+          Node unifybody = _(Local)->parent()->shared_from_this();
+          if (can_grab(_(Local), unifybody))
+            return NoChange;
+          return Lift << LiteralEnum << _(Local);
+        },
 
       In(LiteralEnum) * T(Local)[Local] >>
         [](Match& _) { return Lift << UnifyBody << _(Local); }

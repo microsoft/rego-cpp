@@ -56,7 +56,7 @@ namespace rego
         [](Match& _) { return ObjectItemSeq << *_[List]; },
 
       In(Data) * (T(Brace) << End) >>
-        ([](Match&) -> Node { return ObjectItemSeq; }),
+        [](Match&) -> Node { return ObjectItemSeq; },
 
       In(Group) * (T(Var)[Var] * T(If) * T(Brace)[Brace]) >>
         [](Match& _) {
@@ -187,9 +187,7 @@ namespace rego
                            << (EverySeq << (Group << _[Tail]));
         },
 
-      In(Group) * T(UnifyBody)[UnifyBody]([](auto& n) {
-        return is_in(*n.first, {ExprEvery});
-      }) >>
+      In(Group) * T(UnifyBody)[UnifyBody] * In(ExprEvery)++ >>
         [](Match& _) { return Lift << ExprEvery << _(UnifyBody); },
 
       In(Group) * (T(Brace) << (T(Group)[Head] * T(Group)++[Tail] * End)) >>

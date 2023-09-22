@@ -147,8 +147,7 @@ namespace rego
       dir::bottomup,
       {
         In(UnifyBody) *
-            (T(UnifyExprEnum)(
-               [](auto& n) { return is_in(*n.first, {DataModule}); })
+            ((T(UnifyExprEnum) * In(DataModule)++)
              << (T(Var)[Var] * T(Var)[Item] * T(Var)[ItemSeq] *
                  T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
@@ -248,8 +247,7 @@ namespace rego
           },
 
         In(UnifyBody) *
-            (T(UnifyExprCompr)(
-               [](auto& n) { return is_in(*n.first, {DataModule}); })
+            ((T(UnifyExprCompr) * In(DataModule)++)
              << (T(Var)[Var] *
                  (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] *
                  (T(NestedBody) << (T(Key)[Key] * T(UnifyBody)[UnifyBody])))) >>
@@ -327,8 +325,7 @@ namespace rego
           },
 
         In(Expr) *
-            (T(ExprEvery)([](auto& n) { return is_in(*n.first, {DataModule}); })
-             << T(UnifyBody)[UnifyBody]) >>
+            ((T(ExprEvery) * In(DataModule)++) << T(UnifyBody)[UnifyBody]) >>
           [](Match& _) {
             Node rulebody = _(UnifyBody);
             Locs invars;

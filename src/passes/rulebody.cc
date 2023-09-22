@@ -148,9 +148,7 @@ namespace rego
       // <array> := indexable
       In(UnifyBody) *
           (T(LiteralInit)
-           << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars]([](auto& n) {
-                 return (*n.first)->size() == 0;
-               }) *
+           << (T(VarSeq)[LhsVars] * (T(VarSeq)[RhsVars] << End) *
                (T(AssignInfix)
                 << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
                     T(AssignArg)[Rhs])))) >>
@@ -217,9 +215,7 @@ namespace rego
       // <object> := indexable
       In(UnifyBody) *
           (T(LiteralInit)
-           << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars]([](auto& n) {
-                 return (*n.first)->size() == 0;
-               }) *
+           << (T(VarSeq)[LhsVars] * (T(VarSeq)[RhsVars] << End) *
                (T(AssignInfix)
                 << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
                     T(AssignArg)[Rhs])))) >>
@@ -434,10 +430,8 @@ namespace rego
 
       In(UnifyBody) *
           (T(LiteralInit)
-           << (T(VarSeq)[LhsVars](
-                 [](auto& n) { return (*n.first)->size() == 0; }) *
-               T(VarSeq)[RhsVars](
-                 [](auto& n) { return (*n.first)->size() > 0; }) *
+           << ((T(VarSeq)[LhsVars] << End) *
+               (T(VarSeq)[RhsVars] << Any) *
                (T(AssignInfix) << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
         [](Match& _) {
           return LiteralInit << _(RhsVars) << _(LhsVars)
@@ -446,10 +440,8 @@ namespace rego
 
       In(UnifyBody) *
           (T(LiteralInit)
-           << (T(VarSeq)[LhsVars](
-                 [](auto& n) { return (*n.first)->size() > 0; }) *
-               T(VarSeq)[RhsVars](
-                 [](auto& n) { return (*n.first)->size() == 0; }) *
+           << ((T(VarSeq)[LhsVars] << Any) *
+               (T(VarSeq)[RhsVars] << End) *
                (T(AssignInfix)
                 << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs])) *
                     T(AssignArg)[Rhs])))) >>
@@ -486,8 +478,7 @@ namespace rego
           (T(Literal) << ((T(Expr) << T(AssignInfix)[AssignInfix]))) >>
         [](Match& _) { return _(AssignInfix); },
 
-      In(With) *
-          T(Expr)[Expr]([](auto& n) { return is_in(*n.first, {UnifyBody}); }) >>
+      In(With) * T(Expr)[Expr] * In(UnifyBody)++ >>
         [](Match& _) {
           LOG("with");
           Location temp = _.fresh({"with"});
@@ -626,8 +617,8 @@ namespace rego
         },
 
       // <compr> (other)
-      T(Term) << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr](
-        [](auto& n) { return is_in(*n.first, {UnifyBody}); }) >>
+      T(Term) << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] *
+            In(UnifyBody)++ >>
         [](Match& _) {
           LOG("<compr> (other)");
           Location term = _.fresh({"term"});
@@ -640,9 +631,7 @@ namespace rego
         },
 
       // <binarg>.<setcompr>
-      In(BinArg) * T(SetCompr)[SetCompr]([](auto& n) {
-        return is_in(*n.first, {UnifyBody});
-      }) >>
+      In(BinArg) * T(SetCompr)[SetCompr] * In(UnifyBody)++ >>
         [](Match& _) {
           LOG("<binarg>.<setcompr>");
           Location set = _.fresh({"setcompr"});
