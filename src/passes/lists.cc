@@ -215,9 +215,10 @@ namespace rego
         },
 
       In(Group) * T(UnifyBody)[UnifyBody] * In(ExprEvery)++ >>
-        [](Match& _) { 
+        [](Match& _) {
           ACTION();
-          return Lift << ExprEvery << _(UnifyBody); },
+          return Lift << ExprEvery << _(UnifyBody);
+        },
 
       In(Group) * (T(Brace) << (T(Group)[Head] * T(Group)++[Tail] * End)) >>
         [](Match& _) {

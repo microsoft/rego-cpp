@@ -165,9 +165,10 @@ namespace rego
         },
 
       In(RefTerm) * T(Ref)[Ref] * --In(UnifyBody)++ >>
-        [](Match& _) { 
+        [](Match& _) {
           ACTION();
-          return err(_(Ref), "Unable to simplify reference"); },
+          return err(_(Ref), "Unable to simplify reference");
+        },
 
       In(RuleRef) * T(Ref)[Ref] >>
         [](Match& _) {
