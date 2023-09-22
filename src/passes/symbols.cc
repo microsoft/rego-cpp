@@ -41,13 +41,17 @@ namespace rego
   {
     return {
       In(Query) * (T(Literal)[Head] * T(Literal)++[Tail]) >>
-        [](Match& _) { return UnifyBody << _(Head) << _[Tail]; },
+        [](Match& _) {
+          ACTION();
+          return UnifyBody << _(Head) << _[Tail];
+        },
 
       In(ModuleSeq) *
           (T(Module)
            << (T(Package)[Package] * T(ImportSeq)[ImportSeq] *
                T(Policy)[Policy])) >>
         [](Match& _) {
+          ACTION();
           Node policy = NodeDef::create(Policy);
           for (auto& import : *_(ImportSeq))
           {
@@ -68,6 +72,7 @@ namespace rego
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq)[ElseSeq])) >>
         [](Match& _) {
+          ACTION();
           Node elseseq = _(ElseSeq);
           if (elseseq->size() == 0)
           {
@@ -108,6 +113,7 @@ namespace rego
                     (T(RuleHeadComp) << (T(AssignOperator) * T(Expr)[Expr])))) *
                T(Empty) * (T(ElseSeq) << End))) >>
         [](Match& _) {
+          ACTION();
           std::size_t rank = std::numeric_limits<std::uint16_t>::max();
           return RuleComp << _(Id) << Empty << _(Expr)
                           << (Int ^ std::to_string(rank));
@@ -123,6 +129,7 @@ namespace rego
                          T(Expr)[Expr])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq)[ElseSeq])) >>
         [](Match& _) {
+          ACTION();
           Node elseseq = _(ElseSeq);
           if (elseseq->size() == 0)
           {
@@ -181,6 +188,7 @@ namespace rego
                          T(Expr)[Expr])))) *
                T(Empty) * (T(ElseSeq) << End))) >>
         [](Match& _) {
+          ACTION();
           std::size_t rank = std::numeric_limits<std::uint16_t>::max();
           return RuleFunc << _(Id) << _(RuleArgs) << Empty << _(Expr)
                           << (Int ^ std::to_string(rank));
@@ -193,7 +201,10 @@ namespace rego
                 << ((T(RuleRef) << T(Var)[Id]) *
                     (T(RuleHeadSet) << T(Expr)[Expr]))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq))) >>
-        [](Match& _) { return RuleSet << _(Id) << _(Body) << _(Expr); },
+        [](Match& _) {
+          ACTION();
+          return RuleSet << _(Id) << _(Body) << _(Expr);
+        },
 
       In(Policy) *
           (T(Rule)
@@ -204,26 +215,43 @@ namespace rego
                      << (T(Expr)[Key] * T(AssignOperator) * T(Expr)[Val])))) *
                (T(Empty) / T(UnifyBody))[Body] * T(ElseSeq))) >>
         [](Match& _) {
+          ACTION();
           return RuleObj << _(Id) << _(Body) << _(Key) << _(Val);
         },
 
       In(Expr) * (T(Expr) << (T(Term)[Term] * End)) >>
-        [](Match& _) { return _(Term); },
+        [](Match& _) {
+          ACTION();
+          return _(Term);
+        },
 
       In(Expr) * (T(Term) << (T(Ref) / T(Var))[Val]) >>
-        [](Match& _) { return RefTerm << _(Val); },
+        [](Match& _) {
+          ACTION();
+          return RefTerm << _(Val);
+        },
 
       In(Expr) * (T(Term) << (T(Scalar) << (T(Int) / T(Float))[Val])) >>
-        [](Match& _) { return NumTerm << _(Val); },
+        [](Match& _) {
+          ACTION();
+          return NumTerm << _(Val);
+        },
 
       In(Expr) * (T(Term) << (T(Set) / T(SetCompr))[Set]) >>
-        [](Match& _) { return _(Set); },
+        [](Match& _) {
+          ACTION();
+          return _(Set);
+        },
 
       In(RefArgBrack) * T(Var)[Var] >>
-        [](Match& _) { return RefTerm << _(Var); },
+        [](Match& _) {
+          ACTION();
+          return RefTerm << _(Var);
+        },
 
       In(UnifyBody) * (T(Literal) << (T(SomeDecl) << T(VarSeq)[VarSeq])) >>
         [](Match& _) {
+          ACTION();
           Node seq = NodeDef::create(Seq);
           for (auto& var : *_(VarSeq))
           {
@@ -238,6 +266,7 @@ namespace rego
                << (T(Undefined) * T(Expr)[Item] *
                    (T(IsIn) << T(Expr)[ItemSeq])))) >>
         [](Match& _) {
+          ACTION();
           Location item = _.fresh({"item"});
           return Seq << (Local << (Var ^ item) << Undefined)
                      << (LiteralEnum << (Var ^ item) << _(ItemSeq))
@@ -258,6 +287,7 @@ namespace rego
                << (T(Expr)[Idx] * T(Expr)[Item] *
                    (T(IsIn) << T(Expr)[ItemSeq])))) >>
         [](Match& _) {
+          ACTION();
           Location item = _.fresh({"item"});
           return Seq << (Local << (Var ^ item) << Undefined)
                      << (LiteralEnum << (Var ^ item) << _(ItemSeq))
@@ -285,6 +315,7 @@ namespace rego
           (T(Literal)
            << (T(Expr) << (LocalToken++[Head] * T(Assign) * Any++[Tail]))) >>
         [](Match& _) {
+          ACTION();
           Node seq = NodeDef::create(Seq);
           Nodes vars;
           for (auto& node : *_(Head))
@@ -302,29 +333,38 @@ namespace rego
         },
 
       In(Policy) * (T(Import) << (T(Ref)[Ref] * T(As) * T(Var)[Var])) >>
-        [](Match& _) { return Import << _(Var) << _(Ref); },
+        [](Match& _) {
+          ACTION();
+          return Import << _(Var) << _(Ref);
+        },
 
       In(RuleComp, RuleFunc, RuleObj, RuleSet) *
           (T(Expr)
            << (T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) *
                End)) >>
-        [](Match& _) { return _(Term); },
+        [](Match& _) {
+          ACTION();
+          return _(Term);
+        },
 
       In(RuleComp, RuleFunc, RuleObj, RuleSet) *
           (T(Expr) << (T(NumTerm)[NumTerm] * End)) >>
         [](Match& _) {
+          ACTION();
           Node number = _(NumTerm)->front();
           return Term << (Scalar << number);
         },
 
       In(Expr) * (Start * T(Subtract) * T(NumTerm)[NumTerm] * End) >>
         [](Match& _) {
+          ACTION();
           Node number = Resolver::negate(_(NumTerm)->front());
           return NumTerm << number;
         },
 
       In(RuleComp, RuleFunc) * (T(Empty) * T(Expr)[Expr]) >>
         [](Match& _) {
+          ACTION();
           Location out = _.fresh({"out"});
           Location value = _.fresh({"value"});
           return Seq << (UnifyBody
@@ -339,6 +379,7 @@ namespace rego
 
       In(RuleComp, RuleFunc) * T(Expr)[Expr] >>
         [](Match& _) {
+          ACTION();
           Location value = _.fresh({"value"});
           return UnifyBody
             << (Literal
@@ -347,6 +388,7 @@ namespace rego
 
       In(ObjectCompr, SetCompr, ArrayCompr) * T(UnifyBody)[UnifyBody] >>
         [](Match& _) {
+          ACTION();
           std::string prefix;
           auto& parent_type = _(UnifyBody)->parent()->type();
           if (parent_type == ArrayCompr)
@@ -370,6 +412,7 @@ namespace rego
            << ((T(VarSeq) << (T(Var)[Val] * End)) * T(UnifyBody)[UnifyBody] *
                (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
+          ACTION();
           Location item = _.fresh({"item"});
           Location itemseq = _.fresh({"itemseq"});
           Node rulebody = UnifyBody
@@ -415,6 +458,7 @@ namespace rego
            << ((T(VarSeq) << (T(Var)[Idx] * T(Var)[Val] * End)) *
                T(UnifyBody)[UnifyBody] * (T(IsIn) << T(Expr)[Expr]))) >>
         [](Match& _) {
+          ACTION();
           Location item = _.fresh({"item"});
           Location itemseq = _.fresh({"itemseq"});
           Node rulebody = UnifyBody
@@ -461,33 +505,58 @@ namespace rego
       // errors
 
       In(Policy) * T(Rule)[Rule] >>
-        [](Match& _) { return err(_(Rule), "Invalid rule"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Rule), "Invalid rule");
+        },
 
       In(UnifyBody) * (T(RuleHead)[RuleHead] << (T(Var) * T(RuleHeadFunc))) >>
         [](Match& _) {
+          ACTION();
           return err(_(RuleHead), "No rule functions allowed in rule bodies");
         },
 
       In(Term) * T(Ref)[Ref] >>
-        [](Match& _) { return err(_(Ref), "Invalid ref term"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Ref), "Invalid ref term");
+        },
 
       In(Term) * T(Var)[Var] >>
-        [](Match& _) { return err(_(Var), "Invalid var term"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Var), "Invalid var term");
+        },
 
       In(Literal) * T(SomeDecl)[SomeDecl] >>
-        [](Match& _) { return err(_(SomeDecl), "Invalid some declaration"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(SomeDecl), "Invalid some declaration");
+        },
 
       In(Expr) * T(Assign)[Assign] >>
-        [](Match& _) { return err(_(Assign), "Invalid assignment"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Assign), "Invalid assignment");
+        },
 
       T(UnifyBody)[UnifyBody] << End >>
-        [](Match& _) { return err(_(UnifyBody), "Invalid unification body"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(UnifyBody), "Invalid unification body");
+        },
 
       In(Expr) * T(Dot)[Dot] >>
-        [](Match& _) { return err(_(Dot), "Invalid dot expression"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Dot), "Invalid dot expression");
+        },
 
       In(Expr) * T(ExprEvery)[ExprEvery] >>
-        [](Match& _) { return err(_(ExprEvery), "Invalid every expression"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(ExprEvery), "Invalid every expression");
+        },
     };
   }
 

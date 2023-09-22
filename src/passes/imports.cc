@@ -22,6 +22,7 @@ namespace rego
       In(With) *
           (T(Group)[RuleRef] * (T(Group) << (T(As) * Any++[WithExpr]))) >>
         [](Match& _) {
+          ACTION();
           return Seq << (RuleRef << _(RuleRef))
                      << (WithExpr << (Group << _[WithExpr]));
         },
@@ -36,6 +37,7 @@ namespace rego
                    }) *
                    T(Dot) * T(Var)[Keyword] * End))) >>
         [](Match& _) {
+          ACTION();
           if (_(Keyword)->location().view() == "every")
           {
             return Seq << (Keyword << (Var ^ "every"))
@@ -54,6 +56,7 @@ namespace rego
                    }) *
                    End))) >>
         [](Match&) {
+          ACTION();
           Node seq = NodeDef::create(Seq);
           for (auto& keyword : Keywords)
           {
@@ -69,6 +72,7 @@ namespace rego
                     T(Var)[Var] * End)) *
                End)) >>
         [](Match& _) {
+          ACTION();
           return Import << (ImportRef << (Group << _(Head) << _[Tail])) << As
                         << _(Var);
         },
@@ -78,22 +82,35 @@ namespace rego
            << ((T(Group) << (ImportToken[Head] * ImportToken++[Tail] * End)) *
                End)) >>
         [](Match& _) {
+          ACTION();
           return Import << (ImportRef << (Group << _(Head) << _[Tail])) << As
                         << Undefined;
         },
 
       // errors
       In(Import) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid import"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Invalid import");
+        },
 
       In(With) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid with reference"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Invalid with reference");
+        },
 
       In(Group) * T(As)[As] >>
-        [](Match& _) { return err(_(As), "Invalid as statement"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(As), "Invalid as statement");
+        },
 
       In(WithExpr) * (T(Group)[Group] << End) >>
-        [](Match& _) { return err(_(Group), "Invalid with expression"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Invalid with expression");
+        },
     };
   }
 }

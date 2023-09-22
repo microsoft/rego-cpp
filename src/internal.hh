@@ -5,6 +5,8 @@
 
 #include "rego/rego.hh"
 
+#include <chrono>
+
 namespace rego
 {
   std::vector<PassCheck> passes(const BuiltIns& builtins);
@@ -171,11 +173,34 @@ namespace rego
   PassDef simple_refs();
   PassDef init();
   PassDef implicit_enums();
+  PassDef enum_locals();
   PassDef rulebody();
   PassDef lift_to_rule();
   PassDef functions();
   PassDef unify(const BuiltIns& builtins);
   PassDef query();
+
+  template <typename I, typename S, typename F>
+  S& join(S& stream, const I& begin, const I& end, const char* sep, F&& writer)
+  {
+    if (begin == end)
+    {
+      return stream;
+    }
+
+    bool write_sep = false;
+    for (auto it = begin; it != end; ++it)
+    {
+      if (write_sep)
+      {
+        stream << sep;
+      }
+
+      write_sep = writer(stream, *it);
+    }
+
+    return stream;
+  }
 
   std::ostream& operator<<(
     std::ostream& os, const std::set<trieste::Location>& locs);
@@ -223,12 +248,15 @@ namespace rego
       if (level <= maximum_level)
       {
         std::cout << indent << "[";
-        std::string sep = "";
-        for (auto& value : values)
-        {
-          std::cout << sep << value;
-          sep = ", ";
-        }
+        join(
+          std::cout,
+          values.begin(),
+          values.end(),
+          ", ",
+          [](std::ostream& stream, const T& value) {
+            stream << value;
+            return true;
+          });
         std::cout << "]" << std::endl;
       }
     }
@@ -275,8 +303,8 @@ namespace rego
     void mark_as_invalid();
     void reduce_set();
 
-    std::string str() const;
-    std::string json() const;
+    const std::string& str() const;
+    const std::string& json() const;
     bool depends_on(const Value& value) const;
     bool invalid() const;
     const Location& var() const;
@@ -302,19 +330,30 @@ namespace rego
     static rank_t get_rank(const Node& node);
 
   private:
-    void to_string(std::ostream& buf, const Location& root, bool first) const;
+    static void build_string(
+      std::ostream& buf,
+      const ValueDef& current,
+      const Location& root,
+      bool first);
     Location m_var;
     Node m_node;
     Values m_sources;
     bool m_invalid;
     rank_t m_rank;
+    std::string m_str;
+    std::string m_json;
+    ValueDef(
+      const Location& var,
+      const Node& value,
+      const Values& sources,
+      rank_t rank);
+    ValueDef(const Node& value);
     ValueDef(const RankedNode& value);
+    ValueDef(const Location& var, const Node& value);
     ValueDef(const Location& var, const RankedNode& value);
+    ValueDef(const Location& var, const Node& value, const Values& sources);
     ValueDef(
       const Location& var, const RankedNode& value, const Values& sources);
-    ValueDef(const Node& value);
-    ValueDef(const Location& var, const Node& value);
-    ValueDef(const Location& var, const Node& value, const Values& sources);
   };
 
   class ValueMap
@@ -460,7 +499,6 @@ namespace rego
       const Node& rulefunc, const Nodes& args) const;
     Node resolve_module(const Node& module) const;
 
-  private:
     struct Dependency
     {
       std::string name;
@@ -468,6 +506,10 @@ namespace rego
       std::size_t score;
     };
 
+    friend std::ostream& operator<<(
+      std::ostream& os, const std::vector<Dependency>& dep);
+
+  private:
     struct Statement
     {
       std::size_t id;
@@ -544,7 +586,38 @@ namespace rego
     bool m_negate;
   };
 
-#ifdef REGOCPP_USE_CXX_17
+  class ActionMetrics
+  {
+  public:
+    ActionMetrics(const char* file, std::size_t line);
+    ~ActionMetrics();
+    using clock = std::chrono::high_resolution_clock;
+    using time_point = clock::time_point;
+    using duration = clock::duration;
+
+    static void print();
+
+  private:
+    struct key_t
+    {
+      std::string_view file;
+      std::size_t line;
+
+      bool operator<(const key_t& other) const;
+    };
+
+    struct info_t
+    {
+      std::size_t count;
+      duration time_spent;
+    };
+
+    key_t m_key;
+    time_point m_start;
+    static std::map<key_t, info_t> s_action_info;
+  };
+
+#ifdef REGOCPP_USE_CXX17
   template <typename T, typename I>
   inline bool contains(const std::shared_ptr<T>& container, const I& item)
   {
@@ -676,3 +749,11 @@ namespace rego
   rego::Logger::print_map_values(rego::LogLevel::Debug, (map))
 #define LOG_INDENT() rego::Logger::increase_print_indent()
 #define LOG_UNINDENT() rego::Logger::decrease_print_indent()
+
+#ifdef REGOCPP_ACTION_METRICS
+#define ACTION() rego::ActionMetrics __action_metrics(__FILE__, __LINE__)
+#define PRINT_ACTION_METRICS() rego::ActionMetrics::print()
+#else
+#define ACTION()
+#define PRINT_ACTION_METRICS()
+#endif

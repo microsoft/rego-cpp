@@ -15,14 +15,19 @@ namespace rego
     return {
       In(UnifyBody) * (T(Literal) << (T(Expr) << (T(Not) * Any++[Expr]))) >>
         [](Match& _) {
+          ACTION();
           return LiteralNot << (UnifyBody << (Literal << (Expr << _[Expr])));
         },
 
       In(Expr) * (T(Expr) << (BoolInfixArg[Arg] * End)) >>
-        [](Match& _) { return _(Arg); },
+        [](Match& _) {
+          ACTION();
+          return _(Arg);
+        },
 
       In(Expr) * (BoolInfixArg[Lhs] * BoolToken[Op] * BoolInfixArg[Rhs]) >>
         [](Match& _) {
+          ACTION();
           std::set<Token> set_types = {Set, SetCompr};
           Node lhs = _(Lhs);
           if (contains(set_types, lhs->type()))
@@ -40,36 +45,66 @@ namespace rego
         },
 
       In(Expr) * (T(Set) / T(SetCompr))[Set] >>
-        [](Match& _) { return Term << _(Set); },
+        [](Match& _) {
+          ACTION();
+          return Term << _(Set);
+        },
 
       In(RefArgBrack) * (T(Term) << RefArgBrackArg[Arg]) >>
-        [](Match& _) { return _(Arg); },
+        [](Match& _) {
+          ACTION();
+          return _(Arg);
+        },
 
       In(ArithArg, BoolArg) * (T(Expr) << ArithInfixArg[Val]) >>
-        [](Match& _) { return _(Val); },
+        [](Match& _) {
+          ACTION();
+          return _(Val);
+        },
 
       // errors
 
       T(Expr)[Expr] << End >>
-        [](Match& _) { return err(_(Expr), "Empty expression"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Empty expression");
+        },
 
       In(Expr) * BoolToken[Op] >>
-        [](Match& _) { return err(_(Op), "Invalid comparison"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Op), "Invalid comparison");
+        },
 
       In(Expr) * T(Not)[Not] >>
-        [](Match& _) { return err(_(Not), "Invalid not"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Not), "Invalid not");
+        },
 
       In(BoolArg) * T(Expr)[Expr] >>
-        [](Match& _) { return err(_(Expr), "Invalid boolean argument"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Invalid boolean argument");
+        },
 
       In(BoolArg) * (T(Set) / T(SetCompr))[Set] >>
-        [](Match& _) { return err(_(Set), "Invalid boolean argument"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Set), "Invalid boolean argument");
+        },
 
       In(ArithArg) * T(Expr)[Expr] >>
-        [](Match& _) { return err(_(Expr), "Invalid argument"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Invalid argument");
+        },
 
       In(BinArg) * T(Expr)[Expr] >>
-        [](Match& _) { return err(_(Expr), "Invalid set argument"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Expr), "Invalid set argument");
+        },
     };
   }
 }

@@ -8,11 +8,15 @@ namespace rego
     return {
       In(RuleComp, RuleFunc, RuleSet, DefaultRule) *
           T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) >>
-        [](Match& _) { return DataTerm << *_[Term]; },
+        [](Match& _) {
+          ACTION();
+          return DataTerm << *_[Term];
+        },
 
       In(RuleComp, RuleFunc) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>
         [](Match& _) {
+          ACTION();
           Location value = _.fresh({"value"});
           return UnifyBody
             << (Literal
@@ -21,7 +25,10 @@ namespace rego
 
       In(RuleSet) *
           T(Term)[Term]([](auto& n) { return !is_constant(*n.first); }) >>
-        [](Match& _) { return Expr << _(Term); },
+        [](Match& _) {
+          ACTION();
+          return Expr << _(Term);
+        },
 
       In(RuleObj) * (T(Term)[Key] * T(Term)[Val])([](auto& n) {
         Node key = n.first[0];
@@ -29,6 +36,7 @@ namespace rego
         return is_constant(key) && is_constant(val);
       }) >>
         [](Match& _) {
+          ACTION();
           std::string key = strip_quotes(to_json(_(Key)));
           return Seq << (DataTerm << *_[Key]) << (DataTerm << *_[Val]);
         },
@@ -38,39 +46,71 @@ namespace rego
         Node val = n.first[1];
         return !is_constant(key) || !is_constant(val);
       }) >>
-        [](Match& _) { return Seq << (Expr << _(Key)) << (Expr << _(Val)); },
+        [](Match& _) {
+          ACTION();
+          return Seq << (Expr << _(Key)) << (Expr << _(Val));
+        },
 
       In(RuleObj) * (T(Expr)[Key] * T(Term)[Val]) >>
-        [](Match& _) { return Seq << _(Key) << (Expr << _(Val)); },
+        [](Match& _) {
+          ACTION();
+          return Seq << _(Key) << (Expr << _(Val));
+        },
 
       In(RuleObj) * (T(Term)[Key] * T(Expr)[Val]) >>
-        [](Match& _) { return Seq << (Expr << _(Key)) << _(Val); },
+        [](Match& _) {
+          ACTION();
+          return Seq << (Expr << _(Key)) << _(Val);
+        },
 
       In(DataTerm) * T(Array)[Array] >>
-        [](Match& _) { return DataArray << *_[Array]; },
+        [](Match& _) {
+          ACTION();
+          return DataArray << *_[Array];
+        },
 
-      In(DataTerm) * T(Set)[Set] >> [](Match& _) { return DataSet << *_[Set]; },
+      In(DataTerm) * T(Set)[Set] >>
+        [](Match& _) {
+          ACTION();
+          return DataSet << *_[Set];
+        },
 
       In(DataTerm) * T(Object)[Object] >>
-        [](Match& _) { return DataObject << *_[Object]; },
+        [](Match& _) {
+          ACTION();
+          return DataObject << *_[Object];
+        },
 
       In(DataArray, DataSet) * (T(Expr) << T(Expr)[Expr]) >>
-        [](Match& _) { return _(Expr); },
+        [](Match& _) {
+          ACTION();
+          return _(Expr);
+        },
 
       In(DataArray, DataSet) * (T(Expr) << T(Term)[Term]) >>
-        [](Match& _) { return DataTerm << _(Term)->front(); },
+        [](Match& _) {
+          ACTION();
+          return DataTerm << _(Term)->front();
+        },
 
       In(DataArray, DataSet) * (T(Expr) << T(Set)[Set]) >>
-        [](Match& _) { return DataTerm << _(Set); },
+        [](Match& _) {
+          ACTION();
+          return DataTerm << _(Set);
+        },
 
       In(DataArray, DataSet) * (T(Expr) << T(NumTerm)[NumTerm]) >>
-        [](Match& _) { return DataTerm << (Scalar << _(NumTerm)->front()); },
+        [](Match& _) {
+          ACTION();
+          return DataTerm << (Scalar << _(NumTerm)->front());
+        },
 
       In(DataObject) *
           (T(ObjectItem)
            << ((T(Expr) << (T(Term) / T(NumTerm) / T(Set))[Key]) *
                (T(Expr) << (T(Term) / T(NumTerm) / T(Set))[Val]))) >>
         [](Match& _) {
+          ACTION();
           Node key = _(Key);
           if (key->type() == NumTerm)
           {
@@ -111,6 +151,7 @@ namespace rego
         return lhs_package == rhs_package;
       }) >>
         [](Match& _) {
+          ACTION();
           Node pkg = _(Lhs) / Package;
           Node policy = _(Lhs) / Policy;
           Node rhs_policy = _(Rhs) / Policy;

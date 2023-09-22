@@ -8,6 +8,7 @@ namespace rego
     return {
       In(RefTerm, RuleRef) * T(Var)[Var] >> [](Match& _) -> Node {
         // <import>
+        ACTION();
         Nodes defs = _(Var)->lookup();
         if (defs.empty())
           return NoChange;
@@ -22,6 +23,7 @@ namespace rego
           (T(Ref) << ((T(RefHead) << T(Var)[Var]) * T(RefArgSeq)[RefArgSeq])) >>
         [](Match& _) -> Node {
         // <import>.dot <import>[brack]
+        ACTION();
         Nodes defs = _(Var)->lookup();
         if (defs.empty())
           return NoChange;

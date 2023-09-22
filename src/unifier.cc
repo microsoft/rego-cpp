@@ -4,6 +4,33 @@ namespace rego
 {
   using namespace wf::ops;
 
+  std::ostream& operator<<(
+    std::ostream& os, const std::vector<UnifierDef::Dependency>& deps)
+  {
+    for (auto it = deps.begin(); it != deps.end(); ++it)
+    {
+      if (it != deps.begin())
+      {
+        os << Logger::indent;
+      }
+
+      auto& dep = *it;
+      os << "[" << dep.name << "](" << dep.score << ") -> {";
+      join(
+        os,
+        dep.dependencies.begin(),
+        dep.dependencies.end(),
+        ", ",
+        [deps](std::ostream& stream, auto& id) {
+          stream << deps[id].name;
+          return true;
+        });
+      os << "}" << std::endl;
+    }
+
+    return os;
+  }
+
   UnifierDef::UnifierDef(
     const Location& rule,
     const Node& rulebody,
@@ -31,19 +58,7 @@ namespace rego
 
     LOG("Dependency graph:");
     LOG_INDENT();
-    for (auto& dep : m_dependency_graph)
-    {
-      std::ostringstream os;
-      os << "[" << dep.name << "](" << dep.score << ") -> {";
-      std::string sep = "";
-      for (auto id : dep.dependencies)
-      {
-        os << sep << m_dependency_graph[id].name;
-        sep = ", ";
-      }
-      os << "}";
-      LOG(os.str());
-    }
+    LOG(m_dependency_graph);
     LOG_UNINDENT();
     LOG_HEADER("ASSEMBLY COMPLETE", "---");
   }
@@ -775,7 +790,9 @@ namespace rego
           return ValueDef::copy_to(source_value, var);
         });
     }
-    else if (value->type() == Scalar)
+    else if (
+      value->type() == Scalar || value->type() == Object ||
+      value->type() == Array || value->type() == Set)
     {
       values.push_back(ValueDef::create(var, value));
     }

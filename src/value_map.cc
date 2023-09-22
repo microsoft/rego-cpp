@@ -147,17 +147,19 @@ namespace rego
   std::ostream& operator<<(std::ostream& os, const ValueMap& values)
   {
     os << "{";
-    std::string sep = "";
-    for (const auto& [key, value] : values.m_map)
-    {
-      os << sep;
-      if (!value->invalid())
-      {
-        os << "*";
-      }
-      os << key;
-      sep = ", ";
-    }
+    join(
+      os,
+      values.m_map.begin(),
+      values.m_map.end(),
+      ", ",
+      [](std::ostream& stream, const auto& pair) {
+        if (!pair.second->invalid())
+        {
+          stream << "*";
+        }
+        stream << pair.first;
+        return true;
+      });
     return os << "}";
   }
 

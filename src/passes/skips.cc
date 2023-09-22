@@ -107,6 +107,7 @@ namespace rego
         In(DataModule) *
             (T(DataRule) << (T(Var)[Var] * T(DataTerm)[DataTerm])) >>
           [](Match& _) {
+            ACTION();
             return RuleComp << _(Var) << Empty << _(DataTerm) << (Int ^ "0");
           },
       }};

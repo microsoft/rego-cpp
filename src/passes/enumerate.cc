@@ -7,12 +7,8 @@ namespace
   const auto inline LiteralToken = T(Literal) / T(LiteralWith) /
     T(LiteralEnum) / T(LiteralInit) / T(LiteralNot) / T(Local);
 
-  void all_refs(Node node, Location loc, Nodes& refs)
+  void find_all_refs_in(const Node& node, Location loc, Nodes& refs)
   {
-    if (node->type() == RefArgDot)
-    {
-      return;
-    }
     if (node->type() == Var)
     {
       if (node->location() == loc)
@@ -20,19 +16,19 @@ namespace
         refs.push_back(node);
       }
     }
-    else
+    else if (node->type() != RefArgDot)
     {
       for (auto& child : *node)
       {
-        all_refs(child, loc, refs);
+        find_all_refs_in(child, loc, refs);
       }
     }
   }
 
-  bool can_grab(Node local, Node unifybody)
+  bool should_be_defined_in(Node local, Node unifybody)
   {
     Nodes refs;
-    all_refs(local->scope(), (local / Var)->location(), refs);
+    find_all_refs_in(local->scope(), (local / Var)->location(), refs);
     for (auto& ref : refs)
     {
       if (ref->parent() == local.get())
@@ -50,20 +46,24 @@ namespace
     return true;
   }
 
-  Node next_enum(Node local)
+  Node find_enum(Node unifybody, NodeIt start)
   {
-    Node unifybody = local->parent()->shared_from_this();
-    auto it = unifybody->find(local) + 1;
-    while (it != unifybody->end())
+    for (auto it = start; it != unifybody->end(); ++it)
     {
       Node node = *it;
       if (node->type() == LiteralEnum)
       {
         return node;
       }
-      ++it;
     }
     return {};
+  }
+
+  Node next_enum(Node local)
+  {
+    Node unifybody = local->parent()->shared_from_this();
+    auto it = unifybody->find(local) + 1;
+    return find_enum(unifybody, it);
   }
 }
 
@@ -77,6 +77,7 @@ namespace rego
           ((T(LiteralEnum) << (T(Var)[Item] * T(Expr)[ItemSeq])) *
            LiteralToken++[Tail] * End) >>
         [](Match& _) {
+          ACTION();
           auto temp = _.fresh({"enum"});
           auto itemseq = _.fresh({"itemseq"});
           // all statements under the LiteralEnum node must be moved to its
@@ -98,8 +99,7 @@ namespace rego
   }
 
   // Finds enum statements hiding as <val> = <ref>[<idx>] and lifts them to
-  // LiteralEnum nodes. Also fixes situations in which a local has been
-  // incorrectly captured by an enum.
+  // LiteralEnum nodes.
   PassDef implicit_enums()
   {
     return {
@@ -113,6 +113,7 @@ namespace rego
                              << ((T(Var)[ItemSeq]) * T(RefArgBrack))))) *
                     T(AssignArg)[Rhs])))) >>
         [](Match& _) {
+          ACTION();
           return LiteralInit << _(RhsVars) << _(LhsVars)
                              << (AssignInfix << _(Rhs) << _(Lhs));
         },
@@ -130,6 +131,7 @@ namespace rego
                                    (T(RefArgBrack)[Idx]))))))))) *
            LiteralToken++[Tail] * End) >>
         [](Match& _) {
+          ACTION();
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
@@ -205,6 +207,7 @@ namespace rego
                                    T(RefArgBrack)[Idx])))))))) *
            LiteralToken++[Tail] * End) >>
         [](Match& _) {
+          ACTION();
           LOG("val = ref[idx]");
 
           Node idx = _(Idx)->front();
@@ -262,43 +265,99 @@ namespace rego
                                                     << (Int ^ "1")))))))))
                     << _[Tail]));
         },
+    };
+  }
 
-      In(UnifyBody) * T(Local)[Local]([](auto& n) {
-        Node local = *n.first;
-        if (in_query(local))
+  // Fixes situations in which a local has been in the wrong place. If the local
+  // should have been defined inside the enum, it will move the declaration
+  // inside. Conversely, if it should not be defined inside the enum it will
+  // move it out into the containing scope.
+  PassDef enum_locals()
+  {
+    PassDef enum_locals = {dir::bottomup | dir::once};
+
+    std::shared_ptr<NodeMap<std::map<Location, Nodes>>> all_refs =
+      std::make_shared<NodeMap<std::map<Location, Nodes>>>();
+    std::shared_ptr<NodeMap<Node>> moves = std::make_shared<NodeMap<Node>>();
+
+    enum_locals.pre(Local, [moves](Node local) {
+      if (in_query(local))
+      {
+        return 0;
+      }
+
+      if (starts_with((local / Var)->location().view(), "out$"))
+      {
+        // this variable is an output of a rule, and needs to stay
+        // at the scope where it was added
+        return 0;
+      }
+
+      if (is_in(local, {LiteralEnum}))
+      {
+        // should this local be defined here?
+        Node unifybody = local->parent()->shared_from_this();
+        bool requires_move = false;
+        while (!should_be_defined_in(local, unifybody))
         {
-          return false;
-        }
-        if (starts_with((local / Var)->location().view(), "out$"))
-        {
-          return false;
+          // we need to keep popping out of nested enums until we find the
+          // correct scope
+          requires_move = true;
+          NodeDef* literalenum = unifybody->parent();
+          if (literalenum->type() != LiteralEnum)
+          {
+            // we've popped out of the nested enums
+            break;
+          }
+
+          unifybody = literalenum->parent()->shared_from_this();
         }
 
-        Node literalenum = next_enum(local);
+        if (requires_move)
+        {
+          moves->insert({local, unifybody});
+          return 0;
+        }
+      }
+
+      Node literalenum = next_enum(local);
+      if (literalenum == nullptr)
+      {
+        // no enum to move to
+        return 0;
+      }
+
+      Node unifybody = nullptr;
+      while (should_be_defined_in(local, literalenum / UnifyBody))
+      {
+        // continue nesting until we find the most constrained scope
+        unifybody = literalenum / UnifyBody;
+        literalenum = find_enum(unifybody, unifybody->begin());
         if (literalenum == nullptr)
         {
-          return false;
+          // no further nested enums to check
+          break;
         }
+      }
 
-        return can_grab(local, literalenum / UnifyBody);
-      }) >>
-        [](Match& _) {
-          Node unifybody = next_enum(_(Local)) / UnifyBody;
-          unifybody->push_front(_(Local));
-          return Node{};
-        },
+      if (unifybody != nullptr)
+      {
+        moves->insert({local, unifybody});
+      }
 
-      In(UnifyBody) * T(Local)[Local] * In(LiteralEnum)++ >>
-        [](Match& _) -> Node {
-        Node unifybody = _(Local)->parent()->shared_from_this();
-        if (can_grab(_(Local), unifybody))
-          return NoChange;
-        return Lift << LiteralEnum << _(Local);
-      },
+      return 0;
+    });
 
-      In(LiteralEnum) * T(Local)[Local] >>
-        [](Match& _) { return Lift << UnifyBody << _(Local); }
+    enum_locals.post([moves](Node) {
+      for (auto& [local, target] : *moves)
+      {
+        local->parent()->replace(local);
+        target->push_front(local);
+      }
 
-    };
+      return 0;
+    });
+
+    return enum_locals;
   }
 }

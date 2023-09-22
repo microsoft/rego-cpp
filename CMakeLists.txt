@@ -66,10 +66,11 @@ option(REGOCPP_BUILD_DOCS "Specifies whether to build the documentation" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
 option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
 option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
-option(REGOCPP_USE_CXX_17 "Specifies whether to use C++17" OFF)
+option(REGOCPP_USE_CXX17 "Specifies whether to use C++17" OFF)
+option(REGOCPP_ACTION_METRICS "Specifies whether to metricate Trieste Actions" OFF)
 set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 
-if(REGOCPP_USE_CXX_17)
+if(REGOCPP_USE_CXX17)
   set(CMAKE_CXX_STANDARD 17)
 else()
   set(CMAKE_CXX_STANDARD 20)
@@ -87,7 +88,7 @@ FetchContent_Declare(
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 
-set(TRIESTE_USE_CXX_17 ${REGOCPP_USE_CXX_17})
+set(TRIESTE_USE_CXX17 ${REGOCPP_USE_CXX17})
 set(TRIESTE_BUILD_SAMPLES OFF)
 
 if (REGOCPP_SPECULATIVE_LOAD_HARDENING)

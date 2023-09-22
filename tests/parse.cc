@@ -633,7 +633,7 @@ namespace rego_test
             }
           },
 
-        ":[ ]*\n" >>
+        ":[ ]*\r*\n" >>
           [in_value, indent](auto& m) {
             if (*in_value)
             {

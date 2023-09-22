@@ -215,6 +215,11 @@ namespace rego
 
       if (!ok)
       {
+        if (errors == nullptr)
+        {
+          errors = NodeDef::create(ErrorSeq);
+        }
+
         if (errors->size() == 0)
         {
           std::ostringstream error;
@@ -239,6 +244,7 @@ namespace rego
       std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count());
 
     LOG_INFO("Query result: ", ast);
+    PRINT_ACTION_METRICS();
     return ast;
   }
 
@@ -274,12 +280,15 @@ namespace rego
         std::back_inserter(results),
         [](auto& result) { return rego::to_json(result, true); });
       std::sort(results.begin(), results.end());
-      std::string sep = "";
-      for (const auto& result : results)
-      {
-        output_buf << sep << result;
-        sep = "\n";
-      }
+      join(
+        output_buf,
+        results.begin(),
+        results.end(),
+        "\n",
+        [](std::ostream& stream, const std::string& result) {
+          stream << result;
+          return true;
+        });
     }
 
     return output_buf.str();

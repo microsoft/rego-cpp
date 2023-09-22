@@ -15,12 +15,16 @@ namespace rego
   {
     return {
       In(Group) * (T(IsIn) * (T(UnifyBody) << (T(Group)[Group] * End))) >>
-        [](Match& _) { return Seq << IsIn << (Set << _(Group)); },
+        [](Match& _) {
+          ACTION();
+          return Seq << IsIn << (Set << _(Group));
+        },
 
       In(Group) *
           (MembershipToken++[Item] * T(IsIn) * MembershipToken++[ItemSeq] *
            T(IsIn) * MembershipToken++[ItemSeq1]) >>
         [](Match& _) {
+          ACTION();
           return Seq << (Paren << (Group << _[Item] << IsIn << _[ItemSeq]))
                      << IsIn << _[ItemSeq1];
         },
@@ -29,6 +33,7 @@ namespace rego
           (MembershipToken++[Idx] * T(Comma) * MembershipToken++[Item] *
            T(IsIn) * MembershipToken++[ItemSeq] * End) >>
         [](Match& _) {
+          ACTION();
           return Membership << (Group << _[Idx]) << (Group << _[Item])
                             << (Group << _[ItemSeq]);
         },
@@ -38,6 +43,7 @@ namespace rego
            MembershipToken++[Idx] * T(Comma) * MembershipToken++[Item] *
            T(IsIn) * MembershipToken++[ItemSeq] * End) >>
         [](Match& _) {
+          ACTION();
           return Seq << _[Lhs] << _(Assign)
                      << (Membership << (Group << _[Idx]) << (Group << _[Item])
                                     << (Group << _[ItemSeq]));
@@ -48,6 +54,7 @@ namespace rego
            MembershipToken[Head1] * MembershipToken++[Tail1] *
            End)[Membership] >>
         [](Match& _) {
+          ACTION();
           return Membership << Undefined << (Group << _(Head) << _[Tail])
                             << (Group << _(Head1) << _[Tail1]);
         },
@@ -58,6 +65,7 @@ namespace rego
            MembershipToken[Head1] * MembershipToken++[Tail1] *
            End)[Membership] >>
         [](Match& _) {
+          ACTION();
           return Seq << _[Lhs] << _(Assign)
                      << (Membership << Undefined
                                     << (Group << _(Head) << _[Tail])
@@ -69,16 +77,23 @@ namespace rego
            << ((T(VarSeq) << ((T(Group) << (GroundToken[Item] * End)) * End)) *
                (T(Group) << (T(IsIn) * MembershipToken++[ItemSeq] * End)))) >>
         [](Match& _) {
+          ACTION();
           return Membership << Undefined << (Group << _(Item))
                             << (Group << _[ItemSeq]);
         },
 
       // errors
       In(Group) * T(Comma)[Comma] >>
-        [](Match& _) { return err(_(Comma), "invalid membership statement"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Comma), "invalid membership statement");
+        },
 
       T(Group)[Group] << End >>
-        [](Match& _) { return err(_(Group), "Syntax error: empty group."); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Syntax error: empty group.");
+        },
     };
   }
 }

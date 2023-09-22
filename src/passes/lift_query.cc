@@ -10,6 +10,7 @@ namespace rego
         ((T(Query) << T(UnifyBody)[Query]) * T(Input)[Input] * T(Data)[Data] *
          T(ModuleSeq)[ModuleSeq]) >>
       [](Match& _) {
+        ACTION();
         Location querymodule = _.fresh({"querymodule"});
         Location queryrule = _.fresh({"query"});
         Node module =

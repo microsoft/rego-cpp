@@ -10,38 +10,46 @@ namespace
 
 namespace rego
 {
-  ValueDef::ValueDef(const Node& value) :
-    m_node(value), m_invalid(false), m_rank(0)
-  {}
-
-  ValueDef::ValueDef(const Location& var, const Node& value) : ValueDef(value)
-  {
-    m_var = var;
-  }
-
   ValueDef::ValueDef(
-    const Location& var, const Node& value, const Values& sources) :
-    ValueDef(var, value)
+    const Location& var,
+    const Node& value,
+    const Values& sources,
+    rank_t rank) :
+    m_var(var),
+    m_node(value),
+    m_sources(sources),
+    m_invalid(false),
+    m_rank(rank)
   {
-    m_sources = sources;
+    m_json = to_json(m_node);
+    std::ostringstream os;
+    ValueDef::build_string(os, *this, m_var, true);
+    m_str = os.str();
   }
+
+  ValueDef::ValueDef(const Node& value) : ValueDef(Location(), value, {}, 0) {}
 
   ValueDef::ValueDef(const RankedNode& value) :
-    m_node(std::get<1>(value)), m_rank(std::get<0>(value))
+    ValueDef(Location(), std::get<1>(value), {}, std::get<0>(value))
   {}
 
   ValueDef::ValueDef(const Location& var, const RankedNode& value) :
-    ValueDef(value)
-  {
-    m_var = var;
-  }
+    ValueDef(var, std::get<1>(value), {}, std::get<0>(value))
+  {}
+
+  ValueDef::ValueDef(const Location& var, const Node& value) :
+    ValueDef(var, value, {}, 0)
+  {}
 
   ValueDef::ValueDef(
     const Location& var, const RankedNode& value, const Values& sources) :
-    ValueDef(var, value)
-  {
-    m_sources = sources;
-  }
+    ValueDef(var, std::get<1>(value), sources, std::get<0>(value))
+  {}
+
+  ValueDef::ValueDef(
+    const Location& var, const Node& value, const Values& sources) :
+    ValueDef(var, value, sources, 0)
+  {}
 
   Value ValueDef::copy_to(const Value& source, const Location& dest)
   {
@@ -92,38 +100,46 @@ namespace rego
       m_sources.end();
   }
 
-  std::string ValueDef::json() const
+  const std::string& ValueDef::json() const
   {
-    return to_json(m_node);
+    return m_json;
   }
 
-  std::string ValueDef::str() const
+  const std::string& ValueDef::str() const
   {
-    std::ostringstream buf;
-    buf << *this;
-    return buf.str();
+    return m_str;
   }
 
-  void ValueDef::to_string(
-    std::ostream& os, const Location& root, bool first) const
+  void ValueDef::build_string(
+    std::ostream& os, const ValueDef& current, const Location& root, bool first)
   {
-    if (m_var == root && !first)
+    if (!first)
     {
-      os << m_var.view();
+      if (current.m_var == root)
+      {
+        os << current.m_var.view();
+      }
+      else
+      {
+        os << current.m_str;
+      }
       return;
     }
 
-    os << m_var.view() << "(" << to_json(m_node) << ") -> " << m_sources.size()
-       << "{";
-    std::string sep = "";
-    for (auto& source : m_sources)
-    {
-      os << sep;
-      source->to_string(os, root, false);
-      sep = ", ";
-    }
+    os << current.m_var.view() << "(" << current.m_json << ") -> "
+       << current.m_sources.size() << "{";
+    join(
+      os,
+      current.m_sources.begin(),
+      current.m_sources.end(),
+      ", ",
+      [root](std::ostream& stream, const Value& value) {
+        build_string(stream, *value, root, false);
+        return true;
+      });
     os << "}";
   }
+
   bool ValueDef::invalid() const
   {
     if (m_sources.size() == 0)
@@ -223,8 +239,7 @@ namespace rego
 
   std::ostream& operator<<(std::ostream& os, const ValueDef& value)
   {
-    value.to_string(os, value.m_var, true);
-    return os;
+    return os << value.m_str;
   }
 
   bool operator==(const Value& lhs, const Value& rhs)

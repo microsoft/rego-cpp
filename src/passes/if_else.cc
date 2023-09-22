@@ -16,6 +16,7 @@ namespace rego
       In(Group) *
           (T(If) * (ExprToken / T(SomeDecl))[Head] * ExprTailToken++[Tail]) >>
         [](Match& _) {
+          ACTION();
           return Seq << If << (UnifyBody << (Group << _(Head) << _[Tail]));
         },
 
@@ -31,30 +32,44 @@ namespace rego
           (T(Else) * (T(Assign) / T(Unify)) * ExprToken[Head] *
            ExprTailToken++[Tail] * ~T(If) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) {
+          ACTION();
           return Else << (Group << _(Head) << _[Tail]) << _(UnifyBody);
         },
 
       In(Group) * (T(Else) * ~T(If) * T(UnifyBody)[UnifyBody]) >>
         [](Match& _) {
+          ACTION();
           return Else << (Group << (True ^ "true")) << _(UnifyBody);
         },
 
       In(Group) *
           (T(Else) * (T(Assign) / T(Unify)) * T(Group)[Group] * ~T(If) *
            T(UnifyBody)[UnifyBody]) >>
-        [](Match& _) { return Else << _(Group) << _(UnifyBody); },
+        [](Match& _) {
+          ACTION();
+          return Else << _(Group) << _(UnifyBody);
+        },
 
       In(Policy) * ((T(Group)[Lhs] << T(Var)) * (T(Group)[Rhs] << T(Else))) >>
-        [](Match& _) { return Group << *_[Lhs] << *_[Rhs]; },
+        [](Match& _) {
+          ACTION();
+          return Group << *_[Lhs] << *_[Rhs];
+        },
 
       In(Group) *
           (T(Else) * (T(Assign) / T(Unify)) * ExprToken[Head] *
            ExprTailToken++[Tail]) >>
-        [](Match& _) { return Else << (Group << _(Head) << _[Tail]) << Empty; },
+        [](Match& _) {
+          ACTION();
+          return Else << (Group << _(Head) << _[Tail]) << Empty;
+        },
 
       // errors
       In(Group) * (T(Else)[Else] << End) >>
-        [](Match& _) { return err(_(Else), "Invalid else statement"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Else), "Invalid else statement");
+        },
     };
   }
 

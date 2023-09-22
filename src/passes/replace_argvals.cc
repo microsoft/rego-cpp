@@ -85,6 +85,7 @@ namespace rego
              [](auto& n) { return contains_argval(*n.first); }) *
            (T(UnifyBody) / T(Empty))[Body]) >>
         [](Match& _) {
+          ACTION();
           Node body = _(Body);
           if (body->type() == Empty)
           {
@@ -120,10 +121,16 @@ namespace rego
 
       // errors
       In(Literal) * T(SomeExpr)[SomeExpr] >>
-        [](Match& _) { return err(_(SomeExpr), "Invalid some expression"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(SomeExpr), "Invalid some expression");
+        },
 
       T(UnifyBody)[UnifyBody] << End >>
-        [](Match& _) { return err(_(UnifyBody), "Invalid unification body"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(UnifyBody), "Invalid unification body");
+        },
     };
   }
 }

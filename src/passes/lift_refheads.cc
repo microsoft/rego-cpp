@@ -104,7 +104,10 @@ namespace rego
     PassDef lift_refheads = {
       In(RefHead) *
           (T(Ref) << ((T(RefHead) << T(Var)[Var]) * (T(RefArgSeq) << End))) >>
-        [](Match& _) { return _(Var); },
+        [](Match& _) {
+          ACTION();
+          return _(Var);
+        },
 
       In(Policy) * T(Rule)[Rule]([](auto& n) {
         Node rule = *n.first;
@@ -117,6 +120,7 @@ namespace rego
         return false;
       }) >>
         [refheads](Match& _) {
+          ACTION();
           Node module = _(Rule)->parent()->parent()->shared_from_this();
           Node imports = (module / ImportSeq)->clone();
           Node package_ref = (module / Package)->front();

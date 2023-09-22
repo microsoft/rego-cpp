@@ -53,26 +53,34 @@ namespace rego
   {
     return {
       In(Data) * (T(Brace) << T(List)[List]) >>
-        [](Match& _) { return ObjectItemSeq << *_[List]; },
+        [](Match& _) {
+          ACTION();
+          return ObjectItemSeq << *_[List];
+        },
 
       In(Data) * (T(Brace) << End) >>
         [](Match&) -> Node { return ObjectItemSeq; },
 
       In(Group) * (T(Var)[Var] * T(If) * T(Brace)[Brace]) >>
         [](Match& _) {
+          ACTION();
           return Seq << _(Var) << If << (UnifyBody << *_[Brace]);
         },
 
       In(Group) *
           (Start * T(Var)[Var]([](auto& n) { return is_top_level(*n.first); }) *
            T(Brace)[Brace]) >>
-        [](Match& _) { return Seq << _(Var) << (UnifyBody << *_[Brace]); },
+        [](Match& _) {
+          ACTION();
+          return Seq << _(Var) << (UnifyBody << *_[Brace]);
+        },
 
       In(Group) *
           (Start * T(Var)[Var]([](auto& n) { return is_top_level(*n.first); }) *
            (T(Assign) / T(Unify))[Assign] * ExprToken[Head] *
            ExprToken++[Tail] * T(Brace)[Brace]) >>
         [](Match& _) {
+          ACTION();
           return Seq << _(Var) << _(Assign) << _(Head) << _[Tail]
                      << (UnifyBody << *_[Brace]);
         },
@@ -81,6 +89,7 @@ namespace rego
           ((T(Square) / T(Brace))[Compr] << (T(Group)[Group](
              [](auto& n) { return contains_or(*n.first); }))) >>
         [](Match& _) {
+          ACTION();
           // array/set comprehension
           Node group = NodeDef::create(Group);
           Node item = NodeDef::create(Undefined);
@@ -124,6 +133,7 @@ namespace rego
                   End) *
                T(Group)++[UnifyBody] * End)) >>
         [](Match& _) {
+          ACTION();
           // object comprehension
           Node group = NodeDef::create(Group);
           Node val;
@@ -157,25 +167,41 @@ namespace rego
           (T(Brace)
            << (T(List)
                << (T(ObjectItem)[Head] * T(ObjectItem)++[Tail] * End))) >>
-        [](Match& _) { return Object << _(Head) << _[Tail]; },
+        [](Match& _) {
+          ACTION();
+          return Object << _(Head) << _[Tail];
+        },
 
       In(Group) * (T(Brace) << (T(List)[List] * End)) >>
-        [](Match& _) { return Set << *_[List]; },
+        [](Match& _) {
+          ACTION();
+          return Set << *_[List];
+        },
 
       In(Group) *
           T(Brace)[Brace]([](auto& n) { return is_top_level(*n.first); }) >>
-        [](Match& _) { return UnifyBody << *_[Brace]; },
+        [](Match& _) {
+          ACTION();
+          return UnifyBody << *_[Brace];
+        },
 
       In(Group) * (T(Square) << (T(List)[List] * End)) >>
-        [](Match& _) { return Array << *_[List]; },
+        [](Match& _) {
+          ACTION();
+          return Array << *_[List];
+        },
 
       In(Group, ImportRef) * (T(Square) << T(Group)[Group]) >>
-        [](Match& _) { return Array << _(Group); },
+        [](Match& _) {
+          ACTION();
+          return Array << _(Group);
+        },
 
       T(List)
           << ((T(Group) << (T(Every) * T(Var)[Key])) *
               (T(Group) << (T(Var)[Val] * Any[Head] * Any++[Tail]))) >>
         [](Match& _) {
+          ACTION();
           return Group
             << (ExprEvery << (VarSeq << (Group << _(Key)) << (Group << _(Val)))
                           << (EverySeq << (Group << _(Head) << _[Tail])));
@@ -183,15 +209,22 @@ namespace rego
 
       In(Group) * (T(Every) * T(Var)[Var] * Any++[Tail]) >>
         [](Match& _) {
+          ACTION();
           return ExprEvery << (VarSeq << (Group << _(Var)))
                            << (EverySeq << (Group << _[Tail]));
         },
 
       In(Group) * T(UnifyBody)[UnifyBody] * In(ExprEvery)++ >>
-        [](Match& _) { return Lift << ExprEvery << _(UnifyBody); },
+        [](Match& _) {
+          ACTION();
+          return Lift << ExprEvery << _(UnifyBody);
+        },
 
       In(Group) * (T(Brace) << (T(Group)[Head] * T(Group)++[Tail] * End)) >>
-        [](Match& _) { return UnifyBody << _(Head) << _[Tail]; },
+        [](Match& _) {
+          ACTION();
+          return UnifyBody << _(Head) << _[Tail];
+        },
 
       T(List)
           << ((T(Group)
@@ -202,6 +235,7 @@ namespace rego
                             MembershipToken++[ItemSeq1]) *
                  End)) >>
         [](Match& _) {
+          ACTION();
           return Group << _[Lhs] << _(Assign)
                        << (Paren
                            << (Group << _[Idx] << Comma << _[Item] << IsIn
@@ -216,6 +250,7 @@ namespace rego
                             MembershipToken++[ItemSeq1]) *
                  End)) >>
         [](Match& _) {
+          ACTION();
           return Group << (Paren
                            << (Group << _[Idx] << Comma << _[Item] << IsIn
                                      << _[ItemSeq]))
@@ -230,6 +265,7 @@ namespace rego
                << (MembershipToken++[Item] * T(IsIn)[IsIn] *
                    MembershipToken++[ItemSeq] * End))) >>
         [](Match& _) {
+          ACTION();
           return Group << _[Lhs] << _(Assign) << _[Idx] << Comma << _[Item]
                        << IsIn << _[ItemSeq];
         },
@@ -240,13 +276,19 @@ namespace rego
                << (MembershipToken++[Item] * T(IsIn)[IsIn] *
                    MembershipToken++[ItemSeq] * End))) >>
         [](Match& _) {
+          ACTION();
           return Group << _[Idx] << Comma << _[Item] << IsIn << _[ItemSeq];
         },
 
-      In(UnifyBody) * T(List)[List] >> [](Match& _) { return Seq << *_[List]; },
+      In(UnifyBody) * T(List)[List] >>
+        [](Match& _) {
+          ACTION();
+          return Seq << *_[List];
+        },
 
       In(Group) * (T(Some) << (T(List)[List] * End)) >>
         [](Match& _) {
+          ACTION();
           Node list = _(List);
           if (list->size() == 0)
           {
@@ -309,6 +351,7 @@ namespace rego
 
       In(Group) * (T(Some) << T(Group)[Group]) >>
         [](Match& _) {
+          ACTION();
           Node group = _(Group);
 
           auto in_pos = group->begin();
@@ -343,63 +386,108 @@ namespace rego
       // errors
 
       In(Data) * T(Brace)[Brace] >>
-        [](Match& _) { return err(_(Brace), "Invalid data body"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Brace), "Invalid data body");
+        },
 
       In(Group) * T(Brace)[Brace] >>
-        [](Match& _) { return err(_(Brace), "Invalid object"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Brace), "Invalid object");
+        },
 
       In(Group) * T(Square)[Square] >>
-        [](Match& _) { return err(_(Square), "Invalid array"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Square), "Invalid array");
+        },
 
       In(Group) * T(Some)[Some] >>
-        [](Match& _) { return err(_(Some), "Invalid some declaration"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Some), "Invalid some declaration");
+        },
 
       In(SomeDecl) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) {
+          ACTION();
           return err(_(ObjectItem), "Invalid object item in some-decl");
         },
 
       In(VarSeq) * T(ObjectItem)[ObjectItem] >>
         [](Match& _) {
+          ACTION();
           return err(_(ObjectItem), "Invalid object item in var-seq");
         },
 
       In(Some) * (T(List) * Any[Rhs]) >>
         [](Match& _) {
+          ACTION();
           return err(_(Rhs), "Invalid second node in some declaration");
         },
 
       In(ObjectItemSeq, Object) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Invalid object key/value"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Invalid object key/value");
+        },
 
       In(Array, Set, List) * T(ObjectItem)[ObjectItem] >>
-        [](Match& _) { return err(_(ObjectItem), "Invalid item"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(ObjectItem), "Invalid item");
+        },
 
       In(Group) * T(Group)[Group] >>
-        [](Match& _) { return err(_(Group), "Syntax error"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Syntax error");
+        },
 
       In(Group) * T(Every)[Every] >>
-        [](Match& _) { return err(_(Every), "Invalid every"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Every), "Invalid every");
+        },
 
       In(ImportRef) * T(Square)[Square] >>
-        [](Match& _) { return err(_(Square), "Invalid reference"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Square), "Invalid reference");
+        },
 
       In(UnifyBody) * T(List)[List] >>
-        [](Match& _) { return err(_(List), "Invalid block"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(List), "Invalid block");
+        },
 
       In(EverySeq) * (T(Group)[Group] << End) >>
-        [](Match& _) { return err(_(Group), "Invalid every sequence"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Invalid every sequence");
+        },
 
       In(ExprEvery) * (T(VarSeq) * T(EverySeq)[EverySeq]([](auto& n) {
                          return !::contains(*n.first, {UnifyBody, Brace});
                        })) >>
-        [](Match& _) { return err(_(EverySeq), "Missing body of every"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(EverySeq), "Missing body of every");
+        },
 
       In(ArrayCompr, SetCompr, ObjectCompr) * (T(Group)[Group] << End) >>
-        [](Match& _) { return err(_(Group), "Invalid comprehension"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Invalid comprehension");
+        },
 
       In(UnifyBody) * T(ObjectItem)[ObjectItem] >>
-        [](Match& _) { return err(_(ObjectItem), "Invalid key/value pair"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(ObjectItem), "Invalid key/value pair");
+        },
     };
   }
 }

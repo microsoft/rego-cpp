@@ -7,11 +7,15 @@ namespace rego
   {
     return {
       In(Group) * (T(Contains)[Contains] * T(Paren)[Paren]) >>
-        [](Match& _) { return Seq << (Var ^ _(Contains)) << _(Paren); },
+        [](Match& _) {
+          ACTION();
+          return Seq << (Var ^ _(Contains)) << _(Paren);
+        },
 
       In(Group) *
           (RuleRefToken[Head] * RuleRefToken++[Tail] * T(Paren)[Paren]) >>
         [](Match& _) {
+          ACTION();
           Node argseq = NodeDef::create(ArgSeq);
           Node paren = _(Paren);
           if (paren->front()->type() == List)
@@ -60,7 +64,10 @@ namespace rego
       // errors
 
       T(Group)[Group] << End >>
-        [](Match& _) { return err(_(Group), "Syntax error: empty group"); },
+        [](Match& _) {
+          ACTION();
+          return err(_(Group), "Syntax error: empty group");
+        },
     };
   }
 }

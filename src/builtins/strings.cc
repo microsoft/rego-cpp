@@ -51,11 +51,13 @@ namespace
     }
 
     std::ostringstream result_str;
-    std::string sep = "";
-    for (auto& item : items)
+    for (auto it = items.begin(); it != items.end(); ++it)
     {
-      result_str << sep << item;
-      sep = delim_str;
+      if (it != items.begin())
+      {
+        result_str << delim_str;
+      }
+      result_str << *it;
     }
 
     return Resolver::scalar(result_str.str());

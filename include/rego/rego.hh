@@ -713,12 +713,13 @@ namespace rego
   // clang-format on
 
   inline const auto wf_pass_implicit_enums = wf_pass_init;
+  inline const auto wf_pass_enum_locals = wf_pass_implicit_enums;
 
   inline const auto wf_rulebody_exprs = (wf_assign_exprs - AssignInfix);
 
   // clang-format off
   inline const auto wf_pass_rulebody =
-    wf_pass_implicit_enums
+    wf_pass_enum_locals
     | (Module <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
     | (UnifyExpr <<= Var * (Val >>= Expr))
     | (Expr <<= wf_rulebody_exprs)
@@ -750,9 +751,9 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_functions =
     wf_pass_lift_to_rule
-    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Function))
+    | (UnifyExpr <<= Var * (Val >>= Var | Scalar | Array | Set | Object | Function))
     | (Function <<= JSONString * ArgSeq)
-    | (ArgSeq <<= (Scalar | Var | wf_arith_op | wf_bin_op | wf_bool_op | NestedBody | VarSeq)++)
+    | (ArgSeq <<= (Scalar | Object | Array | Set | Var | wf_arith_op | wf_bin_op | wf_bool_op | NestedBody | VarSeq)++)
     | (Input <<= Key * (Val >>= Term | Undefined))[Key]
     | (Array <<= Term++)
     | (Set <<= Term++)

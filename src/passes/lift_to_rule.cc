@@ -151,6 +151,7 @@ namespace rego
              << (T(Var)[Var] * T(Var)[Item] * T(Var)[ItemSeq] *
                  T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
+            ACTION();
             Node rulebody = _(UnifyBody);
             // in vars
             Locs invars;
@@ -252,6 +253,7 @@ namespace rego
                  (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] *
                  (T(NestedBody) << (T(Key)[Key] * T(UnifyBody)[UnifyBody])))) >>
           [](Match& _) {
+            ACTION();
             Node rulebody = _(UnifyBody);
             Locs invars;
             find_invars(_(UnifyBody), invars);
@@ -327,6 +329,7 @@ namespace rego
         In(Expr) *
             ((T(ExprEvery) * In(DataModule)++) << T(UnifyBody)[UnifyBody]) >>
           [](Match& _) {
+            ACTION();
             Node rulebody = _(UnifyBody);
             Locs invars;
             find_invars(_(UnifyBody), invars);

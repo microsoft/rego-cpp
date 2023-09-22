@@ -668,7 +668,7 @@ namespace rego
     {
       if (contains(values, to_json(term)))
       {
-        set->push_back(term);
+        set->push_back(term->clone());
       }
     }
 
@@ -705,7 +705,7 @@ namespace rego
     Node set = NodeDef::create(Set);
     for (auto [_, member] : members)
     {
-      set->push_back(member);
+      set->push_back(member->clone());
     }
 
     return set;
@@ -734,7 +734,7 @@ namespace rego
     {
       if (!contains(values, to_json(term)))
       {
-        set->push_back(term);
+        set->push_back(term->clone());
       }
     }
 
@@ -791,30 +791,40 @@ namespace rego
       node, [](std::ostream& os, const Node& unifyexprwith) -> std::ostream& {
         Node unifybody = unifyexprwith / UnifyBody;
         os << "{";
-        std::string sep = "";
-        for (Node expr : *unifybody)
-        {
-          if (expr->type() == UnifyExpr)
-          {
-            os << sep << expr_str(expr);
-            sep = "; ";
-          }
-          else if (expr->type() == UnifyExprNot)
-          {
-            os << sep << not_str(expr);
-            sep = "; ";
-          }
-        }
+        join(
+          os,
+          unifybody->begin(),
+          unifybody->end(),
+          "; ",
+          [](std::ostream& stream, const Node& expr) {
+            if (expr->type() == UnifyExpr)
+            {
+              stream << expr_str(expr);
+              return true;
+            }
+
+            if (expr->type() == UnifyExprNot)
+            {
+              stream << not_str(expr);
+              return true;
+            }
+
+            return false;
+          });
         os << "} ";
-        sep = "";
+
         Node withseq = unifyexprwith / WithSeq;
-        for (Node with : *withseq)
-        {
-          Node ref = with / RuleRef;
-          Node var = with / Var;
-          os << sep << "with " << ref_str(ref) << " as " << arg_str(var);
-          sep = "; ";
-        }
+        join(
+          os,
+          withseq->begin(),
+          withseq->end(),
+          "; ",
+          [](std::ostream& stream, const Node& with) {
+            Node ref = with / RuleRef;
+            Node var = with / Var;
+            stream << "with " << ref_str(ref) << " as " << arg_str(var);
+            return true;
+          });
         return os;
       }};
   }
@@ -827,15 +837,20 @@ namespace rego
         Node rhs = unifyexprcompr / Val;
         Node unifybody = unifyexprcompr / UnifyBody;
         os << lhs->location().view() << " = " << rhs->type().str() << "{";
-        std::string sep = "";
-        for (Node expr : *unifybody)
-        {
-          if (expr->type() != Local)
-          {
-            os << sep << stmt_str(expr);
-            sep = "; ";
-          }
-        }
+        join(
+          os,
+          unifybody->begin(),
+          unifybody->end(),
+          "; ",
+          [](std::ostream& stream, const Node& expr) {
+            if (expr->type() != Local)
+            {
+              stream << stmt_str(expr);
+              return true;
+            }
+
+            return false;
+          });
         os << "}";
         return os;
       }};
@@ -850,15 +865,20 @@ namespace rego
         Node unifybody = unifyexprenum / NestedBody / UnifyBody;
         os << "foreach " << item->location().view() << " in "
            << itemseq->location().view() << " unify {";
-        std::string sep = "";
-        for (Node expr : *unifybody)
-        {
-          if (expr->type() != Local)
-          {
-            os << sep << stmt_str(expr);
-            sep = "; ";
-          }
-        }
+        join(
+          os,
+          unifybody->begin(),
+          unifybody->end(),
+          "; ",
+          [](std::ostream& stream, const Node& expr) {
+            if (expr->type() != Local)
+            {
+              stream << stmt_str(expr);
+              return true;
+            }
+
+            return false;
+          });
         os << "}";
         return os;
       }};
@@ -870,15 +890,20 @@ namespace rego
       node, [](std::ostream& os, const Node& unifyexprnot) -> std::ostream& {
         Node unifybody = unifyexprnot->front();
         os << "not {";
-        std::string sep = "";
-        for (Node expr : *unifybody)
-        {
-          if (expr->type() != Local)
-          {
-            os << sep << stmt_str(expr);
-            sep = "; ";
-          }
-        }
+        join(
+          os,
+          unifybody->begin(),
+          unifybody->end(),
+          "; ",
+          [](std::ostream& stream, const Node& expr) {
+            if (expr->type() != Local)
+            {
+              stream << stmt_str(expr);
+              return true;
+            }
+
+            return false;
+          });
         os << "}";
         return os;
       }};
@@ -890,12 +915,15 @@ namespace rego
               Node name = function / JSONString;
               Node args = function / ArgSeq;
               os << name->location().view() << "(";
-              std::string sep = "";
-              for (const auto& child : *args)
-              {
-                os << sep << arg_str(child);
-                sep = ", ";
-              }
+              join(
+                os,
+                args->begin(),
+                args->end(),
+                ", ",
+                [](std::ostream& stream, const Node& arg) {
+                  stream << arg_str(arg);
+                  return true;
+                });
               os << ")";
               return os;
             }};
@@ -912,26 +940,34 @@ namespace rego
               {
                 os << "{";
                 Node body = arg / Val;
-                std::string sep = "";
-                for (Node expr : *body)
-                {
-                  if (expr->type() != Local)
-                  {
-                    os << sep << stmt_str(expr);
-                    sep = "; ";
-                  }
-                }
+                join(
+                  os,
+                  body->begin(),
+                  body->end(),
+                  "; ",
+                  [](std::ostream& stream, const Node& expr) {
+                    if (expr->type() != Local)
+                    {
+                      stream << stmt_str(expr);
+                      return true;
+                    }
+
+                    return false;
+                  });
                 os << "}";
               }
               else if (arg->type() == VarSeq)
               {
                 os << "[";
-                std::string sep = "";
-                for (Node var : *arg)
-                {
-                  os << sep << var->location().view();
-                  sep = ", ";
-                }
+                join(
+                  os,
+                  arg->begin(),
+                  arg->end(),
+                  ", ",
+                  [](std::ostream& stream, const Node& var) {
+                    stream << var->location().view();
+                    return true;
+                  });
                 os << "]";
               }
               else
@@ -1387,12 +1423,16 @@ namespace rego
             if (current->type() == RuleFunc)
             {
               os << "(";
-              std::string sep = "";
-              for (auto& arg : *(current / RuleArgs))
-              {
-                os << sep << (arg / Var)->location().view();
-                sep = ", ";
-              }
+              Node args = current / RuleArgs;
+              join(
+                os,
+                args->begin(),
+                args->end(),
+                ", ",
+                [](std::ostream& stream, const Node& arg) {
+                  stream << (arg / Var)->location().view();
+                  return true;
+                });
               os << ")";
             }
             os << std::endl;
