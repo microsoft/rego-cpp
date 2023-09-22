@@ -7,7 +7,7 @@ namespace
   const auto inline LiteralToken = T(Literal) / T(LiteralWith) /
     T(LiteralEnum) / T(LiteralInit) / T(LiteralNot) / T(Local);
 
-  void find_all_refs_in(Node node, Location loc, Nodes& refs)
+  void find_all_refs_in(const Node& node, Location loc, Nodes& refs)
   {
     if (node->type() == Var)
     {
