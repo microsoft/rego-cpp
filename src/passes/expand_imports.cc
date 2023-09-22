@@ -6,26 +6,30 @@ namespace rego
   PassDef expand_imports()
   {
     return {
-      In(RefTerm, RuleRef) * T(Var)[Var]([](auto& n) {
-        return is_ref_to_type(*n.first, {Import});
-      }) >>
-        [](Match& _) {
+      In(RefTerm, RuleRef) * T(Var)[Var] >>
+        [](Match& _) -> Node {
           // <import>
           Nodes defs = _(Var)->lookup();
+          if (defs.empty())
+            return NoChange;
           Node import = defs[0];
+          if (import->type() != Import)
+            return NoChange;
           Node ref = import / Ref;
           return ref->clone();
         },
 
       In(RefTerm, RuleRef) *
-          (T(Ref)
-           << ((T(RefHead) << T(Var)[Var](
-                  [](auto& n) { return is_ref_to_type(*n.first, {Import}); })) *
-               T(RefArgSeq)[RefArgSeq])) >>
-        [](Match& _) {
+          (T(Ref) << ((T(RefHead) << T(Var)[Var]) * T(RefArgSeq)[RefArgSeq])) >>
+        [](Match& _) -> Node {
           // <import>.dot <import>[brack]
           Nodes defs = _(Var)->lookup();
+          if (defs.empty())
+            return NoChange;
           Node import = defs[0];
+          if (import->type() != Import)
+            return NoChange;
+
           Node ref = import / Ref;
           Node refhead = (ref / RefHead)->clone();
           Node refargseq = (ref / RefArgSeq)->clone();
