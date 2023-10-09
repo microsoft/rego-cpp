@@ -6,6 +6,8 @@ namespace rego
   PassDef unify(const BuiltIns& builtins)
   {
     PassDef unify = {
+      "unify",
+      wf_pass_unify,
       dir::bottomup | dir::once,
       {
         In(Input) * T(Term) >>

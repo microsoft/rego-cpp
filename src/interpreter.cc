@@ -8,7 +8,6 @@ namespace rego
 
   Interpreter::Interpreter() :
     m_parser(parser()),
-    m_wf_parser(wf_parser),
     m_module_seq(NodeDef::create(ModuleSeq)),
     m_data_seq(NodeDef::create(DataSeq)),
     m_input(NodeDef::create(Input)),
@@ -16,7 +15,7 @@ namespace rego
     m_debug_enabled(false),
     m_well_formed_checks_enabled(false)
   {
-    wf::push_back(&wf_parser);
+    wf::push_back(wf_parser);
     m_builtins.register_standard_builtins();
   }
 
@@ -163,10 +162,10 @@ namespace rego
     rego->push_back(m_module_seq->clone());
     ast->push_back(rego);
 
-    bool ok = m_wf_parser.build_st(ast, std::cerr);
+    bool ok = m_parser.wf().build_st(ast);
     if (m_well_formed_checks_enabled)
     {
-      ok = m_wf_parser.check(ast, std::cerr) && ok;
+      ok = m_parser.wf().check(ast) && ok;
     }
 
     write_ast(0, "parse", ast);
@@ -182,18 +181,20 @@ namespace rego
     for (std::size_t i = 0; i < passes.size(); ++i)
     {
       timestamp pass_start = clock::now();
-      auto& [pass_name, pass, wf] = passes[i];
+      auto& pass = passes[i];
+      const auto& wf = pass->wf();
+      const auto& pass_name = pass->name();
       wf::push_back(wf);
       auto [new_ast, count, changes] = pass->run(ast);
       wf::pop_front();
       ast = new_ast;
 
-      ok = wf->build_st(ast, std::cout);
+      ok = wf.build_st(ast);
       write_ast(i + 1, pass_name, ast);
 
       if (m_well_formed_checks_enabled)
       {
-        ok = wf->check(ast, std::cout) && ok;
+        ok = wf.check(ast) && ok;
       }
 
       duration pass_elapsed = clock::now() - pass_start;
@@ -222,9 +223,10 @@ namespace rego
 
         if (errors->size() == 0)
         {
+          // TODO build error message properly
           std::ostringstream error;
           error << "Failed at pass " << pass_name << std::endl;
-          ast->errors(error);
+          ast->errors();
           errors->push_back(err(ast, error.str(), "well_formed_error"));
           LOG_INFO(error.str());
         }

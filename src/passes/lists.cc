@@ -52,6 +52,10 @@ namespace rego
   PassDef lists()
   {
     return {
+      "lists",
+      wf_pass_lists,
+      dir::topdown,
+      {
       In(Data) * (T(Brace) << T(List)[List]) >>
         [](Match& _) {
           ACTION();
@@ -488,6 +492,6 @@ namespace rego
           ACTION();
           return err(_(ObjectItem), "Invalid key/value pair");
         },
-    };
+    }};
   }
 }

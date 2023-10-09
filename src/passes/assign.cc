@@ -67,7 +67,10 @@ namespace rego
     FunctionArity func_arity =
       std::make_shared<std::map<std::string, std::size_t>>();
 
-    PassDef assign = {
+    PassDef assign {
+      "assign",
+      wf_pass_assign,
+      {
       In(Expr) *
           (AssignInfixArg[Head] * In(UnifyBody)++ * T(Unify) *
            AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs] * End) >>
@@ -204,7 +207,7 @@ namespace rego
           ACTION();
           return err(_(Set), "Invalid set in expression");
         },
-    };
+    }};
 
     assign.pre(Rego, [func_arity, builtins](Node node) {
       if (!func_arity->empty())

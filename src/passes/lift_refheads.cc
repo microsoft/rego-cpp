@@ -101,7 +101,11 @@ namespace rego
   {
     RefHeads refheads = std::make_shared<std::set<std::string>>();
 
-    PassDef lift_refheads = {
+    PassDef lift_refheads {
+      "lift_refheads",
+      wf_pass_lift_refheads,
+      dir::topdown,
+      {
       In(RefHead) *
           (T(Ref) << ((T(RefHead) << T(Var)[Var]) * (T(RefArgSeq) << End))) >>
         [](Match& _) {
@@ -164,7 +168,7 @@ namespace rego
                       << (Module << (Package << new_package_ref) << imports
                                  << (Policy << _(Rule)));
         },
-    };
+    }};
 
     lift_refheads.pre(Rego, [refheads](Node node) {
       if (refheads->size() == 0)

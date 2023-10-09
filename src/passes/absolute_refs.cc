@@ -52,39 +52,43 @@ namespace rego
   PassDef absolute_refs()
   {
     return {
-      In(RefTerm, RuleRef) * T(Var)[Var]([](auto& n) {
-        return is_ref_to_type(*n.first, RuleTypes);
-      }) >>
-        [](Match& _) {
-          ACTION();
-          // <rule>
-          Nodes defs = _(Var)->lookup();
-          Node rule = defs[0];
-          return build_ref(rule);
-        },
+      "absolute_refs",
+      wf_pass_absolute_refs,
+      dir::topdown,
+      {
+        In(RefTerm, RuleRef) * T(Var)[Var]([](auto& n) {
+          return is_ref_to_type(*n.first, RuleTypes);
+        }) >>
+          [](Match& _) {
+            ACTION();
+            // <rule>
+            Nodes defs = _(Var)->lookup();
+            Node rule = defs[0];
+            return build_ref(rule);
+          },
 
-      In(RefTerm, RuleRef) *
-          (T(Ref)
-           << ((T(RefHead) << T(Var)[Var]([](auto& n) {
-                  return is_ref_to_type(*n.first, RuleTypes);
-                })) *
-               T(RefArgSeq)[RefArgSeq])) >>
-        [](Match& _) {
-          ACTION();
-          // <rule>.dot <rule>[brack]
-          Nodes defs = _(Var)->lookup();
-          Node rule = defs[0];
-          Node ref = build_ref(rule);
-          Node refargseq = (ref / RefArgSeq);
-          refargseq << *_[RefArgSeq];
-          return ref;
-        },
+        In(RefTerm, RuleRef) *
+            (T(Ref)
+             << ((T(RefHead) << T(Var)[Var]([](auto& n) {
+                    return is_ref_to_type(*n.first, RuleTypes);
+                  })) *
+                 T(RefArgSeq)[RefArgSeq])) >>
+          [](Match& _) {
+            ACTION();
+            // <rule>.dot <rule>[brack]
+            Nodes defs = _(Var)->lookup();
+            Node rule = defs[0];
+            Node ref = build_ref(rule);
+            Node refargseq = (ref / RefArgSeq);
+            refargseq << *_[RefArgSeq];
+            return ref;
+          },
 
-      In(Policy) * T(Import) >>
-        [](Match&) {
-          ACTION();
-          return Node{};
-        },
-    };
+        In(Policy) * T(Import) >>
+          [](Match&) {
+            ACTION();
+            return Node{};
+          },
+      }};
   }
 }

@@ -30,7 +30,11 @@ namespace rego
   // unification.
   PassDef structure()
   {
-    PassDef structure = {
+    PassDef structure {
+      "structure",
+      wf_pass_structure,
+      dir::topdown,
+      {
       In(UnifyBody) *
           (T(Group)[Lhs]([](auto& n) {
              // test if there was a newline inside an expression
@@ -614,7 +618,7 @@ namespace rego
           ACTION();
           return err(_(SomeDecl), "Invalid some declaration");
         },
-    };
+    }};
 
     return structure;
   }

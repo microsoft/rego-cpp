@@ -6,6 +6,10 @@ namespace rego
   PassDef lift_query()
   {
     return {
+      "lift_query",
+      wf_pass_lift_query,
+      dir::topdown,
+      {
       In(Rego) *
         ((T(Query) << T(UnifyBody)[Query]) * T(Input)[Input] * T(Data)[Data] *
          T(ModuleSeq)[ModuleSeq]) >>
@@ -24,6 +28,6 @@ namespace rego
         std::string ref = oss.str();
         return Seq << (Query << (Var ^ ref)) << _(Input) << _(Data)
                    << (ModuleSeq << module << *_[ModuleSeq]);
-      }};
+      }}};
   }
 }

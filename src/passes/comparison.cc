@@ -13,6 +13,10 @@ namespace rego
   PassDef comparison()
   {
     return {
+      "comparison",
+      wf_pass_comparison,
+      dir::topdown,
+      {
       In(UnifyBody) * (T(Literal) << (T(Expr) << (T(Not) * Any++[Expr]))) >>
         [](Match& _) {
           ACTION();
@@ -105,6 +109,6 @@ namespace rego
           ACTION();
           return err(_(Expr), "Invalid set argument");
         },
-    };
+    }};
   }
 }

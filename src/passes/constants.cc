@@ -6,6 +6,10 @@ namespace rego
   PassDef constants()
   {
     return {
+      "constants",
+      wf_pass_constants,
+      dir::topdown,
+      {
       In(RuleComp, RuleFunc, RuleSet, DefaultRule) *
           T(Term)[Term]([](auto& n) { return is_constant(*n.first); }) >>
         [](Match& _) {
@@ -160,6 +164,6 @@ namespace rego
         },
 
       // errors
-    };
+    }};
   }
 }

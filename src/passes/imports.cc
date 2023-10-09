@@ -19,98 +19,102 @@ namespace rego
   PassDef imports()
   {
     return {
-      In(With) *
-          (T(Group)[RuleRef] * (T(Group) << (T(As) * Any++[WithExpr]))) >>
-        [](Match& _) {
-          ACTION();
-          return Seq << (RuleRef << _(RuleRef))
-                     << (WithExpr << (Group << _[WithExpr]));
-        },
+      "imports",
+      wf_pass_imports,
+      dir::topdown,
+      {
+        In(With) *
+            (T(Group)[RuleRef] * (T(Group) << (T(As) * Any++[WithExpr]))) >>
+          [](Match& _) {
+            ACTION();
+            return Seq << (RuleRef << _(RuleRef))
+                       << (WithExpr << (Group << _[WithExpr]));
+          },
 
-      In(ImportSeq) *
-          (T(Import)
-           << (T(Group)
-               << (T(Var)(
-                     [](auto& n) { return loc_equals(*n.first, "future"); }) *
-                   T(Dot) * T(Var)([](auto& n) {
-                     return loc_equals(*n.first, "keywords");
-                   }) *
-                   T(Dot) * T(Var)[Keyword] * End))) >>
-        [](Match& _) {
-          ACTION();
-          if (_(Keyword)->location().view() == "every")
-          {
-            return Seq << (Keyword << (Var ^ "every"))
-                       << (Keyword << (Var ^ "in"));
-          }
-          return Keyword << _(Keyword);
-        },
+        In(ImportSeq) *
+            (T(Import)
+             << (T(Group)
+                 << (T(Var)(
+                       [](auto& n) { return loc_equals(*n.first, "future"); }) *
+                     T(Dot) * T(Var)([](auto& n) {
+                       return loc_equals(*n.first, "keywords");
+                     }) *
+                     T(Dot) * T(Var)[Keyword] * End))) >>
+          [](Match& _) {
+            ACTION();
+            if (_(Keyword)->location().view() == "every")
+            {
+              return Seq << (Keyword << (Var ^ "every"))
+                         << (Keyword << (Var ^ "in"));
+            }
+            return Keyword << _(Keyword);
+          },
 
-      In(ImportSeq) *
-          (T(Import)
-           << (T(Group)
-               << (T(Var)(
-                     [](auto& n) { return loc_equals(*n.first, "future"); }) *
-                   T(Dot) * T(Var)([](auto& n) {
-                     return loc_equals(*n.first, "keywords");
-                   }) *
-                   End))) >>
-        [](Match&) {
-          ACTION();
-          Node seq = NodeDef::create(Seq);
-          for (auto& keyword : Keywords)
-          {
-            seq->push_back(Keyword << (Var ^ keyword));
-          }
-          return seq;
-        },
+        In(ImportSeq) *
+            (T(Import)
+             << (T(Group)
+                 << (T(Var)(
+                       [](auto& n) { return loc_equals(*n.first, "future"); }) *
+                     T(Dot) * T(Var)([](auto& n) {
+                       return loc_equals(*n.first, "keywords");
+                     }) *
+                     End))) >>
+          [](Match&) {
+            ACTION();
+            Node seq = NodeDef::create(Seq);
+            for (auto& keyword : Keywords)
+            {
+              seq->push_back(Keyword << (Var ^ keyword));
+            }
+            return seq;
+          },
 
-      In(ImportSeq) *
-          (T(Import)
-           << ((T(Group)
-                << (ImportToken[Head] * ImportToken++[Tail] * T(As) *
-                    T(Var)[Var] * End)) *
-               End)) >>
-        [](Match& _) {
-          ACTION();
-          return Import << (ImportRef << (Group << _(Head) << _[Tail])) << As
-                        << _(Var);
-        },
+        In(ImportSeq) *
+            (T(Import)
+             << ((T(Group)
+                  << (ImportToken[Head] * ImportToken++[Tail] * T(As) *
+                      T(Var)[Var] * End)) *
+                 End)) >>
+          [](Match& _) {
+            ACTION();
+            return Import << (ImportRef << (Group << _(Head) << _[Tail])) << As
+                          << _(Var);
+          },
 
-      In(ImportSeq) *
-          (T(Import)
-           << ((T(Group) << (ImportToken[Head] * ImportToken++[Tail] * End)) *
-               End)) >>
-        [](Match& _) {
-          ACTION();
-          return Import << (ImportRef << (Group << _(Head) << _[Tail])) << As
-                        << Undefined;
-        },
+        In(ImportSeq) *
+            (T(Import)
+             << ((T(Group) << (ImportToken[Head] * ImportToken++[Tail] * End)) *
+                 End)) >>
+          [](Match& _) {
+            ACTION();
+            return Import << (ImportRef << (Group << _(Head) << _[Tail])) << As
+                          << Undefined;
+          },
 
-      // errors
-      In(Import) * T(Group)[Group] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Group), "Invalid import");
-        },
+        // errors
+        In(Import) * T(Group)[Group] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Group), "Invalid import");
+          },
 
-      In(With) * T(Group)[Group] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Group), "Invalid with reference");
-        },
+        In(With) * T(Group)[Group] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Group), "Invalid with reference");
+          },
 
-      In(Group) * T(As)[As] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(As), "Invalid as statement");
-        },
+        In(Group) * T(As)[As] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(As), "Invalid as statement");
+          },
 
-      In(WithExpr) * (T(Group)[Group] << End) >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Group), "Invalid with expression");
-        },
-    };
+        In(WithExpr) * (T(Group)[Group] << End) >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Group), "Invalid with expression");
+          },
+      }};
   }
 }

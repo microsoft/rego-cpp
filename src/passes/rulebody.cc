@@ -119,7 +119,12 @@ namespace rego
   // <not-expr>.
   PassDef rulebody()
   {
-    PassDef rulebody = {
+    PassDef rulebody {
+      "rulebody",
+      wf_pass_rulebody,
+      dir::topdown,
+      {
+
       In(UnifyBody) *
           (T(LiteralWith) << (T(UnifyBody)[UnifyBody] * T(WithSeq)[WithSeq])) >>
         [](Match& _) {
@@ -733,7 +738,7 @@ namespace rego
           ACTION();
           return err(_(Arg), "Invalid index");
         },
-    };
+    }};
 
     rulebody.post(UnifyBody, [](Node n) {
       for (auto child : *n)

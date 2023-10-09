@@ -10,6 +10,10 @@ namespace rego
   PassDef unary()
   {
     return {
+      "unary",
+      wf_pass_unary,
+      dir::topdown,
+      {
       In(Expr) * (Start * T(Subtract) * ArithInfixArg[Val]) >>
         [](Match& _) {
           ACTION();
@@ -21,7 +25,7 @@ namespace rego
           ACTION();
           return Seq << _(Op) << (UnaryExpr << (ArithArg << _(Val)));
         },
-    };
+    }};
   }
 
   const inline auto Ops = T(Multiply) / T(Divide) / T(Modulo);
@@ -31,6 +35,10 @@ namespace rego
   PassDef multiply_divide()
   {
     return {
+      "multiply_divide",
+      wf_pass_multiply_divide,
+      dir::topdown,
+      {
       In(Expr) * (ArithInfixArg[Lhs] * Ops[Op] * ArithInfixArg[Rhs]) >>
         [](Match& _) {
           ACTION();
@@ -63,7 +71,7 @@ namespace rego
           ACTION();
           return err(_(And), "Invalid and");
         },
-    };
+    }};
   }
 
   // Transforms addition, subtraction, and unary negation into ArithInfix Nodes.
@@ -71,6 +79,10 @@ namespace rego
   PassDef add_subtract()
   {
     return {
+      "add_subtract",
+      wf_pass_add_subtract,
+      dir::topdown,
+      {
       In(Expr) *
           (ArithInfixArg[Lhs] * (T(Add) / T(Subtract))[Op] *
            ArithInfixArg[Rhs]) >>
@@ -158,7 +170,7 @@ namespace rego
           ACTION();
           return err(_(BinArg), "Argument can only have one element");
         },
-    };
+    }};
   }
 
 }

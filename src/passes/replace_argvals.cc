@@ -80,6 +80,10 @@ namespace rego
   PassDef replace_argvals()
   {
     return {
+      "replace_argvals",
+      wf_pass_replace_argvals,
+      dir::topdown,
+      {
       In(RuleFunc) *
           (T(RuleArgs)[RuleArgs](
              [](auto& n) { return contains_argval(*n.first); }) *
@@ -131,6 +135,6 @@ namespace rego
           ACTION();
           return err(_(UnifyBody), "Invalid unification body");
         },
-    };
+    }};
   }
 }

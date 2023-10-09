@@ -7,6 +7,10 @@ namespace rego
   PassDef merge_data()
   {
     return {
+      "merge_data",
+      wf_pass_merge_data,
+      dir::topdown,
+      {
       In(Input) * T(Term)[DataTerm] >>
         [](Match& _) {
           ACTION();
@@ -153,7 +157,7 @@ namespace rego
           ACTION();
           return err(_(Term), "Invalid rule function argument");
         },
-    };
+    }};
   }
 
 }

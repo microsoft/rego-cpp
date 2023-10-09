@@ -356,15 +356,15 @@ namespace rego_test
     }
 
     auto ast = parser().parse(path);
-    bool ok = wf_parser.build_st(ast, std::cerr);
-    ok = wf_parser.check(ast, std::cerr) && ok;
+    bool ok = wf_parser.build_st(ast);
+    ok = wf_parser.check(ast) && ok;
 
     write_ast(debug_path, 0, "parse", ast);
+    
+    ok = (!ast->errors()) && ok;
     if (!ok)
     {
-      std::ostringstream buf;
-      ast->errors(buf);
-      throw std::runtime_error(buf.str());
+      throw std::runtime_error("Parse failed.");
     }
 
     auto passes = rego_test::passes();
@@ -372,16 +372,18 @@ namespace rego_test
 
     for (std::size_t i = 0; i < passes.size(); ++i)
     {
-      auto& [pass_name, pass, wf] = passes[i];
+      auto& pass = passes[i];
+      auto& pass_name = pass->name();
+      auto& wf = pass->wf();
       wf::push_back(wf);
       auto [new_ast, count, changes] = pass->run(ast);
       wf::pop_front();
       ast = new_ast;
 
-      ok = wf->build_st(ast, std::cout);
+      ok = wf.build_st(ast);
       write_ast(debug_path, i + 1, pass_name, ast);
 
-      ok = wf->check(ast, std::cout) && ok;
+      ok = wf.check(ast) && ok;
 
       if (has_error(ast))
       {
@@ -391,10 +393,10 @@ namespace rego_test
       if (!ok)
       {
         std::ostringstream buf;
-        buf << "Failed at pass " << pass_name << std::endl;
-        ast->errors(buf);
-        buf << "Error with input file " << path << std::endl;
-        std::cerr << buf.str() << std::endl;
+        logging::Error() << "Failed at pass " << pass_name << std::endl
+                         << "Error with input file " << path;
+        // Dump error messages from Trieste.
+        ast->errors();
         return test_cases;
       }
     }

@@ -185,7 +185,7 @@ namespace rego
   // initialized. These allow later passes to correctly handle these statements.
   PassDef init()
   {
-    PassDef init = {dir::once | dir::bottomup};
+    PassDef init = {"init", wf_pass_init, dir::once | dir::bottomup};
 
     init.pre(RuleComp, [](Node rule) {
       register_init_stmts(rule);

@@ -6,6 +6,10 @@ namespace rego
   PassDef expand_imports()
   {
     return {
+      "expand_imports",
+      wf_pass_expand_imports,
+      dir::topdown,
+      {
       In(RefTerm, RuleRef) * T(Var)[Var] >> [](Match& _) -> Node {
         // <import>
         ACTION();
@@ -38,6 +42,6 @@ namespace rego
           refargseq->end(), _(RefArgSeq)->begin(), _(RefArgSeq)->end());
         return Ref << refhead << refargseq;
       },
-    };
+    }};
   }
 }

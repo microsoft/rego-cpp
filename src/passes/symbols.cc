@@ -40,6 +40,10 @@ namespace rego
   PassDef symbols()
   {
     return {
+      "symbols",
+      wf_pass_symbols,
+      dir::topdown,
+      {
       In(Query) * (T(Literal)[Head] * T(Literal)++[Tail]) >>
         [](Match& _) {
           ACTION();
@@ -557,7 +561,7 @@ namespace rego
           ACTION();
           return err(_(ExprEvery), "Invalid every expression");
         },
-    };
+    }};
   }
 
 }

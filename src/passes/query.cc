@@ -6,6 +6,10 @@ namespace rego
   PassDef query()
   {
     return {
+      "query",
+      wf_pass_query,
+      dir::topdown,
+      {
       In(Top) * (T(Rego) << T(Query)[Query]) >>
         [](Match& _) {
           ACTION();
@@ -40,6 +44,6 @@ namespace rego
           ACTION();
           return _(Error);
         },
-    };
+    }};
   }
 }

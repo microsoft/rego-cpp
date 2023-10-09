@@ -6,6 +6,10 @@ namespace rego
   PassDef input_data()
   {
     return {
+      "input_data",
+      wf_pass_input_data,
+      dir::topdown,
+      {
       In(Input) * (T(File) << T(Group)[Group]) >>
         [](Match& _) {
           ACTION();
@@ -48,7 +52,7 @@ namespace rego
           ACTION();
           return err(_(Input), "Invalid input");
         },
-    };
+    }};
   }
 
 }

@@ -82,9 +82,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FetchContent_Declare(
   trieste
-  GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        25ae8750fbead5f0877f5e22ad119fc32cad13a4
-)
+  GIT_REPOSITORY https://github.com/mjp41/trieste
+  GIT_TAG        refactor-driver
+) #TODO Point at the right branch once merged.
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 

@@ -1,4 +1,5 @@
 #include "internal.hh"
+#include "rego.hh"
 
 namespace rego
 {
@@ -40,7 +41,7 @@ namespace rego
 
   Parse parser()
   {
-    Parse p(depth::file);
+    Parse p(depth::file, wf_parser);
 
     p("start",
       {

@@ -205,7 +205,11 @@ namespace rego
   // function that takes either <var> or <term> arguments.
   PassDef functions()
   {
-    PassDef functions = {
+    PassDef functions {
+      "functions",
+      wf_pass_functions,
+      dir::topdown,
+      {
       In(Input) * T(DataTerm)[DataTerm] >>
         [](Match& _) {
           ACTION();
@@ -461,7 +465,7 @@ namespace rego
             _(DataModule),
             "Syntax error: module not allowed as object item value");
         },
-    };
+    }};
 
     functions.post(RuleComp, add_key);
     functions.post(RuleFunc, add_key);

@@ -73,29 +73,32 @@ namespace rego
   PassDef explicit_enums()
   {
     return {
-      In(UnifyBody) *
-          ((T(LiteralEnum) << (T(Var)[Item] * T(Expr)[ItemSeq])) *
-           LiteralToken++[Tail] * End) >>
-        [](Match& _) {
-          ACTION();
-          auto temp = _.fresh({"enum"});
-          auto itemseq = _.fresh({"itemseq"});
-          // all statements under the LiteralEnum node must be moved to its
-          // body, as they depend on the enumerated values.
-          Node body = UnifyBody << _[Tail];
-          if (body->size() == 0)
-          {
-            body << (Literal << (Expr << (Term << (Scalar << True))));
-          }
-          return Seq << (Local << (Var ^ itemseq) << Undefined)
-                     << (Literal
-                         << (Expr << (RefTerm << (Var ^ itemseq)) << Unify
-                                  << *_[ItemSeq]))
-                     << (LiteralEnum << _(Item)->clone() << (Var ^ itemseq)
-                                     << body);
-        },
-
-    };
+      "explicit_enums",
+      wf_pass_explicit_enums,
+      dir::topdown,
+      {
+        In(UnifyBody) *
+            ((T(LiteralEnum) << (T(Var)[Item] * T(Expr)[ItemSeq])) *
+             LiteralToken++[Tail] * End) >>
+          [](Match& _) {
+            ACTION();
+            auto temp = _.fresh({"enum"});
+            auto itemseq = _.fresh({"itemseq"});
+            // all statements under the LiteralEnum node must be moved to its
+            // body, as they depend on the enumerated values.
+            Node body = UnifyBody << _[Tail];
+            if (body->size() == 0)
+            {
+              body << (Literal << (Expr << (Term << (Scalar << True))));
+            }
+            return Seq << (Local << (Var ^ itemseq) << Undefined)
+                       << (Literal
+                           << (Expr << (RefTerm << (Var ^ itemseq)) << Unify
+                                    << *_[ItemSeq]))
+                       << (LiteralEnum << _(Item)->clone() << (Var ^ itemseq)
+                                       << body);
+          },
+      }};
   }
 
   // Finds enum statements hiding as <val> = <ref>[<idx>] and lifts them to
@@ -103,169 +106,171 @@ namespace rego
   PassDef implicit_enums()
   {
     return {
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << ((T(VarSeq) << Any)[LhsVars] * T(VarSeq)[RhsVars] *
-               (T(AssignInfix)
-                << ((T(AssignArg)[Lhs]
-                     << (T(RefTerm)
-                         << (T(SimpleRef)
-                             << ((T(Var)[ItemSeq]) * T(RefArgBrack))))) *
-                    T(AssignArg)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          return LiteralInit << _(RhsVars) << _(LhsVars)
-                             << (AssignInfix << _(Rhs) << _(Lhs));
-        },
-
-      In(UnifyBody) *
-          ((
-             T(LiteralInit)
-             << ((T(VarSeq) << Any)[LhsVars] * (T(VarSeq) << Any)[RhsVars] *
+      "implicit_enums",
+      wf_pass_implicit_enums,
+      dir::topdown,
+      {
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << ((T(VarSeq) << Any)[LhsVars] * T(VarSeq)[RhsVars] *
                  (T(AssignInfix)
-                  << (T(AssignArg)[Lhs] *
-                      (T(AssignArg)
+                  << ((T(AssignArg)[Lhs]
                        << (T(RefTerm)
                            << (T(SimpleRef)
-                               << ((T(Var)[ItemSeq]) *
-                                   (T(RefArgBrack)[Idx]))))))))) *
-           LiteralToken++[Tail] * End) >>
-        [](Match& _) {
-          ACTION();
-          LOG("val = ref[idx]");
+                               << ((T(Var)[ItemSeq]) * T(RefArgBrack))))) *
+                      T(AssignArg)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            return LiteralInit << _(RhsVars) << _(LhsVars)
+                               << (AssignInfix << _(Rhs) << _(Lhs));
+          },
 
-          Node idx = _(Idx)->front();
-          if (idx->type() == Expr)
-          {
-            if (idx->size() == 1 && is_constant(idx->front()))
+        In(UnifyBody) *
+            ((T(LiteralInit)
+              << ((T(VarSeq) << Any)[LhsVars] * (T(VarSeq) << Any)[RhsVars] *
+                  (T(AssignInfix)
+                   << (T(AssignArg)[Lhs] *
+                       (T(AssignArg)
+                        << (T(RefTerm)
+                            << (T(SimpleRef)
+                                << ((T(Var)[ItemSeq]) *
+                                    (T(RefArgBrack)[Idx]))))))))) *
+             LiteralToken++[Tail] * End) >>
+          [](Match& _) {
+            ACTION();
+            LOG("val = ref[idx]");
+
+            Node idx = _(Idx)->front();
+            if (idx->type() == Expr)
             {
-              idx = idx->front();
+              if (idx->size() == 1 && is_constant(idx->front()))
+              {
+                idx = idx->front();
+              }
+              else
+              {
+                return err(idx, "Invalid index for enumeration");
+              }
             }
-            else
+
+            if (idx->type() == NumTerm)
+            {
+              idx = Term << (Scalar << idx->front());
+            }
+
+            std::set<Token> term_types = {
+              Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
+            if (contains(term_types, idx->type()))
+            {
+              idx = Term << idx;
+            }
+
+            if (idx->type() != RefTerm && idx->type() != Term)
             {
               return err(idx, "Invalid index for enumeration");
             }
-          }
 
-          if (idx->type() == NumTerm)
-          {
-            idx = Term << (Scalar << idx->front());
-          }
+            auto temp = _.fresh({"enum"});
+            auto item = _.fresh({"item"});
+            return Seq
+              << (Local << (Var ^ item) << Undefined)
+              << (LiteralEnum
+                  << (Var ^ item) << _(ItemSeq)
+                  << (UnifyBody
+                      << (LiteralInit
+                          << _(RhsVars) << VarSeq
+                          << (AssignInfix
+                              << (AssignArg << idx)
+                              << (AssignArg
+                                  << (RefTerm
+                                      << (SimpleRef
+                                          << (Var ^ item)
+                                          << (RefArgBrack
+                                              << (Scalar << (Int ^ "0"))))))))
+                      << (LiteralInit
+                          << _(LhsVars) << VarSeq
+                          << (AssignInfix
+                              << _(Lhs)
+                              << (AssignArg
+                                  << (RefTerm
+                                      << (SimpleRef
+                                          << (Var ^ item)
+                                          << (RefArgBrack
+                                              << (Scalar << (Int ^ "1"))))))))
+                      << _[Tail]));
+          },
 
-          std::set<Token> term_types = {
-            Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
-          if (contains(term_types, idx->type()))
-          {
-            idx = Term << idx;
-          }
+        In(UnifyBody) *
+            ((T(LiteralInit)
+              << ((T(VarSeq) << End) * (T(VarSeq) << Any)[RhsVars] *
+                  (T(AssignInfix)
+                   << (T(AssignArg)[Lhs] *
+                       (T(AssignArg)
+                        << (T(RefTerm)
+                            << (T(SimpleRef)
+                                << ((T(Var)[ItemSeq]) *
+                                    T(RefArgBrack)[Idx])))))))) *
+             LiteralToken++[Tail] * End) >>
+          [](Match& _) {
+            ACTION();
+            LOG("val = ref[idx]");
 
-          if (idx->type() != RefTerm && idx->type() != Term)
-          {
-            return err(idx, "Invalid index for enumeration");
-          }
-
-          auto temp = _.fresh({"enum"});
-          auto item = _.fresh({"item"});
-          return Seq
-            << (Local << (Var ^ item) << Undefined)
-            << (LiteralEnum
-                << (Var ^ item) << _(ItemSeq)
-                << (UnifyBody
-                    << (LiteralInit
-                        << _(RhsVars) << VarSeq
-                        << (AssignInfix
-                            << (AssignArg << idx)
-                            << (AssignArg
-                                << (RefTerm
-                                    << (SimpleRef
-                                        << (Var ^ item)
-                                        << (RefArgBrack
-                                            << (Scalar << (Int ^ "0"))))))))
-                    << (LiteralInit
-                        << _(LhsVars) << VarSeq
-                        << (AssignInfix
-                            << _(Lhs)
-                            << (AssignArg
-                                << (RefTerm
-                                    << (SimpleRef
-                                        << (Var ^ item)
-                                        << (RefArgBrack
-                                            << (Scalar << (Int ^ "1"))))))))
-                    << _[Tail]));
-        },
-
-      In(UnifyBody) *
-          ((
-             T(LiteralInit)
-             << ((T(VarSeq) << End) * (T(VarSeq) << Any)[RhsVars] *
-                 (T(AssignInfix)
-                  << (T(AssignArg)[Lhs] *
-                      (T(AssignArg)
-                       << (T(RefTerm)
-                           << (T(SimpleRef)
-                               << ((T(Var)[ItemSeq]) *
-                                   T(RefArgBrack)[Idx])))))))) *
-           LiteralToken++[Tail] * End) >>
-        [](Match& _) {
-          ACTION();
-          LOG("val = ref[idx]");
-
-          Node idx = _(Idx)->front();
-          if (idx->type() == Expr)
-          {
-            if (idx->size() == 1 && is_constant(idx->front()))
+            Node idx = _(Idx)->front();
+            if (idx->type() == Expr)
             {
-              idx = idx->front();
+              if (idx->size() == 1 && is_constant(idx->front()))
+              {
+                idx = idx->front();
+              }
+              else
+              {
+                return err(idx, "Invalid index for enumeration");
+              }
             }
-            else
+
+            if (idx->type() == NumTerm)
             {
-              return err(idx, "Invalid index for enumeration");
+              idx = Term << (Scalar << idx->front());
             }
-          }
 
-          if (idx->type() == NumTerm)
-          {
-            idx = Term << (Scalar << idx->front());
-          }
+            std::set<Token> term_types = {
+              Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
+            if (contains(term_types, idx->type()))
+            {
+              idx = Term << idx;
+            }
 
-          std::set<Token> term_types = {
-            Scalar, Array, Set, Object, ArrayCompr, SetCompr, ObjectCompr};
-          if (contains(term_types, idx->type()))
-          {
-            idx = Term << idx;
-          }
-
-          auto temp = _.fresh({"enum"});
-          auto item = _.fresh({"item"});
-          return Seq
-            << (Local << (Var ^ item) << Undefined)
-            << (LiteralEnum
-                << (Var ^ item) << _(ItemSeq)
-                << (UnifyBody
-                    << (LiteralInit
-                        << _(RhsVars) << VarSeq
-                        << (AssignInfix
-                            << (AssignArg << idx)
-                            << (AssignArg
-                                << (RefTerm
-                                    << (SimpleRef
-                                        << (Var ^ item)
-                                        << (RefArgBrack
-                                            << (Scalar << (Int ^ "0"))))))))
-                    << (Literal
-                        << (Expr
-                            << (AssignInfix
-                                << _(Lhs)
-                                << (AssignArg
-                                    << (RefTerm
-                                        << (SimpleRef
-                                            << (Var ^ item)
-                                            << (RefArgBrack
-                                                << (Scalar
-                                                    << (Int ^ "1")))))))))
-                    << _[Tail]));
-        },
-    };
+            auto temp = _.fresh({"enum"});
+            auto item = _.fresh({"item"});
+            return Seq
+              << (Local << (Var ^ item) << Undefined)
+              << (LiteralEnum
+                  << (Var ^ item) << _(ItemSeq)
+                  << (UnifyBody
+                      << (LiteralInit
+                          << _(RhsVars) << VarSeq
+                          << (AssignInfix
+                              << (AssignArg << idx)
+                              << (AssignArg
+                                  << (RefTerm
+                                      << (SimpleRef
+                                          << (Var ^ item)
+                                          << (RefArgBrack
+                                              << (Scalar << (Int ^ "0"))))))))
+                      << (Literal
+                          << (Expr
+                              << (AssignInfix
+                                  << _(Lhs)
+                                  << (AssignArg
+                                      << (RefTerm
+                                          << (SimpleRef
+                                              << (Var ^ item)
+                                              << (RefArgBrack
+                                                  << (Scalar
+                                                      << (Int ^ "1")))))))))
+                      << _[Tail]));
+          },
+      }};
   }
 
   // Fixes situations in which a local has been in the wrong place. If the local
@@ -274,7 +279,8 @@ namespace rego
   // move it out into the containing scope.
   PassDef enum_locals()
   {
-    PassDef enum_locals = {dir::bottomup | dir::once};
+    PassDef enum_locals{
+      "enum_locals", wf_pass_enum_locals, dir::bottomup | dir::once};
 
     std::shared_ptr<NodeMap<std::map<Location, Nodes>>> all_refs =
       std::make_shared<NodeMap<std::map<Location, Nodes>>>();
