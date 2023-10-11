@@ -4,33 +4,6 @@ namespace rego
 {
   using namespace wf::ops;
 
-  std::ostream& operator<<(
-    std::ostream& os, const std::vector<UnifierDef::Dependency>& deps)
-  {
-    for (auto it = deps.begin(); it != deps.end(); ++it)
-    {
-      if (it != deps.begin())
-      {
-        os << Logger::indent;
-      }
-
-      auto& dep = *it;
-      os << "[" << dep.name << "](" << dep.score << ") -> {";
-      join(
-        os,
-        dep.dependencies.begin(),
-        dep.dependencies.end(),
-        ", ",
-        [deps](std::ostream& stream, auto& id) {
-          stream << deps[id].name;
-          return true;
-        });
-      os << "}" << std::endl;
-    }
-
-    return os;
-  }
-
   UnifierDef::UnifierDef(
     const Location& rule,
     const Node& rulebody,
@@ -46,21 +19,20 @@ namespace rego
     m_parent_type(rulebody->parent()->type()),
     m_negate(false)
   {
-    LOG_HEADER("ASSEMBLING UNIFICATION", "---");
+    logging::Debug() << "---ASSEMBLING UNIFICATION---";
     m_dependency_graph.push_back({"start", {}, 0});
     init_from_body(rulebody, m_statements, 0);
     compute_dependency_scores();
     m_retries = detect_cycles();
     if (m_retries > 0)
     {
-      LOG("Detected ", m_retries, " cycles in dependency graph");
+      logging::Debug() << "Detected " << m_retries
+                       << " cycles in dependency graph";
     }
 
-    LOG("Dependency graph:");
-    LOG_INDENT();
-    LOG(m_dependency_graph);
-    LOG_UNINDENT();
-    LOG_HEADER("ASSEMBLY COMPLETE", "---");
+    logging::Debug() << "Dependency graph:" << logging::Indent
+                     << m_dependency_graph << logging::Undent
+                     << "---ASSEMBLY COMPLETE---";
   }
 
   std::size_t UnifierDef::detect_cycles() const
@@ -194,7 +166,9 @@ namespace rego
         return m_variables.at(dep).id();
       });
     std::size_t expr_id = m_dependency_graph.size();
-    std::string name = Resolver::expr_str(unifyexpr).str();
+    logging::String out;
+    Resolver::expr_str(out, unifyexpr);
+    std::string name = out.str();
     m_dependency_graph.push_back(
       {name, std::set(dep_ids.begin(), dep_ids.end()), 0});
     m_dependency_graph[var.id()].dependencies.insert(expr_id);
@@ -296,7 +270,7 @@ namespace rego
       Statement stmt = *it;
       if (stmt.node->type() == UnifyExpr)
       {
-        LOG(Resolver::expr_str(stmt.node));
+        logging::Debug() << ExprStr(stmt.node);
         Node lhs = stmt.node / Var;
         Variable& var = get_variable(lhs->location());
         Values values = evaluate(lhs->location(), stmt.node / Val);
@@ -305,7 +279,7 @@ namespace rego
           if (m_negate && var.is_unify())
           {
             var.unify({ValueDef::create(True ^ "true")});
-            LOG("> result: ", var);
+            logging::Debug() << "> result: " << var;
           }
           else
           {
@@ -332,7 +306,7 @@ namespace rego
                 value->mark_as_valid();
               }
               var.unify({ValueDef::create(True ^ "true")});
-              LOG("> result: ", var);
+              logging::Debug() << "> result: " << var;
             }
             else
             {
@@ -342,28 +316,30 @@ namespace rego
           else
           {
             var.unify(values);
-            LOG("> result: ", var);
+            logging::Debug() << "> result: " << var;
           }
         }
       }
       else if (stmt.node->type() == UnifyExprNot)
       {
-        LOG(Resolver::not_str(stmt.node));
+        logging::Debug() << NotStr(stmt.node);
         push_not();
-        LOG_INDENT();
-        auto nested = m_nested_statements[stmt.id];
-        execute_statements(nested.begin(), nested.end());
-        LOG_UNINDENT();
+        {
+          logging::LocalIndent i;
+          auto nested = m_nested_statements[stmt.id];
+          execute_statements(nested.begin(), nested.end());
+        }
         pop_not();
       }
       else if (stmt.node->type() == UnifyExprWith)
       {
-        LOG(Resolver::with_str(stmt.node));
+        logging::Debug() << WithStr(stmt.node);
         push_with(stmt.node / WithSeq);
-        LOG_INDENT();
-        auto nested = m_nested_statements[stmt.id];
-        execute_statements(nested.begin(), nested.end());
-        LOG_UNINDENT();
+        {
+          logging::LocalIndent i;
+          auto nested = m_nested_statements[stmt.id];
+          execute_statements(nested.begin(), nested.end());
+        }
         pop_with();
       }
     }
@@ -379,7 +355,7 @@ namespace rego
 
   void UnifierDef::pass()
   {
-    LOG_MAP_VALUES(m_variables);
+    logging::Debug() << MapValuesStr(m_variables);
     execute_statements(m_statements.begin(), m_statements.end());
   }
 
@@ -392,7 +368,7 @@ namespace rego
 
   Node UnifierDef::bind_variables()
   {
-    LOG("bind and check variables:");
+    logging::Debug() << "bind and check variables:";
     return std::accumulate(
       m_variables.begin(),
       m_variables.end(),
@@ -408,7 +384,7 @@ namespace rego
 
         if (node->type() == Error)
         {
-          LOG("> ", var.name().view(), ": Error");
+          logging::Debug() << "> " << var.name().view() << ": Error";
           return node;
         }
 
@@ -418,7 +394,8 @@ namespace rego
           {
             if (node->size() == 0)
             {
-              LOG("> ", var.name().view(), ": Empty TermSet => false");
+              logging::Debug()
+                << "> " << var.name().view() << ": Empty TermSet => false";
               return False ^ "false";
             }
             Node maybe_term = Resolver::reduce_termset(node);
@@ -426,13 +403,15 @@ namespace rego
             {
               if (result->type() == Undefined)
               {
-                LOG("> ", var.name().view(), ": TermSet => true");
+                logging::Debug()
+                  << "> " << var.name().view() << ": TermSet => true";
                 return True ^ "true";
               }
             }
             else
             {
-              LOG("> ", var.name().view(), ": TermSet => Error");
+              logging::Debug()
+                << "> " << var.name().view() << ": TermSet => Error";
               return err(
                 node,
                 "complete rules must not produce multiple outputs",
@@ -441,32 +420,36 @@ namespace rego
           }
           else if (node->size() > 0 && result->type() == Undefined)
           {
-            LOG("> ", var.name().view(), ": TermSet => true");
+            logging::Debug()
+              << "> " << var.name().view() << ": TermSet => true";
             return True ^ "true";
           }
           else if (node->size() == 0 && var.is_user_var())
           {
-            LOG("> ", var.name().view(), ": Empty TermSet => false");
+            logging::Debug()
+              << "> " << var.name().view() << ": Empty TermSet => false";
             return False ^ "false";
           }
         }
         else if (var.is_unify() && is_falsy(node))
         {
-          LOG("> ", var.name().view(), ": false => false");
+          logging::Debug() << "> " << var.name().view() << ": false => false";
           return False ^ "false";
         }
         else if (node->type() == Term && result->type() == Undefined)
         {
-          LOG("> ", var.name().view(), ": Term => true");
+          logging::Debug() << "> " << var.name().view() << ": Term => true";
           return True ^ "true";
         }
         else if (var.is_user_var() && is_undefined(node))
         {
-          LOG("> ", var.name().view(), ": undefined => false");
+          logging::Debug() << "> " << var.name().view()
+                           << ": undefined => false";
           return False ^ "false";
         }
 
-        LOG("> ", var.name().view(), ": ", result->location().view());
+        logging::Debug() << "> " << var.name().view() << ": "
+                         << result->location().view();
 
         return result;
       });
@@ -480,26 +463,25 @@ namespace rego
         "Recursion detected in rule body: " + std::string(m_rule.view()));
     }
 
-    LOG_HEADER("Unification", "=====");
+    logging::Debug() << "=====Unification====="
+                     << "exprs: " << m_statements;
 
-    LOG("exprs: ");
-    LOG_VECTOR_CUSTOM(m_statements, UnifierDef::stmt_str);
-
-    LOG_INDENT();
-
-    for (std::size_t pass_index = 0; pass_index < m_retries + 1; ++pass_index)
     {
-      LOG_HEADER("Pass " + std::to_string(pass_index), "=====");
-      pass();
-      mark_invalid_values();
-      remove_invalid_values();
+      logging::LocalIndent indent;
+
+      for (std::size_t pass_index = 0; pass_index < m_retries + 1; ++pass_index)
+      {
+        logging::Debug() << "=====Pass " << std::to_string(pass_index)
+                         << "=====";
+        pass();
+        mark_invalid_values();
+        remove_invalid_values();
+      }
+
+      logging::Debug() << MapValuesStr(m_variables);
     }
-
-    LOG_MAP_VALUES(m_variables);
-
-    LOG_UNINDENT();
     Node result = bind_variables();
-    LOG_HEADER("Complete", "=====");
+    logging::Debug() << "=====Complete=====";
 
     this->pop_rule(this->m_rule);
     return result;
@@ -551,7 +533,7 @@ namespace rego
     Values values;
     if (args.size() == 0)
     {
-      LOG("> calling ", func_name, " with no args");
+      logging::Debug() << "> calling " << func_name << " with no args";
       if (func_name == "array")
       {
         values.push_back(ValueDef::create(NodeDef::create(Array)));
@@ -567,7 +549,7 @@ namespace rego
       return values;
     }
 
-    LOG("> calling ", func_name, " with ", args);
+    logging::Debug() << "> calling " << func_name << " with " << args;
     std::set<Value> valid_args;
     if (func_name == "apply_access")
     {
@@ -577,7 +559,7 @@ namespace rego
         Values results = apply_access(var, call_args);
         for (auto& result : results)
         {
-          LOG("> result: ", result);
+          logging::Debug() << "> result: " << result;
           values.push_back(result);
         }
 
@@ -614,7 +596,7 @@ namespace rego
           if (maybe_result.has_value())
           {
             Value result = maybe_result.value();
-            LOG("> result: ", result);
+            logging::Debug() << "> result: " << result;
             values.push_back(result);
           }
         }
@@ -633,21 +615,22 @@ namespace rego
             // likely the result of the function being replaced by with
             // even though we won't call the function, we still have to check
             // that the arguments were valid, i.e. not undefined.
-            LOG("func value ", func, " is not a function.");
-            LOG("checking that args are valid");
+            logging::Debug()
+              << "func value " << func << " is not a function." << std::endl
+              << "checking that args are valid";
             bool all_valid = true;
             for (auto& arg : arglist)
             {
               if (is_undefined(arg->node()))
               {
-                LOG("Undefined arg -> invalid");
+                logging::Debug() << "Undefined arg -> invalid";
                 all_valid = false;
                 break;
               }
             }
             if (all_valid)
             {
-              LOG("all args valid");
+              logging::Debug() << "all args valid";
               result = func;
             }
             break;
@@ -672,12 +655,13 @@ namespace rego
                     "functions must not produce multiple outputs for same "
                     "inputs",
                     EvalConflictError));
-                LOG("> result: Termset -> Error");
+                logging::Debug() << "> result: Termset -> Error";
                 break;
               }
               else
               {
-                LOG("> result: ", result, "#", result->rank());
+                logging::Debug()
+                  << "> result: " << result << "#" << result->rank();
               }
             }
             else
@@ -687,7 +671,8 @@ namespace rego
               if (new_result->rank() < old_result->rank())
               {
                 result = new_result;
-                LOG("> result: ", result, "#", result->rank());
+                logging::Debug()
+                  << "> result: " << result << "#" << result->rank();
               }
               else if (new_result->rank() == old_result->rank())
               {
@@ -696,7 +681,8 @@ namespace rego
                 if (old_str == "undefined" && new_str != "undefined")
                 {
                   result = maybe_result.value();
-                  LOG("> result: ", result, "#", result->rank());
+                  logging::Debug()
+                    << "> result: " << result << "#" << result->rank();
                 }
                 else if (new_str == "undefined")
                 {
@@ -711,7 +697,7 @@ namespace rego
                       "functions must not produce multiple outputs for same "
                       "inputs",
                       EvalConflictError));
-                  LOG("> second result => Error");
+                  logging::Debug() << "> second result => Error";
                   break;
                 }
               }
@@ -745,7 +731,7 @@ namespace rego
         if (maybe_result.has_value())
         {
           Value result = maybe_result.value();
-          LOG("> result: ", result);
+          logging::Debug() << "> result: " << result;
           values.push_back(result);
           valid_args.insert(call_args.begin(), call_args.end());
         }
@@ -829,7 +815,7 @@ namespace rego
         Node argseq = NodeDef::create(ArgSeq);
         for (auto termset_value : termsets)
         {
-          LOG("flattening ", Resolver::arg_str(termset_value->node()));
+          logging::Debug() << "flattening " << ArgStr(termset_value->node());
           Resolver::flatten_terms_into(termset_value->node(), argseq);
         }
         values.push_back(ValueDef::create(var, Resolver::array(argseq)));
@@ -850,7 +836,7 @@ namespace rego
         Node argseq = NodeDef::create(ArgSeq);
         for (auto termset_value : termsets)
         {
-          LOG("flattening ", Resolver::arg_str(termset_value->node()));
+          logging::Debug() << "flattening " << ArgStr(termset_value->node());
           Resolver::flatten_items_into(termset_value->node(), argseq);
         }
         values.push_back(
@@ -1177,7 +1163,7 @@ namespace rego
         return items;
       }
     }
-    LOG_VECTOR(container_values);
+    logging::Debug() << container_values;
     for (auto& container_value : container_values)
     {
       Node container = container_value->node();
@@ -1235,8 +1221,8 @@ namespace rego
 
   bool UnifierDef::push_rule(const Location& rule)
   {
-    LOG("Pushing rule: ", rule.view());
-    LOG("Call stack: ", *m_call_stack);
+    logging::Debug() << "Pushing rule: " << rule.view() << std::endl
+                     << "Call stack: " << *m_call_stack;
 
     if (
       std::find(m_call_stack->begin(), m_call_stack->end(), rule) !=
@@ -1261,8 +1247,9 @@ namespace rego
       return;
     }
 
-    LOG("Popping rule: ", m_call_stack->back().view());
-    LOG("Call stack: ", *m_call_stack);
+    logging::Debug() << "Popping rule: " << m_call_stack->back().view()
+                     << std::endl
+                     << "Call stack: " << *m_call_stack;
     m_call_stack->pop_back();
   }
 
@@ -1288,11 +1275,8 @@ namespace rego
             std::find(m_call_stack->begin(), m_call_stack->end(), name) !=
             m_call_stack->end())
           {
-            LOG(
-              func->location().view(),
-              " is replaced by ",
-              name.view(),
-              " which would recurse");
+            logging::Debug() << func->location().view() << " is replaced by "
+                             << name.view() << " which would recurse";
             return true;
           }
         }
@@ -1326,18 +1310,19 @@ namespace rego
         {
           if (results.size() == 0)
           {
-            LOG("Found key: ", key_str, " in with stack");
+            logging::Debug() << "Found key: " << key_str << " in with stack";
             results = val;
             break;
           }
           else
           {
-            LOG("Already overridden with higher precedence.");
+            logging::Debug() << "Already overridden with higher precedence.";
           }
         }
         else if (starts_with(key, key_str) && !contains(partials, key))
         {
-          LOG("Found prefix match: ", key_str, " in with stack");
+          logging::Debug() << "Found prefix match: " << key_str
+                           << " in with stack";
           partials[key.substr(key_str.size() + 1)] = val;
         }
       }
@@ -1353,7 +1338,7 @@ namespace rego
           // check whether anything in the result would cause recursion
           if (would_recurse(node / Body) || would_recurse(node / Val))
           {
-            LOG("Recursion detected in with result");
+            logging::Debug() << "Recursion detected in with result";
             return {};
           }
         }
@@ -1376,7 +1361,8 @@ namespace rego
     if (results.size() > 0)
     {
       object = results.front()->node()->clone();
-      LOG("Found base object for modification: ", Resolver::term_str(object));
+      logging::Debug() << "Found base object for modification: "
+                       << TermStr(object);
       if (object->type() == Term)
       {
         object = object->front();
@@ -1384,7 +1370,7 @@ namespace rego
 
       if (object->type() != Object)
       {
-        LOG("Replacing with object (cannot merge partials)");
+        logging::Debug() << "Replacing with object (cannot merge partials)";
         object = NodeDef::create(Object);
       }
     }
@@ -1400,9 +1386,9 @@ namespace rego
         continue;
       }
 
-      LOG("Inserting ", key);
+      logging::Debug() << "Inserting " << key;
       Resolver::insert_into_object(object, key, val.front()->node());
-      LOG("> result: ", Resolver::term_str(object));
+      logging::Debug() << "> result: " << TermStr(object);
     }
 
     return {ValueDef::create(object)};
@@ -1411,7 +1397,7 @@ namespace rego
   Values UnifierDef::resolve_skip(const Node& skip)
   {
     assert(skip->type() == Skip);
-    LOG("Resolving skip: ", Resolver::term_str(skip->front()));
+    logging::Debug() << "Resolving skip: " << TermStr(skip->front());
     Values values = check_with(skip->front());
     if (!values.empty())
     {
@@ -1505,7 +1491,7 @@ namespace rego
 
       if (!contains(rule_nodes, name))
       {
-        LOG("adding rule ", name.view());
+        logging::Debug() << "adding rule " << name.view();
         rule_nodes[name] = Nodes();
       }
 
@@ -1637,7 +1623,7 @@ namespace rego
         }
       }
 
-      LOG("Rule comp body result: ", Resolver::term_str(body_result));
+      logging::Debug() << "Rule comp body result: " << TermStr(body_result);
 
       if (body_result->type() == Error)
       {
@@ -1648,7 +1634,7 @@ namespace rego
       {
         if (value->type() == UnifyBody)
         {
-          LOG("Evaluating rule comp value");
+          logging::Debug() << "Evaluating rule comp value";
           try
           {
             Unifier unifier = rule_unifier(
@@ -1674,11 +1660,11 @@ namespace rego
         }
       }
 
-      LOG("Rule comp value result: ", Resolver::term_str(value));
+      logging::Debug() << "Rule comp value result: " << TermStr(value);
 
       if (value->type() == Undefined)
       {
-        LOG("No value");
+        logging::Debug() << "No value";
         continue;
       }
 
@@ -1734,7 +1720,7 @@ namespace rego
 
     if (rule->type() == Undefined)
     {
-      LOG("No value");
+      logging::Debug() << "No value";
       return std::nullopt;
     }
 
@@ -1762,7 +1748,7 @@ namespace rego
       }
     }
 
-    LOG("Rule func body result: ", Resolver::term_str(body_result));
+    logging::Debug() << "Rule func body result: " << TermStr(body_result);
 
     if (body_result->type() == Error)
     {
@@ -1771,7 +1757,7 @@ namespace rego
 
     if (body_result->type() == False || body_result->type() == Undefined)
     {
-      LOG("No value");
+      logging::Debug() << "No value";
       return std::nullopt;
     }
 
@@ -1779,7 +1765,7 @@ namespace rego
 
     if (value->type() == UnifyBody)
     {
-      LOG("Evaluating rule func value");
+      logging::Debug() << "Evaluating rule func value";
       try
       {
         Unifier unifier = rule_unifier(
@@ -1843,7 +1829,7 @@ namespace rego
         }
       }
 
-      LOG("Rule set body result: ", Resolver::term_str(body_result));
+      logging::Debug() << "Rule set body result: " << TermStr(body_result);
 
       if (body_result->type() == Error)
       {
@@ -1854,7 +1840,7 @@ namespace rego
       {
         if (value->type() == UnifyBody)
         {
-          LOG("Evaluating rule set value");
+          logging::Debug() << "Evaluating rule set value";
           try
           {
             Unifier unifier = rule_unifier(
@@ -1897,7 +1883,7 @@ namespace rego
 
     if (argseq->size() == 0)
     {
-      LOG("No value");
+      logging::Debug() << "No value";
       return NodeDef::create(Set);
     }
 
@@ -1946,7 +1932,7 @@ namespace rego
         }
       }
 
-      LOG("Rule obj body result: ", Resolver::term_str(body_result));
+      logging::Debug() << "Rule obj body result: " << TermStr(body_result);
 
       if (body_result->type() == Error)
       {
@@ -1957,7 +1943,7 @@ namespace rego
       {
         if (value->type() == UnifyBody)
         {
-          LOG("Evaluating rule obj value");
+          logging::Debug() << "Evaluating rule obj value";
           try
           {
             Unifier unifier = rule_unifier(
@@ -2001,7 +1987,7 @@ namespace rego
 
     if (argseq->size() == 0)
     {
-      LOG("No value");
+      logging::Debug() << "No value";
       return NodeDef::create(Object);
     }
 
@@ -2036,14 +2022,14 @@ namespace rego
 
   void UnifierDef::push_with(const Node& withseq)
   {
-    LOG("pushing with lookup");
+    logging::Debug() << "pushing with lookup";
     ValuesLookup lookup;
     for (auto& with : *withseq)
     {
       Node ref = with / RuleRef;
       Node var = with / Var;
-      std::ostringstream os;
-      os << Resolver::ref_str(ref);
+      logging::String os;
+      Resolver::ref_str(os, ref);
       std::string key = os.str();
       lookup[key] = resolve_var(var);
     }
@@ -2053,7 +2039,7 @@ namespace rego
 
   void UnifierDef::pop_with()
   {
-    LOG("popping with lookup");
+    logging::Debug() << "popping with lookup";
     m_with_stack->pop_back();
   }
 
@@ -2111,19 +2097,14 @@ namespace rego
 
   void UnifierDef::push_not()
   {
-    LOG("Pushing not: ", m_negate, " => ", !m_negate);
+    logging::Debug() << "Pushing not: " << m_negate << " => " << !m_negate;
     m_negate = !m_negate;
   }
 
   void UnifierDef::pop_not()
   {
-    LOG("Popping not: ", m_negate, " => ", !m_negate);
+    logging::Debug() << "Popping not: " << m_negate << " => " << !m_negate;
     m_negate = !m_negate;
-  }
-
-  Resolver::NodePrinter UnifierDef::stmt_str(const Statement& stmt)
-  {
-    return Resolver::stmt_str(stmt.node);
   }
 
   bool UnifierKey::operator<(const UnifierKey& other) const

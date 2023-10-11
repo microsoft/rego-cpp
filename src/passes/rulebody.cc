@@ -119,626 +119,646 @@ namespace rego
   // <not-expr>.
   PassDef rulebody()
   {
-    PassDef rulebody {
+    PassDef rulebody{
       "rulebody",
       wf_pass_rulebody,
       dir::topdown,
       {
 
-      In(UnifyBody) *
-          (T(LiteralWith) << (T(UnifyBody)[UnifyBody] * T(WithSeq)[WithSeq])) >>
-        [](Match& _) {
-          ACTION();
-          return UnifyExprWith << _(UnifyBody) << _(WithSeq);
-        },
+        In(UnifyBody) *
+            (T(LiteralWith)
+             << (T(UnifyBody)[UnifyBody] * T(WithSeq)[WithSeq])) >>
+          [](Match& _) {
+            ACTION();
+            return UnifyExprWith << _(UnifyBody) << _(WithSeq);
+          },
 
-      In(UnifyBody) *
-          (T(LiteralEnum)
-           << (T(Var)[Lhs] * T(Var)[Rhs] * T(UnifyBody)[UnifyBody])) >>
-        [](Match& _) {
-          ACTION();
-          LOG("enum");
-          Location value = _.fresh({"value"});
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ value) << Undefined))
-                     << (UnifyExprEnum << (Var ^ value) << _(Lhs) << _(Rhs)
-                                       << _(UnifyBody));
-        },
+        In(UnifyBody) *
+            (T(LiteralEnum)
+             << (T(Var)[Lhs] * T(Var)[Rhs] * T(UnifyBody)[UnifyBody])) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "enum";
+            Location value = _.fresh({"value"});
+            return Seq << (Lift << UnifyBody
+                                << (Local << (Var ^ value) << Undefined))
+                       << (UnifyExprEnum << (Var ^ value) << _(Lhs) << _(Rhs)
+                                         << _(UnifyBody));
+          },
 
-      // LiteralInit nodes are handled separately. They designate what the
-      // vars are being initialized. There are three basic cases: Arrays,
-      // Objects, and everything else. Arrays and Objects need to be handled
-      // specially because they can have nested variables. For example: [x, 1]
-      // = [2, 1] or
-      // ["a": x, "b": 1] = ["a": 2, "b": 1]
-      // These will get broken down into AssignInfix and BoolInfix nodes.
-      // Everything else simply gets unified.
+        // LiteralInit nodes are handled separately. They designate what the
+        // vars are being initialized. There are three basic cases: Arrays,
+        // Objects, and everything else. Arrays and Objects need to be handled
+        // specially because they can have nested variables. For example: [x, 1]
+        // = [2, 1] or
+        // ["a": x, "b": 1] = ["a": 2, "b": 1]
+        // These will get broken down into AssignInfix and BoolInfix nodes.
+        // Everything else simply gets unified.
 
-      // <array> := indexable
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << (T(VarSeq)[LhsVars] * (T(VarSeq)[RhsVars] << End) *
-               (T(AssignInfix)
-                << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
-                    T(AssignArg)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<array> := indexable");
-          Node seq = NodeDef::create(Seq);
-          Node rhs = _(Rhs)->front();
-          if (rhs->type() != RefTerm || rhs->front()->type() != Var)
-          {
-            // Check if rhs is a var. If not, create a var and set it.
-            Location rhs_loc = _.fresh({"rhs"});
-            seq << (Local << (Var ^ rhs_loc) << Undefined)
-                << (UnifyExpr << (Var ^ rhs_loc) << (Expr << rhs));
-            rhs = Var ^ rhs_loc;
-          }
-          else
-          {
-            rhs = rhs->front();
-          }
-          std::set<Location> vars;
-          for (auto& item : *_(LhsVars))
-          {
-            vars.insert(item->location());
-          }
-
-          // Enumerate the items of lhs.
-          for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
-          {
-            Node item = _(Lhs)->at(i)->front();
-            Node index = Scalar << (Int ^ std::to_string(i));
-            Node rhsval = RefTerm
-              << (SimpleRef << rhs->clone() << (RefArgBrack << index));
-            Node init_vars = NodeDef::create(VarSeq);
-            find_locs_from(item, vars, init_vars);
-            if (init_vars->size() > 0)
+        // <array> := indexable
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << (T(VarSeq)[LhsVars] * (T(VarSeq)[RhsVars] << End) *
+                 (T(AssignInfix)
+                  << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
+                      T(AssignArg)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<array> := indexable";
+            Node seq = NodeDef::create(Seq);
+            Node rhs = _(Rhs)->front();
+            if (rhs->type() != RefTerm || rhs->front()->type() != Var)
             {
-              // If an item contains mne or more vars from the list, create a
-              // LiteralInit << AssignInfix for that item.
-              seq
-                << (LiteralInit << init_vars << VarSeq
-                                << (AssignInfix << (AssignArg << item)
-                                                << (AssignArg << rhsval)));
+              // Check if rhs is a var. If not, create a var and set it.
+              Location rhs_loc = _.fresh({"rhs"});
+              seq << (Local << (Var ^ rhs_loc) << Undefined)
+                  << (UnifyExpr << (Var ^ rhs_loc) << (Expr << rhs));
+              rhs = Var ^ rhs_loc;
             }
             else
             {
-              // Otherwise create a BoolInfix.
-              Location unify = _.fresh({"unify"});
-              seq << (Local << (Var ^ unify) << Undefined)
-                  << (UnifyExpr << (Var ^ unify)
-                                << (Expr
-                                    << (BoolInfix << (BoolArg << item) << Equals
-                                                  << (BoolArg << rhsval))));
+              rhs = rhs->front();
             }
-          }
-
-          if (seq->size() == 0)
-          {
-            return err(_(Lhs), "Invalid initialization: nothing to initialize");
-          }
-
-          return seq;
-        },
-
-      // <object> := indexable
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << (T(VarSeq)[LhsVars] * (T(VarSeq)[RhsVars] << End) *
-               (T(AssignInfix)
-                << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
-                    T(AssignArg)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<object> := indexable");
-          Node seq = NodeDef::create(Seq);
-          Node rhs = _(Rhs)->front();
-          if (rhs->type() != RefTerm || rhs->front()->type() != Var)
-          {
-            // Check if rhs is a var. If not, create a var and set it.
-            Location rhs_loc = _.fresh({"rhs"});
-            seq << (Local << (Var ^ rhs_loc) << Undefined)
-                << (UnifyExpr << (Var ^ rhs_loc) << (Expr << rhs));
-            rhs = Var ^ rhs_loc;
-          }
-          else
-          {
-            rhs = rhs->front();
-          }
-          std::set<Location> vars;
-          for (auto& var : *_(LhsVars))
-          {
-            vars.insert(var->location());
-          }
-
-          // Enumerate the items of lhs.
-          for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
-          {
-            Node item = _(Lhs)->at(i);
-            Node key = (item / Key);
-            if (key->front()->type() == Term)
+            std::set<Location> vars;
+            for (auto& item : *_(LhsVars))
             {
-              key = key->front()->front();
+              vars.insert(item->location());
             }
 
-            Node val = (item / Val)->front();
-            Node rhsval = RefTerm
-              << (SimpleRef << rhs->clone() << (RefArgBrack << key->clone()));
-            Node init_vars = NodeDef::create(VarSeq);
-            find_locs_from(item, vars, init_vars);
-
-            if (init_vars->size() > 0)
+            // Enumerate the items of lhs.
+            for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
             {
-              // If an item contains one or more vars from the list, create a
-              // LiteralInit << AssignInfix for that item.
-              seq
-                << (LiteralInit << init_vars << VarSeq
-                                << (AssignInfix << (AssignArg << val)
-                                                << (AssignArg << rhsval)));
+              Node item = _(Lhs)->at(i)->front();
+              Node index = Scalar << (Int ^ std::to_string(i));
+              Node rhsval = RefTerm
+                << (SimpleRef << rhs->clone() << (RefArgBrack << index));
+              Node init_vars = NodeDef::create(VarSeq);
+              find_locs_from(item, vars, init_vars);
+              if (init_vars->size() > 0)
+              {
+                // If an item contains mne or more vars from the list, create a
+                // LiteralInit << AssignInfix for that item.
+                seq
+                  << (LiteralInit << init_vars << VarSeq
+                                  << (AssignInfix << (AssignArg << item)
+                                                  << (AssignArg << rhsval)));
+              }
+              else
+              {
+                // Otherwise create a BoolInfix.
+                Location unify = _.fresh({"unify"});
+                seq << (Local << (Var ^ unify) << Undefined)
+                    << (UnifyExpr
+                        << (Var ^ unify)
+                        << (Expr
+                            << (BoolInfix << (BoolArg << item) << Equals
+                                          << (BoolArg << rhsval))));
+              }
+            }
+
+            if (seq->size() == 0)
+            {
+              return err(
+                _(Lhs), "Invalid initialization: nothing to initialize");
+            }
+
+            return seq;
+          },
+
+        // <object> := indexable
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << (T(VarSeq)[LhsVars] * (T(VarSeq)[RhsVars] << End) *
+                 (T(AssignInfix)
+                  << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
+                      T(AssignArg)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<object> := indexable";
+            Node seq = NodeDef::create(Seq);
+            Node rhs = _(Rhs)->front();
+            if (rhs->type() != RefTerm || rhs->front()->type() != Var)
+            {
+              // Check if rhs is a var. If not, create a var and set it.
+              Location rhs_loc = _.fresh({"rhs"});
+              seq << (Local << (Var ^ rhs_loc) << Undefined)
+                  << (UnifyExpr << (Var ^ rhs_loc) << (Expr << rhs));
+              rhs = Var ^ rhs_loc;
             }
             else
             {
-              // Otherwise create a Literal << BoolInfix.
+              rhs = rhs->front();
+            }
+            std::set<Location> vars;
+            for (auto& var : *_(LhsVars))
+            {
+              vars.insert(var->location());
+            }
+
+            // Enumerate the items of lhs.
+            for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
+            {
+              Node item = _(Lhs)->at(i);
+              Node key = (item / Key);
+              if (key->front()->type() == Term)
+              {
+                key = key->front()->front();
+              }
+
+              Node val = (item / Val)->front();
+              Node rhsval = RefTerm
+                << (SimpleRef << rhs->clone() << (RefArgBrack << key->clone()));
+              Node init_vars = NodeDef::create(VarSeq);
+              find_locs_from(item, vars, init_vars);
+
+              if (init_vars->size() > 0)
+              {
+                // If an item contains one or more vars from the list, create a
+                // LiteralInit << AssignInfix for that item.
+                seq
+                  << (LiteralInit << init_vars << VarSeq
+                                  << (AssignInfix << (AssignArg << val)
+                                                  << (AssignArg << rhsval)));
+              }
+              else
+              {
+                // Otherwise create a Literal << BoolInfix.
+                Location unify = _.fresh({"unify"});
+                seq << (Local << (Var ^ unify) << Undefined)
+                    << (UnifyExpr
+                        << (Var ^ unify)
+                        << (Expr
+                            << (BoolInfix << (BoolArg << val) << Equals
+                                          << (BoolArg << rhsval))));
+              }
+            }
+
+            if (seq->size() == 0)
+            {
+              return err(
+                _(Lhs), "Invalid initialization: nothing to initialize");
+            }
+
+            return seq;
+          },
+
+        // <array> :=: <array>
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars] *
+                 (T(AssignInfix)
+                  << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
+                      (T(AssignArg) << (T(Term) << T(Array)[Rhs])))))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<array> :=: <array>";
+
+            if (_(Lhs)->size() != _(Rhs)->size())
+            {
+              return err(_(Rhs), "Array size mismatch");
+            }
+
+            std::set<Location> lhs_vars;
+            for (auto& var : *_(LhsVars))
+            {
+              lhs_vars.insert(var->location());
+            }
+
+            std::set<Location> rhs_vars;
+            for (auto& var : *_(RhsVars))
+            {
+              rhs_vars.insert(var->location());
+            }
+
+            Node seq = NodeDef::create(Seq);
+            for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
+            {
+              Node lhs_term = _(Lhs)->at(i)->front();
+              Node rhs_term = _(Rhs)->at(i)->front();
+
+              Node lhs_init_vars = NodeDef::create(VarSeq);
+              find_locs_from(lhs_term, lhs_vars, lhs_init_vars);
+
+              Node rhs_init_vars = NodeDef::create(VarSeq);
+              find_locs_from(rhs_term, rhs_vars, rhs_init_vars);
+
+              if (lhs_init_vars->size() > 0 || rhs_init_vars->size() > 0)
+              {
+                seq
+                  << (LiteralInit << lhs_init_vars << rhs_init_vars
+                                  << (AssignInfix << (AssignArg << lhs_term)
+                                                  << (AssignArg << rhs_term)));
+              }
+              else
+              {
+                Location unify = _.fresh({"unify"});
+                seq << (Local << (Var ^ unify) << Undefined)
+                    << (UnifyExpr
+                        << (Var ^ unify)
+                        << (Expr
+                            << (BoolInfix << (BoolArg << lhs_term) << Equals
+                                          << (BoolArg << rhs_term))));
+              }
+            }
+
+            if (seq->size() == 0)
+            {
+              return err(
+                _(Lhs), "Invalid initialization: nothing to initialize");
+            }
+
+            return seq;
+          },
+
+        // <object> :=: <object>
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars] *
+                 (T(AssignInfix)
+                  << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
+                      (T(AssignArg) << (T(Term) << T(Object)[Rhs])))))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<object> :=: <object>";
+            // first, we set up all equalities going lhs <- rhs
+            // so for example, if we have {"a": x, "b": 2, c: 3, "d": 4} = {"a":
+            // 1, "b": y, "c": 3, "d": 4} then this will generate: x =
+            // rhsobj["a"] 2 == rhsobj["b"] 3 == rhsobj[c] 4 == rhsobj["d"] we
+            // then go lhs -> rhs to get the rest: 1 == lhsobj["a"] y =
+            // lhsobj["b"] 3 == lhsobj["c"] 4 == lhsobj["d"] ordering matters
+            // here! unifications need to go first, then boolean checks x =
+            // rhsobj["a"] y = rhsobj["b"] then the boolean checks 1 ==
+            // lhsobj["a"] 2 == rhsobj["b"] 3 == rhsobj[c] 4 == rhsobj["d"] 3 ==
+            // lhsobj["c"] 4 == lhsobj["d"]
+
+            Node lhs = _(Lhs);
+            Node rhs = _(Rhs);
+            if (lhs->size() != rhs->size())
+            {
+              return err(rhs, "Object size mismatch");
+            }
+
+            Node seq = NodeDef::create(Seq);
+            Location lhsobj = _.fresh({"lhsobj"});
+            Location rhsobj = _.fresh({"rhsobj"});
+
+            Nodes literalinits;
+            Nodes booleaninfixes;
+
+            std::set<Location> lhs_vars;
+            for (auto& var : *_(LhsVars))
+            {
+              lhs_vars.insert(var->location());
+            }
+
+            std::set<Location> rhs_vars;
+            for (auto& var : *_(RhsVars))
+            {
+              rhs_vars.insert(var->location());
+            }
+
+            add_object_comparisons(
+              lhsobj,
+              lhs,
+              lhs_vars,
+              rhs,
+              rhs_vars,
+              literalinits,
+              booleaninfixes);
+            add_object_comparisons(
+              rhsobj,
+              rhs,
+              rhs_vars,
+              lhs,
+              lhs_vars,
+              literalinits,
+              booleaninfixes);
+
+            for (auto item : literalinits)
+            {
+              seq << item;
+            }
+
+            seq << (Local << (Var ^ lhsobj) << Undefined)
+                << (Local << (Var ^ rhsobj) << Undefined)
+                << (UnifyExpr << (Var ^ lhsobj) << (Expr << (Term << _(Lhs))))
+                << (UnifyExpr << (Var ^ rhsobj) << (Expr << (Term << _(Rhs))));
+
+            for (auto item : booleaninfixes)
+            {
               Location unify = _.fresh({"unify"});
               seq << (Local << (Var ^ unify) << Undefined)
-                  << (UnifyExpr << (Var ^ unify)
-                                << (Expr
-                                    << (BoolInfix << (BoolArg << val) << Equals
-                                                  << (BoolArg << rhsval))));
+                  << (UnifyExpr << (Var ^ unify) << (Expr << item));
             }
-          }
 
-          if (seq->size() == 0)
-          {
-            return err(_(Lhs), "Invalid initialization: nothing to initialize");
-          }
-
-          return seq;
-        },
-
-      // <array> :=: <array>
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars] *
-               (T(AssignInfix)
-                << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
-                    (T(AssignArg) << (T(Term) << T(Array)[Rhs])))))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<array> :=: <array>");
-
-          if (_(Lhs)->size() != _(Rhs)->size())
-          {
-            return err(_(Rhs), "Array size mismatch");
-          }
-
-          std::set<Location> lhs_vars;
-          for (auto& var : *_(LhsVars))
-          {
-            lhs_vars.insert(var->location());
-          }
-
-          std::set<Location> rhs_vars;
-          for (auto& var : *_(RhsVars))
-          {
-            rhs_vars.insert(var->location());
-          }
-
-          Node seq = NodeDef::create(Seq);
-          for (std::size_t i = 0; i < _(Lhs)->size(); ++i)
-          {
-            Node lhs_term = _(Lhs)->at(i)->front();
-            Node rhs_term = _(Rhs)->at(i)->front();
-
-            Node lhs_init_vars = NodeDef::create(VarSeq);
-            find_locs_from(lhs_term, lhs_vars, lhs_init_vars);
-
-            Node rhs_init_vars = NodeDef::create(VarSeq);
-            find_locs_from(rhs_term, rhs_vars, rhs_init_vars);
-
-            if (lhs_init_vars->size() > 0 || rhs_init_vars->size() > 0)
+            if (seq->size() == 0)
             {
-              seq
-                << (LiteralInit << lhs_init_vars << rhs_init_vars
-                                << (AssignInfix << (AssignArg << lhs_term)
-                                                << (AssignArg << rhs_term)));
+              return err(
+                _(Lhs), "Invalid initialization: nothing to initialize");
             }
-            else
-            {
-              Location unify = _.fresh({"unify"});
-              seq << (Local << (Var ^ unify) << Undefined)
-                  << (UnifyExpr
-                      << (Var ^ unify)
-                      << (Expr
-                          << (BoolInfix << (BoolArg << lhs_term) << Equals
-                                        << (BoolArg << rhs_term))));
-            }
-          }
 
-          if (seq->size() == 0)
-          {
-            return err(_(Lhs), "Invalid initialization: nothing to initialize");
-          }
+            return seq;
+          },
 
-          return seq;
-        },
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << ((T(VarSeq)[LhsVars] << End) * (T(VarSeq)[RhsVars] << Any) *
+                 (T(AssignInfix)
+                  << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            return LiteralInit << _(RhsVars) << _(LhsVars)
+                               << (AssignInfix << _(Rhs) << _(Lhs));
+          },
 
-      // <object> :=: <object>
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars] *
-               (T(AssignInfix)
-                << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
-                    (T(AssignArg) << (T(Term) << T(Object)[Rhs])))))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<object> :=: <object>");
-          // first, we set up all equalities going lhs <- rhs
-          // so for example, if we have {"a": x, "b": 2, c: 3, "d": 4} = {"a":
-          // 1, "b": y, "c": 3, "d": 4} then this will generate: x =
-          // rhsobj["a"] 2 == rhsobj["b"] 3 == rhsobj[c] 4 == rhsobj["d"] we
-          // then go lhs -> rhs to get the rest: 1 == lhsobj["a"] y =
-          // lhsobj["b"] 3 == lhsobj["c"] 4 == lhsobj["d"] ordering matters
-          // here! unifications need to go first, then boolean checks x =
-          // rhsobj["a"] y = rhsobj["b"] then the boolean checks 1 ==
-          // lhsobj["a"] 2 == rhsobj["b"] 3 == rhsobj[c] 4 == rhsobj["d"] 3 ==
-          // lhsobj["c"] 4 == lhsobj["d"]
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << ((T(VarSeq)[LhsVars] << Any) * (T(VarSeq)[RhsVars] << End) *
+                 (T(AssignInfix)
+                  << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs])) *
+                      T(AssignArg)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            // eventually, most init statements will reduce down
+            // to this.
+            return UnifyExpr << _(Lhs) << (Expr << _(Rhs)->front());
+          },
 
-          Node lhs = _(Lhs);
-          Node rhs = _(Rhs);
-          if (lhs->size() != rhs->size())
-          {
-            return err(rhs, "Object size mismatch");
-          }
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars] *
+                 (T(AssignInfix)
+                  << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs])) *
+                      T(AssignArg)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            // this occurs when there is a loop in the init. This is allowed,
+            // so we unify, but we may want to warn the user.
+            return UnifyExpr << _(Lhs) << (Expr << _(Rhs)->front());
+          },
 
-          Node seq = NodeDef::create(Seq);
-          Location lhsobj = _.fresh({"lhsobj"});
-          Location rhsobj = _.fresh({"rhsobj"});
+        In(UnifyBody) *
+            (T(LiteralInit)
+             << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars] *
+                 (T(AssignInfix)
+                  << (T(AssignArg)[Lhs] * (T(RefTerm) << T(Var)[Rhs]))))) >>
+          [](Match& _) {
+            ACTION();
+            // this occurs when there is a loop in the init. This is allowed,
+            // so we unify, but we may want to warn the user.
+            return UnifyExpr << _(Rhs) << (Expr << _(Lhs)->front());
+          },
 
-          Nodes literalinits;
-          Nodes booleaninfixes;
+        In(UnifyBody) *
+            (T(Literal) << ((T(Expr) << T(AssignInfix)[AssignInfix]))) >>
+          [](Match& _) {
+            ACTION();
+            return _(AssignInfix);
+          },
 
-          std::set<Location> lhs_vars;
-          for (auto& var : *_(LhsVars))
-          {
-            lhs_vars.insert(var->location());
-          }
+        In(With) * T(Expr)[Expr] * In(UnifyBody)++ >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "with";
+            Location temp = _.fresh({"with"});
+            return Seq << (Lift << UnifyBody
+                                << (Local << (Var ^ temp) << Undefined))
+                       << (Lift << UnifyBody
+                                << (UnifyExpr << (Var ^ temp) << _(Expr)))
+                       << (Var ^ temp);
+          },
 
-          std::set<Location> rhs_vars;
-          for (auto& var : *_(RhsVars))
-          {
-            rhs_vars.insert(var->location());
-          }
+        // <expr>
+        In(UnifyBody) * (T(Literal) << T(Expr)[Expr]) >>
+          [](Match& _) {
+            ACTION();
+            std::string prefix = in_query(_(Expr)) ? "value" : "unify";
+            Location temp = _.fresh({prefix});
+            return Seq << (Local << (Var ^ temp) << Undefined)
+                       << (UnifyExpr << (Var ^ temp) << _(Expr));
+          },
 
-          add_object_comparisons(
-            lhsobj, lhs, lhs_vars, rhs, rhs_vars, literalinits, booleaninfixes);
-          add_object_comparisons(
-            rhsobj, rhs, rhs_vars, lhs, lhs_vars, literalinits, booleaninfixes);
-
-          for (auto item : literalinits)
-          {
-            seq << item;
-          }
-
-          seq << (Local << (Var ^ lhsobj) << Undefined)
-              << (Local << (Var ^ rhsobj) << Undefined)
-              << (UnifyExpr << (Var ^ lhsobj) << (Expr << (Term << _(Lhs))))
-              << (UnifyExpr << (Var ^ rhsobj) << (Expr << (Term << _(Rhs))));
-
-          for (auto item : booleaninfixes)
-          {
+        // <any> = <any>
+        In(UnifyBody) *
+            (T(AssignInfix) << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<any> = <any>";
+            Node seq = NodeDef::create(Seq);
             Location unify = _.fresh({"unify"});
-            seq << (Local << (Var ^ unify) << Undefined)
-                << (UnifyExpr << (Var ^ unify) << (Expr << item));
-          }
+            return Seq << (Local << (Var ^ unify) << Undefined)
+                       << (UnifyExpr
+                           << (Var ^ unify)
+                           << (Expr
+                               << (BoolInfix << (BoolArg << _(Lhs)->front())
+                                             << Equals
+                                             << (BoolArg << _(Rhs)->front()))));
+          },
 
-          if (seq->size() == 0)
-          {
-            return err(_(Lhs), "Invalid initialization: nothing to initialize");
-          }
+        // not any = any
+        In(UnifyBody) *
+            (T(LiteralNot)
+             << (T(Expr)
+                 << (T(AssignInfix)
+                     << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "not any = any";
+            Location unify = _.fresh({"unify"});
+            return Seq << (Local << (Var ^ unify) << Undefined)
+                       << (UnifyExpr
+                           << (Var ^ unify)
+                           << (Expr
+                               << (BoolInfix << (BoolArg << _(Lhs)->front())
+                                             << NotEquals
+                                             << (BoolArg << _(Rhs)->front()))));
+          },
 
-          return seq;
-        },
+        // <notexpr>
+        In(UnifyBody) * (T(LiteralNot) << T(UnifyBody)[UnifyBody]) >>
+          [](Match& _) {
+            ACTION();
+            return UnifyExprNot << _(UnifyBody);
+          },
 
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << ((T(VarSeq)[LhsVars] << End) * (T(VarSeq)[RhsVars] << Any) *
-               (T(AssignInfix) << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          return LiteralInit << _(RhsVars) << _(LhsVars)
-                             << (AssignInfix << _(Rhs) << _(Lhs));
-        },
+        // <array> = <array>
+        In(UnifyBody) *
+            (T(AssignInfix)
+             << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
+                 (T(AssignArg) << (T(Term) << T(Array)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<array> = <array>";
+            Node lhs = _(Lhs);
+            Node rhs = _(Rhs);
+            if (lhs->size() != rhs->size())
+            {
+              return err(_(Lhs), "Array size mismatch");
+            }
 
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << ((T(VarSeq)[LhsVars] << Any) * (T(VarSeq)[RhsVars] << End) *
-               (T(AssignInfix)
-                << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs])) *
-                    T(AssignArg)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          // eventually, most init statements will reduce down
-          // to this.
-          return UnifyExpr << _(Lhs) << (Expr << _(Rhs)->front());
-        },
+            Location unify = _.fresh({"unify"});
+            return Seq << (Local << (Var ^ unify) << Undefined)
+                       << (UnifyExpr
+                           << (Var ^ unify)
+                           << (Expr
+                               << (BoolInfix << (BoolArg << (Term << lhs))
+                                             << Equals
+                                             << (BoolArg << (Term << rhs)))));
+          },
 
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars] *
-               (T(AssignInfix)
-                << ((T(AssignArg) << (T(RefTerm) << T(Var)[Lhs])) *
-                    T(AssignArg)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          // this occurs when there is a loop in the init. This is allowed,
-          // so we unify, but we may want to warn the user.
-          return UnifyExpr << _(Lhs) << (Expr << _(Rhs)->front());
-        },
+        // <object> = <object>
+        In(UnifyBody) *
+            (T(AssignInfix)
+             << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
+                 (T(AssignArg) << (T(Term) << T(Object)[Rhs])))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<object> = <object>";
 
-      In(UnifyBody) *
-          (T(LiteralInit)
-           << (T(VarSeq)[LhsVars] * T(VarSeq)[RhsVars] *
-               (T(AssignInfix)
-                << (T(AssignArg)[Lhs] * (T(RefTerm) << T(Var)[Rhs]))))) >>
-        [](Match& _) {
-          ACTION();
-          // this occurs when there is a loop in the init. This is allowed,
-          // so we unify, but we may want to warn the user.
-          return UnifyExpr << _(Rhs) << (Expr << _(Lhs)->front());
-        },
+            Node lhs = _(Lhs);
+            Node rhs = _(Rhs);
+            if (lhs->size() != rhs->size())
+            {
+              return err(rhs, "Object size mismatch");
+            }
 
-      In(UnifyBody) *
-          (T(Literal) << ((T(Expr) << T(AssignInfix)[AssignInfix]))) >>
-        [](Match& _) {
-          ACTION();
-          return _(AssignInfix);
-        },
+            Location unify = _.fresh({"unify"});
+            return Seq << (Local << (Var ^ unify) << Undefined)
+                       << (UnifyExpr
+                           << (Var ^ unify)
+                           << (Expr
+                               << (BoolInfix << (BoolArg << (Term << lhs))
+                                             << Equals
+                                             << (BoolArg << (Term << rhs)))));
+          },
 
-      In(With) * T(Expr)[Expr] * In(UnifyBody)++ >>
-        [](Match& _) {
-          ACTION();
-          LOG("with");
-          Location temp = _.fresh({"with"});
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ temp) << Undefined))
-                     << (Lift << UnifyBody
-                              << (UnifyExpr << (Var ^ temp) << _(Expr)))
-                     << (Var ^ temp);
-        },
+        In(UnifyBody) * (T(LiteralEnum) << T(UnifyExpr)[UnifyExpr]) >>
+          [](Match& _) {
+            ACTION();
+            return _(UnifyExpr);
+          },
 
-      // <expr>
-      In(UnifyBody) * (T(Literal) << T(Expr)[Expr]) >>
-        [](Match& _) {
-          ACTION();
-          std::string prefix = in_query(_(Expr)) ? "value" : "unify";
-          Location temp = _.fresh({prefix});
-          return Seq << (Local << (Var ^ temp) << Undefined)
-                     << (UnifyExpr << (Var ^ temp) << _(Expr));
-        },
+        // <compr>
+        In(UnifyBody) *
+            (T(UnifyExpr)
+             << (T(Var)[Var] *
+                 (T(Expr)
+                  << (T(Term)
+                      << (T(ArrayCompr) / T(SetCompr) /
+                          T(ObjectCompr))[Compr])))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<compr>";
+            return UnifyExprCompr << _(Var)
+                                  << (_(Compr)->type() << (_(Compr) / Var))
+                                  << (_(Compr) / NestedBody);
+          },
 
-      // <any> = <any>
-      In(UnifyBody) *
-          (T(AssignInfix) << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<any> = <any>");
-          Node seq = NodeDef::create(Seq);
-          Location unify = _.fresh({"unify"});
-          return Seq << (Local << (Var ^ unify) << Undefined)
-                     << (UnifyExpr
-                         << (Var ^ unify)
-                         << (Expr
-                             << (BoolInfix << (BoolArg << _(Lhs)->front())
-                                           << Equals
-                                           << (BoolArg << _(Rhs)->front()))));
-        },
+        // <compr>
+        In(UnifyBody) *
+            (T(UnifyExpr)
+             << (T(Var)[Var] *
+                 (T(Expr)
+                  << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr]))) >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<compr>";
+            return UnifyExprCompr << _(Var)
+                                  << (_(Compr)->type() << (_(Compr) / Var))
+                                  << (_(Compr) / NestedBody);
+          },
 
-      // not any = any
-      In(UnifyBody) *
-          (T(LiteralNot)
-           << (T(Expr)
-               << (T(AssignInfix)
-                   << (T(AssignArg)[Lhs] * T(AssignArg)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("not any = any");
-          Location unify = _.fresh({"unify"});
-          return Seq << (Local << (Var ^ unify) << Undefined)
-                     << (UnifyExpr
-                         << (Var ^ unify)
-                         << (Expr
-                             << (BoolInfix << (BoolArg << _(Lhs)->front())
-                                           << NotEquals
-                                           << (BoolArg << _(Rhs)->front()))));
-        },
+        // <compr> (other)
+        T(Term) << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] *
+              In(UnifyBody)++ >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<compr> (other)";
+            Location term = _.fresh({"term"});
+            return Seq << (Lift << UnifyBody
+                                << (Local << (Var ^ term) << Undefined))
+                       << (Lift
+                           << UnifyBody
+                           << (UnifyExpr << (Var ^ term) << (Expr << _(Compr))))
+                       << (RefTerm << (Var ^ term));
+          },
 
-      // <notexpr>
-      In(UnifyBody) * (T(LiteralNot) << T(UnifyBody)[UnifyBody]) >>
-        [](Match& _) {
-          ACTION();
-          return UnifyExprNot << _(UnifyBody);
-        },
+        // <binarg>.<setcompr>
+        In(BinArg) * T(SetCompr)[SetCompr] * In(UnifyBody)++ >>
+          [](Match& _) {
+            ACTION();
+            logging::Debug() << "<binarg>.<setcompr>";
+            Location set = _.fresh({"setcompr"});
+            return Seq << (Lift << UnifyBody
+                                << (Local << (Var ^ set) << Undefined))
+                       << (Lift << UnifyBody
+                                << (UnifyExpr << (Var ^ set)
+                                              << (Expr << _(SetCompr))))
+                       << (RefTerm << (Var ^ set));
+          },
 
-      // <array> = <array>
-      In(UnifyBody) *
-          (T(AssignInfix)
-           << ((T(AssignArg) << (T(Term) << T(Array)[Lhs])) *
-               (T(AssignArg) << (T(Term) << T(Array)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<array> = <array>");
-          Node lhs = _(Lhs);
-          Node rhs = _(Rhs);
-          if (lhs->size() != rhs->size())
-          {
-            return err(_(Lhs), "Array size mismatch");
-          }
+        In(RefArgBrack) * T(NumTerm)[NumTerm] >>
+          [](Match& _) {
+            ACTION();
+            return Scalar << _(NumTerm)->front();
+          },
 
-          Location unify = _.fresh({"unify"});
-          return Seq << (Local << (Var ^ unify) << Undefined)
-                     << (UnifyExpr
-                         << (Var ^ unify)
-                         << (Expr
-                             << (BoolInfix << (BoolArg << (Term << lhs))
-                                           << Equals
-                                           << (BoolArg << (Term << rhs)))));
-        },
+        // errors
 
-      // <object> = <object>
-      In(UnifyBody) *
-          (T(AssignInfix)
-           << ((T(AssignArg) << (T(Term) << T(Object)[Lhs])) *
-               (T(AssignArg) << (T(Term) << T(Object)[Rhs])))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<object> = <object>");
+        In(BoolArg) * T(BoolInfix)[BoolInfix] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(BoolInfix), "Invalid boolean expression");
+          },
 
-          Node lhs = _(Lhs);
-          Node rhs = _(Rhs);
-          if (lhs->size() != rhs->size())
-          {
-            return err(rhs, "Object size mismatch");
-          }
+        In(Term, BinArg) * T(SetCompr)[SetCompr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(SetCompr), "Invalid set comprehension");
+          },
 
-          Location unify = _.fresh({"unify"});
-          return Seq << (Local << (Var ^ unify) << Undefined)
-                     << (UnifyExpr
-                         << (Var ^ unify)
-                         << (Expr
-                             << (BoolInfix << (BoolArg << (Term << lhs))
-                                           << Equals
-                                           << (BoolArg << (Term << rhs)))));
-        },
+        In(Term) * T(ArrayCompr)[ArrayCompr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(ArrayCompr), "Invalid array comprehension");
+          },
 
-      In(UnifyBody) * (T(LiteralEnum) << T(UnifyExpr)[UnifyExpr]) >>
-        [](Match& _) {
-          ACTION();
-          return _(UnifyExpr);
-        },
+        In(Term) * T(ObjectCompr)[ObjectCompr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(ObjectCompr), "Invalid object comprehension");
+          },
 
-      // <compr>
-      In(UnifyBody) *
-          (T(UnifyExpr)
-           << (T(Var)[Var] *
-               (T(Expr)
-                << (T(Term)
-                    << (T(ArrayCompr) / T(SetCompr) /
-                        T(ObjectCompr))[Compr])))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<compr>");
-          return UnifyExprCompr << _(Var)
-                                << (_(Compr)->type() << (_(Compr) / Var))
-                                << (_(Compr) / NestedBody);
-        },
+        In(ObjectItem) * (T(Expr)[Expr] << T(AssignInfix)) >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Expr), "Invalid object item");
+          },
 
-      // <compr>
-      In(UnifyBody) *
-          (T(UnifyExpr)
-           << (T(Var)[Var] *
-               (T(Expr)
-                << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr]))) >>
-        [](Match& _) {
-          ACTION();
-          LOG("<compr>");
-          return UnifyExprCompr << _(Var)
-                                << (_(Compr)->type() << (_(Compr) / Var))
-                                << (_(Compr) / NestedBody);
-        },
+        In(UnifyBody) * T(AssignInfix)[AssignInfix] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(AssignInfix), "Invalid assignment");
+          },
 
-      // <compr> (other)
-      T(Term) << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] *
-            In(UnifyBody)++ >>
-        [](Match& _) {
-          ACTION();
-          LOG("<compr> (other)");
-          Location term = _.fresh({"term"});
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ term) << Undefined))
-                     << (Lift
-                         << UnifyBody
-                         << (UnifyExpr << (Var ^ term) << (Expr << _(Compr))))
-                     << (RefTerm << (Var ^ term));
-        },
+        In(Expr) * T(AssignInfix)[AssignInfix] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(AssignInfix), "Invalid assignment");
+          },
 
-      // <binarg>.<setcompr>
-      In(BinArg) * T(SetCompr)[SetCompr] * In(UnifyBody)++ >>
-        [](Match& _) {
-          ACTION();
-          LOG("<binarg>.<setcompr>");
-          Location set = _.fresh({"setcompr"});
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ set) << Undefined))
-                     << (Lift
-                         << UnifyBody
-                         << (UnifyExpr << (Var ^ set) << (Expr << _(SetCompr))))
-                     << (RefTerm << (Var ^ set));
-        },
+        In(BoolArg) * (T(Membership) / T(AssignInfix))[Arg] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Arg), "Invalid boolean argument");
+          },
 
-      In(RefArgBrack) * T(NumTerm)[NumTerm] >>
-        [](Match& _) {
-          ACTION();
-          return Scalar << _(NumTerm)->front();
-        },
-
-      // errors
-
-      In(BoolArg) * T(BoolInfix)[BoolInfix] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(BoolInfix), "Invalid boolean expression");
-        },
-
-      In(Term, BinArg) * T(SetCompr)[SetCompr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(SetCompr), "Invalid set comprehension");
-        },
-
-      In(Term) * T(ArrayCompr)[ArrayCompr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(ArrayCompr), "Invalid array comprehension");
-        },
-
-      In(Term) * T(ObjectCompr)[ObjectCompr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(ObjectCompr), "Invalid object comprehension");
-        },
-
-      In(ObjectItem) * (T(Expr)[Expr] << T(AssignInfix)) >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Expr), "Invalid object item");
-        },
-
-      In(UnifyBody) * T(AssignInfix)[AssignInfix] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(AssignInfix), "Invalid assignment");
-        },
-
-      In(Expr) * T(AssignInfix)[AssignInfix] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(AssignInfix), "Invalid assignment");
-        },
-
-      In(BoolArg) * (T(Membership) / T(AssignInfix))[Arg] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Arg), "Invalid boolean argument");
-        },
-
-      In(RefArgBrack) * (T(Membership) / T(AssignInfix))[Arg] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Arg), "Invalid index");
-        },
-    }};
+        In(RefArgBrack) * (T(Membership) / T(AssignInfix))[Arg] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Arg), "Invalid index");
+          },
+      }};
 
     rulebody.post(UnifyBody, [](Node n) {
       for (auto child : *n)

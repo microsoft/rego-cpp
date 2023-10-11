@@ -16,7 +16,7 @@ namespace rego
       }) >>
         [](Match& _) {
           ACTION();
-          LOG("non-var refhead");
+          logging::Debug() << "non-var refhead";
           Location refhead = _.fresh({"refhead"});
           Node head = _(RefHead)->front();
           if (head->type() != ExprCall)
@@ -40,7 +40,7 @@ namespace rego
           (T(Ref) << ((T(RefHead) << T(Var)[Var]) * (T(RefArgSeq) << End))) >>
         [](Match& _) {
           ACTION();
-          LOG("var");
+          logging::Debug() << "var";
           return _(Var);
         },
 
@@ -50,7 +50,7 @@ namespace rego
       }) >>
         [](Match& _) {
           ACTION();
-          LOG("expr-call refhead");
+          logging::Debug() << "expr-call refhead";
           Location call = _.fresh({"call"});
           return Seq << (Lift << UnifyBody
                               << (Local << (Var ^ call) << Undefined))
@@ -73,7 +73,7 @@ namespace rego
                        (T(AssignArg) << (T(RefTerm)[Rhs] << T(Ref))))))) >>
         [](Match& _) {
           ACTION();
-          LOG("ref = ref");
+          logging::Debug() << "ref = ref";
           Node seq = NodeDef::create(Seq);
           Location ref0 = _.fresh({"ref"});
           Location ref1 = _.fresh({"ref"});
@@ -104,7 +104,7 @@ namespace rego
                   (T(RefArgSeq) << (RefArg[Head] * RefArg++[Tail])))) >>
         [](Match& _) {
           ACTION();
-          LOG("ref.a/ref[a]");
+          logging::Debug() << "ref.a/ref[a]";
           NodeRange tail = _[Tail];
           Location ref = _.fresh({"ref"});
           Node seq =

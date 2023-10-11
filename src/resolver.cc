@@ -741,283 +741,205 @@ namespace rego
     return set;
   }
 
-  Resolver::NodePrinter Resolver::stmt_str(const Node& statement)
+  void Resolver::stmt_str(logging::Log& log, const Node& statement)
   {
     if (statement->type() == UnifyExprEnum)
     {
-      return enum_str(statement);
+      enum_str(log, statement);
     }
-
-    if (statement->type() == UnifyExprWith)
+    else if (statement->type() == UnifyExprWith)
     {
-      return with_str(statement);
+      with_str(log, statement);
     }
-
-    if (statement->type() == UnifyExprCompr)
+    else if (statement->type() == UnifyExprCompr)
     {
-      return compr_str(statement);
+      compr_str(log, statement);
     }
-
-    if (statement->type() == UnifyExprNot)
+    else if (statement->type() == UnifyExprNot)
     {
-      return not_str(statement);
+      not_str(log, statement);
+    }
+    else
+    {
+      expr_str(log, statement);
+    }
+  }
+
+  void Resolver::expr_str(logging::Log& os, const Node& unifyexpr)
+  {
+    Node lhs = unifyexpr / Var;
+    Node rhs = unifyexpr / Val;
+    os << lhs->location().view() << " = ";
+    if (rhs->type() == Function)
+      func_str(os, rhs);
+    else
+      arg_str(os, rhs);
+  }
+
+  void Resolver::term_str(logging::Log& log, const Node& node)
+  {
+    log << node->type().str() << "(" << to_json(node) << ")";
+  }
+
+  void Resolver::with_str(logging::Log& os, const Node& unifyexprwith)
+  {
+    Node unifybody = unifyexprwith / UnifyBody;
+    os << "{";
+    logging::Sep sep{"; "};
+    for (Node expr : *unifybody)
+    {
+      if (expr->type() == UnifyExpr)
+      {
+        os << sep << ExprStr(expr);
+      }
+
+      if (expr->type() == UnifyExprNot)
+      {
+        os << sep << NotStr(expr);
+      }
+    }
+    os << "} ";
+
+    Node withseq = unifyexprwith / WithSeq;
+    logging::Sep sep2{"; "};
+    for (Node with : *withseq)
+    {
+      Node ref = with / RuleRef;
+      Node var = with / Var;
+      os << sep2 << "with " << RefStr(ref) << " as " << ArgStr(var);
+    }
+  }
+
+  void Resolver::compr_str(logging::Log& os, const Node& unifyexprcompr)
+  {
+    Node lhs = unifyexprcompr / Var;
+    Node rhs = unifyexprcompr / Val;
+    Node unifybody = unifyexprcompr / UnifyBody;
+    os << lhs->location().view() << " = " << rhs->type().str() << "{";
+    logging::Sep sep{"; "};
+    for (Node expr : *unifybody)
+    {
+      if (expr->type() != Local)
+      {
+        os << sep << StmtStr(expr);
+      }
+    }
+    os << "}";
+  }
+
+  void Resolver::enum_str(logging::Log& os, const Node& unifyexprenum)
+  {
+    Node item = unifyexprenum / Item;
+    Node itemseq = unifyexprenum / ItemSeq;
+    Node unifybody = unifyexprenum / NestedBody / UnifyBody;
+    os << "foreach " << item->location().view() << " in "
+       << itemseq->location().view() << " unify {";
+    logging::Sep sep{"; "};
+    for (Node expr : *unifybody)
+    {
+      if (expr->type() != Local)
+      {
+        os << sep << StmtStr(expr);
+      }
+    }
+    os << "}";
+  }
+
+  void Resolver::not_str(logging::Log& os, const Node& unifyexprnot)
+  {
+    Node unifybody = unifyexprnot->front();
+    os << "not {";
+    logging::Sep sep{"; "};
+    for (Node expr : *unifybody)
+    {
+      if (expr->type() != Local)
+      {
+        os << sep << StmtStr(expr);
+      }
+    }
+    os << "}";
+  }
+
+  void Resolver::func_str(logging::Log& os, const Node& function)
+  {
+    Node name = function / JSONString;
+    Node args = function / ArgSeq;
+    os << name->location().view() << "(";
+    logging::Sep sep{", "};
+    for (Node arg : *args)
+    {
+      os << sep << ArgStr(arg);
+    }
+    os << ")";
+  }
+
+  void Resolver::arg_str(logging::Log& os, const Node& arg)
+  {
+    if (arg->type() == Var)
+    {
+      os << arg->location().view();
+    }
+    else if (arg->type() == NestedBody)
+    {
+      os << "{";
+      Node body = arg / Val;
+      logging::Sep sep{"; "};
+      for (Node expr : *body)
+      {
+        if (expr->type() == Local)
+          continue;
+
+        os << sep << StmtStr(expr);
+      }
+      os << "}";
+    }
+    else if (arg->type() == VarSeq)
+    {
+      os << "[";
+      logging::Sep sep{", "};
+      for (Node var : *arg)
+      {
+        os << sep << var->location().view();
+      }
+      os << "]";
+    }
+    else
+    {
+      os << to_json(arg);
+    }
+  }
+
+  void Resolver::ref_str(logging::Log& os, const Node& ref_)
+  {
+    Node ref = ref_;
+    if (ref->type() == RuleRef || ref->type() == RefTerm)
+    {
+      ref = ref->front();
+      if (ref->type() == Var)
+      {
+        os << ref->location().view();
+        return;
+      }
     }
 
-    return expr_str(statement);
-  }
-
-  Resolver::NodePrinter Resolver::expr_str(const Node& node)
-  {
-    return {node, [](std::ostream& os, const Node& unifyexpr) -> std::ostream& {
-              Node lhs = unifyexpr / Var;
-              Node rhs = unifyexpr / Val;
-              os << lhs->location().view() << " = "
-                 << (rhs->type() == Function ? func_str(rhs) : arg_str(rhs));
-              return os;
-            }};
-  }
-
-  Resolver::NodePrinter Resolver::term_str(const Node& node)
-  {
-    return {node, [](std::ostream& os, const Node& term) -> std::ostream& {
-              os << term->type().str() << "(" << to_json(term) << ")";
-              return os;
-            }};
-  }
-
-  Resolver::NodePrinter Resolver::with_str(const Node& node)
-  {
-    return {
-      node, [](std::ostream& os, const Node& unifyexprwith) -> std::ostream& {
-        Node unifybody = unifyexprwith / UnifyBody;
-        os << "{";
-        join(
-          os,
-          unifybody->begin(),
-          unifybody->end(),
-          "; ",
-          [](std::ostream& stream, const Node& expr) {
-            if (expr->type() == UnifyExpr)
-            {
-              stream << expr_str(expr);
-              return true;
-            }
-
-            if (expr->type() == UnifyExprNot)
-            {
-              stream << not_str(expr);
-              return true;
-            }
-
-            return false;
-          });
-        os << "} ";
-
-        Node withseq = unifyexprwith / WithSeq;
-        join(
-          os,
-          withseq->begin(),
-          withseq->end(),
-          "; ",
-          [](std::ostream& stream, const Node& with) {
-            Node ref = with / RuleRef;
-            Node var = with / Var;
-            stream << "with " << ref_str(ref) << " as " << arg_str(var);
-            return true;
-          });
-        return os;
-      }};
-  }
-
-  Resolver::NodePrinter Resolver::compr_str(const Node& node)
-  {
-    return {
-      node, [](std::ostream& os, const Node& unifyexprcompr) -> std::ostream& {
-        Node lhs = unifyexprcompr / Var;
-        Node rhs = unifyexprcompr / Val;
-        Node unifybody = unifyexprcompr / UnifyBody;
-        os << lhs->location().view() << " = " << rhs->type().str() << "{";
-        join(
-          os,
-          unifybody->begin(),
-          unifybody->end(),
-          "; ",
-          [](std::ostream& stream, const Node& expr) {
-            if (expr->type() != Local)
-            {
-              stream << stmt_str(expr);
-              return true;
-            }
-
-            return false;
-          });
-        os << "}";
-        return os;
-      }};
-  }
-
-  Resolver::NodePrinter Resolver::enum_str(const Node& node)
-  {
-    return {
-      node, [](std::ostream& os, const Node& unifyexprenum) -> std::ostream& {
-        Node item = unifyexprenum / Item;
-        Node itemseq = unifyexprenum / ItemSeq;
-        Node unifybody = unifyexprenum / NestedBody / UnifyBody;
-        os << "foreach " << item->location().view() << " in "
-           << itemseq->location().view() << " unify {";
-        join(
-          os,
-          unifybody->begin(),
-          unifybody->end(),
-          "; ",
-          [](std::ostream& stream, const Node& expr) {
-            if (expr->type() != Local)
-            {
-              stream << stmt_str(expr);
-              return true;
-            }
-
-            return false;
-          });
-        os << "}";
-        return os;
-      }};
-  }
-
-  Resolver::NodePrinter Resolver::not_str(const Node& node)
-  {
-    return {
-      node, [](std::ostream& os, const Node& unifyexprnot) -> std::ostream& {
-        Node unifybody = unifyexprnot->front();
-        os << "not {";
-        join(
-          os,
-          unifybody->begin(),
-          unifybody->end(),
-          "; ",
-          [](std::ostream& stream, const Node& expr) {
-            if (expr->type() != Local)
-            {
-              stream << stmt_str(expr);
-              return true;
-            }
-
-            return false;
-          });
-        os << "}";
-        return os;
-      }};
-  }
-
-  Resolver::NodePrinter Resolver::func_str(const Node& node)
-  {
-    return {node, [](std::ostream& os, const Node& function) -> std::ostream& {
-              Node name = function / JSONString;
-              Node args = function / ArgSeq;
-              os << name->location().view() << "(";
-              join(
-                os,
-                args->begin(),
-                args->end(),
-                ", ",
-                [](std::ostream& stream, const Node& arg) {
-                  stream << arg_str(arg);
-                  return true;
-                });
-              os << ")";
-              return os;
-            }};
-  }
-
-  Resolver::NodePrinter Resolver::arg_str(const Node& node)
-  {
-    return {node, [](std::ostream& os, const Node& arg) -> std::ostream& {
-              if (arg->type() == Var)
-              {
-                os << arg->location().view();
-              }
-              else if (arg->type() == NestedBody)
-              {
-                os << "{";
-                Node body = arg / Val;
-                join(
-                  os,
-                  body->begin(),
-                  body->end(),
-                  "; ",
-                  [](std::ostream& stream, const Node& expr) {
-                    if (expr->type() != Local)
-                    {
-                      stream << stmt_str(expr);
-                      return true;
-                    }
-
-                    return false;
-                  });
-                os << "}";
-              }
-              else if (arg->type() == VarSeq)
-              {
-                os << "[";
-                join(
-                  os,
-                  arg->begin(),
-                  arg->end(),
-                  ", ",
-                  [](std::ostream& stream, const Node& var) {
-                    stream << var->location().view();
-                    return true;
-                  });
-                os << "]";
-              }
-              else
-              {
-                os << to_json(arg);
-              }
-              return os;
-            }};
-  }
-
-  Resolver::NodePrinter Resolver::ref_str(const Node& node)
-  {
-    return {node, [](std::ostream& os, const Node& ref_) -> std::ostream& {
-              Node ref = ref_;
-              if (ref->type() == RuleRef || ref->type() == RefTerm)
-              {
-                ref = ref->front();
-                if (ref->type() == Var)
-                {
-                  os << ref->location().view();
-                  return os;
-                }
-              }
-
-              Node refhead = ref / RefHead;
-              Node refargseq = ref / RefArgSeq;
-              os << refhead->front()->location().view();
-              for (Node refarg : *refargseq)
-              {
-                if (refarg->type() == RefArgDot)
-                {
-                  os << "." << refarg->front()->location().view();
-                }
-                else if (refarg->type() == RefArgBrack)
-                {
-                  os << "[" << refarg->front()->location().view() << "]";
-                }
-                else
-                {
-                  throw std::runtime_error("Not implemented");
-                }
-              }
-              return os;
-            }};
-  }
-
-  std::ostream& operator<<(
-    std::ostream& os, const Resolver::NodePrinter& printer)
-  {
-    return printer.printer(os, printer.node);
+    Node refhead = ref / RefHead;
+    Node refargseq = ref / RefArgSeq;
+    os << refhead->front()->location().view();
+    for (Node refarg : *refargseq)
+    {
+      if (refarg->type() == RefArgDot)
+      {
+        os << "." << refarg->front()->location().view();
+      }
+      else if (refarg->type() == RefArgBrack)
+      {
+        os << "[" << refarg->front()->location().view() << "]";
+      }
+      else
+      {
+        throw std::runtime_error("Not implemented");
+      }
+    }
   }
 
   Node Resolver::inject_args(const Node& rulefunc, const Nodes& args)
@@ -1373,101 +1295,86 @@ namespace rego
     return indices;
   }
 
-  std::string Resolver::NodePrinter::str() const
+  void Resolver::body_str(logging::Log& os, const Node& unifybody)
   {
-    std::ostringstream buf;
-    buf << *this;
-    return buf.str();
+    os << "{" << std::endl;
+    for (auto& stmt : *unifybody)
+    {
+      if (stmt->type() == Local)
+      {
+        os << "  local " << (stmt / Var)->location().view() << std::endl;
+      }
+      else
+      {
+        os << "  ";
+        stmt_str(os, stmt);
+        os << std::endl;
+      }
+    }
+    os << "}";
   }
 
-  Resolver::NodePrinter Resolver::body_str(const Node& node)
+  void Resolver::rego_str(logging::Log& os, const Node& rego)
   {
-    return {node, [](std::ostream& os, const Node& unifybody) -> std::ostream& {
-              os << "{" << std::endl;
-              for (auto& stmt : *unifybody)
-              {
-                if (stmt->type() == Local)
-                {
-                  os << "  local " << (stmt / Var)->location().view()
-                     << std::endl;
-                }
-                else
-                {
-                  os << "  " << stmt_str(stmt) << std::endl;
-                }
-              }
-              os << "}";
-              return os;
-            }};
-  }
-
-  Resolver::NodePrinter Resolver::rego_str(const Node& node)
-  {
-    return {
-      node, [](std::ostream& os, const Node& rego) -> std::ostream& {
-        std::deque<Node> queue;
-        queue.push_back(rego / Data);
-        os << std::endl << std::endl;
-        while (!queue.empty())
+    std::deque<Node> queue;
+    queue.push_back(rego / Data);
+    os << std::endl << std::endl;
+    while (!queue.empty())
+    {
+      Node current = queue.front();
+      queue.pop_front();
+      if (contains(RuleTypes, current->type()))
+      {
+        os << current->type().str() << " ";
+        os << (current / Var)->location().view();
+        if (current->type() == RuleFunc || current->type() == RuleComp)
         {
-          Node current = queue.front();
-          queue.pop_front();
-          if (contains(RuleTypes, current->type()))
-          {
-            os << current->type().str() << " ";
-            os << (current / Var)->location().view();
-            if (current->type() == RuleFunc || current->type() == RuleComp)
-            {
-              os << "#" << (current / Idx)->location().view();
-            }
-            if (current->type() == RuleFunc)
-            {
-              os << "(";
-              Node args = current / RuleArgs;
-              join(
-                os,
-                args->begin(),
-                args->end(),
-                ", ",
-                [](std::ostream& stream, const Node& arg) {
-                  stream << (arg / Var)->location().view();
-                  return true;
-                });
-              os << ")";
-            }
-            os << std::endl;
-            os << "body: ";
-            Node body = current / Body;
-            if (body->type() == Empty)
-            {
-              os << "empty" << std::endl;
-            }
-            else
-            {
-              os << body_str(body) << std::endl;
-            }
-            os << "value: ";
-            Node value = current / Val;
-            if (value->type() == Term)
-            {
-              os << to_json(value) << std::endl;
-            }
-            else
-            {
-              os << body_str(value) << std::endl;
-            }
-            os << std::endl;
-          }
-          else
-          {
-            for (auto& child : *current)
-            {
-              queue.push_back(child);
-            }
-          }
+          os << "#" << (current / Idx)->location().view();
         }
-        return os;
-      }};
+        if (current->type() == RuleFunc)
+        {
+          os << "(";
+          Node args = current / RuleArgs;
+          logging::Sep sep{", "};
+          for (auto& arg : *args)
+          {
+            os << sep << (arg / Var)->location().view();
+          }
+          os << ")";
+        }
+        os << std::endl;
+        os << "body: ";
+        Node body = current / Body;
+        if (body->type() == Empty)
+        {
+          os << "empty" << std::endl;
+        }
+        else
+        {
+          body_str(os, body);
+          os << std::endl;
+        }
+        os << "value: ";
+        Node value = current / Val;
+        if (value->type() == Term)
+        {
+          os << to_json(value) << std::endl;
+        }
+        else
+        {
+          body_str(os, value);
+          os << std::endl;
+        }
+        os << std::endl;
+      }
+      else
+      {
+        for (auto& child : *current)
+        {
+          queue.push_back(child);
+        }
+      }
+    }
   }
 
   void Resolver::flatten_terms_into(const Node& termset, Node& terms)
@@ -1586,8 +1493,8 @@ namespace rego
 
     if (current->type() != Object)
     {
-      LOG_WARN(
-        "Conflict: cannot merge partials into non-object: ", term_str(current));
+      logging::Warn() << "Conflict: cannot merge partials into non-object: "
+                      << TermStr(current);
       Node replacement = NodeDef::create(Object);
       current->parent()->replace(current, replacement);
       current = replacement;

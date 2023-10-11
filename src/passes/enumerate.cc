@@ -138,7 +138,7 @@ namespace rego
              LiteralToken++[Tail] * End) >>
           [](Match& _) {
             ACTION();
-            LOG("val = ref[idx]");
+            logging::Debug() << "val = ref[idx]";
 
             Node idx = _(Idx)->front();
             if (idx->type() == Expr)
@@ -213,7 +213,7 @@ namespace rego
              LiteralToken++[Tail] * End) >>
           [](Match& _) {
             ACTION();
-            LOG("val = ref[idx]");
+            logging::Debug() << "val = ref[idx]";
 
             Node idx = _(Idx)->front();
             if (idx->type() == Expr)

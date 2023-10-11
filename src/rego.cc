@@ -2,9 +2,6 @@
 
 namespace rego
 {
-  LogLevel Logger::maximum_level = LogLevel::None;
-  std::string Logger::indent = "";
-
   std::vector<Pass> passes(const BuiltIns& builtins)
   {
     return {
@@ -63,6 +60,27 @@ namespace rego
 
   void set_log_level(LogLevel level)
   {
-    Logger::maximum_level = level;
+    // Set trieste LogLevel
+    switch (level)
+    {
+      case LogLevel::None:
+        trieste::logging::set_level<trieste::logging::None>();
+        break;
+      case LogLevel::Error:
+        trieste::logging::set_level<trieste::logging::Error>();
+        break;
+      case LogLevel::Warn:
+        trieste::logging::set_level<trieste::logging::Warn>();
+        break;
+      case LogLevel::Info:
+        trieste::logging::set_level<trieste::logging::Info>();
+        break;
+      case LogLevel::Debug:
+        trieste::logging::set_level<trieste::logging::Debug>();
+        break;
+      case LogLevel::Trace:
+        trieste::logging::set_level<trieste::logging::Trace>();
+        break;
+    }
   }
 }

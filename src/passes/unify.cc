@@ -54,9 +54,9 @@ namespace rego
       }};
 
     unify.pre(Rego, [builtins](Node node) {
-      LOG_HEADER(" Program ", "vvvvvvvvvvvvvvv");
-      LOG(Resolver::rego_str(node));
-      LOG_HEADER(" Program ", "^^^^^^^^^^^^^^^");
+      logging::Debug() << "vvvvvvvvvvvvvvv Program vvvvvvvvvvvvvvv" << std::endl
+                       << RegoStr{node} << std::endl
+                       << "^^^^^^^^^^^^^^^ Program ^^^^^^^^^^^^^^^";
       Node query = node / Query;
       try
       {
