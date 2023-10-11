@@ -1,5 +1,7 @@
 #include "internal.hh"
 
+namespace logging = trieste::logging;
+
 namespace rego
 {
   std::vector<Pass> passes(const BuiltIns& builtins)
@@ -64,25 +66,25 @@ namespace rego
     switch (level)
     {
       case LogLevel::None:
-        trieste::logging::set_level<trieste::logging::None>();
+        logging::set_level<logging::None>();
         break;
       case LogLevel::Error:
-        trieste::logging::set_level<trieste::logging::Error>();
+        logging::set_level<logging::Error>();
         break;
       case LogLevel::Output:
-        trieste::logging::set_level<trieste::logging::Output>();
+        logging::set_level<logging::Output>();
         break;
       case LogLevel::Warn:
-        trieste::logging::set_level<trieste::logging::Warn>();
+        logging::set_level<logging::Warn>();
         break;
       case LogLevel::Info:
-        trieste::logging::set_level<trieste::logging::Info>();
+        logging::set_level<logging::Info>();
         break;
       case LogLevel::Debug:
-        trieste::logging::set_level<trieste::logging::Debug>();
+        logging::set_level<logging::Debug>();
         break;
       case LogLevel::Trace:
-        trieste::logging::set_level<trieste::logging::Trace>();
+        logging::set_level<logging::Trace>();
         break;
     }
   }

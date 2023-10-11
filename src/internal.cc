@@ -1,5 +1,7 @@
 #include "internal.hh"
 
+namespace logging = trieste::logging;
+
 #ifdef _WIN32
 #include <codecvt>
 #include <windows.h>
@@ -816,11 +818,11 @@ namespace rego
 
   void ActionMetrics::print()
   {
-    trieste::logging::Output() << "Action\tCount\tTime(ms)";
+    logging::Output() << "Action\tCount\tTime(ms)";
     for (auto& [key, info] : ActionMetrics::s_action_info)
     {
       std::chrono::duration<double, std::milli> fp_ms = info.time_spent;
-      trieste::logging::Output() << key.file << ":" << key.line << "\t" << info.count << "\t"
+      logging::Output() << key.file << ":" << key.line << "\t" << info.count << "\t"
                 << fp_ms.count();
     }
   }

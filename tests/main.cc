@@ -1,5 +1,7 @@
 #include "test_case.h"
 
+namespace logging = trieste::logging;
+
 #include <CLI/CLI.hpp>
 #include <type_traits>
 
@@ -9,6 +11,7 @@ const std::string Red = "\x1b[31m";
 const std::string White = "\x1b[37m";
 
 using TestCases = std::map<std::string, std::vector<rego_test::TestCase>>;
+namespace logging = trieste::logging;
 
 void load_testcases(
   const std::filesystem::path& path,
@@ -92,34 +95,34 @@ int main(int argc, char** argv)
 
   rego::set_log_level(loglevel);
 
-  trieste::logging::Output() << "Loading test cases:";
+  logging::Output() << "Loading test cases:";
   TestCases all_testcases;
   for (auto file_or_dir : case_paths)
   {
     if (std::filesystem::is_directory(file_or_dir))
     {
-      trieste::logging::Output() << file_or_dir;
+      logging::Output() << file_or_dir;
       load_testcase_dir(file_or_dir, debug_path, all_testcases);
     }
     else if (std::filesystem::exists(file_or_dir))
     {
-      trieste::logging::Output() << ".";
+      logging::Output() << ".";
       load_testcases(file_or_dir, debug_path, all_testcases);
     }
     else
     {
-      trieste::logging::Error() << "Not a file: " << file_or_dir;
+      logging::Error() << "Not a file: " << file_or_dir;
       return 1;
     }
   }
 
-  trieste::logging::Output() << "Done";
+  logging::Output() << "Done";
 
   int total = 0;
   int failures = 0;
   for (auto& [category, cat_cases] : all_testcases)
   {
-    trieste::logging::Output() << White << category << std::endl;
+    logging::Output() << White << category << std::endl;
     for (auto& testcase : cat_cases)
     {
       if (
@@ -145,7 +148,7 @@ int main(int argc, char** argv)
 
         if (result.passed)
         {
-          trieste::logging::Output()
+          logging::Output()
             << Green << "  PASS: " << Reset << note << std::fixed
             << std::setw(62 - note.length()) << std::internal
             << std::setprecision(3) << elapsed.count() << " sec";
@@ -153,7 +156,7 @@ int main(int argc, char** argv)
         else
         {
           failures++;
-          trieste::logging::Error()
+          logging::Error()
             << Red << "  FAIL: " << Reset << note << std::fixed
             << std::setw(62 - note.length()) << std::internal
             << std::setprecision(3) << elapsed.count() << " sec" << std::endl
@@ -168,7 +171,7 @@ int main(int argc, char** argv)
       catch (const std::exception& e)
       {
         failures++;
-        trieste::logging::Error()
+        logging::Error()
           << Red << "  EXCEPTION: " << Reset << note << std::endl
           << "  " << e.what() << std::endl
           << "(from " << testcase.filename() << ")" << std::endl;
@@ -185,13 +188,13 @@ int main(int argc, char** argv)
 
     if (failures != 0)
     {
-      trieste::logging::Error()
+      logging::Error()
         << std::endl
         << (total - failures) << " / " << total << " passed" << std::endl;
     }
     else
     {
-      trieste::logging::Output()
+      logging::Output()
         << std::endl
         << total << " / " << total << " passed" << std::endl;
     }

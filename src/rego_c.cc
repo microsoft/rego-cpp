@@ -1,5 +1,7 @@
 #include "internal.hh"
 
+namespace logging = trieste::logging;
+
 namespace rego
 {
   void setError(regoInterpreter* rego, const std::string& error)
@@ -58,19 +60,19 @@ extern "C"
   regoInterpreter* regoNew()
   {
     auto ptr = reinterpret_cast<regoInterpreter*>(new rego::Interpreter());
-    trieste::logging::Debug() << "regoNew: " << ptr;
+    logging::Debug() << "regoNew: " << ptr;
     return ptr;
   }
 
   void regoFree(regoInterpreter* rego)
   {
-    trieste::logging::Debug() << "regoFree: " << rego;
+    logging::Debug() << "regoFree: " << rego;
     delete reinterpret_cast<rego::Interpreter*>(rego);
   }
 
   regoEnum regoAddModuleFile(regoInterpreter* rego, const char* path)
   {
-    trieste::logging::Debug() << "regoAddModuleFile: " << path;
+    logging::Debug() << "regoAddModuleFile: " << path;
     try
     {
       reinterpret_cast<rego::Interpreter*>(rego)->add_module_file(path);
@@ -86,7 +88,7 @@ extern "C"
   regoEnum regoAddModule(
     regoInterpreter* rego, const char* name, const char* contents)
   {
-    trieste::logging::Debug() << "regoAddModule: " << name;
+    logging::Debug() << "regoAddModule: " << name;
     try
     {
       reinterpret_cast<rego::Interpreter*>(rego)->add_module(name, contents);
@@ -101,7 +103,7 @@ extern "C"
 
   regoEnum regoAddDataJSONFile(regoInterpreter* rego, const char* path)
   {
-    trieste::logging::Debug() << "regoAddDataJSONFile: " << path;
+    logging::Debug() << "regoAddDataJSONFile: " << path;
     try
     {
       reinterpret_cast<rego::Interpreter*>(rego)->add_data_json_file(path);
@@ -116,7 +118,7 @@ extern "C"
 
   regoEnum regoAddDataJSON(regoInterpreter* rego, const char* contents)
   {
-    trieste::logging::Debug() << "regoAddDataJSON: " << contents;
+    logging::Debug() << "regoAddDataJSON: " << contents;
     try
     {
       reinterpret_cast<rego::Interpreter*>(rego)->add_data_json(contents);
@@ -131,7 +133,7 @@ extern "C"
 
   regoEnum regoSetInputJSONFile(regoInterpreter* rego, const char* path)
   {
-    trieste::logging::Debug() << "regoSetInputJSONFile: " << path;
+    logging::Debug() << "regoSetInputJSONFile: " << path;
     try
     {
       reinterpret_cast<rego::Interpreter*>(rego)->set_input_json_file(path);
@@ -146,7 +148,7 @@ extern "C"
 
   regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents)
   {
-    trieste::logging::Debug() << "regoSetInputJSON: " << contents;
+    logging::Debug() << "regoSetInputJSON: " << contents;
     try
     {
       reinterpret_cast<rego::Interpreter*>(rego)->set_input_json(contents);
@@ -161,19 +163,19 @@ extern "C"
 
   void regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled)
   {
-    trieste::logging::Debug() << "regoSetDebugEnabled: " << enabled;
+    logging::Debug() << "regoSetDebugEnabled: " << enabled;
     reinterpret_cast<rego::Interpreter*>(rego)->debug_enabled(enabled);
   }
 
   regoBoolean regoGetDebugEnabled(regoInterpreter* rego)
   {
-    trieste::logging::Debug() << "regoGetDebugEnabled";
+    logging::Debug() << "regoGetDebugEnabled";
     return reinterpret_cast<rego::Interpreter*>(rego)->debug_enabled();
   }
 
   regoEnum regoSetDebugPath(regoInterpreter* rego, const char* path)
   {
-    trieste::logging::Debug() << "regoSetDebugPath: " << path;
+    logging::Debug() << "regoSetDebugPath: " << path;
     try
     {
       reinterpret_cast<rego::Interpreter*>(rego)->debug_path(path);
@@ -189,21 +191,21 @@ extern "C"
   void regoSetWellFormedChecksEnabled(
     regoInterpreter* rego, regoBoolean enabled)
   {
-    trieste::logging::Debug() << "regoSetWellFormedChecksEnabled: " << enabled;
+    logging::Debug() << "regoSetWellFormedChecksEnabled: " << enabled;
     reinterpret_cast<rego::Interpreter*>(rego)->well_formed_checks_enabled(
       enabled);
   }
 
   regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego)
   {
-    trieste::logging::Debug() << "regoGetWellFormedChecksEnabled";
+    logging::Debug() << "regoGetWellFormedChecksEnabled";
     return reinterpret_cast<rego::Interpreter*>(rego)
       ->well_formed_checks_enabled();
   }
 
   regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr)
   {
-    trieste::logging::Debug() << "regoQuery: " << query_expr;
+    logging::Debug() << "regoQuery: " << query_expr;
     try
     {
       auto interpreter = reinterpret_cast<rego::Interpreter*>(rego);
@@ -211,7 +213,7 @@ extern "C"
       output->node = interpreter->raw_query(query_expr);
       output->value = interpreter->output_to_string(output->node);
       auto ptr = reinterpret_cast<regoOutput*>(output);
-      trieste::logging::Debug() << "regoQuery output: " << ptr;
+      logging::Debug() << "regoQuery output: " << ptr;
       return ptr;
     }
     catch (const std::exception& e)
@@ -223,14 +225,14 @@ extern "C"
 
   void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled)
   {
-    trieste::logging::Debug() << "regoSetStrictBuiltInErrors: " << enabled;
+    logging::Debug() << "regoSetStrictBuiltInErrors: " << enabled;
     reinterpret_cast<rego::Interpreter*>(rego)->builtins().strict_errors(
       enabled);
   }
 
   regoBoolean regoGetStrictBuiltInErrors(regoInterpreter* rego)
   {
-    trieste::logging::Debug() << "regoGetStrictBuiltInErrors";
+    logging::Debug() << "regoGetStrictBuiltInErrors";
     return reinterpret_cast<rego::Interpreter*>(rego)
       ->builtins()
       .strict_errors();
@@ -239,21 +241,21 @@ extern "C"
   // Output functions
   regoBoolean regoOutputOk(regoOutput* output)
   {
-    trieste::logging::Debug() << "regoOutputOk";
+    logging::Debug() << "regoOutputOk";
     return reinterpret_cast<rego::regoOutput*>(output)->node->type() !=
       rego::ErrorSeq;
   }
 
   regoNode* regoOutputNode(regoOutput* output)
   {
-    trieste::logging::Debug() << "regoOutputNode";
+    logging::Debug() << "regoOutputNode";
     return reinterpret_cast<regoNode*>(
       reinterpret_cast<rego::regoOutput*>(output)->node.get());
   }
 
   regoNode* regoOutputBinding(regoOutput* output, const char* name)
   {
-    trieste::logging::Debug() << "regoOutputBinding: " << name;
+    logging::Debug() << "regoOutputBinding: " << name;
     auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(output_ptr->node.get());
     if (node_ptr->type() == rego::ErrorSeq)
@@ -276,20 +278,20 @@ extern "C"
 
   const char* regoOutputString(regoOutput* output)
   {
-    trieste::logging::Debug() << "regoOutputString";
+    logging::Debug() << "regoOutputString";
     return reinterpret_cast<rego::regoOutput*>(output)->value.c_str();
   }
 
   void regoFreeOutput(regoOutput* output)
   {
-    trieste::logging::Debug() << "regoFreeOutput: " << output;
+    logging::Debug() << "regoFreeOutput: " << output;
     delete reinterpret_cast<rego::regoOutput*>(output);
   }
 
   // Node functions
   regoEnum regoNodeType(regoNode* node_ptr)
   {
-    trieste::logging::Debug() << "regoNodeType";
+    logging::Debug() << "regoNodeType";
     auto node = reinterpret_cast<trieste::NodeDef*>(node_ptr);
 
     if (node->type() == rego::Binding)
@@ -397,13 +399,13 @@ extern "C"
 
   const char* regoNodeTypeName(regoNode* node)
   {
-    trieste::logging::Debug() << "regoNodeTypeName";
+    logging::Debug() << "regoNodeTypeName";
     return reinterpret_cast<trieste::NodeDef*>(node)->type().str();
   }
 
   regoSize regoNodeValueSize(regoNode* node)
   {
-    trieste::logging::Debug() << "regoNodeValueSize";
+    logging::Debug() << "regoNodeValueSize";
     std::size_t size =
       reinterpret_cast<trieste::NodeDef*>(node)->location().view().size();
     return static_cast<regoSize>(size + 1);
@@ -411,7 +413,7 @@ extern "C"
 
   regoEnum regoNodeValue(regoNode* node, char* buffer, regoSize size)
   {
-    trieste::logging::Debug()
+    logging::Debug()
       << "regoNodeValue: " << buffer << "[" << size << "]";
     std::string_view view =
       reinterpret_cast<trieste::NodeDef*>(node)->location().view();
@@ -427,14 +429,14 @@ extern "C"
 
   regoSize regoNodeSize(regoNode* node)
   {
-    trieste::logging::Debug() << "regoNodeSize";
+    logging::Debug() << "regoNodeSize";
     std::size_t size = reinterpret_cast<trieste::NodeDef*>(node)->size();
     return static_cast<regoSize>(size);
   }
 
   regoNode* regoNodeGet(regoNode* node_ptr, regoSize index)
   {
-    trieste::logging::Debug() << "regoNodeGet: " << index;
+    logging::Debug() << "regoNodeGet: " << index;
     trieste::NodeDef* node = reinterpret_cast<trieste::NodeDef*>(node_ptr);
     if (index >= node->size())
     {
@@ -446,7 +448,7 @@ extern "C"
 
   regoSize regoNodeJSONSize(regoNode* node)
   {
-    trieste::logging::Debug() << "regoNodeJSONSize";
+    logging::Debug() << "regoNodeJSONSize";
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     std::string json = rego::to_json(node_ptr->shared_from_this());
     return static_cast<regoSize>(json.size() + 1);
@@ -454,7 +456,7 @@ extern "C"
 
   regoEnum regoNodeJSON(regoNode* node, char* buffer, regoSize size)
   {
-    trieste::logging::Debug()
+    logging::Debug()
       << "regoNodeJSON: " << buffer << "[" << size << "]";
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     std::string json = rego::to_json(node_ptr->shared_from_this());

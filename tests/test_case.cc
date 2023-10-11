@@ -385,17 +385,10 @@ namespace rego_test
 
       ok = wf.check(ast) && ok;
 
-      if (has_error(ast))
-      {
-        ok = false;
-      }
-
-      if (!ok)
+      if (ast->errors())
       {
         logging::Error() << "Failed at pass " << pass_name << std::endl
                          << "Error with input file " << path;
-        // Dump error messages from Trieste.
-        ast->errors();
         return test_cases;
       }
     }
