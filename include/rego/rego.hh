@@ -1358,6 +1358,7 @@ namespace rego
   {
     None = REGO_LOG_LEVEL_NONE,
     Error = REGO_LOG_LEVEL_ERROR,
+    Output = REGO_LOG_LEVEL_OUTPUT,
     Warn = REGO_LOG_LEVEL_WARN,
     Info = REGO_LOG_LEVEL_INFO,
     Debug = REGO_LOG_LEVEL_DEBUG,

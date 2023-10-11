@@ -69,6 +69,9 @@ namespace rego
       case LogLevel::Error:
         trieste::logging::set_level<trieste::logging::Error>();
         break;
+      case LogLevel::Output:
+        trieste::logging::set_level<trieste::logging::Output>();
+        break;
       case LogLevel::Warn:
         trieste::logging::set_level<trieste::logging::Warn>();
         break;

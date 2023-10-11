@@ -33,6 +33,10 @@ extern "C"
         rego::set_log_level(rego::LogLevel::Error);
         break;
 
+      case REGO_LOG_LEVEL_OUTPUT:
+        rego::set_log_level(rego::LogLevel::Output);
+        break;
+
       case REGO_LOG_LEVEL_WARN:
         rego::set_log_level(rego::LogLevel::Warn);
         break;

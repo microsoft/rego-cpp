@@ -65,7 +65,7 @@ int main(int argc, char** argv)
   app.add_option(
     "-a,--ast", debug_path, "Output the AST (debugging for test case parser)");
 
-  rego::LogLevel loglevel{rego::LogLevel::None};
+  rego::LogLevel loglevel{rego::LogLevel::Output};
   app.add_option("-l,--loglevel", loglevel, "Enable logging");
 
   bool wf_checks{false};
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 
   rego::set_log_level(loglevel);
 
-  std::cout << "Loading test cases:";
+  trieste::logging::Output() << "Loading test cases:";
   TestCases all_testcases;
   for (auto file_or_dir : case_paths)
   {
@@ -103,17 +103,17 @@ int main(int argc, char** argv)
     }
     else if (std::filesystem::exists(file_or_dir))
     {
-      std::cout << ".";
+      trieste::logging::Output() << ".";
       load_testcases(file_or_dir, debug_path, all_testcases);
     }
     else
     {
-      std::cerr << "Not a file: " << file_or_dir << std::endl;
+      trieste::logging::Error() << "Not a file: " << file_or_dir;
       return 1;
     }
   }
 
-  std::cout << std::endl << "Done" << std::endl;
+  trieste::logging::Output() << "Done";
 
   int total = 0;
   int failures = 0;

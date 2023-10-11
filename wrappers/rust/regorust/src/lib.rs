@@ -335,6 +335,7 @@ pub enum LogLevel {
     Info,
     Warn,
     Error,
+    Output,
     Trace,
 }
 
@@ -346,6 +347,7 @@ pub fn set_log_level(level: LogLevel) {
         LogLevel::Info => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_INFO) },
         LogLevel::Warn => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_WARN) },
         LogLevel::Error => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_ERROR) },
+        LogLevel::Output => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_OUTPUT) },
         LogLevel::Trace => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_TRACE) },
     }
 }
