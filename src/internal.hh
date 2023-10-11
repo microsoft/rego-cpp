@@ -192,6 +192,7 @@ namespace rego
     return stream;
   }
 
+  // Provide types to delay pretty printing various rego node types.
   using ArgStr = logging::Lazy<Node, Resolver::arg_str>;
   using BodyStr = logging::Lazy<Node, Resolver::body_str>;
   using ExprStr = logging::Lazy<Node, Resolver::expr_str>;
@@ -637,9 +638,11 @@ namespace rego
 
 }
 
+// Use ADL to extend Trieste logging capabilities with additional types.
 namespace trieste::logging
 {
-  inline void append(Log& log, std::vector<rego::UnifierDef::Dependency>& deps)
+  inline void append(
+    Log& log, const std::vector<rego::UnifierDef::Dependency>& deps)
   {
     for (auto it = deps.begin(); it != deps.end(); ++it)
     {
@@ -667,52 +670,18 @@ namespace trieste::logging
     log << "]" << std::endl;
   }
 
-  template <typename T>
-  inline void append(Log& log, std::vector<T>& values)
-  {
-    log << "[";
-    logging::Sep sep{", "};
-    for (auto& value : values)
-    {
-      log << sep << value;
-    }
-    log << "]" << std::endl;
-  }
-
-  template <typename T>
-  inline void append(Log& log, std::vector<T>&& values)
-  {
-    log << "[";
-    logging::Sep sep{", "};
-    for (auto& value : values)
-    {
-      log << sep << value;
-    }
-    log << "]" << std::endl;
-  }
-
   inline void append(Log& log, const Location& loc)
   {
     log << loc.view();
   }
 
-  inline void append(Log& log, Location& loc)
-  {
-    log << loc.view();
-  }
-
-  inline void append(Log& log, Location&& loc)
-  {
-    log << loc.view();
-  }
-
-  inline void append(Log& log, rego::UnifierDef::Statement& statement)
+  inline void append(Log& log, const rego::UnifierDef::Statement& statement)
   {
     rego::Resolver::stmt_str(log, statement.node);
   }
 
   template <typename K, typename V>
-  inline void append(Log& log, rego::MapValuesStr<K, V> map)
+  inline void append(Log& log, const rego::MapValuesStr<K, V>& map)
   {
     log << "{" << std::endl;
     for (auto& [_, value] : map.values)
