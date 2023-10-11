@@ -822,8 +822,8 @@ namespace rego
     for (auto& [key, info] : ActionMetrics::s_action_info)
     {
       std::chrono::duration<double, std::milli> fp_ms = info.time_spent;
-      logging::Output() << key.file << ":" << key.line << "\t" << info.count << "\t"
-                << fp_ms.count();
+      logging::Output() << key.file << ":" << key.line << "\t" << info.count
+                        << "\t" << fp_ms.count();
     }
   }
 

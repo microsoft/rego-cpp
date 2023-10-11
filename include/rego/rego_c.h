@@ -69,7 +69,7 @@ extern "C"
    * The default level is REGO_LOG_LEVEL_NONE.
    *
    * @param level One of the following values: REGO_LOG_LEVEL_NONE,
-   *              REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT, 
+   *              REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
    *              REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
    *              REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
    */

@@ -154,12 +154,12 @@ int main(int argc, char** argv)
         else
         {
           failures++;
-          logging::Error()
-            << Red << "  FAIL: " << Reset << note << std::fixed
-            << std::setw(62 - note.length()) << std::internal
-            << std::setprecision(3) << elapsed.count() << " sec" << std::endl
-            << "  " << result.error << std::endl
-            << "(from " << testcase.filename() << ")";
+          logging::Error() << Red << "  FAIL: " << Reset << note << std::fixed
+                           << std::setw(62 - note.length()) << std::internal
+                           << std::setprecision(3) << elapsed.count() << " sec"
+                           << std::endl
+                           << "  " << result.error << std::endl
+                           << "(from " << testcase.filename() << ")";
           if (fail_first)
           {
             break;
@@ -169,10 +169,9 @@ int main(int argc, char** argv)
       catch (const std::exception& e)
       {
         failures++;
-        logging::Error()
-          << Red << "  EXCEPTION: " << Reset << note << std::endl
-          << "  " << e.what() << std::endl
-          << "(from " << testcase.filename() << ")" << std::endl;
+        logging::Error() << Red << "  EXCEPTION: " << Reset << note << std::endl
+                         << "  " << e.what() << std::endl
+                         << "(from " << testcase.filename() << ")" << std::endl;
         if (fail_first)
         {
           break;
@@ -186,15 +185,14 @@ int main(int argc, char** argv)
 
     if (failures != 0)
     {
-      logging::Error()
-        << std::endl
-        << (total - failures) << " / " << total << " passed" << std::endl;
+      logging::Error() << std::endl
+                       << (total - failures) << " / " << total << " passed"
+                       << std::endl;
     }
     else
     {
-      logging::Output()
-        << std::endl
-        << total << " / " << total << " passed" << std::endl;
+      logging::Output() << std::endl
+                        << total << " / " << total << " passed" << std::endl;
     }
   }
 

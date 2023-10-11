@@ -413,8 +413,7 @@ extern "C"
 
   regoEnum regoNodeValue(regoNode* node, char* buffer, regoSize size)
   {
-    logging::Debug()
-      << "regoNodeValue: " << buffer << "[" << size << "]";
+    logging::Debug() << "regoNodeValue: " << buffer << "[" << size << "]";
     std::string_view view =
       reinterpret_cast<trieste::NodeDef*>(node)->location().view();
     if (size < view.size() + 1)
@@ -456,8 +455,7 @@ extern "C"
 
   regoEnum regoNodeJSON(regoNode* node, char* buffer, regoSize size)
   {
-    logging::Debug()
-      << "regoNodeJSON: " << buffer << "[" << size << "]";
+    logging::Debug() << "regoNodeJSON: " << buffer << "[" << size << "]";
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     std::string json = rego::to_json(node_ptr->shared_from_this());
     if (size < json.size() + 1)
