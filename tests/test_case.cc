@@ -360,7 +360,7 @@ namespace rego_test
     ok = wf_parser.check(ast) && ok;
 
     write_ast(debug_path, 0, "parse", ast);
-    
+
     ok = (!ast->errors()) && ok;
     if (!ok)
     {

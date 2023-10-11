@@ -148,7 +148,8 @@ namespace rego
   // nodes for them at the appropriate scope.
   PassDef value_locals(const BuiltIns& builtins)
   {
-    PassDef locals = {"value_locals", wf_pass_locals,dir::bottomup | dir::once};
+    PassDef locals = {
+      "value_locals", wf_pass_locals, dir::bottomup | dir::once};
 
     locals.pre(
       RuleComp, [builtins](Node n) { return preprocess_value(n, builtins); });

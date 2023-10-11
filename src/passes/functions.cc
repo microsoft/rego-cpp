@@ -205,186 +205,156 @@ namespace rego
   // function that takes either <var> or <term> arguments.
   PassDef functions()
   {
-    PassDef functions {
+    PassDef functions{
       "functions",
       wf_pass_functions,
       dir::topdown,
       {
-      In(Input) * T(DataTerm)[DataTerm] >>
-        [](Match& _) {
-          ACTION();
-          return Term << convert_data(_(DataTerm));
-        },
+        In(Input) * T(DataTerm)[DataTerm] >>
+          [](Match& _) {
+            ACTION();
+            return Term << convert_data(_(DataTerm));
+          },
 
-      In(UnifyExpr) * T(Expr)[Expr] >>
-        [](Match& _) {
-          ACTION();
-          return unwrap_node(_(Expr));
-        },
+        In(UnifyExpr) * T(Expr)[Expr] >>
+          [](Match& _) {
+            ACTION();
+            return unwrap_node(_(Expr));
+          },
 
-      In(UnifyExpr, ArgSeq) * (T(Enumerate) << T(Expr)[Expr]) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "enumerate")
-                          << (ArgSeq << unwrap_node(_(Expr)));
-        },
+        In(UnifyExpr, ArgSeq) * (T(Enumerate) << T(Expr)[Expr]) >>
+          [](Match& _) {
+            ACTION();
+            return Function << (JSONString ^ "enumerate")
+                            << (ArgSeq << unwrap_node(_(Expr)));
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(Membership)
-           << (T(Expr)[Idx] * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "membership-tuple")
-                          << (ArgSeq << unwrap_node(_(Idx))
-                                     << unwrap_node(_(Item))
-                                     << unwrap_node(_(ItemSeq)));
-        },
+        In(UnifyExpr, ArgSeq) *
+            (T(Membership)
+             << (T(Expr)[Idx] * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
+          [](Match& _) {
+            ACTION();
+            return Function
+              << (JSONString ^ "membership-tuple")
+              << (ArgSeq << unwrap_node(_(Idx)) << unwrap_node(_(Item))
+                         << unwrap_node(_(ItemSeq)));
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(Membership)
-           << (T(Undefined) * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "membership-single")
-                          << (ArgSeq << unwrap_node(_(Item))
-                                     << unwrap_node(_(ItemSeq)));
-        },
+        In(UnifyExpr, ArgSeq) *
+            (T(Membership)
+             << (T(Undefined) * T(Expr)[Item] * T(Expr)[ItemSeq])) >>
+          [](Match& _) {
+            ACTION();
+            return Function
+              << (JSONString ^ "membership-single")
+              << (ArgSeq << unwrap_node(_(Item)) << unwrap_node(_(ItemSeq)));
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] >>
-        [](Match& _) {
-          ACTION();
-          std::string name = _(Compr)->type().str();
-          std::transform(
-            name.begin(), name.end(), name.begin(), [](unsigned char c) {
-              return static_cast<char>(std::tolower(c));
-            });
-          Location temp = _.fresh({name});
-          Node argseq = NodeDef::create(ArgSeq);
-          for (auto& child : *_(Compr))
-          {
-            argseq << unwrap_node(child);
-          }
-          return Function << (JSONString ^ name) << argseq;
-        },
+        In(UnifyExpr, ArgSeq) *
+            (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr))[Compr] >>
+          [](Match& _) {
+            ACTION();
+            std::string name = _(Compr)->type().str();
+            std::transform(
+              name.begin(), name.end(), name.begin(), [](unsigned char c) {
+                return static_cast<char>(std::tolower(c));
+              });
+            Location temp = _.fresh({name});
+            Node argseq = NodeDef::create(ArgSeq);
+            for (auto& child : *_(Compr))
+            {
+              argseq << unwrap_node(child);
+            }
+            return Function << (JSONString ^ name) << argseq;
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(Term) << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr)))[Compr] >>
-        [](Match& _) {
-          ACTION();
-          std::string name = _(Compr)->type().str();
-          std::transform(
-            name.begin(), name.end(), name.begin(), [](unsigned char c) {
-              return static_cast<char>(std::tolower(c));
-            });
-          Location temp = _.fresh({name});
-          Node argseq = NodeDef::create(ArgSeq);
-          for (auto& child : *_(Compr))
-          {
-            argseq << unwrap_node(child);
-          }
-          return Function << (JSONString ^ name) << argseq;
-          ;
-        },
+        In(UnifyExpr, ArgSeq) *
+            (T(Term)
+             << (T(ArrayCompr) / T(SetCompr) / T(ObjectCompr)))[Compr] >>
+          [](Match& _) {
+            ACTION();
+            std::string name = _(Compr)->type().str();
+            std::transform(
+              name.begin(), name.end(), name.begin(), [](unsigned char c) {
+                return static_cast<char>(std::tolower(c));
+              });
+            Location temp = _.fresh({name});
+            Node argseq = NodeDef::create(ArgSeq);
+            for (auto& child : *_(Compr))
+            {
+              argseq << unwrap_node(child);
+            }
+            return Function << (JSONString ^ name) << argseq;
+            ;
+          },
 
-      In(UnifyExpr, ArgSeq) * (T(Merge) << T(Var)[Var]) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "merge") << (ArgSeq << _(Var));
-        },
+        In(UnifyExpr, ArgSeq) * (T(Merge) << T(Var)[Var]) >>
+          [](Match& _) {
+            ACTION();
+            return Function << (JSONString ^ "merge") << (ArgSeq << _(Var));
+          },
 
-      In(ArgSeq) * T(Function)[Function] * In(UnifyBody)++ >>
-        [](Match& _) {
-          ACTION();
-          Node seq = NodeDef::create(Seq);
-          Location temp = _.fresh({"func"});
-          seq->push_back(
-            Lift << UnifyBody << (Local << (Var ^ temp) << Undefined));
-          seq->push_back(
-            Lift << UnifyBody << (UnifyExpr << (Var ^ temp) << _(Function)));
-          seq->push_back(Var ^ temp);
+        In(ArgSeq) * T(Function)[Function] * In(UnifyBody)++ >>
+          [](Match& _) {
+            ACTION();
+            Node seq = NodeDef::create(Seq);
+            Location temp = _.fresh({"func"});
+            seq->push_back(
+              Lift << UnifyBody << (Local << (Var ^ temp) << Undefined));
+            seq->push_back(
+              Lift << UnifyBody << (UnifyExpr << (Var ^ temp) << _(Function)));
+            seq->push_back(Var ^ temp);
 
-          return seq;
-        },
+            return seq;
+          },
 
-      In(UnifyExpr, ArgSeq) * (T(Not) << T(Expr)[Expr]) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "not")
-                          << (ArgSeq << unwrap_node(_(Expr)));
-        },
+        In(UnifyExpr, ArgSeq) * (T(Not) << T(Expr)[Expr]) >>
+          [](Match& _) {
+            ACTION();
+            return Function << (JSONString ^ "not")
+                            << (ArgSeq << unwrap_node(_(Expr)));
+          },
 
-      In(UnifyExpr, ArgSeq) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "unary")
-                          << (ArgSeq << unwrap_node(_(ArithArg)->front()));
-        },
+        In(UnifyExpr, ArgSeq) * (T(UnaryExpr) << T(ArithArg)[ArithArg]) >>
+          [](Match& _) {
+            ACTION();
+            return Function << (JSONString ^ "unary")
+                            << (ArgSeq << unwrap_node(_(ArithArg)->front()));
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(ArithInfix) << (T(ArithArg)[Lhs] * Any[Op] * T(ArithArg)[Rhs])) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "arithinfix")
-                          << (ArgSeq << _(Op) << unwrap_node(_(Lhs)->front())
-                                     << unwrap_node(_(Rhs)->front()));
-        },
+        In(UnifyExpr, ArgSeq) *
+            (T(ArithInfix)
+             << (T(ArithArg)[Lhs] * Any[Op] * T(ArithArg)[Rhs])) >>
+          [](Match& _) {
+            ACTION();
+            return Function << (JSONString ^ "arithinfix")
+                            << (ArgSeq << _(Op) << unwrap_node(_(Lhs)->front())
+                                       << unwrap_node(_(Rhs)->front()));
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(BinInfix) << (T(BinArg)[Lhs] * Any[Op] * T(BinArg)[Rhs])) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "bininfix")
-                          << (ArgSeq << _(Op) << unwrap_node(_(Lhs)->front())
-                                     << unwrap_node(_(Rhs)->front()));
-        },
+        In(UnifyExpr, ArgSeq) *
+            (T(BinInfix) << (T(BinArg)[Lhs] * Any[Op] * T(BinArg)[Rhs])) >>
+          [](Match& _) {
+            ACTION();
+            return Function << (JSONString ^ "bininfix")
+                            << (ArgSeq << _(Op) << unwrap_node(_(Lhs)->front())
+                                       << unwrap_node(_(Rhs)->front()));
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(BoolInfix) << (T(BoolArg)[Lhs] * Any[Op] * T(BoolArg)[Rhs])) >>
-        [](Match& _) {
-          ACTION();
-          return Function << (JSONString ^ "boolinfix")
-                          << (ArgSeq << _(Op) << unwrap_node(_(Lhs)->front())
-                                     << unwrap_node(_(Rhs)->front()));
-        },
+        In(UnifyExpr, ArgSeq) *
+            (T(BoolInfix) << (T(BoolArg)[Lhs] * Any[Op] * T(BoolArg)[Rhs])) >>
+          [](Match& _) {
+            ACTION();
+            return Function << (JSONString ^ "boolinfix")
+                            << (ArgSeq << _(Op) << unwrap_node(_(Lhs)->front())
+                                       << unwrap_node(_(Rhs)->front()));
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(RefTerm)
-           << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
-        [](Match& _) {
-          ACTION();
-          auto defs = _(Var)->lookup();
-          if (!defs.empty() && defs.front()->type().in({Submodule, Data}))
-          {
-            // At this point all possible documents are fully qualified and in
-            // the symbol table. As such, a reference such as this, which points
-            // to a top-level module or rule, is a dead link and can be
-            // replaced.
-            Location dead = _.fresh({"dead"});
-            return Var ^ dead;
-          }
-
-          Location field_name = _(RefArgDot)->front()->location();
-          Node arg = Scalar << (JSONString ^ field_name);
-          return Function << (JSONString ^ "apply_access")
-                          << (ArgSeq << _(Var) << arg);
-        },
-
-      In(UnifyExpr, ArgSeq) *
-          (T(RefTerm)
-           << (T(SimpleRef)
-               << (T(Var)[Var] * (T(RefArgBrack)[RefArgBrack])))) >>
-        [](Match& _) {
-          ACTION();
-          Node seq = NodeDef::create(Seq);
-          Node arg = _(RefArgBrack)->front();
-          if (arg->type() == RefTerm || arg->type() == Expr)
-          {
-            return Function << (JSONString ^ "apply_access")
-                            << (ArgSeq << _(Var) << unwrap_node(arg));
-          }
-          else
-          {
+        In(UnifyExpr, ArgSeq) *
+            (T(RefTerm)
+             << (T(SimpleRef) << (T(Var)[Var] * (T(RefArgDot)[RefArgDot])))) >>
+          [](Match& _) {
+            ACTION();
             auto defs = _(Var)->lookup();
             if (!defs.empty() && defs.front()->type().in({Submodule, Data}))
             {
@@ -396,76 +366,108 @@ namespace rego
               return Var ^ dead;
             }
 
+            Location field_name = _(RefArgDot)->front()->location();
+            Node arg = Scalar << (JSONString ^ field_name);
             return Function << (JSONString ^ "apply_access")
-                            << (ArgSeq << _(Var) << unwrap_node(arg));
-          }
-        },
+                            << (ArgSeq << _(Var) << arg);
+          },
 
-      In(UnifyExpr, ArgSeq) *
-          (T(ExprCall) << (T(Var)[Var] * T(ArgSeq)[ArgSeq])) >>
-        [](Match& _) {
-          ACTION();
-          Node argseq = ArgSeq << _(Var);
-          for (auto& child : *_(ArgSeq))
-          {
-            argseq << unwrap_node(child);
-          }
-          return Function << (JSONString ^ "call") << argseq;
-        },
+        In(UnifyExpr, ArgSeq) *
+            (T(RefTerm)
+             << (T(SimpleRef)
+                 << (T(Var)[Var] * (T(RefArgBrack)[RefArgBrack])))) >>
+          [](Match& _) {
+            ACTION();
+            Node seq = NodeDef::create(Seq);
+            Node arg = _(RefArgBrack)->front();
+            if (arg->type() == RefTerm || arg->type() == Expr)
+            {
+              return Function << (JSONString ^ "apply_access")
+                              << (ArgSeq << _(Var) << unwrap_node(arg));
+            }
+            else
+            {
+              auto defs = _(Var)->lookup();
+              if (!defs.empty() && defs.front()->type().in({Submodule, Data}))
+              {
+                // At this point all possible documents are fully qualified and
+                // in the symbol table. As such, a reference such as this, which
+                // points to a top-level module or rule, is a dead link and can
+                // be replaced.
+                Location dead = _.fresh({"dead"});
+                return Var ^ dead;
+              }
 
-      In(RuleComp, RuleFunc, RuleObj, RuleSet, DataItem) *
-          T(DataTerm)[DataTerm] >>
-        [](Match& _) {
-          ACTION();
-          return Term << convert_data(_(DataTerm));
-        },
+              return Function << (JSONString ^ "apply_access")
+                              << (ArgSeq << _(Var) << unwrap_node(arg));
+            }
+          },
 
-      // errors
+        In(UnifyExpr, ArgSeq) *
+            (T(ExprCall) << (T(Var)[Var] * T(ArgSeq)[ArgSeq])) >>
+          [](Match& _) {
+            ACTION();
+            Node argseq = ArgSeq << _(Var);
+            for (auto& child : *_(ArgSeq))
+            {
+              argseq << unwrap_node(child);
+            }
+            return Function << (JSONString ^ "call") << argseq;
+          },
 
-      In(ObjectItem) * T(Expr)[Expr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Expr), "Invalid expression in object");
-        },
+        In(RuleComp, RuleFunc, RuleObj, RuleSet, DataItem) *
+            T(DataTerm)[DataTerm] >>
+          [](Match& _) {
+            ACTION();
+            return Term << convert_data(_(DataTerm));
+          },
 
-      In(Expr) * Any[Expr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Expr), "Invalid expression");
-        },
+        // errors
 
-      In(UnifyExpr, ArgSeq) * (T(RefTerm) << T(Ref)[Ref]) >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Ref), "Invalid reference");
-        },
+        In(ObjectItem) * T(Expr)[Expr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Expr), "Invalid expression in object");
+          },
 
-      In(Array) * T(Expr)[Expr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Expr), "Invalid expression in array");
-        },
+        In(Expr) * Any[Expr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Expr), "Invalid expression");
+          },
 
-      In(Set) * T(Expr)[Expr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Expr), "Invalid expression in set");
-        },
+        In(UnifyExpr, ArgSeq) * (T(RefTerm) << T(Ref)[Ref]) >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Ref), "Invalid reference");
+          },
 
-      In(ArgSeq) * T(Ref)[Ref] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Ref), "Invalid reference");
-        },
+        In(Array) * T(Expr)[Expr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Expr), "Invalid expression in array");
+          },
 
-      In(ObjectItem) * T(DataModule)[DataModule] >>
-        [](Match& _) {
-          ACTION();
-          return err(
-            _(DataModule),
-            "Syntax error: module not allowed as object item value");
-        },
-    }};
+        In(Set) * T(Expr)[Expr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Expr), "Invalid expression in set");
+          },
+
+        In(ArgSeq) * T(Ref)[Ref] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Ref), "Invalid reference");
+          },
+
+        In(ObjectItem) * T(DataModule)[DataModule] >>
+          [](Match& _) {
+            ACTION();
+            return err(
+              _(DataModule),
+              "Syntax error: module not allowed as object item value");
+          },
+      }};
 
     functions.post(RuleComp, add_key);
     functions.post(RuleFunc, add_key);

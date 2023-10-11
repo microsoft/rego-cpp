@@ -84,57 +84,57 @@ namespace rego
       wf_pass_replace_argvals,
       dir::topdown,
       {
-      In(RuleFunc) *
-          (T(RuleArgs)[RuleArgs](
-             [](auto& n) { return contains_argval(*n.first); }) *
-           (T(UnifyBody) / T(Empty))[Body]) >>
-        [](Match& _) {
-          ACTION();
-          Node body = _(Body);
-          if (body->type() == Empty)
-          {
-            body = NodeDef::create(UnifyBody);
-          }
-
-          // we need to replace each argval with an argvar, and then
-          // add statements to the body which perform the equivalent
-          // constraints and initializations.
-
-          Node ruleargs = _(RuleArgs);
-          Node newargs = NodeDef::create(RuleArgs);
-          Nodes stmts;
-          for (auto& arg : *ruleargs)
-          {
-            if (arg->type() == ArgVar)
+        In(RuleFunc) *
+            (T(RuleArgs)[RuleArgs](
+               [](auto& n) { return contains_argval(*n.first); }) *
+             (T(UnifyBody) / T(Empty))[Body]) >>
+          [](Match& _) {
+            ACTION();
+            Node body = _(Body);
+            if (body->type() == Empty)
             {
-              newargs->push_back(arg);
-              continue;
+              body = NodeDef::create(UnifyBody);
             }
 
-            Location argloc = _.fresh({"arg"});
-            Node argref = Ref << (RefHead << (Var ^ argloc)) << RefArgSeq;
-            Node argval = arg->front();
-            add_constraints(argref, argval, stmts);
-            newargs->push_back(ArgVar << (Var ^ argloc) << Undefined);
-          }
+            // we need to replace each argval with an argvar, and then
+            // add statements to the body which perform the equivalent
+            // constraints and initializations.
 
-          body->insert(body->begin(), stmts.begin(), stmts.end());
+            Node ruleargs = _(RuleArgs);
+            Node newargs = NodeDef::create(RuleArgs);
+            Nodes stmts;
+            for (auto& arg : *ruleargs)
+            {
+              if (arg->type() == ArgVar)
+              {
+                newargs->push_back(arg);
+                continue;
+              }
 
-          return Seq << newargs << body;
-        },
+              Location argloc = _.fresh({"arg"});
+              Node argref = Ref << (RefHead << (Var ^ argloc)) << RefArgSeq;
+              Node argval = arg->front();
+              add_constraints(argref, argval, stmts);
+              newargs->push_back(ArgVar << (Var ^ argloc) << Undefined);
+            }
 
-      // errors
-      In(Literal) * T(SomeExpr)[SomeExpr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(SomeExpr), "Invalid some expression");
-        },
+            body->insert(body->begin(), stmts.begin(), stmts.end());
 
-      T(UnifyBody)[UnifyBody] << End >>
-        [](Match& _) {
-          ACTION();
-          return err(_(UnifyBody), "Invalid unification body");
-        },
-    }};
+            return Seq << newargs << body;
+          },
+
+        // errors
+        In(Literal) * T(SomeExpr)[SomeExpr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(SomeExpr), "Invalid some expression");
+          },
+
+        T(UnifyBody)[UnifyBody] << End >>
+          [](Match& _) {
+            ACTION();
+            return err(_(UnifyBody), "Invalid unification body");
+          },
+      }};
   }
 }
