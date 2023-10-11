@@ -1,7 +1,5 @@
 #include "test_case.h"
 
-namespace logging = trieste::logging;
-
 #include <CLI/CLI.hpp>
 #include <type_traits>
 
