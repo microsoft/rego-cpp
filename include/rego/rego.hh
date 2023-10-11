@@ -1358,6 +1358,7 @@ namespace rego
   {
     None = REGO_LOG_LEVEL_NONE,
     Error = REGO_LOG_LEVEL_ERROR,
+    Output = REGO_LOG_LEVEL_OUTPUT,
     Warn = REGO_LOG_LEVEL_WARN,
     Info = REGO_LOG_LEVEL_INFO,
     Debug = REGO_LOG_LEVEL_DEBUG,
@@ -1556,7 +1557,6 @@ namespace rego
       std::size_t index, const std::string& pass, const Node& ast) const;
     Node get_errors(const Node& ast) const;
     Parse m_parser;
-    wf::Wellformed m_wf_parser;
     Node m_module_seq;
     Node m_data_seq;
     Node m_input;

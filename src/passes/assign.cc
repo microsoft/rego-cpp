@@ -67,144 +67,149 @@ namespace rego
     FunctionArity func_arity =
       std::make_shared<std::map<std::string, std::size_t>>();
 
-    PassDef assign = {
-      In(Expr) *
-          (AssignInfixArg[Head] * In(UnifyBody)++ * T(Unify) *
-           AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs] * End) >>
-        [](Match& _) {
-          ACTION();
-          return Seq << (Lift
-                         << UnifyBody
-                         << (Literal
-                             << (Expr
-                                 << (AssignInfix << (AssignArg << _(Lhs))
-                                                 << (AssignArg << _(Rhs))))))
-                     << (AssignInfix << (AssignArg << _(Head))
-                                     << (AssignArg << _(Lhs)->clone()));
-        },
+    PassDef assign{
+      "assign",
+      wf_pass_assign,
+      {
+        In(Expr) *
+            (AssignInfixArg[Head] * In(UnifyBody)++ * T(Unify) *
+             AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs] * End) >>
+          [](Match& _) {
+            ACTION();
+            return Seq << (Lift
+                           << UnifyBody
+                           << (Literal
+                               << (Expr
+                                   << (AssignInfix << (AssignArg << _(Lhs))
+                                                   << (AssignArg << _(Rhs))))))
+                       << (AssignInfix << (AssignArg << _(Head))
+                                       << (AssignArg << _(Lhs)->clone()));
+          },
 
-      In(Expr) * (AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>
-        [](Match& _) {
-          ACTION();
-          return AssignInfix << (AssignArg << _(Lhs)) << (AssignArg << _(Rhs));
-        },
+        In(Expr) * (AssignInfixArg[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>
+          [](Match& _) {
+            ACTION();
+            return AssignInfix << (AssignArg << _(Lhs))
+                               << (AssignArg << _(Rhs));
+          },
 
-      In(Expr) *
-          (AssignInfixArg[Lhs] * T(Unify) * (T(Set) / T(SetCompr))[Rhs]) >>
-        [](Match& _) {
-          ACTION();
-          return AssignInfix << (AssignArg << _(Lhs))
-                             << (AssignArg << (Term << _(Rhs)));
-        },
+        In(Expr) *
+            (AssignInfixArg[Lhs] * T(Unify) * (T(Set) / T(SetCompr))[Rhs]) >>
+          [](Match& _) {
+            ACTION();
+            return AssignInfix << (AssignArg << _(Lhs))
+                               << (AssignArg << (Term << _(Rhs)));
+          },
 
-      In(Expr) *
-          ((T(Set) / T(SetCompr))[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>
-        [](Match& _) {
-          ACTION();
-          return AssignInfix << (AssignArg << (Term << _(Lhs)))
-                             << (AssignArg << _(Rhs));
-        },
+        In(Expr) *
+            ((T(Set) / T(SetCompr))[Lhs] * T(Unify) * AssignInfixArg[Rhs]) >>
+          [](Match& _) {
+            ACTION();
+            return AssignInfix << (AssignArg << (Term << _(Lhs)))
+                               << (AssignArg << _(Rhs));
+          },
 
-      In(Literal) *
-          (T(Expr)
-           << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
-                 [func_arity](auto& n) {
-                   // tests if this is a function call that has an extra
-                   // argument that should be unified with the result.
-                   return needs_rewrite(n, func_arity);
-                 }))) >>
-        [](Match& _) {
-          ACTION();
-          // A convention in the Golang implementation of Rego is
-          // that you can call any function with an additional argument
-          // that will be unified with its result. This is not documented
-          // anywhere but is expected behavior used in tests. This
-          // rewrite turns these back into the documented form which we
-          // expect.
-          Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
-          Node argseq = _(ArgSeq);
-          Node var = argseq->pop_back();
-          return Expr
-            << (AssignInfix << (AssignArg << var->front())
-                            << (AssignArg << (ExprCall << ruleref << argseq)));
-        },
+        In(Literal) *
+            (T(Expr)
+             << (T(ExprCall) << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq])(
+                   [func_arity](auto& n) {
+                     // tests if this is a function call that has an extra
+                     // argument that should be unified with the result.
+                     return needs_rewrite(n, func_arity);
+                   }))) >>
+          [](Match& _) {
+            ACTION();
+            // A convention in the Golang implementation of Rego is
+            // that you can call any function with an additional argument
+            // that will be unified with its result. This is not documented
+            // anywhere but is expected behavior used in tests. This
+            // rewrite turns these back into the documented form which we
+            // expect.
+            Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
+            Node argseq = _(ArgSeq);
+            Node var = argseq->pop_back();
+            return Expr
+              << (AssignInfix
+                  << (AssignArg << var->front())
+                  << (AssignArg << (ExprCall << ruleref << argseq)));
+          },
 
-      In(Literal) *
-          (T(Expr)
-           << (T(AssignInfix)
-               << (T(AssignArg)[Lhs] *
-                   (T(AssignArg)
-                    << (T(ExprCall)
-                        << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq] *
-                            In(UnifyBody)++)([func_arity](auto& n) {
-                             return needs_rewrite(n, func_arity);
-                           })))))) >>
-        [](Match& _) {
-          ACTION();
-          // see above comment.
-          Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
-          Node argseq = _(ArgSeq);
-          Node var = argseq->pop_back();
-          return Seq << (Lift
-                         << UnifyBody
-                         << (Literal
-                             << (Expr
-                                 << (AssignInfix
-                                     << (AssignArg << var->front())
-                                     << (AssignArg
-                                         << (ExprCall << ruleref << argseq))))))
-                     << (Expr
-                         << (AssignInfix
-                             << _(Lhs)
-                             << (AssignArg << var->front()->clone())));
-        },
+        In(Literal) *
+            (T(Expr)
+             << (T(AssignInfix)
+                 << (T(AssignArg)[Lhs] *
+                     (T(AssignArg)
+                      << (T(ExprCall)
+                          << (T(RuleRef)[RuleRef] * T(ArgSeq)[ArgSeq] *
+                              In(UnifyBody)++)([func_arity](auto& n) {
+                               return needs_rewrite(n, func_arity);
+                             })))))) >>
+          [](Match& _) {
+            ACTION();
+            // see above comment.
+            Node ruleref = RuleRef << (Var ^ concat(_(RuleRef)));
+            Node argseq = _(ArgSeq);
+            Node var = argseq->pop_back();
+            return Seq << (Lift << UnifyBody
+                                << (Literal
+                                    << (Expr
+                                        << (AssignInfix
+                                            << (AssignArg << var->front())
+                                            << (AssignArg
+                                                << (ExprCall << ruleref
+                                                             << argseq))))))
+                       << (Expr
+                           << (AssignInfix
+                               << _(Lhs)
+                               << (AssignArg << var->front()->clone())));
+          },
 
-      In(Literal) * (T(Expr) << (AssignInfixArg[Arg] * End)) >>
-        [](Match& _) {
-          ACTION();
-          // bare expressions are treated as unification requirements
-          // in non-query rules.
-          std::string prefix = in_query(_(Arg)) ? "value" : "unify";
-          Location temp = _.fresh({prefix});
-          return Seq << (Lift << UnifyBody
-                              << (Local << (Var ^ temp) << Undefined))
-                     << (Expr
-                         << (AssignInfix
-                             << (AssignArg << (RefTerm << (Var ^ temp)))
-                             << (AssignArg << _(Arg))));
-        },
+        In(Literal) * (T(Expr) << (AssignInfixArg[Arg] * End)) >>
+          [](Match& _) {
+            ACTION();
+            // bare expressions are treated as unification requirements
+            // in non-query rules.
+            std::string prefix = in_query(_(Arg)) ? "value" : "unify";
+            Location temp = _.fresh({prefix});
+            return Seq << (Lift << UnifyBody
+                                << (Local << (Var ^ temp) << Undefined))
+                       << (Expr
+                           << (AssignInfix
+                               << (AssignArg << (RefTerm << (Var ^ temp)))
+                               << (AssignArg << _(Arg))));
+          },
 
-      // errors
-      In(Expr) * T(Expr)[Expr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Expr), "Syntax error");
-        },
+        // errors
+        In(Expr) * T(Expr)[Expr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Expr), "Syntax error");
+          },
 
-      In(AssignArg) * T(Expr)[Expr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Expr), "Invalid assignment argument");
-        },
+        In(AssignArg) * T(Expr)[Expr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Expr), "Invalid assignment argument");
+          },
 
-      In(Expr) * T(Unify)[Unify] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Unify), "Invalid assignment");
-        },
+        In(Expr) * T(Unify)[Unify] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Unify), "Invalid assignment");
+          },
 
-      In(RuleComp, RuleFunc, RuleSet, RuleObj) * T(Expr)[Expr] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Expr), "Invalid rule value");
-        },
+        In(RuleComp, RuleFunc, RuleSet, RuleObj) * T(Expr)[Expr] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Expr), "Invalid rule value");
+          },
 
-      In(Expr) * (T(Set) / T(SetCompr))[Set] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Set), "Invalid set in expression");
-        },
-    };
+        In(Expr) * (T(Set) / T(SetCompr))[Set] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Set), "Invalid set in expression");
+          },
+      }};
 
     assign.pre(Rego, [func_arity, builtins](Node node) {
       if (!func_arity->empty())

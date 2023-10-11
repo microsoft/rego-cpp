@@ -9,7 +9,7 @@
 
 namespace rego
 {
-  std::vector<PassCheck> passes(const BuiltIns& builtins);
+  std::vector<Pass> passes(const BuiltIns& builtins);
 
   const inline auto ScalarToken =
     T(Int) / T(Float) / T(True) / T(False) / T(Null);
@@ -68,13 +68,6 @@ namespace rego
   class Resolver
   {
   public:
-    struct NodePrinter
-    {
-      Node node;
-      PrintNode printer;
-      std::string str() const;
-    };
-
     static Node scalar(BigInt value);
     static Node scalar(double value);
     static Node scalar(bool value);
@@ -88,18 +81,18 @@ namespace rego
     static Node term(const std::string& value);
     static Node term();
     static Node resolve_query(const Node& query, const BuiltIns& builtins);
-    static NodePrinter stmt_str(const Node& stmt);
-    static NodePrinter func_str(const Node& func);
-    static NodePrinter arg_str(const Node& arg);
-    static NodePrinter expr_str(const Node& unifyexpr);
-    static NodePrinter enum_str(const Node& unifyexprenum);
-    static NodePrinter with_str(const Node& unifyexprwith);
-    static NodePrinter compr_str(const Node& unifyexprcompr);
-    static NodePrinter ref_str(const Node& ref);
-    static NodePrinter body_str(const Node& rego);
-    static NodePrinter not_str(const Node& rego);
-    static NodePrinter term_str(const Node& rego);
-    static NodePrinter rego_str(const Node& rego);
+    static void stmt_str(logging::Log&, const Node& stmt);
+    static void func_str(logging::Log&, const Node& func);
+    static void arg_str(logging::Log&, const Node& arg);
+    static void expr_str(logging::Log&, const Node& unifyexpr);
+    static void enum_str(logging::Log&, const Node& unifyexprenum);
+    static void with_str(logging::Log&, const Node& unifyexprwith);
+    static void compr_str(logging::Log&, const Node& unifyexprcompr);
+    static void ref_str(logging::Log&, const Node& ref);
+    static void body_str(logging::Log&, const Node& rego);
+    static void not_str(logging::Log&, const Node& rego);
+    static void term_str(logging::Log&, const Node& rego);
+    static void rego_str(logging::Log&, const Node& rego);
     static Node negate(const Node& value);
     static Node unary(const Node& value);
     static Node arithinfix(const Node& op, const Node& lhs, const Node& rhs);
@@ -131,9 +124,6 @@ namespace rego
     static void insert_into_object(
       Node& object, const std::string& path, const Node& value);
   };
-
-  std::ostream& operator<<(
-    std::ostream& os, const Resolver::NodePrinter& printer);
 
   PassDef input_data();
   PassDef modules();
@@ -202,93 +192,26 @@ namespace rego
     return stream;
   }
 
-  std::ostream& operator<<(
-    std::ostream& os, const std::set<trieste::Location>& locs);
-  std::ostream& operator<<(
-    std::ostream& os, const std::vector<trieste::Location>& locs);
+  // Provide types to delay pretty printing various rego node types.
+  using ArgStr = logging::Lazy<Node, Resolver::arg_str>;
+  using BodyStr = logging::Lazy<Node, Resolver::body_str>;
+  using ExprStr = logging::Lazy<Node, Resolver::expr_str>;
+  using NotStr = logging::Lazy<Node, Resolver::not_str>;
+  using RefStr = logging::Lazy<Node, Resolver::ref_str>;
+  using RegoStr = logging::Lazy<Node, Resolver::rego_str>;
+  using StmtStr = logging::Lazy<Node, Resolver::stmt_str>;
+  using TermStr = logging::Lazy<Node, Resolver::term_str>;
+  using WithStr = logging::Lazy<Node, Resolver::with_str>;
 
-  struct Logger
+  template <typename K, typename V>
+  struct MapValuesStr
   {
-    static LogLevel maximum_level;
-    static std::string indent;
-
-    static inline void increase_print_indent()
-    {
-      indent += "  ";
-    }
-
-    static inline void decrease_print_indent()
-    {
-      indent = indent.substr(0, indent.size() - 2);
-    }
-
-    template <typename T>
-    static inline void print(LogLevel level, const T& value)
-    {
-      if (level <= maximum_level)
-      {
-        std::cout << value << std::endl;
-      }
-    }
-
-    template <typename T, typename... Types>
-    static void print(LogLevel level, T head, Types... tail)
-    {
-      if (level <= maximum_level)
-      {
-        std::cout << head;
-        print(level, tail...);
-      }
-    }
-
-    template <typename T>
-    static inline void print_vector_inline(
-      LogLevel level, const std::vector<T>& values)
-    {
-      if (level <= maximum_level)
-      {
-        std::cout << indent << "[";
-        join(
-          std::cout,
-          values.begin(),
-          values.end(),
-          ", ",
-          [](std::ostream& stream, const T& value) {
-            stream << value;
-            return true;
-          });
-        std::cout << "]" << std::endl;
-      }
-    }
-
-    template <typename T, typename P>
-    static inline void print_vector_custom(
-      LogLevel level, const std::vector<T>& values, P (*transform)(const T&))
-    {
-      if (level <= maximum_level)
-      {
-        for (auto& value : values)
-        {
-          print(level, indent, transform(value));
-        }
-      }
-    }
-
-    template <typename K, typename V>
-    static inline void print_map_values(
-      LogLevel level, const std::map<K, V>& values)
-    {
-      if (level <= maximum_level)
-      {
-        print(level, indent, "{");
-        for (auto& [_, value] : values)
-        {
-          print(level, indent, "  ", value);
-        }
-        print(level, indent, "}");
-      }
-    }
+    const std::map<K, V>& values;
+    MapValuesStr(const std::map<K, V>& values_) : values(values_) {}
   };
+  // Deduction guide.
+  template <typename K, typename V>
+  MapValuesStr(const std::map<K, V>&) -> MapValuesStr<K, V>;
 
   class ValueDef;
   using rank_t = std::size_t;
@@ -506,17 +429,13 @@ namespace rego
       std::size_t score;
     };
 
-    friend std::ostream& operator<<(
-      std::ostream& os, const std::vector<Dependency>& dep);
-
-  private:
     struct Statement
     {
       std::size_t id;
       Node node;
     };
 
-    static Resolver::NodePrinter stmt_str(const Statement& statement);
+  private:
     Unifier rule_unifier(
       const UnifierKey& key, const Location& rule, const Node& rulebody) const;
     void init_from_body(
@@ -719,36 +638,59 @@ namespace rego
 
 }
 
-#define LOG_ERROR(...) \
-  rego::Logger::print( \
-    rego::LogLevel::Error, rego::Logger::indent, "Error: ", __VA_ARGS__)
-#define LOG_WARN(...) \
-  rego::Logger::print( \
-    rego::LogLevel::Warn, rego::Logger::indent, "Warning: ", __VA_ARGS__)
-#define LOG_INFO(...) \
-  rego::Logger::print(rego::LogLevel::Info, rego::Logger::indent, __VA_ARGS__)
-#define LOG_DEBUG(...) \
-  rego::Logger::print(rego::LogLevel::Debug, rego::Logger::indent, __VA_ARGS__)
-#define LOG_TRACE(...) \
-  rego::Logger::print(rego::LogLevel::Trace, rego::Logger::indent, __VA_ARGS__)
-#define LOG(...) \
-  rego::Logger::print(rego::LogLevel::Debug, rego::Logger::indent, __VA_ARGS__)
-#define LOG_HEADER(message, header) \
-  rego::Logger::print( \
-    rego::LogLevel::Debug, \
-    rego::Logger::indent, \
-    (header), \
-    (message), \
-    (header))
-#define LOG_VECTOR(vector) \
-  rego::Logger::print_vector_inline(rego::LogLevel::Debug, (vector))
-#define LOG_VECTOR_CUSTOM(vector, transform) \
-  rego::Logger::print_vector_custom( \
-    rego::LogLevel::Debug, (vector), (transform))
-#define LOG_MAP_VALUES(map) \
-  rego::Logger::print_map_values(rego::LogLevel::Debug, (map))
-#define LOG_INDENT() rego::Logger::increase_print_indent()
-#define LOG_UNINDENT() rego::Logger::decrease_print_indent()
+// Use ADL to extend Trieste logging capabilities with additional types.
+namespace trieste::logging
+{
+  inline void append(
+    Log& log, const std::vector<rego::UnifierDef::Dependency>& deps)
+  {
+    for (auto it = deps.begin(); it != deps.end(); ++it)
+    {
+      auto& dep = *it;
+      log << "[" << dep.name << "](" << dep.score << ") -> {";
+
+      logging::Sep sep{", "};
+      for (auto& idx : dep.dependencies)
+      {
+        log << sep << deps[idx].name;
+      }
+      log << "}" << std::endl;
+    }
+  }
+
+  template <typename T>
+  inline void append(Log& log, const std::vector<T>& values)
+  {
+    log << "[";
+    logging::Sep sep{", "};
+    for (auto& value : values)
+    {
+      log << sep << value;
+    }
+    log << "]" << std::endl;
+  }
+
+  inline void append(Log& log, const Location& loc)
+  {
+    log << loc.view();
+  }
+
+  inline void append(Log& log, const rego::UnifierDef::Statement& statement)
+  {
+    rego::Resolver::stmt_str(log, statement.node);
+  }
+
+  template <typename K, typename V>
+  inline void append(Log& log, const rego::MapValuesStr<K, V>& map)
+  {
+    log << "{" << std::endl;
+    for (auto& [_, value] : map.values)
+    {
+      log << value << std::endl;
+    }
+    log << "}" << std::endl;
+  }
+} // trieste::logging
 
 #ifdef REGOCPP_ACTION_METRICS
 #define ACTION() rego::ActionMetrics __action_metrics(__FILE__, __LINE__)

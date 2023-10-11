@@ -9,6 +9,7 @@ const std::string Red = "\x1b[31m";
 const std::string White = "\x1b[37m";
 
 using TestCases = std::map<std::string, std::vector<rego_test::TestCase>>;
+namespace logging = trieste::logging;
 
 void load_testcases(
   const std::filesystem::path& path,
@@ -36,17 +37,17 @@ void load_testcase_dir(
   {
     if (std::filesystem::is_directory(file_or_dir))
     {
-      std::cout << std::endl << file_or_dir.path() << std::endl;
+      logging::Output() << file_or_dir.path();
       load_testcase_dir(file_or_dir, debug_path, testcases);
     }
     else if (std::filesystem::exists(file_or_dir))
     {
-      std::cout << ".";
+      logging::Output() << ".";
       load_testcases(file_or_dir, debug_path, testcases);
     }
     else
     {
-      std::cerr << "Not a file: " << file_or_dir.path() << std::endl;
+      logging::Error() << "Not a file: " << file_or_dir.path();
     }
   }
 }
@@ -65,7 +66,7 @@ int main(int argc, char** argv)
   app.add_option(
     "-a,--ast", debug_path, "Output the AST (debugging for test case parser)");
 
-  rego::LogLevel loglevel{rego::LogLevel::None};
+  rego::LogLevel loglevel{rego::LogLevel::Output};
   app.add_option("-l,--loglevel", loglevel, "Enable logging");
 
   bool wf_checks{false};
@@ -92,34 +93,34 @@ int main(int argc, char** argv)
 
   rego::set_log_level(loglevel);
 
-  std::cout << "Loading test cases:";
+  logging::Output() << "Loading test cases:";
   TestCases all_testcases;
   for (auto file_or_dir : case_paths)
   {
     if (std::filesystem::is_directory(file_or_dir))
     {
-      std::cout << std::endl << file_or_dir << std::endl;
+      logging::Output() << file_or_dir;
       load_testcase_dir(file_or_dir, debug_path, all_testcases);
     }
     else if (std::filesystem::exists(file_or_dir))
     {
-      std::cout << ".";
+      logging::Output() << ".";
       load_testcases(file_or_dir, debug_path, all_testcases);
     }
     else
     {
-      std::cerr << "Not a file: " << file_or_dir << std::endl;
+      logging::Error() << "Not a file: " << file_or_dir;
       return 1;
     }
   }
 
-  std::cout << std::endl << "Done" << std::endl;
+  logging::Output() << "Done";
 
   int total = 0;
   int failures = 0;
   for (auto& [category, cat_cases] : all_testcases)
   {
-    std::cout << White << category << std::endl;
+    logging::Output() << White << category << std::endl;
     for (auto& testcase : cat_cases)
     {
       if (
@@ -145,20 +146,20 @@ int main(int argc, char** argv)
 
         if (result.passed)
         {
-          std::cout << Green << "  PASS: " << Reset << note << std::fixed
-                    << std::setw(62 - note.length()) << std::internal
-                    << std::setprecision(3) << elapsed.count() << " sec"
-                    << std::endl;
+          logging::Output()
+            << Green << "  PASS: " << Reset << note << std::fixed
+            << std::setw(62 - note.length()) << std::internal
+            << std::setprecision(3) << elapsed.count() << " sec";
         }
         else
         {
           failures++;
-          std::cout << Red << "  FAIL: " << Reset << note << std::fixed
-                    << std::setw(62 - note.length()) << std::internal
-                    << std::setprecision(3) << elapsed.count() << " sec"
-                    << std::endl;
-          std::cout << "  " << result.error << std::endl;
-          std::cout << "(from " << testcase.filename() << ")" << std::endl;
+          logging::Error() << Red << "  FAIL: " << Reset << note << std::fixed
+                           << std::setw(62 - note.length()) << std::internal
+                           << std::setprecision(3) << elapsed.count() << " sec"
+                           << std::endl
+                           << "  " << result.error << std::endl
+                           << "(from " << testcase.filename() << ")";
           if (fail_first)
           {
             break;
@@ -168,9 +169,9 @@ int main(int argc, char** argv)
       catch (const std::exception& e)
       {
         failures++;
-        std::cout << Red << "  EXCEPTION: " << Reset << note << std::endl;
-        std::cout << "  " << e.what() << std::endl;
-        std::cout << "(from " << testcase.filename() << ")" << std::endl;
+        logging::Error() << Red << "  EXCEPTION: " << Reset << note << std::endl
+                         << "  " << e.what() << std::endl
+                         << "(from " << testcase.filename() << ")" << std::endl;
         if (fail_first)
         {
           break;
@@ -182,10 +183,17 @@ int main(int argc, char** argv)
       break;
     }
 
-    std::cout << std::endl;
-    std::cout << (total - failures) << " / " << total << " passed" << std::endl;
-
-    std::cout << std::endl;
+    if (failures != 0)
+    {
+      logging::Error() << std::endl
+                       << (total - failures) << " / " << total << " passed"
+                       << std::endl;
+    }
+    else
+    {
+      logging::Output() << std::endl
+                        << total << " / " << total << " passed" << std::endl;
+    }
   }
 
   return failures;

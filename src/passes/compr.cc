@@ -6,6 +6,8 @@ namespace rego
   PassDef rules_to_compr()
   {
     return {
+      "rules_to_compr",
+      wf_pass_rules_to_compr,
       dir::bottomup | dir::once,
       {
         In(Policy) *
@@ -137,6 +139,8 @@ namespace rego
   PassDef compr()
   {
     return {
+      "compr",
+      wf_pass_compr,
       dir::topdown,
       {
         In(ArrayCompr, SetCompr) *

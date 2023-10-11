@@ -144,6 +144,8 @@ namespace rego
   PassDef lift_to_rule()
   {
     return {
+      "lift_to_rule",
+      wf_pass_lift_to_rule,
       dir::bottomup,
       {
         In(UnifyBody) *

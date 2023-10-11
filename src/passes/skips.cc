@@ -99,9 +99,9 @@ namespace rego
 {
   PassDef datarule()
   {
-    SkipMap skip_links = std::make_shared<std::map<std::string, Node>>();
-
-    PassDef skips = {
+    return {
+      "datarule",
+      wf_pass_datarule,
       dir::bottomup | dir::once,
       {
         In(DataModule) *
@@ -111,8 +111,6 @@ namespace rego
             return RuleComp << _(Var) << Empty << _(DataTerm) << (Int ^ "0");
           },
       }};
-
-    return skips;
   }
 
   // Primes the skiplist with With locations, to cover the cases in which
@@ -122,7 +120,7 @@ namespace rego
   {
     SkipMap skip_links = std::make_shared<std::map<std::string, Node>>();
 
-    PassDef skips = {dir::topdown};
+    PassDef skips = {"skips", wf_pass_skips, dir::topdown};
 
     skips.pre(Rego, [skip_links](Node node) {
       to_absolute_names(node / Data / Val, "data");

@@ -8,7 +8,6 @@ namespace rego
 
   Interpreter::Interpreter() :
     m_parser(parser()),
-    m_wf_parser(wf_parser),
     m_module_seq(NodeDef::create(ModuleSeq)),
     m_data_seq(NodeDef::create(DataSeq)),
     m_input(NodeDef::create(Input)),
@@ -16,7 +15,7 @@ namespace rego
     m_debug_enabled(false),
     m_well_formed_checks_enabled(false)
   {
-    wf::push_back(&wf_parser);
+    wf::push_back(wf_parser);
     m_builtins.register_standard_builtins();
   }
 
@@ -48,7 +47,7 @@ namespace rego
       throw std::runtime_error("Module file does not exist");
     }
 
-    LOG_INFO("Adding module file: ", path);
+    logging::Info() << "Adding module file: " << path;
     auto file_ast = m_parser.sub_parse(path);
     insert_module(file_ast);
   }
@@ -59,7 +58,8 @@ namespace rego
     auto module_source = SourceDef::synthetic(contents);
     auto module = m_parser.sub_parse(name, File, module_source);
     insert_module(module);
-    LOG_INFO("Adding module: ", name, "(", contents.size(), " bytes)");
+    logging::Info() << "Adding module: " << name << "(" << contents.size()
+                    << " bytes)";
   }
 
   void Interpreter::add_data_json_file(const std::filesystem::path& path)
@@ -69,7 +69,7 @@ namespace rego
       throw std::runtime_error("Data file does not exist");
     }
 
-    LOG_INFO("Adding data file: ", path);
+    logging::Info() << "Adding data file: " << path;
     auto file_ast = m_parser.sub_parse(path);
     m_data_seq->push_back(file_ast);
   }
@@ -79,13 +79,13 @@ namespace rego
     auto data_source = SourceDef::synthetic(json);
     auto data = m_parser.sub_parse("data", File, data_source);
     m_data_seq->push_back(data);
-    LOG_INFO("Adding data (", json.size(), " bytes)");
+    logging::Info() << "Adding data (" << json.size() << " bytes)";
   }
 
   void Interpreter::add_data(const Node& node)
   {
     m_data_seq->push_back(node);
-    LOG_INFO("Adding data AST");
+    logging::Info() << "Adding data AST";
   }
 
   void Interpreter::set_input_json_file(const std::filesystem::path& path)
@@ -95,14 +95,14 @@ namespace rego
       throw std::runtime_error("Input file does not exist");
     }
 
-    LOG_INFO("Setting input from file: ", path);
+    logging::Info() << "Setting input from file: " << path;
     auto file_ast = m_parser.sub_parse(path);
     m_input = Input << file_ast;
   }
 
   void Interpreter::set_input_json(const std::string& json)
   {
-    LOG_INFO("Setting input (", json.size(), " bytes)");
+    logging::Info() << "Setting input (" << json.size() << " bytes)";
     auto input_source = SourceDef::synthetic(json);
     auto ast = m_parser.sub_parse("input", File, input_source);
     m_input = Input << ast;
@@ -110,7 +110,7 @@ namespace rego
 
   void Interpreter::set_input(const Node& node)
   {
-    LOG_INFO("Setting input AST");
+    logging::Info() << "Setting input AST";
     m_input = Input << node;
   }
 
@@ -147,7 +147,7 @@ namespace rego
 
   Node Interpreter::raw_query(const std::string& query_expr) const
   {
-    LOG_INFO("Query: ", query_expr);
+    logging::Info() << "Query: " << query_expr;
     auto ast = NodeDef::create(Top);
     auto rego = NodeDef::create(rego::Rego);
     auto query_src = SourceDef::synthetic(query_expr);
@@ -163,10 +163,10 @@ namespace rego
     rego->push_back(m_module_seq->clone());
     ast->push_back(rego);
 
-    bool ok = m_wf_parser.build_st(ast, std::cerr);
+    bool ok = m_parser.wf().build_st(ast);
     if (m_well_formed_checks_enabled)
     {
-      ok = m_wf_parser.check(ast, std::cerr) && ok;
+      ok = m_parser.wf().check(ast) && ok;
     }
 
     write_ast(0, "parse", ast);
@@ -176,36 +176,35 @@ namespace rego
     }
 
     const std::string delim = "\t";
-    LOG_INFO("Name\tPasses\tChanges\tTime(us)");
+    logging::Info() << "Name" << delim << "Passes" << delim << "Changes"
+                    << delim << "Time(us)";
     auto passes = rego::passes(m_builtins);
     timestamp start = clock::now();
     for (std::size_t i = 0; i < passes.size(); ++i)
     {
       timestamp pass_start = clock::now();
-      auto& [pass_name, pass, wf] = passes[i];
+      auto& pass = passes[i];
+      const auto& wf = pass->wf();
+      const auto& pass_name = pass->name();
       wf::push_back(wf);
       auto [new_ast, count, changes] = pass->run(ast);
       wf::pop_front();
       ast = new_ast;
 
-      ok = wf->build_st(ast, std::cout);
+      ok = wf.build_st(ast);
       write_ast(i + 1, pass_name, ast);
 
       if (m_well_formed_checks_enabled)
       {
-        ok = wf->check(ast, std::cout) && ok;
+        ok = wf.check(ast) && ok;
       }
 
       duration pass_elapsed = clock::now() - pass_start;
-      LOG_INFO(
-        pass_name,
-        delim,
-        count,
-        delim,
-        changes,
-        delim,
-        std::chrono::duration_cast<std::chrono::microseconds>(pass_elapsed)
-          .count());
+      logging::Info() << pass_name << delim << count << delim << changes
+                      << delim
+                      << std::chrono::duration_cast<std::chrono::microseconds>(
+                           pass_elapsed)
+                           .count();
 
       Node errors = get_errors(ast);
       if (errors && errors->size() > 0)
@@ -217,33 +216,23 @@ namespace rego
       {
         if (errors == nullptr)
         {
+          // There was a well-formedness error.  It would have been reported
+          // earlier, but need to make sure the subsequent code knows if failed
+          // the check to.
           errors = NodeDef::create(ErrorSeq);
+          errors->push_back(
+            err(ast, "Failed at pass " + pass_name, "well_formed_error"));
         }
-
-        if (errors->size() == 0)
-        {
-          std::ostringstream error;
-          error << "Failed at pass " << pass_name << std::endl;
-          ast->errors(error);
-          errors->push_back(err(ast, error.str(), "well_formed_error"));
-          LOG_INFO(error.str());
-        }
-
         return errors;
       }
     }
 
     duration elapsed = clock::now() - start;
-    LOG_INFO(
-      "Total",
-      delim,
-      "-",
-      delim,
-      "-",
-      delim,
-      std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count());
+    logging::Info()
+      << "Total" << delim << "-" << delim << "-" << delim
+      << std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
 
-    LOG_INFO("Query result: ", ast);
+    logging::Info() << "Query result: " << ast;
     PRINT_ACTION_METRICS();
     return ast;
   }

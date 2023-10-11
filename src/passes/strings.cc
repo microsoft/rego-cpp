@@ -59,18 +59,23 @@ namespace rego
   PassDef strings()
   {
     return {
-      In(String) * T(RawString)[RawString] >>
-        [](Match& _) {
-          ACTION();
-          std::string raw_string = std::string(_(RawString)->location().view());
-          return JSONString ^ raw_to_json(raw_string);
-        },
+      "strings",
+      wf_pass_strings,
+      dir::topdown,
+      {
+        In(String) * T(RawString)[RawString] >>
+          [](Match& _) {
+            ACTION();
+            std::string raw_string =
+              std::string(_(RawString)->location().view());
+            return JSONString ^ raw_to_json(raw_string);
+          },
 
-      In(Scalar) * (T(String) << T(JSONString)[JSONString]) >>
-        [](Match& _) {
-          ACTION();
-          return _(JSONString);
-        },
-    };
+        In(Scalar) * (T(String) << T(JSONString)[JSONString]) >>
+          [](Match& _) {
+            ACTION();
+            return _(JSONString);
+          },
+      }};
   }
 }

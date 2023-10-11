@@ -184,7 +184,7 @@ namespace rego_test
 
   Parse parser()
   {
-    Parse p(depth::file);
+    Parse p(depth::file, wf_parser);
     auto indent = std::make_shared<Indent>();
     auto quote = std::make_shared<Quote>(Quote::None);
     auto stack = std::make_shared<std::vector<Collection>>();

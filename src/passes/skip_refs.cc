@@ -116,25 +116,29 @@ namespace rego
   {
     SkipSet skips = std::make_shared<std::set<std::string>>();
 
-    PassDef skip_refs = {
-      In(RuleRef, RefTerm) * T(Ref)[Ref]([skips](auto& n) {
-        return skip_prefix_ref(skips, *n.first).length > 0;
-      }) >>
-        [skips](Match& _) {
-          ACTION();
-          SkipPrefix skip = skip_prefix_ref(skips, _(Ref));
-          Node refargseq = (_(Ref) / RefArgSeq);
-          refargseq->erase(
-            refargseq->begin(), refargseq->begin() + skip.length);
-          if (refargseq->size() == 0)
-          {
-            return Var ^ skip.path;
-          }
+    PassDef skip_refs{
+      "skip_refs",
+      wf_pass_skip_refs,
+      dir::topdown,
+      {
+        In(RuleRef, RefTerm) * T(Ref)[Ref]([skips](auto& n) {
+          return skip_prefix_ref(skips, *n.first).length > 0;
+        }) >>
+          [skips](Match& _) {
+            ACTION();
+            SkipPrefix skip = skip_prefix_ref(skips, _(Ref));
+            Node refargseq = (_(Ref) / RefArgSeq);
+            refargseq->erase(
+              refargseq->begin(), refargseq->begin() + skip.length);
+            if (refargseq->size() == 0)
+            {
+              return Var ^ skip.path;
+            }
 
-          return Ref << (RefHead << (Var ^ skip.path)) << refargseq;
-        },
+            return Ref << (RefHead << (Var ^ skip.path)) << refargseq;
+          },
 
-    };
+      }};
 
     skip_refs.pre(Rego, [skips](Node node) {
       Node skipseq = node / SkipSeq;

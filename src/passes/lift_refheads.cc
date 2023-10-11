@@ -101,70 +101,74 @@ namespace rego
   {
     RefHeads refheads = std::make_shared<std::set<std::string>>();
 
-    PassDef lift_refheads = {
-      In(RefHead) *
-          (T(Ref) << ((T(RefHead) << T(Var)[Var]) * (T(RefArgSeq) << End))) >>
-        [](Match& _) {
-          ACTION();
-          return _(Var);
-        },
+    PassDef lift_refheads{
+      "lift_refheads",
+      wf_pass_lift_refheads,
+      dir::topdown,
+      {
+        In(RefHead) *
+            (T(Ref) << ((T(RefHead) << T(Var)[Var]) * (T(RefArgSeq) << End))) >>
+          [](Match& _) {
+            ACTION();
+            return _(Var);
+          },
 
-      In(Policy) * T(Rule)[Rule]([](auto& n) {
-        Node rule = *n.first;
-        Node ruleref = (rule / RuleHead / RuleRef)->front();
-        if (ruleref->type() == Ref)
-        {
-          return (ruleref / RefArgSeq)->size() > 0;
-        }
-
-        return false;
-      }) >>
-        [refheads](Match& _) {
-          ACTION();
-          Node module = _(Rule)->parent()->parent()->shared_from_this();
-          Node imports = (module / ImportSeq)->clone();
-          Node package_ref = (module / Package)->front();
-          Node rulehead = _(Rule) / RuleHead;
-          Node ruleref = rulehead / RuleRef;
-          Node ref = ruleref->front();
-          Node refhead = ref / RefHead;
-          Node refargseq = ref / RefArgSeq;
-          Node vararg = refargseq->back();
-          refargseq->pop_back();
-
-          Node prefix_ref = concat_refs(Var ^ "data", package_ref);
-          if (prefix_ref->type() == Error)
+        In(Policy) * T(Rule)[Rule]([](auto& n) {
+          Node rule = *n.first;
+          Node ruleref = (rule / RuleHead / RuleRef)->front();
+          if (ruleref->type() == Ref)
           {
-            return prefix_ref;
+            return (ruleref / RefArgSeq)->size() > 0;
           }
 
-          prepend_refs(_(Rule) / Body, prefix_ref, refheads);
-          prepend_refs(rulehead / RuleHeadType, prefix_ref, refheads);
+          return false;
+        }) >>
+          [refheads](Match& _) {
+            ACTION();
+            Node module = _(Rule)->parent()->parent()->shared_from_this();
+            Node imports = (module / ImportSeq)->clone();
+            Node package_ref = (module / Package)->front();
+            Node rulehead = _(Rule) / RuleHead;
+            Node ruleref = rulehead / RuleRef;
+            Node ref = ruleref->front();
+            Node refhead = ref / RefHead;
+            Node refargseq = ref / RefArgSeq;
+            Node vararg = refargseq->back();
+            refargseq->pop_back();
 
-          Node new_package_ref = concat_refs(package_ref, ref);
-          if (new_package_ref->type() == Error)
-          {
-            return new_package_ref;
-          }
+            Node prefix_ref = concat_refs(Var ^ "data", package_ref);
+            if (prefix_ref->type() == Error)
+            {
+              return prefix_ref;
+            }
 
-          Node var;
-          if (vararg->type() == RefArgDot)
-          {
-            var = vararg->front();
-          }
-          else
-          {
-            Location loc = vararg->front()->location();
-            var = Var ^ ("[" + std::string(loc.view()) + "]");
-          }
+            prepend_refs(_(Rule) / Body, prefix_ref, refheads);
+            prepend_refs(rulehead / RuleHeadType, prefix_ref, refheads);
 
-          rulehead->replace(ruleref, RuleRef << var);
+            Node new_package_ref = concat_refs(package_ref, ref);
+            if (new_package_ref->type() == Error)
+            {
+              return new_package_ref;
+            }
 
-          return Lift << ModuleSeq
-                      << (Module << (Package << new_package_ref) << imports
-                                 << (Policy << _(Rule)));
-        },
-    };
+            Node var;
+            if (vararg->type() == RefArgDot)
+            {
+              var = vararg->front();
+            }
+            else
+            {
+              Location loc = vararg->front()->location();
+              var = Var ^ ("[" + std::string(loc.view()) + "]");
+            }
+
+            rulehead->replace(ruleref, RuleRef << var);
+
+            return Lift << ModuleSeq
+                        << (Module << (Package << new_package_ref) << imports
+                                   << (Policy << _(Rule)));
+          },
+      }};
 
     lift_refheads.pre(Rego, [refheads](Node node) {
       if (refheads->size() == 0)

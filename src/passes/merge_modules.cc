@@ -66,8 +66,8 @@ namespace
     }
     else
     {
-      std::cout << dst << std::endl;
-      std::cout << src << std::endl;
+      logging::Error() << "Unsupported merge: dst " << dst << std::endl
+                       << " src " << src << std::endl;
       return err(src, "Unsupported merge");
     }
   }
@@ -82,84 +82,86 @@ namespace rego
   PassDef merge_modules()
   {
     return {
-      In(ModuleSeq) *
-          (T(Module)
-           << ((
-                 T(Package)
+      "merge_modules",
+      wf_pass_merge_modules,
+      dir::topdown,
+      {In(ModuleSeq) *
+           (T(Module)
+            << ((T(Package)
                  << (T(Ref)
                      << ((T(RefHead) << T(Var)[Var]) *
                          T(RefArgSeq)[RefArgSeq]))) *
-               T(Policy)[Policy])) >>
-        [](Match& _) {
-          ACTION();
-          Node args = _(RefArgSeq);
-          Node module = DataModule << *_[Policy];
-          while (args->size() > 0)
-          {
-            Node arg = args->back();
-            args->pop_back();
-            if (arg->type() == RefArgDot)
-            {
-              module = DataModule
-                << (Submodule << (Key ^ arg->front()) << module);
-            }
-            else if (arg->type() == RefArgBrack)
-            {
-              if (arg->front()->type() != Scalar)
-              {
-                return err(arg, "Invalid package ref index");
-              }
+                T(Policy)[Policy])) >>
+         [](Match& _) {
+           ACTION();
+           Node args = _(RefArgSeq);
+           Node module = DataModule << *_[Policy];
+           while (args->size() > 0)
+           {
+             Node arg = args->back();
+             args->pop_back();
+             if (arg->type() == RefArgDot)
+             {
+               module = DataModule
+                 << (Submodule << (Key ^ arg->front()) << module);
+             }
+             else if (arg->type() == RefArgBrack)
+             {
+               if (arg->front()->type() != Scalar)
+               {
+                 return err(arg, "Invalid package ref index");
+               }
 
-              Node idx = arg->front()->front();
-              if (idx->type() != JSONString)
-              {
-                return err(idx, "Invalid package ref index");
-              }
+               Node idx = arg->front()->front();
+               if (idx->type() != JSONString)
+               {
+                 return err(idx, "Invalid package ref index");
+               }
 
-              std::string key = strip_quotes(idx->location().view());
-              if (!all_alnum(key))
-              {
-                key = "[\"" + key + "\"]";
-              }
-              module = DataModule << (Submodule << (Key ^ key) << module);
-            }
-            else
-            {
-              return err(arg, "Unsupported package ref arg type");
-            }
-          }
+               std::string key = strip_quotes(idx->location().view());
+               if (!all_alnum(key))
+               {
+                 key = "[\"" + key + "\"]";
+               }
+               module = DataModule << (Submodule << (Key ^ key) << module);
+             }
+             else
+             {
+               return err(arg, "Unsupported package ref arg type");
+             }
+           }
 
-          return Lift << Rego << (Submodule << (Key ^ _(Var)) << module);
-        },
+           return Lift << Rego << (Submodule << (Key ^ _(Var)) << module);
+         },
 
-      In(Rego) * (T(ModuleSeq) << End) >> ([](Match&) -> Node { return {}; }),
+       In(Rego) * (T(ModuleSeq) << End) >> ([](Match&) -> Node { return {}; }),
 
-      In(Rego) *
-          ((T(Data) << (T(Key)[Key] * T(DataModule)[DataModule])) *
-           T(Submodule)[Submodule]) >>
-        [](Match& _) {
-          ACTION();
-          return Data << _(Key) << merge(_(DataModule), _(Submodule));
-        },
+       In(Rego) *
+           ((T(Data) << (T(Key)[Key] * T(DataModule)[DataModule])) *
+            T(Submodule)[Submodule]) >>
+         [](Match& _) {
+           ACTION();
+           return Data << _(Key) << merge(_(DataModule), _(Submodule));
+         },
 
-      // errors
+       // errors
 
-      In(ModuleSeq) * (T(Module) << T(Package)[Package]) >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Package), "Invalid package reference.");
-        },
+       In(ModuleSeq) * (T(Module) << T(Package)[Package]) >>
+         [](Match& _) {
+           ACTION();
+           return err(_(Package), "Invalid package reference.");
+         },
 
-      In(Rego) * (T(ModuleSeq) << T(Error)[Error]) >>
-        [](Match& _) {
-          ACTION();
-          return _(Error);
-        },
+       In(Rego) * (T(ModuleSeq) << T(Error)[Error]) >>
+         [](Match& _) {
+           ACTION();
+           return _(Error);
+         },
 
-      In(DataModule) * T(Import)[Import] >>
-        [](Match& _) {
-          ACTION();
-          return err(_(Import), "Invalid import");
-        }};
+       In(DataModule) * T(Import)[Import] >>
+         [](Match& _) {
+           ACTION();
+           return err(_(Import), "Invalid import");
+         }}};
   }
 }

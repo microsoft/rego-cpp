@@ -48,10 +48,11 @@ typedef unsigned int regoSize;
 // log levels
 #define REGO_LOG_LEVEL_NONE 0
 #define REGO_LOG_LEVEL_ERROR 1
-#define REGO_LOG_LEVEL_WARN 2
-#define REGO_LOG_LEVEL_INFO 3
-#define REGO_LOG_LEVEL_DEBUG 4
-#define REGO_LOG_LEVEL_TRACE 5
+#define REGO_LOG_LEVEL_OUTPUT 2
+#define REGO_LOG_LEVEL_WARN 3
+#define REGO_LOG_LEVEL_INFO 4
+#define REGO_LOG_LEVEL_DEBUG 5
+#define REGO_LOG_LEVEL_TRACE 6
 
 #ifdef __cplusplus
 extern "C"
@@ -68,9 +69,9 @@ extern "C"
    * The default level is REGO_LOG_LEVEL_NONE.
    *
    * @param level One of the following values: REGO_LOG_LEVEL_NONE,
-   *              REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_WARN,
-   *              REGO_LOG_LEVEL_INFO, REGO_LOG_LEVEL_DEBUG,
-   *              REGO_LOG_LEVEL_TRACE.
+   *              REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
+   *              REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
+   *              REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
    */
   void regoSetLogLevel(regoEnum level);
 

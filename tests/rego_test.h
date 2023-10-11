@@ -163,6 +163,5 @@ namespace rego_test
 
   Parse parser();
   Driver& driver();
-  using PassCheck = std::tuple<std::string, Pass, const wf::Wellformed*>;
-  std::vector<PassCheck> passes();
+  std::vector<Pass> passes();
 }
