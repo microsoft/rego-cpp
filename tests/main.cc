@@ -36,17 +36,17 @@ void load_testcase_dir(
   {
     if (std::filesystem::is_directory(file_or_dir))
     {
-      std::cout << std::endl << file_or_dir.path() << std::endl;
+      logging::Output() << file_or_dir.path();
       load_testcase_dir(file_or_dir, debug_path, testcases);
     }
     else if (std::filesystem::exists(file_or_dir))
     {
-      std::cout << ".";
+      logging::Output() << ".";
       load_testcases(file_or_dir, debug_path, testcases);
     }
     else
     {
-      std::cerr << "Not a file: " << file_or_dir.path() << std::endl;
+      logging::Error() << "Not a file: " << file_or_dir.path();
     }
   }
 }
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
   {
     if (std::filesystem::is_directory(file_or_dir))
     {
-      std::cout << std::endl << file_or_dir << std::endl;
+      trieste::logging::Output() << file_or_dir;
       load_testcase_dir(file_or_dir, debug_path, all_testcases);
     }
     else if (std::filesystem::exists(file_or_dir))
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
   int failures = 0;
   for (auto& [category, cat_cases] : all_testcases)
   {
-    std::cout << White << category << std::endl;
+    trieste::logging::Output() << White << category << std::endl;
     for (auto& testcase : cat_cases)
     {
       if (
@@ -145,20 +145,20 @@ int main(int argc, char** argv)
 
         if (result.passed)
         {
-          std::cout << Green << "  PASS: " << Reset << note << std::fixed
-                    << std::setw(62 - note.length()) << std::internal
-                    << std::setprecision(3) << elapsed.count() << " sec"
-                    << std::endl;
+          trieste::logging::Output()
+            << Green << "  PASS: " << Reset << note << std::fixed
+            << std::setw(62 - note.length()) << std::internal
+            << std::setprecision(3) << elapsed.count() << " sec";
         }
         else
         {
           failures++;
-          std::cout << Red << "  FAIL: " << Reset << note << std::fixed
-                    << std::setw(62 - note.length()) << std::internal
-                    << std::setprecision(3) << elapsed.count() << " sec"
-                    << std::endl;
-          std::cout << "  " << result.error << std::endl;
-          std::cout << "(from " << testcase.filename() << ")" << std::endl;
+          trieste::logging::Error()
+            << Red << "  FAIL: " << Reset << note << std::fixed
+            << std::setw(62 - note.length()) << std::internal
+            << std::setprecision(3) << elapsed.count() << " sec" << std::endl
+            << "  " << result.error << std::endl
+            << "(from " << testcase.filename() << ")";
           if (fail_first)
           {
             break;
@@ -168,9 +168,10 @@ int main(int argc, char** argv)
       catch (const std::exception& e)
       {
         failures++;
-        std::cout << Red << "  EXCEPTION: " << Reset << note << std::endl;
-        std::cout << "  " << e.what() << std::endl;
-        std::cout << "(from " << testcase.filename() << ")" << std::endl;
+        trieste::logging::Error()
+          << Red << "  EXCEPTION: " << Reset << note << std::endl
+          << "  " << e.what() << std::endl
+          << "(from " << testcase.filename() << ")" << std::endl;
         if (fail_first)
         {
           break;
@@ -182,10 +183,18 @@ int main(int argc, char** argv)
       break;
     }
 
-    std::cout << std::endl;
-    std::cout << (total - failures) << " / " << total << " passed" << std::endl;
-
-    std::cout << std::endl;
+    if (failures != 0)
+    {
+      trieste::logging::Error()
+        << std::endl
+        << (total - failures) << " / " << total << " passed" << std::endl;
+    }
+    else
+    {
+      trieste::logging::Output()
+        << std::endl
+        << total << " / " << total << " passed" << std::endl;
+    }
   }
 
   return failures;

@@ -392,7 +392,6 @@ namespace rego_test
 
       if (!ok)
       {
-        std::ostringstream buf;
         logging::Error() << "Failed at pass " << pass_name << std::endl
                          << "Error with input file " << path;
         // Dump error messages from Trieste.

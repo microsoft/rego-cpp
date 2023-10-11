@@ -816,12 +816,12 @@ namespace rego
 
   void ActionMetrics::print()
   {
-    std::cout << "Action\tCount\tTime(ms)" << std::endl;
+    trieste::logging::Output() << "Action\tCount\tTime(ms)";
     for (auto& [key, info] : ActionMetrics::s_action_info)
     {
       std::chrono::duration<double, std::milli> fp_ms = info.time_spent;
-      std::cout << key.file << ":" << key.line << "\t" << info.count << "\t"
-                << fp_ms.count() << std::endl;
+      trieste::logging::Output() << key.file << ":" << key.line << "\t" << info.count << "\t"
+                << fp_ms.count();
     }
   }
 

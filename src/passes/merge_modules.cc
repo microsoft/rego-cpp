@@ -66,8 +66,8 @@ namespace
     }
     else
     {
-      std::cout << dst << std::endl;
-      std::cout << src << std::endl;
+      logging::Error() << "Unsupported merge: dst " << dst << std::endl
+                       << " src " << src << std::endl;
       return err(src, "Unsupported merge");
     }
   }
