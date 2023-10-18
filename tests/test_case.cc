@@ -29,40 +29,6 @@ namespace rego_test
     return ends_with(str, std::string_view(suffix));
   }
 
-  void TestCase::write_ast(
-    const std::filesystem::path& debug_path,
-    std::size_t index,
-    const std::string& pass,
-    const Node& ast)
-  {
-    if (debug_path.empty())
-    {
-      return;
-    }
-
-    std::filesystem::path output;
-    if (index < 10)
-    {
-      output = debug_path /
-        ("0" + std::to_string(index) + "_yaml_" + pass + ".trieste");
-    }
-    else
-    {
-      output =
-        debug_path / (std::to_string(index) + "_yaml_" + pass + ".trieste");
-    }
-    std::ofstream f(output, std::ios::binary | std::ios::out);
-
-    if (f)
-    {
-      // Write the AST to the output file.
-      f << "rego_test_cases" << std::endl << pass << std::endl << ast;
-      return;
-    }
-
-    std::cerr << "Could not open " << output << " for writing." << std::endl;
-  }
-
   bool has_error(const Node& node)
   {
     if (node->type() == Error)
@@ -345,53 +311,28 @@ namespace rego_test
   std::vector<TestCase> TestCase::load(
     const std::filesystem::path& path, const std::filesystem::path& debug_path)
   {
-    if (!debug_path.empty())
-    {
-      if (std::filesystem::is_directory(debug_path))
-      {
-        std::filesystem::remove_all(debug_path);
-      }
-
-      std::filesystem::create_directory(debug_path);
-    }
+    logging::Debug() << "Loading test cases from " << path;
 
     auto ast = parser().parse(path);
-    bool ok = wf_parser.build_st(ast);
-    ok = wf_parser.check(ast) && ok;
-
-    write_ast(debug_path, 0, "parse", ast);
-
-    ok = (!ast->errors()) && ok;
-    if (!ok)
-    {
-      throw std::runtime_error("Parse failed.");
-    }
 
     auto passes = rego_test::passes();
-    std::vector<TestCase> test_cases;
+    PassRange pass_range{passes, wf_parser, "parse"};
 
-    for (std::size_t i = 0; i < passes.size(); ++i)
+    bool ok;
     {
-      auto& pass = passes[i];
-      auto& pass_name = pass->name();
-      auto& wf = pass->wf();
-      wf::push_back(wf);
-      auto [new_ast, count, changes] = pass->run(ast);
-      wf::pop_front();
-      ast = new_ast;
-
-      ok = wf.build_st(ast);
-      write_ast(debug_path, i + 1, pass_name, ast);
-
-      ok = wf.check(ast) && ok;
-
-      if (ast->errors())
-      {
-        logging::Error() << "Failed at pass " << pass_name << std::endl
-                         << "Error with input file " << path;
-        return test_cases;
-      }
+      logging::Info summary;
+      summary << "---------" << std::endl;
+      auto p = default_process(summary, true, "rego_test_cases", debug_path);
+      ok = p.build(ast, pass_range);
+      summary << "---------" << std::endl;
     }
+    if (!ok)
+    {
+      logging::Error() << "Error with input file " << path;
+      return {};
+    }
+
+    std::vector<TestCase> test_cases;
 
     Node case_seq = ast->front()->front()->back();
     for (Node entry : *case_seq)
@@ -544,6 +485,8 @@ namespace rego_test
       }
     }
 
+    wf::push_back(interpreter.output_wf());
+
     if (m_want_error.length() > 0)
     {
       if (actual->type() != Error)
@@ -587,6 +530,12 @@ namespace rego_test
         }
         else
         {
+          trieste::logging::Trace() << "====================" << std::endl
+                                    << "actual: " << actual << std::endl
+                                    << "---------" << std::endl
+                                    << "wanted: " << m_want_result << std::endl
+                                    << "====================" << std::endl;
+
           pass = compare(actual, m_want_result, error);
         }
       }
@@ -628,6 +577,8 @@ namespace rego_test
         error << "wanted an undefined result, but was defined";
       }
     }
+
+    wf::pop_front();
 
     return {pass, error.str()};
   }
