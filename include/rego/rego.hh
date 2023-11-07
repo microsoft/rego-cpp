@@ -1319,7 +1319,7 @@ namespace rego
   /**
    * @return std::vector<Pass> that is used to process a rego query.
    */
-  std::vector<Pass> passes();
+  std::vector<Pass> passes(const BuiltIns& builtins);
 
   /**
    * Returns a node representing the version of the library.
