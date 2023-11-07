@@ -4,6 +4,7 @@
 int main(int argc, char** argv)
 {
   auto builtins = rego::BuiltIns().register_standard_builtins();
-  trieste::Driver driver("rego", nullptr, parser(), passes(builtins));
+  trieste::Driver driver(
+    "rego", nullptr, rego::parser(), rego::passes(builtins));
   return driver.run(argc, argv);
 }

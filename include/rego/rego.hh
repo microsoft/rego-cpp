@@ -1317,6 +1317,11 @@ namespace rego
   Parse parser();
 
   /**
+   * @return std::vector<Pass> that is used to process a rego query.
+   */
+  std::vector<Pass> passes();
+
+  /**
    * Returns a node representing the version of the library.
    *
    * The resulting node will be an object containing:
