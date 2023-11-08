@@ -37,6 +37,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: mjp41/workaround8649@7929373c0fe5caf844d8115adccef39e3b5362e7
+
       - name: Get dependencies
         run: |
           sudo apt-get install ninja-build
@@ -59,6 +61,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: mjp41/workaround8649@7929373c0fe5caf844d8115adccef39e3b5362e7
+
       - name: Get dependencies
         run: |
           sudo apt-get install ninja-build
@@ -80,6 +84,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - uses: mjp41/workaround8649@7929373c0fe5caf844d8115adccef39e3b5362e7
 
       - name: Get dependencies
         run: |
