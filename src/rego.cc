@@ -30,6 +30,7 @@ namespace rego
       explicit_enums(),
       body_locals(builtins),
       value_locals(builtins),
+      compr_locals(builtins),
       rules_to_compr(),
       compr(),
       absolute_refs(),

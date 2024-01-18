@@ -138,7 +138,6 @@ namespace rego
              << (T(Var)[Lhs] * T(Var)[Rhs] * T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
             ACTION();
-            logging::Debug() << "enum";
             Location value = _.fresh({"value"});
             return Seq << (Lift << UnifyBody
                                 << (Local << (Var ^ value) << Undefined))

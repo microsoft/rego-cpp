@@ -1,5 +1,7 @@
 #include "internal.hh"
 
+#include <algorithm>
+
 namespace
 {
   using namespace rego;
@@ -7,8 +9,10 @@ namespace
 
   struct InitInfo
   {
-    std::set<Location> lhs_vars;
-    std::set<Location> rhs_vars;
+    std::size_t index;
+    bool strict;
+    std::set<Location> lhs;
+    std::set<Location> rhs;
   };
 
   Node to_init(
@@ -82,9 +86,28 @@ namespace
     }
   }
 
+  std::size_t count_locals(Node node, const std::set<Location>& locals)
+  {
+    if (node->type() == Var && locals.contains(node->location()))
+    {
+      return 1;
+    }
+
+    std::size_t count = 0;
+    for (Node child : *node)
+    {
+      count += count_locals(child, locals);
+    }
+
+    return count;
+  }
+
   void find_init_stmts(Node unifybody, std::set<Location>& locals)
   {
-    // gather all locals
+    // find the assignment statement for each local which
+    // contains the fewest number of local variables. We'll
+    // use this as that variable's init statement.
+    std::map<Location, InitInfo> init_stmt_for_local;
     for (std::size_t i = 0; i < unifybody->size(); ++i)
     {
       Node stmt = unifybody->at(i);
@@ -95,15 +118,6 @@ namespace
       else if (stmt->type() == LiteralEnum)
       {
         locals.erase((stmt / Item)->location());
-        find_init_stmts(stmt / UnifyBody, locals);
-      }
-      else if (stmt->type() == LiteralWith)
-      {
-        find_init_stmts(stmt / UnifyBody, locals);
-      }
-      else if (stmt->type() == LiteralNot)
-      {
-        find_init_stmts(stmt / UnifyBody, locals);
       }
       else if (stmt->type() == Literal)
       {
@@ -113,10 +127,16 @@ namespace
           continue;
         }
 
+        // find all the variables in the expression
         Node lhs = expr->front();
         Node rhs = expr->back();
         std::set<Location> lhs_vars;
         vars_from(lhs, lhs_vars);
+
+        std::set<Location> rhs_vars;
+        vars_from(rhs, rhs_vars);
+
+        // filter to just the local variables
         std::set<Location> lhs_found;
         std::set_intersection(
           lhs_vars.begin(),
@@ -125,8 +145,6 @@ namespace
           locals.end(),
           std::inserter(lhs_found, lhs_found.begin()));
 
-        std::set<Location> rhs_vars;
-        vars_from(rhs, rhs_vars);
         std::set<Location> rhs_found;
         std::set_intersection(
           rhs_vars.begin(),
@@ -135,22 +153,154 @@ namespace
           locals.end(),
           std::inserter(rhs_found, rhs_found.begin()));
 
-        if (lhs_found.empty() && rhs_found.empty())
-        {
-          continue;
-        }
+        // we want to give preference to "strict" assignment statements,
+        // that is those which have no variables on one side of the
+        // assignment.
+        std::size_t lhs_count = count_locals(lhs, locals);
+        std::size_t rhs_count = count_locals(rhs, locals);
+        bool strict_assign = lhs_count == 0 || rhs_count == 0;
+
+        // compiler statements will never be right-assign, so we can
+        // use this fact later to help resolve some ambiguities
+        bool compiler_stmt =
+          std::any_of(lhs_found.begin(), lhs_found.end(), [](auto& loc) {
+            std::string name = loc.str();
+            return starts_with(name, "unify$") || starts_with(name, "out$") ||
+              starts_with(name, "value$");
+          });
 
         for (auto& loc : lhs_found)
         {
-          locals.erase(loc);
+          if (init_stmt_for_local.contains(loc) && !strict_assign)
+          {
+            continue;
+          }
+
+          if (compiler_stmt)
+          {
+            init_stmt_for_local[loc] = {
+              i, strict_assign, lhs_found, std::set<Location>{}};
+          }
+          else
+          {
+            init_stmt_for_local[loc] = {i, strict_assign, lhs_found, rhs_found};
+          }
         }
 
-        for (auto& loc : rhs_found)
+        if (!compiler_stmt)
         {
-          locals.erase(loc);
-        }
+          for (auto& loc : rhs_found)
+          {
+            if (init_stmt_for_local.contains(loc) && !strict_assign)
+            {
+              continue;
+            }
 
-        unifybody->replace_at(i, to_init(lhs, lhs_found, rhs, rhs_found));
+            init_stmt_for_local[loc] = {i, strict_assign, lhs_found, rhs_found};
+          }
+        }
+      }
+    }
+
+    // transform the init statements into LiteralInit nodes
+    std::vector<InitInfo> init_stmts;
+    std::transform(
+      init_stmt_for_local.begin(),
+      init_stmt_for_local.end(),
+      std::back_inserter(init_stmts),
+      [](auto& pair) { return pair.second; });
+
+    // sort the init statements so that statements with no local variables
+    // on one side come first.
+    std::sort(init_stmts.begin(), init_stmts.end(), [](auto& a, auto& b) {
+      if (a.strict)
+      {
+        if (b.strict)
+        {
+          return a.index < b.index;
+        }
+        else
+        {
+          return true;
+        }
+      }
+      else
+      {
+        if (b.strict)
+        {
+          return false;
+        }
+        else
+        {
+          return a.index < b.index;
+        }
+      }
+    });
+
+    for (std::size_t i = 0; i < init_stmts.size(); ++i)
+    {
+      InitInfo& init_stmt = init_stmts[i];
+      if (i > 0 && init_stmts[i].index == init_stmts[i - 1].index)
+      {
+        // this statement is a duplicate of the previous one
+        continue;
+      }
+
+      Node expr = unifybody->at(init_stmt.index)->front()->front();
+      if (expr->type() != AssignInfix)
+      {
+        continue;
+      }
+
+      Node lhs = expr->front();
+      Node rhs = expr->back();
+
+      std::set<Location> lhs_vars;
+      std::set_intersection(
+        init_stmt.lhs.begin(),
+        init_stmt.lhs.end(),
+        locals.begin(),
+        locals.end(),
+        std::inserter(lhs_vars, lhs_vars.begin()));
+
+      std::set<Location> rhs_vars;
+      std::set_intersection(
+        init_stmt.rhs.begin(),
+        init_stmt.rhs.end(),
+        locals.begin(),
+        locals.end(),
+        std::inserter(rhs_vars, rhs_vars.begin()));
+
+      // as this is the best init statement for these variables
+      // we can remove them from the set of locals
+      for (auto& loc : lhs_vars)
+      {
+        locals.erase(loc);
+      }
+
+      for (auto& loc : rhs_vars)
+      {
+        locals.erase(loc);
+      }
+
+      unifybody->replace_at(
+        init_stmt.index, to_init(lhs, lhs_vars, rhs, rhs_vars));
+    }
+
+    // where appropriate, recurse with the updated locals
+    for (Node stmt : *unifybody)
+    {
+      if (stmt->type() == LiteralEnum)
+      {
+        find_init_stmts(stmt / UnifyBody, locals);
+      }
+      else if (stmt->type() == LiteralWith)
+      {
+        find_init_stmts(stmt / UnifyBody, locals);
+      }
+      else if (stmt->type() == LiteralNot)
+      {
+        find_init_stmts(stmt / UnifyBody, locals);
       }
     }
   }
