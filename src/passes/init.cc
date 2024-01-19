@@ -1,18 +1,26 @@
 #include "internal.hh"
 
 #include <algorithm>
+#include <cstddef>
+#include <deque>
+#include <stdexcept>
 
 namespace
 {
   using namespace rego;
   using namespace wf::ops;
 
+  struct InitSide
+  {
+    std::set<Location> vars;
+    std::set<Location> inits;
+  };
+
   struct InitInfo
   {
     std::size_t index;
-    bool strict;
-    std::set<Location> lhs;
-    std::set<Location> rhs;
+    InitSide lhs;
+    InitSide rhs;
   };
 
   Node to_init(
@@ -41,11 +49,12 @@ namespace
     return LiteralInit << lhs_vars << rhs_vars << (AssignInfix << lhs << rhs);
   }
 
-  void vars_from(Node node, std::set<Location>& vars)
+  void inits_from(
+    Node node, const std::set<Location>& locals, std::set<Location>& inits)
   {
-    if (node->type() == Var)
+    if (node->type() == Var && locals.contains(node->location()))
     {
-      vars.insert(node->location());
+      inits.insert(node->location());
       return;
     }
 
@@ -82,32 +91,102 @@ namespace
 
     for (Node child : *node)
     {
-      vars_from(child, vars);
+      inits_from(child, locals, inits);
     }
   }
 
-  std::size_t count_locals(Node node, const std::set<Location>& locals)
+  void vars_from(
+    Node node, const std::set<Location>& locals, std::set<Location>& vars)
   {
     if (node->type() == Var && locals.contains(node->location()))
     {
-      return 1;
+      vars.insert(node->location());
     }
 
-    std::size_t count = 0;
     for (Node child : *node)
     {
-      count += count_locals(child, locals);
+      vars_from(child, locals, vars);
+    }
+  }
+
+  InitSide side_from(Node node, const std::set<Location>& locals)
+  {
+    InitSide side;
+    inits_from(node, locals, side.inits);
+    vars_from(node, locals, side.vars);
+    return side;
+  }
+
+  bool any_compiler_inits(const InitSide& lhs)
+  {
+    return std::any_of(lhs.inits.begin(), lhs.inits.end(), [](auto& loc) {
+      std::string name = loc.str();
+      return starts_with(name, "unify$") || starts_with(name, "out$") ||
+        starts_with(name, "value$");
+    });
+  }
+
+  void remove_locals(
+    std::deque<InitInfo>& init_deque, const std::set<Location>& to_remove)
+  {
+    std::size_t count = init_deque.size();
+    for (std::size_t i = 0; i < count; ++i)
+    {
+      InitInfo& init_stmt = init_deque.front();
+      for (auto& loc : to_remove)
+      {
+        init_stmt.lhs.vars.erase(loc);
+        init_stmt.lhs.inits.erase(loc);
+        init_stmt.rhs.vars.erase(loc);
+        init_stmt.rhs.inits.erase(loc);
+      }
+      if (!init_stmt.lhs.inits.empty() || !init_stmt.rhs.inits.empty())
+      {
+        init_deque.push_back(init_stmt);
+      }
+
+      init_deque.pop_front();
+    }
+  }
+
+  std::vector<InitInfo> sort_init_stmts(
+    const std::set<Location>& locals, std::deque<InitInfo>& init_deque)
+  {
+    std::set<Location> initialized;
+    std::vector<InitInfo> init_stmts;
+    while (!init_deque.empty() && initialized != locals)
+    {
+      // find all strict init statements
+      auto it =
+        std::find_if(init_deque.begin(), init_deque.end(), [](auto& init_stmt) {
+          return init_stmt.lhs.vars.empty() || init_stmt.rhs.vars.empty();
+        });
+
+      if (it == init_deque.end())
+      {
+        // we have a cycle, so we use the first statement
+        it = init_deque.begin();
+        init_stmts.push_back(*it);
+      }
+      else
+      {
+        init_stmts.push_back(*it);
+      }
+
+      std::set<Location> to_remove;
+      to_remove.insert(it->lhs.inits.begin(), it->lhs.inits.end());
+      to_remove.insert(it->rhs.inits.begin(), it->rhs.inits.end());
+      init_deque.erase(it);
+      remove_locals(init_deque, to_remove);
+      initialized.insert(to_remove.begin(), to_remove.end());
     }
 
-    return count;
+    return init_stmts;
   }
 
   void find_init_stmts(Node unifybody, std::set<Location>& locals)
   {
-    // find the assignment statement for each local which
-    // contains the fewest number of local variables. We'll
-    // use this as that variable's init statement.
-    std::map<Location, InitInfo> init_stmt_for_local;
+    std::deque<InitInfo> potential_init_stmts;
     for (std::size_t i = 0; i < unifybody->size(); ++i)
     {
       Node stmt = unifybody->at(i);
@@ -127,164 +206,51 @@ namespace
           continue;
         }
 
-        // find all the variables in the expression
         Node lhs = expr->front();
         Node rhs = expr->back();
-        std::set<Location> lhs_vars;
-        vars_from(lhs, lhs_vars);
 
-        std::set<Location> rhs_vars;
-        vars_from(rhs, rhs_vars);
+        InitSide lhs_side = side_from(lhs, locals);
+        InitSide rhs_side = side_from(rhs, locals);
 
-        // filter to just the local variables
-        std::set<Location> lhs_found;
-        std::set_intersection(
-          lhs_vars.begin(),
-          lhs_vars.end(),
-          locals.begin(),
-          locals.end(),
-          std::inserter(lhs_found, lhs_found.begin()));
-
-        std::set<Location> rhs_found;
-        std::set_intersection(
-          rhs_vars.begin(),
-          rhs_vars.end(),
-          locals.begin(),
-          locals.end(),
-          std::inserter(rhs_found, rhs_found.begin()));
-
-        // we want to give preference to "strict" assignment statements,
-        // that is those which have no variables on one side of the
-        // assignment.
-        std::size_t lhs_count = count_locals(lhs, locals);
-        std::size_t rhs_count = count_locals(rhs, locals);
-        bool strict_assign = lhs_count == 0 || rhs_count == 0;
-
-        // compiler statements will never be right-assign, so we can
-        // use this fact later to help resolve some ambiguities
-        bool compiler_stmt =
-          std::any_of(lhs_found.begin(), lhs_found.end(), [](auto& loc) {
-            std::string name = loc.str();
-            return starts_with(name, "unify$") || starts_with(name, "out$") ||
-              starts_with(name, "value$");
-          });
-
-        for (auto& loc : lhs_found)
+        if (any_compiler_inits(lhs_side))
         {
-          if (init_stmt_for_local.contains(loc) && !strict_assign)
-          {
-            continue;
-          }
-
-          if (compiler_stmt)
-          {
-            init_stmt_for_local[loc] = {
-              i, strict_assign, lhs_found, std::set<Location>{}};
-          }
-          else
-          {
-            init_stmt_for_local[loc] = {i, strict_assign, lhs_found, rhs_found};
-          }
+          // compiler statements will never be right-assign, so we can
+          // use this fact later to help resolve some ambiguities
+          rhs_side.inits.clear();
         }
 
-        if (!compiler_stmt)
+        if(lhs_side.inits.empty() && rhs_side.inits.empty())
         {
-          for (auto& loc : rhs_found)
-          {
-            if (init_stmt_for_local.contains(loc) && !strict_assign)
-            {
-              continue;
-            }
-
-            init_stmt_for_local[loc] = {i, strict_assign, lhs_found, rhs_found};
-          }
+          continue;
         }
+
+        potential_init_stmts.push_back({i, lhs_side, rhs_side});
       }
     }
 
-    // transform the init statements into LiteralInit nodes
-    std::vector<InitInfo> init_stmts;
-    std::transform(
-      init_stmt_for_local.begin(),
-      init_stmt_for_local.end(),
-      std::back_inserter(init_stmts),
-      [](auto& pair) { return pair.second; });
-
-    // sort the init statements so that statements with no local variables
-    // on one side come first.
-    std::sort(init_stmts.begin(), init_stmts.end(), [](auto& a, auto& b) {
-      if (a.strict)
-      {
-        if (b.strict)
-        {
-          return a.index < b.index;
-        }
-        else
-        {
-          return true;
-        }
-      }
-      else
-      {
-        if (b.strict)
-        {
-          return false;
-        }
-        else
-        {
-          return a.index < b.index;
-        }
-      }
-    });
-
+    std::vector<InitInfo> init_stmts =
+      sort_init_stmts(locals, potential_init_stmts);
     for (std::size_t i = 0; i < init_stmts.size(); ++i)
     {
       InitInfo& init_stmt = init_stmts[i];
-      if (i > 0 && init_stmts[i].index == init_stmts[i - 1].index)
-      {
-        // this statement is a duplicate of the previous one
-        continue;
-      }
-
       Node expr = unifybody->at(init_stmt.index)->front()->front();
-      if (expr->type() != AssignInfix)
-      {
-        continue;
-      }
 
       Node lhs = expr->front();
       Node rhs = expr->back();
 
-      std::set<Location> lhs_vars;
-      std::set_intersection(
-        init_stmt.lhs.begin(),
-        init_stmt.lhs.end(),
-        locals.begin(),
-        locals.end(),
-        std::inserter(lhs_vars, lhs_vars.begin()));
-
-      std::set<Location> rhs_vars;
-      std::set_intersection(
-        init_stmt.rhs.begin(),
-        init_stmt.rhs.end(),
-        locals.begin(),
-        locals.end(),
-        std::inserter(rhs_vars, rhs_vars.begin()));
-
-      // as this is the best init statement for these variables
-      // we can remove them from the set of locals
-      for (auto& loc : lhs_vars)
+      for (auto& loc : init_stmt.lhs.inits)
       {
         locals.erase(loc);
       }
 
-      for (auto& loc : rhs_vars)
+      for (auto& loc : init_stmt.rhs.inits)
       {
         locals.erase(loc);
       }
 
       unifybody->replace_at(
-        init_stmt.index, to_init(lhs, lhs_vars, rhs, rhs_vars));
+        init_stmt.index,
+        to_init(lhs, init_stmt.lhs.inits, rhs, init_stmt.rhs.inits));
     }
 
     // where appropriate, recurse with the updated locals
