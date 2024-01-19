@@ -219,7 +219,7 @@ namespace
           rhs_side.inits.clear();
         }
 
-        if(lhs_side.inits.empty() && rhs_side.inits.empty())
+        if (lhs_side.inits.empty() && rhs_side.inits.empty())
         {
           continue;
         }
