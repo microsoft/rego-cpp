@@ -483,9 +483,4 @@ namespace rego_test
       structure(),
       to_rego()};
   }
-  Driver& driver()
-  {
-    static Driver d("rego_test", nullptr, parser(), passes());
-    return d;
-  }
 }

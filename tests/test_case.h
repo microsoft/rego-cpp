@@ -88,11 +88,6 @@ namespace rego_test
       const std::string& wanted,
       std::ostream& os) const;
 
-    static void write_ast(
-      const std::filesystem::path& debug_path,
-      std::size_t index,
-      const std::string& pass,
-      const Node& ast);
     static std::optional<Node> maybe_get_file(
       const Node& mapping, const std::string& name);
     static std::optional<std::string> maybe_get_string(

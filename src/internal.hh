@@ -9,8 +9,6 @@
 
 namespace rego
 {
-  std::vector<Pass> passes(const BuiltIns& builtins);
-
   const inline auto ScalarToken =
     T(Int) / T(Float) / T(True) / T(False) / T(Null);
   const inline auto ArithToken =

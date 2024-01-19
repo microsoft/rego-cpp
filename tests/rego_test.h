@@ -162,6 +162,5 @@ namespace rego_test
   }
 
   Parse parser();
-  Driver& driver();
   std::vector<Pass> passes();
 }

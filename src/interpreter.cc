@@ -114,37 +114,6 @@ namespace rego
     m_input = Input << node;
   }
 
-  Node Interpreter::get_errors(const Node& node) const
-  {
-    if (node->type() == Error)
-    {
-      return node->clone();
-    }
-
-    if (!node->get_and_reset_contains_error())
-      return {};
-
-    Node errorseq = NodeDef::create(ErrorSeq);
-    for (auto& child : *node)
-    {
-      Node error = get_errors(child);
-      if (!error)
-      {
-        continue;
-      }
-      if (error->type() == Error)
-      {
-        errorseq->push_back(error);
-      }
-      else if (error->size() > 0)
-      {
-        errorseq->insert(errorseq->end(), error->begin(), error->end());
-      }
-    }
-
-    return errorseq;
-  }
-
   Node Interpreter::raw_query(const std::string& query_expr) const
   {
     logging::Info() << "Query: " << query_expr;
@@ -163,78 +132,51 @@ namespace rego
     rego->push_back(m_module_seq->clone());
     ast->push_back(rego);
 
-    bool ok = m_parser.wf().build_st(ast);
-    if (m_well_formed_checks_enabled)
-    {
-      ok = m_parser.wf().check(ast) && ok;
-    }
-
-    write_ast(0, "parse", ast);
-    if (!ok)
-    {
-      return get_errors(ast);
-    }
-
-    const std::string delim = "\t";
-    logging::Info() << "Name" << delim << "Passes" << delim << "Changes"
-                    << delim << "Time(us)";
     auto passes = rego::passes(m_builtins);
-    timestamp start = clock::now();
-    for (std::size_t i = 0; i < passes.size(); ++i)
+    PassRange pass_range(passes, m_parser.wf(), "parse");
+    bool ok;
+    Nodes error_nodes;
+    std::string failed_pass;
     {
-      timestamp pass_start = clock::now();
-      auto& pass = passes[i];
-      const auto& wf = pass->wf();
-      const auto& pass_name = pass->name();
-      wf::push_back(wf);
-      auto [new_ast, count, changes] = pass->run(ast);
-      wf::pop_front();
-      ast = new_ast;
+      logging::Info summary;
+      summary << "---------" << std::endl;
+      std::filesystem::path debug_path;
+      if (m_debug_enabled)
+        debug_path = m_debug_path;
+      auto p = default_process(
+        summary, m_well_formed_checks_enabled, "rego-cpp", debug_path);
 
-      ok = wf.build_st(ast);
-      write_ast(i + 1, pass_name, ast);
+      p.set_error_pass(
+        [&error_nodes, &failed_pass](Nodes& errors, std::string pass_name) {
+          error_nodes = errors;
+          failed_pass = pass_name;
+        });
 
-      if (m_well_formed_checks_enabled)
-      {
-        ok = wf.check(ast) && ok;
-      }
-
-      duration pass_elapsed = clock::now() - pass_start;
-      logging::Info() << pass_name << delim << count << delim << changes
-                      << delim
-                      << std::chrono::duration_cast<std::chrono::microseconds>(
-                           pass_elapsed)
-                           .count();
-
-      Node errors = get_errors(ast);
-      if (errors && errors->size() > 0)
-      {
-        ok = false;
-      }
-
-      if (!ok)
-      {
-        if (errors == nullptr)
-        {
-          // There was a well-formedness error.  It would have been reported
-          // earlier, but need to make sure the subsequent code knows if failed
-          // the check to.
-          errors = NodeDef::create(ErrorSeq);
-          errors->push_back(
-            err(ast, "Failed at pass " + pass_name, "well_formed_error"));
-        }
-        return errors;
-      }
+      ok = p.build(ast, pass_range);
+      summary << "---------" << std::endl;
     }
 
-    duration elapsed = clock::now() - start;
-    logging::Info()
-      << "Total" << delim << "-" << delim << "-" << delim
-      << std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    if (ok)
+    {
+      logging::Info() << "Query result: " << ast;
+      PRINT_ACTION_METRICS();
+      return ast;
+    }
 
-    logging::Info() << "Query result: " << ast;
-    PRINT_ACTION_METRICS();
-    return ast;
+    logging::Trace() << "Query failed: " << failed_pass;
+    if (error_nodes.empty())
+    {
+      logging::Trace() << "No error nodes so assuming wf error";
+      error_nodes.push_back(err(
+        ast->clone(), "Failed at pass " + failed_pass, "well_formed_error"));
+    }
+
+    Node error_result = NodeDef::create(ErrorSeq);
+    for (auto& error : error_nodes)
+    {
+      error_result->push_back(error);
+    }
+    return error_result;
   }
 
   std::string Interpreter::query(const std::string& query_expr) const
@@ -325,36 +267,6 @@ namespace rego
     return m_well_formed_checks_enabled;
   }
 
-  void Interpreter::write_ast(
-    std::size_t index, const std::string& pass, const Node& ast) const
-  {
-    if (!m_debug_enabled)
-    {
-      return;
-    }
-
-    std::filesystem::path output;
-    if (index < 10)
-    {
-      output =
-        m_debug_path / ("0" + std::to_string(index) + "_" + pass + ".trieste");
-    }
-    else
-    {
-      output = m_debug_path / (std::to_string(index) + "_" + pass + ".trieste");
-    }
-    std::ofstream f(output, std::ios::binary | std::ios::out);
-
-    if (f)
-    {
-      // Write the AST to the output file.
-      f << "rego" << std::endl << pass << std::endl << ast;
-      return;
-    }
-
-    std::cerr << "Could not open " << output << " for writing." << std::endl;
-  }
-
   BuiltIns& Interpreter::builtins()
   {
     return m_builtins;
@@ -363,5 +275,10 @@ namespace rego
   const BuiltIns& Interpreter::builtins() const
   {
     return m_builtins;
+  }
+
+  const wf::Wellformed& Interpreter::output_wf() const
+  {
+    return rego::passes(m_builtins).back()->wf();
   }
 }

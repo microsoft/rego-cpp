@@ -5,7 +5,7 @@
 
 #include "rego_c.h"
 
-#include <trieste/driver.h>
+#include <trieste/trieste.h>
 
 /**
  *  This namespace provides the C++ API for the library.
@@ -1317,17 +1317,9 @@ namespace rego
   Parse parser();
 
   /**
-   * Creates a test driver.
-   *
-   * The test driver performs probabilstic testing of the complication. For each
-   * pass it generates random AST outputs depending on the well-formed
-   * expression of the input, runs them through the pass logic, and then checks
-   * it against the wf expression for the output.
-   *
-   * @param builtins The built-ins to use.
-   * @return The driver.
+   * @return std::vector<Pass> that is used to process a rego query.
    */
-  Driver& driver(const BuiltIns& builtins);
+  std::vector<Pass> passes(const BuiltIns& builtins);
 
   /**
    * Returns a node representing the version of the library.
@@ -1545,6 +1537,11 @@ namespace rego
     BuiltIns& builtins();
     const BuiltIns& builtins() const;
 
+    /**
+     * The well-formedness of the output Ast from the interpreter.
+     */
+    const trieste::wf::Wellformed& output_wf() const;
+
   private:
     friend const char* ::regoGetError(regoInterpreter* rego);
     friend void setError(regoInterpreter* rego, const std::string& error);
@@ -1553,9 +1550,6 @@ namespace rego
 
     void insert_module(const Node& module);
     std::string output_to_string(const Node& output) const;
-    void write_ast(
-      std::size_t index, const std::string& pass, const Node& ast) const;
-    Node get_errors(const Node& ast) const;
     Parse m_parser;
     Node m_module_seq;
     Node m_data_seq;

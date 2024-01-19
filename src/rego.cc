@@ -54,12 +54,6 @@ namespace rego
     };
   }
 
-  Driver& driver(const BuiltIns& builtins)
-  {
-    static Driver d("rego", nullptr, parser(), passes(builtins));
-    return d;
-  }
-
   void set_log_level(LogLevel level)
   {
     // Set trieste LogLevel
