@@ -134,6 +134,14 @@ namespace rego
       RuleObj, [builtins](Node n) { return preprocess_body(n, builtins); });
     locals.pre(
       RuleSet, [builtins](Node n) { return preprocess_body(n, builtins); });
+
+    return locals;
+  }
+
+  PassDef compr_locals(const BuiltIns& builtins)
+  {
+    PassDef locals = {
+      "compr_locals", wf_pass_locals, dir::bottomup | dir::once};
     locals.pre(
       ArrayCompr, [builtins](Node n) { return preprocess_body(n, builtins); });
     locals.pre(

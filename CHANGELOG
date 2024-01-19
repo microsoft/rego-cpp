@@ -1,5 +1,20 @@
 # Changelog
 
+## 2024-01-19 - Version 0.3.11
+Minor improvements and bug fixes.
+
+**New Features**
+- Updated to more recent Trieste version
+- More sophisticated logging
+
+**Bug fixes**
+- Comprehensions over local variables were not properly capturing the local (regression due to optimization)
+- Local variable initializations were order-dependent (regression due to optimization)
+- In some circumstances, indexing the data object with an undefined key caused a segfault.
+
+**Other**
+- Various CI changes due to issues with Github actions.
+
 ## 2023-09-21 - Version 0.3.10
 Instrumentation and optimization. 
 

@@ -1094,3 +1094,31 @@ cases:
   query: data.every_some.output = x
   want_result:
     - x: true
+- note: regocpp/bug95
+  modules:
+  - |
+    package test
+
+    x = c {
+      a = b
+      b = c
+      a = 12
+    }
+  query: data.test.x = x
+  want_result:
+    - x: 12
+- note: regocpp/bug97
+  modules:
+  - |
+    package test
+
+    x = y {
+      a = [1, 2, 3]
+      y = {z | z = a[_]}
+    }
+  query: data.test.x = x
+  want_result:
+    - x:
+      - 1
+      - 2
+      - 3
