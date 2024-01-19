@@ -52,7 +52,7 @@ namespace
   void inits_from(
     Node node, const std::set<Location>& locals, std::set<Location>& inits)
   {
-    if (node->type() == Var && locals.contains(node->location()))
+    if (node->type() == Var && contains(locals, node->location()))
     {
       inits.insert(node->location());
       return;
@@ -98,7 +98,7 @@ namespace
   void vars_from(
     Node node, const std::set<Location>& locals, std::set<Location>& vars)
   {
-    if (node->type() == Var && locals.contains(node->location()))
+    if (node->type() == Var && contains(locals, node->location()))
     {
       vars.insert(node->location());
     }

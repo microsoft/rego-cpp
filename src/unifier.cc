@@ -975,7 +975,15 @@ namespace rego
     }
     else
     {
-      auto maybe_nodes = Resolver::apply_access(container, args[1]->node());
+      Node index = args[1]->node();
+      if (index->type() == Undefined)
+      {
+        values.push_back(
+          ValueDef::create(var, Undefined ^ "undefined", sources));
+        return values;
+      }
+
+      auto maybe_nodes = Resolver::apply_access(container, index);
       if (maybe_nodes)
       {
         Nodes defs = maybe_nodes.value();
