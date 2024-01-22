@@ -757,6 +757,12 @@ namespace rego
             ACTION();
             return err(_(Arg), "Invalid index");
           },
+
+        In(RefArgBrack) * T(SetCompr)[Arg] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Arg), "Invalid set comprehension");
+          },
       }};
 
     rulebody.post(UnifyBody, [](Node n) {

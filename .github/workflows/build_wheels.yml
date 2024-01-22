@@ -12,14 +12,14 @@ jobs:
         python: [cp37, cp38, cp39, cp310, cp311, cp312]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.15.0
+        uses: pypa/cibuildwheel@v2.16.2
         env:
           CIBW_BUILD: ${{ matrix.python }}-win*
           CIBW_ENVIRONMENT: >
@@ -40,14 +40,14 @@ jobs:
         python: [cp39, cp310, cp311, cp312, pp39, pp310]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.15.0
+        uses: pypa/cibuildwheel@v2.16.2
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: x86_64
@@ -66,20 +66,35 @@ jobs:
 
   build_apple_silicon_wheels:
     name: Build wheels on Apple Silicon
-    runs-on: macos-latest
+    runs-on: macos-latest-xlarge
     strategy:
       matrix:
-        python: [cp39, cp310, cp311, cp312]
+        python: [cp310, cp311, cp312]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        id: python
+        with:
+          python-version: "3.10 - 3.12"
+          update-environment: false
+      
+      - name: Install pipx
+        run: |
+          brew install pipx
+          pipx ensurepath
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
+      - name: Fix path
+        run: |
+          export PATH=$(python3 -m site --user-base)/bin:$PATH
+
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.15.0
+        uses: pypa/cibuildwheel@v2.16.2
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: arm64
@@ -102,14 +117,14 @@ jobs:
         python: [cp37, cp38, cp39, cp310, cp311, cp312, pp39, pp310]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.15.0
+        uses: pypa/cibuildwheel@v2.16.2
         env:
           CIBW_BUILD: ${{ matrix.python }}-manylinux*
           CIBW_BEFORE_ALL: yum makecache && yum -y install devtoolset-10-libatomic-devel
@@ -131,14 +146,14 @@ jobs:
         python: [cp37, cp38, cp39, cp310, cp311, cp312]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.15.0
+        uses: pypa/cibuildwheel@v2.16.2
         env:
           CIBW_BUILD: ${{ matrix.python }}-musllinux*
           CIBW_ENVIRONMENT: >
