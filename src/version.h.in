@@ -14,11 +14,11 @@
 #define REGOCPP_BUILD_DATE "@REGOCPP_BUILD_DATE@"
 #define REGOCPP_BUILD_TOOLCHAIN "@REGOCPP_BUILD_TOOLCHAIN@"
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define REGOCPP_PLATFORM "windows"
-#elif __APPLE__
+#elif defined(__APPLE__)
 #define REGOCPP_PLATFORM "macos"
-#elif __linux__
+#elif defined(__linux__)
 #define REGOCPP_PLATFORM "linux"
 #else
 #define REGOCPP_PLATFORM "other"
