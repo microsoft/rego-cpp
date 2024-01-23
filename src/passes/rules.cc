@@ -317,6 +317,13 @@ namespace rego
             return Seq << _[RuleRef];
           },
 
+        In(Policy) * (T(Group) << T(Var)[Var]) *
+            (T(Group) << T(UnifyBody)[UnifyBody]) >>
+          [](Match& _) {
+            ACTION();
+            return Group << _(Var) << _(UnifyBody);
+          },
+
         // errors
 
         In(Policy) * T(Group)[Group] >>

@@ -1,5 +1,4 @@
 #include "internal.hh"
-#include "rego.hh"
 
 namespace rego
 {

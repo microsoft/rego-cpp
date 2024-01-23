@@ -79,15 +79,19 @@ namespace
     }
   }
 
-  // Determines which statements following an implicit enum statement are needed to
-  // instantiate the item sequence for that enum and adds them to the outside list.
-  // Otherwise they should be captured by the enum and are placed in the inside list.
+  // Determines which statements following an implicit enum statement are needed
+  // to instantiate the item sequence for that enum and adds them to the outside
+  // list. Otherwise they should be captured by the enum and are placed in the
+  // inside list.
   void capture_statements(
-    const NodeRange tail, Node itemseq, std::vector<Node>& outside, std::vector<Node>& inside)
+    const NodeRange tail,
+    Node itemseq,
+    std::vector<Node>& outside,
+    std::vector<Node>& inside)
   {
     std::set<Location> vars;
     vars_from(itemseq, vars);
-    for(auto it = tail.first; it != tail.second; ++it)
+    for (auto it = tail.first; it != tail.second; ++it)
     {
       Node stmt = *it;
       if (stmt->type() == LiteralInit)
@@ -305,8 +309,7 @@ namespace rego
             auto temp = _.fresh({"enum"});
             auto item = _.fresh({"item"});
             return Seq
-              << outside
-              << (Local << (Var ^ item) << Undefined)
+              << outside << (Local << (Var ^ item) << Undefined)
               << (LiteralEnum
                   << (Var ^ item) << _(ItemSeq)
                   << (UnifyBody
