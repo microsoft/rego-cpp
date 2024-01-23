@@ -1122,3 +1122,53 @@ cases:
       - 1
       - 2
       - 3
+- note: regocpp/bug101
+  modules:
+  - |
+    package test
+
+    x = y {
+      y = [z |
+        z = a[_]
+        a = [1, 2, 3]
+      ]
+    }
+  query: data.test.x = x
+  want_result:
+    - x:
+      - 1
+      - 2
+      - 3
+- note: regocpp/non-monotone
+  modules:
+  - |
+    package test
+
+    ips_by_port := {
+        80: ["1.1.1.1", "1.1.1.2"],
+        443: ["2.2.2.1"],
+    }
+
+    default foo1 := false
+    default foo2 := false
+
+    foo1
+        {
+        port = 77;
+        a = [port | ips_by_port[port][_] == "2.2.2.1" ];
+        b = [port | ips_by_port[port][_] == "1.1.1.1" ];
+        a = b
+        }
+
+    foo2
+        {
+        a = [port | ips_by_port[port][_] == "2.2.2.1" ];
+        b = [port | ips_by_port[port][_] == "1.1.1.1" ];
+        a = b
+        }
+
+  query: [data.test.foo1, data.test.foo2] = x
+  want_result:
+    - x:
+      - true
+      - false

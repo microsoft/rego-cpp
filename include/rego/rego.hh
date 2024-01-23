@@ -708,7 +708,7 @@ namespace rego
   inline const auto wf_pass_init =
     wf_pass_simple_refs
     | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralNot | LiteralInit)++[1])
-    | (LiteralInit <<= VarSeq * VarSeq * AssignInfix)
+    | (LiteralInit <<= (Lhs >>= VarSeq) * (Rhs >>= VarSeq) * AssignInfix)
     ;
   // clang-format on
 

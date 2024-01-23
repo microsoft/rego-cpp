@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <deque>
-#include <stdexcept>
 
 namespace
 {
