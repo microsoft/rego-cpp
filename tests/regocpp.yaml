@@ -1122,3 +1122,20 @@ cases:
       - 1
       - 2
       - 3
+- note: regocpp/bug101
+  modules:
+  - |
+    package test
+
+    x = y {
+      y = [z |
+        z = a[_]
+        a = [1, 2, 3]
+      ]
+    }
+  query: data.test.x = x
+  want_result:
+    - x:
+      - 1
+      - 2
+      - 3
