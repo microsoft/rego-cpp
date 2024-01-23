@@ -76,7 +76,7 @@ module = '''
     }
     f := e["dev"]
 '''
-rego.set_input(input)
+rego.set_input(input0)
 rego.add_data(data0)
 rego.add_data(data1)
 rego.add_module("objects", module)
