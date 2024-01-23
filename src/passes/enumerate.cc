@@ -80,10 +80,10 @@ namespace
   }
 
   // Determines which statements following an implicit enum statement are needed to
-  // instantiate the item sequence for that enum and adds them to the prefix.
-  // Otherwise they should be captured by the enum and are placed in the postfix.
-  void determine_prefix_and_postfix(
-    const NodeRange tail, Node itemseq, std::vector<Node>& prefix, std::vector<Node>& postfix)
+  // instantiate the item sequence for that enum and adds them to the outside list.
+  // Otherwise they should be captured by the enum and are placed in the inside list.
+  void capture_statements(
+    const NodeRange tail, Node itemseq, std::vector<Node>& outside, std::vector<Node>& inside)
   {
     std::set<Location> vars;
     vars_from(itemseq, vars);
@@ -104,18 +104,18 @@ namespace
           std::inserter(intersection, intersection.begin()));
         if (intersection.empty())
         {
-          postfix.push_back(stmt);
+          inside.push_back(stmt);
         }
         else
         {
           // the item sequence depends on this init, so it must
-          // precede it.
-          prefix.push_back(stmt);
+          // be outside the enum.
+          outside.push_back(stmt);
         }
       }
       else
       {
-        postfix.push_back(stmt);
+        inside.push_back(stmt);
       }
     }
   }
@@ -224,14 +224,14 @@ namespace rego
               return err(idx, "Invalid index for enumeration");
             }
 
-            std::vector<Node> prefix;
-            std::vector<Node> postfix;
-            determine_prefix_and_postfix(_[Tail], _(ItemSeq), prefix, postfix);
+            std::vector<Node> outside;
+            std::vector<Node> inside;
+            capture_statements(_[Tail], _(ItemSeq), outside, inside);
 
             auto temp = _.fresh({"enum"});
             auto item = _.fresh({"item"});
             return Seq
-              << prefix << (Local << (Var ^ item) << Undefined)
+              << outside << (Local << (Var ^ item) << Undefined)
               << (LiteralEnum
                   << (Var ^ item) << _(ItemSeq)
                   << (UnifyBody
@@ -255,7 +255,7 @@ namespace rego
                                           << (Var ^ item)
                                           << (RefArgBrack
                                               << (Scalar << (Int ^ "1"))))))))
-                      << postfix));
+                      << inside));
           },
 
         In(UnifyBody) *
@@ -298,14 +298,14 @@ namespace rego
               idx = Term << idx;
             }
 
-            std::vector<Node> prefix;
-            std::vector<Node> postfix;
-            determine_prefix_and_postfix(_[Tail], _(ItemSeq), prefix, postfix);
+            std::vector<Node> outside;
+            std::vector<Node> inside;
+            capture_statements(_[Tail], _(ItemSeq), outside, inside);
 
             auto temp = _.fresh({"enum"});
             auto item = _.fresh({"item"});
             return Seq
-              << prefix
+              << outside
               << (Local << (Var ^ item) << Undefined)
               << (LiteralEnum
                   << (Var ^ item) << _(ItemSeq)
@@ -331,7 +331,7 @@ namespace rego
                                               << (RefArgBrack
                                                   << (Scalar
                                                       << (Int ^ "1")))))))))
-                      << postfix));
+                      << inside));
           },
       }};
   }
