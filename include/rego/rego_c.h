@@ -82,7 +82,7 @@ extern "C"
    *
    * @return A pointer to the new interpreter.
    */
-  regoInterpreter* regoNew();
+  regoInterpreter* regoNew(void);
 
   /**
    * Frees a Rego interpreter.
