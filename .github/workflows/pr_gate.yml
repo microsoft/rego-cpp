@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ["3.7", "3.8", "3.9", "3.10"]
+        python_version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -231,7 +231,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ["3.7", "3.8", "3.9", "3.10"]
+        python_version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -339,7 +339,116 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python_version: ["3.7", "3.8", "3.9", "3.10"]
+        python_version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Python ${{matrix.python_version}}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{matrix.python_version}}
+
+      - name: Get dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Python build
+        working-directory: ${{github.workspace}}/wrappers/python/
+        run: pip install -e .[dev]
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          CXX: g++-11
+          CC: gcc-11
+
+      - name: Python test
+        working-directory: ${{github.workspace}}/wrappers/python/ 
+        run: pytest -vv
+
+  applesilicon:
+    runs-on: macos-latest-xlarge
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get dependencies
+        run: |
+          brew update && brew install ninja
+
+      - name: CMake config
+        run: cmake -B ${{github.workspace}}/build --preset release-clang-opa
+
+      - name: CMake build
+        working-directory: ${{github.workspace}}/build
+        run: ninja
+
+      - name: CMake test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
+
+  applesilicon-wrappers-c:
+    runs-on: macos-latest-xlarge
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get dependencies
+        run: |
+          brew update && brew install ninja
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: CMake config
+        working-directory: ${{github.workspace}}/examples/c
+        run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+
+      - name: CMake build
+        working-directory: ${{github.workspace}}/examples/c/build
+        run: ninja install
+
+      - name: CMake test
+        working-directory: ${{github.workspace}}/examples/c/build
+        run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
+  
+  applesilicon-wrappers-rust:
+    runs-on: macos-latest-xlarge
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get dependencies
+        run: |
+          brew update && brew install rust
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Cargo test
+        working-directory: ${{github.workspace}}/wrappers/rust/regorust/
+        run: cargo test
+        env:
+          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
+          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+
+  applesilicon-wrappers-python:
+    runs-on: macos-latest-xlarge
+    strategy:
+      matrix:
+        python_version: ["3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
