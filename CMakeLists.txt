@@ -80,6 +80,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # -------------------- Find packages --------------------------
 
+# Used to provide
+#  FetchContent_MakeAvailable_ExcludeFromAll
+FetchContent_Declare(
+    cmake_utils
+    GIT_REPOSITORY https://github.com/mjp41/cmake_utils
+    GIT_TAG 2bf98b5773ea7282197c823e205547d8c2e323c0
+    GIT_SHALLOW FALSE
+)
+
+FetchContent_MakeAvailable(cmake_utils)
+
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
@@ -104,7 +115,7 @@ if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mllvm -x86-speculative-load-hardening")
 endif()
 
-FetchContent_MakeAvailable(trieste)
+FetchContent_MakeAvailable_ExcludeFromAll(trieste)
 
 if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_SAVED}")
