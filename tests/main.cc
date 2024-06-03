@@ -66,8 +66,16 @@ int main(int argc, char** argv)
   app.add_option(
     "-a,--ast", debug_path, "Output the AST (debugging for test case parser)");
 
-  rego::LogLevel loglevel{rego::LogLevel::Output};
-  app.add_option("-l,--loglevel", loglevel, "Enable logging");
+  std::string log_level;
+  app
+    .add_option(
+      "-l,--log_level",
+      log_level,
+      "Set Log Level to one of "
+      "Trace, Debug, Info, "
+      "Warning, Output, Error, "
+      "None")
+    ->check(rego::set_log_level_from_string);
 
   bool wf_checks{false};
   app.add_flag("-w,--wf", wf_checks, "Enable well-formedness checks (slow)");
@@ -90,8 +98,6 @@ int main(int argc, char** argv)
   {
     return app.exit(e);
   }
-
-  rego::set_log_level(loglevel);
 
   logging::Output() << "Loading test cases:";
   TestCases all_testcases;

@@ -28,6 +28,8 @@ e contains "0" if {
 
 e contains "a" if {
     input.a > a
+} {
+    input.a == a
 }
 
 e contains "1" if input.key == "sum"
@@ -42,7 +44,11 @@ f["a"] := a
 f["b"] := b
 f["c"] if c
 f["sum"] := sum {
+    input.a > a
     sum := a + b
+} {
+    input.a <= a
+    sum := a * 2 + b
 }
 
 app_to_hostnames_obj[app_name] := hostnames if {

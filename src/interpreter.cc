@@ -1,4 +1,14 @@
-#include "internal.hh"
+#include "rego.hh"
+#include "trieste/json.h"
+#include "trieste/wf.h"
+#include "unify.hh"
+
+namespace
+{
+  using namespace rego;
+  using namespace wf::ops;
+  const auto wf_errors = rego::wf | (Error <<= ErrorMsg * ErrorAst * ErrorCode);
+}
 
 namespace rego
 {
@@ -7,40 +17,59 @@ namespace rego
   using timestamp = std::chrono::high_resolution_clock::time_point;
 
   Interpreter::Interpreter() :
-    m_parser(parser()),
-    m_module_seq(NodeDef::create(ModuleSeq)),
-    m_data_seq(NodeDef::create(DataSeq)),
-    m_input(NodeDef::create(Input)),
+    m_reader(reader()),
     m_debug_path("."),
-    m_debug_enabled(false),
-    m_well_formed_checks_enabled(false)
+    m_builtins(BuiltInsDef::create()),
+    m_unify(unify(m_builtins)),
+    m_json(json::reader()),
+    m_from_json(from_json()),
+    m_to_input(to_input()),
+    m_data_count(0)
   {
-    wf::push_back(wf_parser);
-    m_builtins.register_standard_builtins();
+    m_ast = Top << (Rego << Query << Input << DataSeq << ModuleSeq);
   }
 
-  Interpreter::~Interpreter()
+  void Interpreter::merge(const Node& node)
   {
-    wf::pop_front();
+    WFContext context(wf_unify_input);
+    Node rego = m_ast / Rego;
+    if (node == Input)
+    {
+      rego->replace(rego / Input, node);
+    }
+    else if (node == Data)
+    {
+      rego / DataSeq << node;
+    }
+    else if (node == Module)
+    {
+      // insert the module to maintain a sorted list (by package name).
+      // This allows us to merge modules with the same name after their
+      // imports are resolved.
+      Node moduleseq = rego / ModuleSeq;
+      auto pos = std::upper_bound(
+        moduleseq->begin(), moduleseq->end(), node, [](auto& a, auto& b) {
+          auto a_pkg = a->front();
+          auto b_pkg = b->front();
+          auto a_str = std::string(a_pkg->location().view());
+          auto b_str = std::string(b_pkg->location().view());
+          return a_pkg->location() < b_pkg->location();
+        });
+
+      moduleseq->insert(pos, node);
+    }
+    else if (node == Query)
+    {
+      rego->replace(rego / Query, node);
+    }
+    else
+    {
+      logging::Error() << node;
+      throw std::runtime_error("Invalid node type");
+    }
   }
 
-  void Interpreter::insert_module(const Node& module)
-  {
-    // sort the modules by their package name. This allows us to merge
-    // modules with the same name after their imports are resolved.
-    auto pos = std::upper_bound(
-      m_module_seq->begin(), m_module_seq->end(), module, [](auto& a, auto& b) {
-        auto a_pkg = a->front();
-        auto b_pkg = b->front();
-        auto a_str = std::string(a_pkg->location().view());
-        auto b_str = std::string(b_pkg->location().view());
-        return a_pkg->location() < b_pkg->location();
-      });
-
-    m_module_seq->insert(pos, module);
-  }
-
-  void Interpreter::add_module_file(const std::filesystem::path& path)
+  bool Interpreter::add_module_file(const std::filesystem::path& path)
   {
     if (!std::filesystem::exists(path))
     {
@@ -48,21 +77,39 @@ namespace rego
     }
 
     logging::Info() << "Adding module file: " << path;
-    auto file_ast = m_parser.sub_parse(path);
-    insert_module(file_ast);
+    std::string debug = "module" + std::to_string(m_data_count++);
+    auto result = m_reader.file(path).debug_path(m_debug_path / debug).read();
+    if (!result.ok)
+    {
+      logging::Error err;
+      result.print_errors(err);
+      return false;
+    }
+
+    merge(result.ast->front());
+    return true;
   }
 
-  void Interpreter::add_module(
+  bool Interpreter::add_module(
     const std::string& name, const std::string& contents)
   {
-    auto module_source = SourceDef::synthetic(contents);
-    auto module = m_parser.sub_parse(name, File, module_source);
-    insert_module(module);
+    std::string debug = "module" + std::to_string(m_data_count++);
+    auto result =
+      m_reader.synthetic(contents).debug_path(m_debug_path / debug).read();
+    if (!result.ok)
+    {
+      logging::Error err;
+      result.print_errors(err);
+      return false;
+    }
+
+    merge(result.ast->front());
     logging::Info() << "Adding module: " << name << "(" << contents.size()
                     << " bytes)";
+    return true;
   }
 
-  void Interpreter::add_data_json_file(const std::filesystem::path& path)
+  bool Interpreter::add_data_json_file(const std::filesystem::path& path)
   {
     if (!std::filesystem::exists(path))
     {
@@ -70,25 +117,55 @@ namespace rego
     }
 
     logging::Info() << "Adding data file: " << path;
-    auto file_ast = m_parser.sub_parse(path);
-    m_data_seq->push_back(file_ast);
+    std::string debug = "data" + std::to_string(m_data_count++);
+    auto result =
+      m_json.file(path) >> m_from_json.debug_path(m_debug_path / debug);
+    if (!result.ok)
+    {
+      logging::Error err;
+      result.print_errors(err);
+      return false;
+    }
+
+    merge(Data << result.ast->front());
+    return true;
   }
 
-  void Interpreter::add_data_json(const std::string& json)
+  bool Interpreter::add_data_json(const std::string& json)
   {
-    auto data_source = SourceDef::synthetic(json);
-    auto data = m_parser.sub_parse("data", File, data_source);
-    m_data_seq->push_back(data);
     logging::Info() << "Adding data (" << json.size() << " bytes)";
+    std::string debug = "data" + std::to_string(m_data_count++);
+    auto result =
+      m_json.synthetic(json) >> m_from_json.debug_path(m_debug_path / debug);
+
+    if (!result.ok)
+    {
+      logging::Error err;
+      result.print_errors(err);
+      return false;
+    }
+
+    merge(Data << result.ast->front());
+    return true;
   }
 
-  void Interpreter::add_data(const Node& node)
+  bool Interpreter::add_data(const Node& node)
   {
-    m_data_seq->push_back(node);
-    logging::Info() << "Adding data AST";
+    logging::Info() << "Adding data from JSON AST";
+    std::string debug = "data" + std::to_string(m_data_count++);
+    auto result = node >> m_from_json.debug_path(m_debug_path / debug);
+    if (!result.ok)
+    {
+      logging::Error err;
+      result.print_errors(err);
+      return false;
+    }
+
+    merge(Data << result.ast->front());
+    return true;
   }
 
-  void Interpreter::set_input_json_file(const std::filesystem::path& path)
+  bool Interpreter::set_input_json_file(const std::filesystem::path& path)
   {
     if (!std::filesystem::exists(path))
     {
@@ -96,90 +173,85 @@ namespace rego
     }
 
     logging::Info() << "Setting input from file: " << path;
-    auto file_ast = m_parser.sub_parse(path);
-    m_input = Input << file_ast;
+    auto result =
+      m_json.file(path) >> m_from_json.debug_path(m_debug_path / "input");
+    if (!result.ok)
+    {
+      logging::Error err;
+      result.print_errors(err);
+      return false;
+    }
+
+    merge(Input << result.ast->front());
+    return true;
   }
 
-  void Interpreter::set_input_json(const std::string& json)
+  bool Interpreter::set_input_term(const std::string& term)
   {
-    logging::Info() << "Setting input (" << json.size() << " bytes)";
-    auto input_source = SourceDef::synthetic(json);
-    auto ast = m_parser.sub_parse("input", File, input_source);
-    m_input = Input << ast;
+    logging::Info() << "Setting input (" << term.size() << " bytes)";
+    auto result = m_reader.synthetic(term) >> m_to_input;
+    if (!result.ok)
+    {
+      logging::Error err;
+      result.print_errors(err);
+      return false;
+    }
+
+    merge(result.ast->front());
+    return true;
   }
 
-  void Interpreter::set_input(const Node& node)
+  bool Interpreter::set_input(const Node& node)
   {
-    logging::Info() << "Setting input AST";
-    m_input = Input << node;
+    logging::Info() << "Setting input from JSON AST";
+    auto result = node >> m_from_json.debug_path(m_debug_path / "input");
+    if (!result.ok)
+    {
+      logging::Error err;
+      result.print_errors(err);
+      return false;
+    }
+
+    merge(Input << result.ast->front());
+    return true;
   }
 
-  Node Interpreter::raw_query(const std::string& query_expr) const
+  Node Interpreter::raw_query(const std::string& query_expr)
   {
     logging::Info() << "Query: " << query_expr;
-    auto ast = NodeDef::create(Top);
-    auto rego = NodeDef::create(rego::Rego);
     auto query_src = SourceDef::synthetic(query_expr);
-    auto query = m_parser.sub_parse("query", rego::Query, query_src);
-    if (m_input->size() == 0)
+    auto result =
+      m_reader.synthetic(query_expr).debug_path(m_debug_path / "query").read();
+    if (!result.ok)
     {
-      m_input->push_back(NodeDef::create(Undefined));
+      logging::Error err;
+      result.print_errors(err);
+      return ErrorSeq << result.errors;
     }
 
-    rego->push_back(query);
-    rego->push_back(m_input->clone());
-    rego->push_back(m_data_seq->clone());
-    rego->push_back(m_module_seq->clone());
-    ast->push_back(rego);
+    merge(result.ast->front());
 
-    auto passes = rego::passes(m_builtins);
-    PassRange pass_range(passes, m_parser.wf(), "parse");
-    bool ok;
-    Nodes error_nodes;
-    std::string failed_pass;
     {
-      logging::Info summary;
-      summary << "---------" << std::endl;
-      std::filesystem::path debug_path;
-      if (m_debug_enabled)
-        debug_path = m_debug_path;
-      auto p = default_process(
-        summary, m_well_formed_checks_enabled, "rego-cpp", debug_path);
-
-      p.set_error_pass(
-        [&error_nodes, &failed_pass](Nodes& errors, std::string pass_name) {
-          error_nodes = errors;
-          failed_pass = pass_name;
-        });
-
-      ok = p.build(ast, pass_range);
-      summary << "---------" << std::endl;
+      WFContext context(wf_unify_input);
+      Node input = m_ast / Rego / Input;
+      if (input->empty())
+      {
+        input << Undefined;
+      }
     }
 
-    if (ok)
+    result = m_ast >> m_unify;
+    if (!result.ok)
     {
-      logging::Info() << "Query result: " << ast;
-      PRINT_ACTION_METRICS();
-      return ast;
+      logging::Error err;
+      result.print_errors(err);
+      return ErrorSeq << result.errors;
     }
 
-    logging::Trace() << "Query failed: " << failed_pass;
-    if (error_nodes.empty())
-    {
-      logging::Trace() << "No error nodes so assuming wf error";
-      error_nodes.push_back(err(
-        ast->clone(), "Failed at pass " + failed_pass, "well_formed_error"));
-    }
-
-    Node error_result = NodeDef::create(ErrorSeq);
-    for (auto& error : error_nodes)
-    {
-      error_result->push_back(error);
-    }
-    return error_result;
+    return result.ast->front();
   }
 
-  std::string Interpreter::query(const std::string& query_expr) const
+  std::string Interpreter::query(const std::string& query_expr)
   {
     return output_to_string(raw_query(query_expr));
   }
@@ -189,6 +261,7 @@ namespace rego
     std::ostringstream output_buf;
     if (ast->type() == ErrorSeq)
     {
+      WFContext context(wf_errors);
       output_buf << "errors:" << std::endl;
 
       for (auto& error : *ast)
@@ -204,12 +277,13 @@ namespace rego
     }
     else
     {
+      WFContext context(rego::wf_result);
       std::vector<std::string> results;
       std::transform(
         ast->begin(),
         ast->end(),
         std::back_inserter(results),
-        [](auto& result) { return rego::to_json(result, true); });
+        [](auto& result) { return rego::to_key(result); });
       std::sort(results.begin(), results.end());
       join(
         output_buf,
@@ -237,6 +311,11 @@ namespace rego
 
       std::filesystem::create_directory(m_debug_path);
     }
+
+    m_json.debug_path(m_debug_path / "json");
+    m_unify.debug_path(m_debug_path / "unify");
+    m_to_input.debug_path(m_debug_path / "input");
+
     return *this;
   }
 
@@ -247,38 +326,36 @@ namespace rego
 
   Interpreter& Interpreter::debug_enabled(bool enabled)
   {
-    m_debug_enabled = enabled;
+    m_reader.debug_enabled(enabled);
+    m_json.debug_enabled(enabled);
+    m_unify.debug_enabled(enabled);
+    m_from_json.debug_enabled(enabled);
+    m_to_input.debug_enabled(enabled);
     return *this;
   }
 
   bool Interpreter::debug_enabled() const
   {
-    return m_debug_enabled;
+    return m_reader.debug_enabled();
   }
 
-  Interpreter& Interpreter::well_formed_checks_enabled(bool enabled)
+  Interpreter& Interpreter::wf_check_enabled(bool enabled)
   {
-    m_well_formed_checks_enabled = enabled;
+    m_reader.wf_check_enabled(enabled);
+    m_json.wf_check_enabled(enabled);
+    m_unify.wf_check_enabled(enabled);
+    m_from_json.wf_check_enabled(enabled);
+    m_to_input.wf_check_enabled(enabled);
     return *this;
   }
 
-  bool Interpreter::well_formed_checks_enabled() const
+  bool Interpreter::wf_check_enabled() const
   {
-    return m_well_formed_checks_enabled;
+    return m_reader.wf_check_enabled();
   }
 
-  BuiltIns& Interpreter::builtins()
+  BuiltIns Interpreter::builtins() const
   {
     return m_builtins;
-  }
-
-  const BuiltIns& Interpreter::builtins() const
-  {
-    return m_builtins;
-  }
-
-  const wf::Wellformed& Interpreter::output_wf() const
-  {
-    return rego::passes(m_builtins).back()->wf();
   }
 }

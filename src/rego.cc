@@ -1,58 +1,12 @@
-#include "internal.hh"
+#include "unify.hh"
 
 namespace logging = trieste::logging;
 
 namespace rego
 {
-  std::vector<Pass> passes(const BuiltIns& builtins)
+  std::string set_log_level_from_string(const std::string& level)
   {
-    return {
-      input_data(),
-      modules(),
-      imports(),
-      keywords(),
-      lists(),
-      ifs(),
-      elses(),
-      rules(),
-      build_calls(),
-      membership(),
-      build_refs(),
-      structure(),
-      strings(),
-      merge_data(),
-      lift_refheads(),
-      symbols(),
-      replace_argvals(),
-      lift_query(),
-      expand_imports(),
-      constants(),
-      explicit_enums(),
-      body_locals(builtins),
-      value_locals(builtins),
-      compr_locals(builtins),
-      rules_to_compr(),
-      compr(),
-      absolute_refs(),
-      merge_modules(),
-      datarule(),
-      skips(),
-      unary(),
-      multiply_divide(),
-      add_subtract(),
-      comparison(),
-      assign(builtins),
-      skip_refs(builtins),
-      simple_refs(),
-      init(),
-      implicit_enums(),
-      enum_locals(),
-      rulebody(),
-      lift_to_rule(),
-      functions(),
-      unify(builtins),
-      query(),
-    };
+    return logging::set_log_level_from_string(level);
   }
 
   void set_log_level(LogLevel level)
@@ -81,6 +35,20 @@ namespace rego
       case LogLevel::Trace:
         logging::set_level<logging::Trace>();
         break;
+      default:
+        throw std::runtime_error("Unknown log level");
     }
+  }
+
+  std::vector<Pass> passes(BuiltIns builtins)
+  {
+    auto reader_passes = reader().passes();
+    auto unify_passes = unify(builtins).passes();
+    std::vector<Pass> all_passes;
+    all_passes.insert(
+      all_passes.end(), reader_passes.begin(), reader_passes.end());
+    all_passes.insert(
+      all_passes.end(), unify_passes.begin(), unify_passes.end());
+    return all_passes;
   }
 }

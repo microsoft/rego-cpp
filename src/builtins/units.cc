@@ -14,14 +14,14 @@ namespace
     {"ei", kb* kb* kb* kb* kb* kb},
   };
 
-  const BigInt k = static_cast<std::size_t>(1000);
+  const BigInt kd = static_cast<std::size_t>(1000);
   std::map<std::string, BigInt> big_units = {
-    {"k", k},
-    {"m", k* k},
-    {"g", k* k* k},
-    {"t", k* k* k* k},
-    {"p", k* k* k* k* k},
-    {"e", k* k* k* k* k* k},
+    {"k", kd},
+    {"m", kd* kd},
+    {"g", kd* kd* kd},
+    {"t", kd* kd* kd* kd},
+    {"p", kd* kd* kd* kd* kd},
+    {"e", kd* kd* kd* kd* kd* kd},
   };
 
   std::map<std::string, double> small_units = {

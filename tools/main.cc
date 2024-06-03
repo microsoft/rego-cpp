@@ -1,5 +1,6 @@
 #include <CLI/CLI.hpp>
 #include <rego/rego.hh>
+#include <trieste/logging.h>
 
 int main(int argc, char** argv)
 {
@@ -26,8 +27,16 @@ int main(int argc, char** argv)
   std::filesystem::path output;
   app.add_option("-a,--ast", output, "Output the AST");
 
-  rego::LogLevel loglevel{rego::LogLevel::None};
-  app.add_option("-l,--loglevel", loglevel, "Enable logging");
+  std::string log_level;
+  app
+    .add_option(
+      "-l,--log_level",
+      log_level,
+      "Set Log Level to one of "
+      "Trace, Debug, Info, "
+      "Warning, Output, Error, "
+      "None")
+    ->check(rego::set_log_level_from_string);
 
   try
   {
@@ -38,17 +47,20 @@ int main(int argc, char** argv)
     return app.exit(e);
   }
 
-  rego::set_log_level(loglevel);
-
   auto interpreter = rego::Interpreter();
-  interpreter.well_formed_checks_enabled(wf_checks);
+  interpreter.wf_check_enabled(wf_checks);
+  if (!output.empty())
+  {
+    interpreter.debug_enabled(true);
+    interpreter.debug_path(output);
+  }
 
   if (!input_path.empty())
   {
     if (!std::filesystem::exists(input_path))
     {
-      std::cerr << std::filesystem::weakly_canonical(input_path)
-                << " does not exist" << std::endl;
+      trieste::logging::Error() << std::filesystem::weakly_canonical(input_path)
+                                << " does not exist" << std::endl;
       return 1;
     }
 
@@ -59,8 +71,8 @@ int main(int argc, char** argv)
   {
     if (!std::filesystem::exists(path))
     {
-      std::cerr << std::filesystem::weakly_canonical(path) << " does not exist"
-                << std::endl;
+      trieste::logging::Error() << std::filesystem::weakly_canonical(path)
+                                << " does not exist" << std::endl;
       return 1;
     }
 
@@ -74,20 +86,14 @@ int main(int argc, char** argv)
     }
   }
 
-  if (!output.empty())
-  {
-    interpreter.debug_enabled(true);
-    interpreter.debug_path(output);
-  }
-
   try
   {
-    std::cout << interpreter.query(query_expr) << std::endl;
+    trieste::logging::Output() << interpreter.query(query_expr) << std::endl;
     return 0;
   }
   catch (const std::exception& e)
   {
-    std::cout << e.what() << std::endl;
+    trieste::logging::Error() << e.what() << std::endl;
     return 1;
   }
 }

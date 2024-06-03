@@ -11,14 +11,14 @@ namespace
     {
       for (auto& item : *collection)
       {
-        keys.push_back(to_json(item));
+        keys.push_back(to_key(item));
       }
     }
     else if (collection->type() == Object)
     {
       for (auto& item : *collection)
       {
-        keys.push_back(to_json(item / Key));
+        keys.push_back(to_key(item / Key));
       }
     }
     else
@@ -55,7 +55,7 @@ namespace
     Node filtered = NodeDef::create(Object);
     for (auto& item : *object)
     {
-      std::string key_str = to_json(item / Key);
+      std::string key_str = to_key(item / Key);
       if (contains(keys, key_str))
       {
         filtered->push_back(item->clone());
@@ -83,10 +83,10 @@ namespace
     if (collection->type() == Object)
     {
       Node key = keys->at(index);
-      std::string key_str = to_json(key);
+      std::string key_str = to_key(key);
       for (auto& item : *collection)
       {
-        if (to_json(item / Key) == key_str)
+        if (to_key(item / Key) == key_str)
         {
           return get_key(item / Val, keys, index + 1);
         }
@@ -170,7 +170,7 @@ namespace
     Node output = NodeDef::create(Object);
     for (auto& item : *object)
     {
-      std::string key_str = to_json(item / Key);
+      std::string key_str = to_key(item / Key);
       if (!contains(keys, key_str))
       {
         output->push_back(item->clone());
@@ -185,7 +185,7 @@ namespace
     std::map<std::string, Node> map;
     for (auto& item : *object)
     {
-      map[to_json(item / Key)] = (item / Val)->front();
+      map[to_key(item / Key)] = (item / Val)->front();
     }
 
     return map;
@@ -310,7 +310,7 @@ namespace
 
     if (super->type() == sub->type())
     {
-      return to_json(super) == to_json(sub);
+      return to_key(super) == to_key(sub);
     }
 
     return false;
@@ -379,7 +379,7 @@ namespace
     auto rhs_keys = get_key_set(rhs);
     for (auto& item : *lhs)
     {
-      std::string key_str = to_json(item / Key);
+      std::string key_str = to_key(item / Key);
       if (!contains(rhs_keys, key_str))
       {
         output->push_back(item->clone());

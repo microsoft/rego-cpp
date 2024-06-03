@@ -340,8 +340,8 @@ pub enum LogLevel {
 }
 
 /// Sets the level of logging produced by the library.
-pub fn set_log_level(level: LogLevel) {
-    match level {
+pub fn set_log_level(level: LogLevel) -> Result<(), &'static str> {
+    let result: regoEnum = match level {
         LogLevel::None => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_NONE) },
         LogLevel::Debug => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_DEBUG) },
         LogLevel::Info => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_INFO) },
@@ -349,6 +349,12 @@ pub fn set_log_level(level: LogLevel) {
         LogLevel::Error => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_ERROR) },
         LogLevel::Output => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_OUTPUT) },
         LogLevel::Trace => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_TRACE) },
+    };
+
+    match result {
+        REGO_OK => Ok(()),
+        REGO_LOG_LEVEL_ERROR => Err("Invalid log level"),
+        _ => Err("Unknown error"),
     }
 }
 

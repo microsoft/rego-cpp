@@ -1,6 +1,6 @@
 #include "internal.hh"
 
-namespace rego
+namespace
 {
   const std::string alpha =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -38,242 +38,196 @@ namespace rego
     return buf.str();
   }
 
+  enum class NewlineMode
+  {
+    Terminate,
+    Ignore,
+    Token,
+  };
+}
+
+namespace rego
+{
   Parse parser()
   {
     Parse p(depth::file, wf_parser);
 
+    std::shared_ptr<NewlineMode> newline_mode =
+      std::make_shared<NewlineMode>(NewlineMode::Ignore);
+
+    // Our starting path tries to determine if the input is a module or a query
     p("start",
       {
-        // A newline sometimes terminates.
-        "\r*\n([[:blank:]]*)" >>
-          [](auto& m) {
-            if (m.in(List))
-            {
-              return;
-            }
-
-            m.term({List});
-            if (m.in(Some))
-            {
-              m.pop(Some);
-              m.term();
-            }
-            if (m.in(With))
-            {
-              m.pop(With);
-              m.term();
-            }
+        R"(\s+)" >>
+          [](auto&) {
+            // ignore leading whitespace
           },
 
-        // Whitespace between tokens.
-        "[[:blank:]]+" >> [](auto&) {},
+        R"(package)" >>
+          [newline_mode](auto& m) {
+            m.push(Module);
+            m.add(Package);
+            m.mode("main");
+            *newline_mode = NewlineMode::Terminate;
+          },
 
-        // terminator
-        ";" >> [](auto& m) { m.term(); },
+        "^" >>
+          [](auto& m) {
+            m.push(Query);
+            m.mode("main");
+          },
+      });
 
-        // Assign.
-        ":=" >> [](auto& m) { m.add(Assign); },
+    p("main",
+      {
+        R"(import\b)" >>
+          [newline_mode](auto& m) {
+            m.add(Import);
+            *newline_mode = NewlineMode::Terminate;
+          },
 
-        // Key/Value
-        ":" >> [](auto& m) { m.add(Colon); },
+        R"(default\b)" >> [](auto& m) { m.add(Default); },
 
-        // List
-        "," >> [](auto& m) { m.seq(List); },
+        R"(not\b)" >> [](auto& m) { m.add(Not); },
 
-        // Or
-        "\\|" >> [](auto& m) { m.add(Or); },
+        R"(with\b)" >> [](auto& m) { m.add(With); },
 
-        // And
+        R"(else\b)" >> [](auto& m) { m.add(Else); },
+
+        R"(some\b)" >> [](auto& m) { m.add(Some); },
+
+        R"(true\b)" >> [](auto& m) { m.add(True); },
+
+        R"(false\b)" >> [](auto& m) { m.add(False); },
+
+        R"(null\b)" >> [](auto& m) { m.add(Null); },
+
+        R"(as\b)" >> [](auto& m) { m.add(As); },
+
+        R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
+
+        "==" >> [](auto& m) { m.add(Equals); },
+
+        "!=" >> [](auto& m) { m.add(NotEquals); },
+
+        "<=" >> [](auto& m) { m.add(LessThanOrEquals); },
+
+        "<" >> [](auto& m) { m.add(LessThan); },
+
+        ">=" >> [](auto& m) { m.add(GreaterThanOrEquals); },
+
+        ">" >> [](auto& m) { m.add(GreaterThan); },
+
+        R"(\+)" >> [](auto& m) { m.add(Add); },
+
+        R"(\*)" >> [](auto& m) { m.add(Multiply); },
+
+        "/" >> [](auto& m) { m.add(Divide); },
+
+        "%" >> [](auto& m) { m.add(Modulo); },
+
         "&" >> [](auto& m) { m.add(And); },
 
-        // OPA local variable.
-        R"(__[[:alnum:]]+__\b)" >> [](auto& m) { m.add(Var); },
+        R"(\|)" >> [](auto& m) { m.add(Or); },
 
-        // single underscore variable
-        R"(_[[:alnum:]_]+\b)" >> [](auto& m) { m.add(Var); },
+        ":=" >> [](auto& m) { m.add(Assign); },
 
-        // Placeholder
-        "_" >> [](auto& m) { m.add(Placeholder); },
+        "=" >> [](auto& m) { m.add(Unify); },
 
-        // Brace.
-        R"((\{)[[:blank:]]*)" >> [](auto& m) { m.push(Brace, 1); },
+        "," >> [](auto& m) { m.add(Comma); },
 
-        R"(\})" >>
+        ":" >> [](auto& m) { m.add(Colon); },
+
+        R"(\.)" >> [](auto& m) { m.add(Dot); },
+
+        R"(\[)" >> [](auto& m) { m.push(Square); },
+
+        "]" >>
           [](auto& m) {
-            m.term({List});
-            if (m.in(Some))
-            {
-              m.pop(Some);
-              m.term();
-            }
-            if (m.in(With))
-            {
-              m.pop(With);
-              m.term();
-            }
-            m.pop(Brace);
-          },
-
-        // Square.
-        R"((\[)[[:blank:]]*)" >> [](auto& m) { m.push(Square, 1); },
-
-        R"(\])" >>
-          [](auto& m) {
-            m.term({List});
-            if (m.in(Some))
-            {
-              m.pop(Some);
-              m.term();
-            }
-            if (m.in(With))
-            {
-              m.pop(With);
-              m.term();
-            }
+            m.term();
             m.pop(Square);
           },
 
-        // Parens.
-        R"((\()[[:blank:]]*)" >>
+        R"({(?:\r?\n)?)" >> [](auto& m) { m.push(Brace); },
+
+        "}" >>
           [](auto& m) {
-            m.push(Paren, 1);
-            // deal with empty parens
-            m.push(Group);
+            m.term();
+            m.pop(Brace);
           },
+
+        R"(\()" >> [](auto& m) { m.push(Paren); },
 
         R"(\))" >>
           [](auto& m) {
-            m.term({List});
-            if (m.in(Some))
-            {
-              m.pop(Some);
-              m.term();
-            }
-            if (m.in(With))
-            {
-              m.pop(With);
-              m.term();
-            }
+            m.term();
             m.pop(Paren);
           },
 
-        // Float.
-        R"([[:digit:]]+\.[[:digit:]]+(?:e[+-]?[[:digit:]]+)?\b)" >>
+        // RE for a JSON number (float):
+        // -? : optional minus sign
+        // (?:0|[1-9][0-9]*) : either a single 0, or 1-9 followed by any digits
+        // (?:\.[0-9]+)? : a single period followed by one or more digits
+        // (?:[eE][-+]?[0-9]+)? : optionally, an exponent. This can start with
+        // e or E, have +/-/nothing, and then 1 or more digits
+        R"(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)(?:[eE][-+]?[0-9]+)?)" >>
           [](auto& m) { m.add(Float); },
 
-        // String.
-        R"("(?:\\(?:["\\\/bfnrtx]|u[a-fA-F0-9]{4})|[^"\\\0-\x1F\x7F]+)*")" >>
-          [](auto& m) { m.add(JSONString); },
-
-        // Raw string.
-        R"(`[^`]*`)" >> [](auto& m) { m.add(RawString); },
-
-        // Int.
-        R"([[:digit:]]+\b)" >> [](auto& m) { m.add(Int); },
-
-        // Float with exponent but no decimal.
-        R"([[:digit:]]+(?:e[+-]?[[:digit:]]+)?\b)" >>
+        // RE for an integer with an exponent (float):
+        // -? : optional minus sign
+        // (?:0|[1-9][0-9]*) : either a single 0, or 1-9 followed by any digits
+        // (?:[eE][-+]?[0-9]+)? : an exponent. This can start with
+        // e or E, have +/-/nothing, and then 1 or more digits
+        R"(-?(?:0|[1-9][0-9]*)[eE][-+]?[0-9]+)" >>
           [](auto& m) { m.add(Float); },
 
-        // True.
-        "true\\b" >> [](auto& m) { m.add(True); },
+        // RE for a JSON number (int):
+        // -? : optional minus sign
+        // (?:0|[1-9][0-9]*) : either a single 0, or 1-9 followed by any digits
+        R"(-?(?:0|[1-9][0-9]*))" >> [](auto& m) { m.add(Int); },
 
-        // False.
-        "false\\b" >> [](auto& m) { m.add(False); },
-
-        // Null.
-        "null\\b" >> [](auto& m) { m.add(Null); },
-
-        // Default.
-        "default\\b" >> [](auto& m) { m.add(Default); },
-
-        // Some.
-        "some\\b" >> [](auto& m) { m.push(Some); },
-
-        // Else.
-        "else\\b" >> [](auto& m) { m.add(Else); },
-
-        // Import
-        "import\\b" >> [](auto& m) { m.add(Import); },
-
-        // As
-        "as\\b" >>
-          [](auto& m) {
-            m.term();
-            m.add(As);
-          },
-
-        // With
-        "with\\b" >>
-          [](auto& m) {
-            m.term();
-            if (m.in(With))
-            {
-              m.pop(With);
-            }
-            m.push(With);
-          },
-
-        // Empty set.
-        R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
-
-        // Not
-        "not\\b" >> [](auto& m) { m.add(Not); },
-
-        // Dot.
-        R"(\.)" >> [](auto& m) { m.add(Dot); },
-
-        // Line comment.
-        "#[^\n]*" >> [](auto&) {},
-
-        // Package.
-        R"(package\b)" >> [](auto& m) { m.add(Package); },
-
-        // Query.
-        R"(query\b)" >> [](auto& m) { m.add(Query); },
-
-        // Identifier.
-        R"([_[:alpha:]][_[:alnum:]]*\b)" >> [](auto& m) { m.add(Var); },
-
-        // Add ('+' is a reserved RegEx character)
-        R"(\+)" >> [](auto& m) { m.add(Add); },
-
-        // Subtract
         "-" >> [](auto& m) { m.add(Subtract); },
 
-        // Multiply ('*' is a reserved RegEx character)
-        R"(\*)" >> [](auto& m) { m.add(Multiply); },
+        // RE for a JSON string:
+        // " : a double quote followed by either:
+        // 1. [^"\\\x00-\x1F]+ : one or more characters that are not a double
+        // quote, backslash, or a control character from 00-1f
+        // 2. \\["\\\/bfnrt] : a backslash followed by one of the characters ",
+        // \, /, b, f, n, r, or t
+        // 3. \\u[[:xdigit:]]{4} : a backslash followed by u, followed by 4 hex
+        // digits zero or more times and then " : a double quote
+        R"("(?:[^"\\\x00-\x1F]+|\\["\\\/bfnrt]|\\u[[:xdigit:]]{4})*")" >>
+          [](auto& m) { m.add(JSONString); },
 
-        // Divide
-        "/" >> [](auto& m) { m.add(Divide); },
+        R"(\`[^\`]*\`)" >> [](auto& m) { m.add(RawString); },
 
-        // Modulo
-        "%" >> [](auto& m) { m.add(Modulo); },
+        R"((?:[[:alpha:]]|_)(?:[[:alnum:]]|_)*\b)" >>
+          [](auto& m) { m.add(Var); },
 
-        // Equals
-        "==" >> [](auto& m) { m.add(Equals); },
+        ";" >> [](auto& m) { m.add(NewLine); },
 
-        // NotEquals
-        "!=" >> [](auto& m) { m.add(NotEquals); },
+        R"(\r?\n)" >>
+          [newline_mode](auto& m) {
+            switch (*newline_mode)
+            {
+              case NewlineMode::Terminate:
+                m.term();
+                break;
+              case NewlineMode::Ignore:
+                break;
+              case NewlineMode::Token:
+                m.add(NewLine);
+                break;
+            }
+            *newline_mode = NewlineMode::Ignore;
+          },
 
-        // LessThanOrEquals
-        "<=" >> [](auto& m) { m.add(LessThanOrEquals); },
+        R"(#[^\r\n]*\r?\n)" >> [](auto&) {},
 
-        // Less than
-        "<" >> [](auto& m) { m.add(LessThan); },
-
-        // GreaterThanOrEquals
-        ">=" >> [](auto& m) { m.add(GreaterThanOrEquals); },
-
-        // GreaterThan
-        ">" >> [](auto& m) { m.add(GreaterThan); },
-
-        // Unify
-        "=" >> [](auto& m) { m.add(Unify); },
-
+        R"(\s+)" >> [](auto&) {},
       });
 
-    p.done([](auto& m) { m.term({List, Some, With}); });
+    p.done([](auto& m) { m.term({Module, Query}); });
 
     p.gen({
       Int >> [](auto& rnd) { return std::to_string(rnd() % 100); },

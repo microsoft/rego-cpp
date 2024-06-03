@@ -1,10 +1,13 @@
 #include "builtins.h"
+#include "trieste/json.h"
+#include "trieste/utf8.h"
 
 #include <bitset>
 
 namespace
 {
   using namespace rego;
+  using namespace trieste::utf8;
 
   Node unwrap_strings(const Node& collection, std::vector<std::string>& items)
   {
@@ -473,7 +476,7 @@ namespace
       switch (verb.type)
       {
         case PrintVerbType::Value:
-          result << to_json(node);
+          result << json::escape(to_key(node));
           break;
 
         case PrintVerbType::Boolean:
@@ -717,13 +720,10 @@ namespace
     }
 
     std::string x_str = get_string(x);
-    std::vector<rune> x_runes = utf8_to_runes(x_str);
+    runestring x_runes = utf8_to_runestring(x_str);
     std::reverse(x_runes.begin(), x_runes.end());
     std::ostringstream y;
-    for (auto& rune : x_runes)
-    {
-      y << rune.source;
-    }
+    y << x_runes;
     return JSONString ^ y.str();
   }
 
@@ -747,7 +747,7 @@ namespace
     }
 
     std::string value_str = get_string(value);
-    std::vector<rune> value_runes = utf8_to_runes(value_str);
+    runestring value_runes = utf8_to_runestring(value_str);
     std::int64_t offset_int = get_int(offset).to_int();
     if (offset_int < 0)
     {
@@ -776,23 +776,16 @@ namespace
       length_size = value_runes.size() - offset_size;
     }
 
-    std::vector<rune> output_runes(
-      value_runes.begin() + offset_size,
-      value_runes.begin() + offset_size + length_size);
     std::ostringstream output;
-    for (auto& rune : output_runes)
-    {
-      output << rune.source;
-    }
-
+    output << value_runes.substr(offset_size, length_size);
     return JSONString ^ output.str();
   }
 
   std::string trim(
     const std::string& value, const std::string& cutset, bool left, bool right)
   {
-    runestring value_runes = utf8_to_runestring(value);
-    runestring cutset_runes = utf8_to_runestring(cutset);
+    runestring value_runes = utf8_to_runestring(json::unescape(value));
+    runestring cutset_runes = utf8_to_runestring(json::unescape(cutset));
 
     std::size_t start, end;
     if (left)
@@ -818,8 +811,9 @@ namespace
       return "";
     }
 
-    runestring output_runes = value_runes.substr(start, end - start + 1);
-    return runestring_to_utf8(output_runes);
+    std::ostringstream output;
+    output << value_runes.substr(start, end - start + 1);
+    return output.str();
   }
 
   Node trim(const Nodes& args)

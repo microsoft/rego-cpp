@@ -1,8 +1,10 @@
 #include "builtins.h"
+#include "trieste/utf8.h"
 
 namespace
 {
   using namespace rego;
+  using namespace trieste::utf8;
 
   Node count(const Nodes& args)
   {
@@ -39,7 +41,7 @@ namespace
 
     auto it = std::max_element(
       collection->begin(), collection->end(), [](const Node& a, const Node& b) {
-        return to_json(a) < to_json(b);
+        return to_key(a) < to_key(b);
       });
 
     return *it;
@@ -61,7 +63,7 @@ namespace
 
     auto it = std::min_element(
       collection->begin(), collection->end(), [](const Node& a, const Node& b) {
-        return to_json(a) < to_json(b);
+        return to_key(a) < to_key(b);
       });
 
     return *it;
@@ -83,7 +85,7 @@ namespace
     }
 
     std::sort(items.begin(), items.end(), [](const Node& a, const Node& b) {
-      return to_json(a) < to_json(b);
+      return to_key(a) < to_key(b);
     });
 
     return collection->type() << NodeRange{items.begin(), items.end()};

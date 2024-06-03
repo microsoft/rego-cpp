@@ -23,7 +23,7 @@ extern "C"
     return reinterpret_cast<rego::Interpreter*>(rego)->m_c_error.c_str();
   }
 
-  void regoSetLogLevel(regoEnum level)
+  regoEnum regoSetLogLevel(regoEnum level)
   {
     switch (level)
     {
@@ -54,7 +54,23 @@ extern "C"
       case REGO_LOG_LEVEL_TRACE:
         rego::set_log_level(rego::LogLevel::Trace);
         break;
+
+      default:
+        return REGO_ERROR_INVALID_LOG_LEVEL;
     }
+
+    return REGO_OK;
+  }
+
+  regoEnum regoSetLogLevelFromString(const char* level)
+  {
+    std::string error = rego::set_log_level_from_string(level);
+    if (error.empty())
+    {
+      return REGO_OK;
+    }
+
+    return REGO_ERROR_INVALID_LOG_LEVEL;
   }
 
   regoInterpreter* regoNew()
@@ -148,10 +164,18 @@ extern "C"
 
   regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents)
   {
+    logging::Warn()
+      << "regoSetInputJSON is deprecated. Please use regoSetInputTerm instead.";
     logging::Debug() << "regoSetInputJSON: " << contents;
+    return regoSetInputTerm(rego, contents);
+  }
+
+  regoEnum regoSetInputTerm(regoInterpreter* rego, const char* contents)
+  {
+    logging::Debug() << "regoSetInputTerm: " << contents;
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->set_input_json(contents);
+      reinterpret_cast<rego::Interpreter*>(rego)->set_input_term(contents);
       return REGO_OK;
     }
     catch (const std::exception& e)
@@ -192,15 +216,13 @@ extern "C"
     regoInterpreter* rego, regoBoolean enabled)
   {
     logging::Debug() << "regoSetWellFormedChecksEnabled: " << enabled;
-    reinterpret_cast<rego::Interpreter*>(rego)->well_formed_checks_enabled(
-      enabled);
+    reinterpret_cast<rego::Interpreter*>(rego)->wf_check_enabled(enabled);
   }
 
   regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego)
   {
     logging::Debug() << "regoGetWellFormedChecksEnabled";
-    return reinterpret_cast<rego::Interpreter*>(rego)
-      ->well_formed_checks_enabled();
+    return reinterpret_cast<rego::Interpreter*>(rego)->wf_check_enabled();
   }
 
   regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr)
@@ -226,7 +248,7 @@ extern "C"
   void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled)
   {
     logging::Debug() << "regoSetStrictBuiltInErrors: " << enabled;
-    reinterpret_cast<rego::Interpreter*>(rego)->builtins().strict_errors(
+    reinterpret_cast<rego::Interpreter*>(rego)->builtins()->strict_errors(
       enabled);
   }
 
@@ -235,7 +257,7 @@ extern "C"
     logging::Debug() << "regoGetStrictBuiltInErrors";
     return reinterpret_cast<rego::Interpreter*>(rego)
       ->builtins()
-      .strict_errors();
+      ->strict_errors();
   }
 
   // Output functions
@@ -263,17 +285,16 @@ extern "C"
       return nullptr;
     }
 
-    for (auto binding : *node_ptr)
+    assert(node_ptr->type() == rego::Result);
+    trieste::WFContext context(rego::wf_result);
+    auto defs = node_ptr->lookdown({name});
+    if (defs.empty())
     {
-      rego::Node var = binding / rego::Var;
-      if (var->location().view() == name)
-      {
-        rego::Node val = binding / rego::Term;
-        return reinterpret_cast<regoNode*>(val.get());
-      }
+      return nullptr;
     }
 
-    return nullptr;
+    rego::Node val = defs[0] / rego::Term;
+    return reinterpret_cast<regoNode*>(val.get());
   }
 
   const char* regoOutputString(regoOutput* output)
@@ -449,15 +470,18 @@ extern "C"
   {
     logging::Debug() << "regoNodeJSONSize";
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
-    std::string json = rego::to_json(node_ptr->shared_from_this());
+    trieste::WFContext context(rego::wf_result);
+    std::string json = rego::to_key(node_ptr->shared_from_this(), true);
     return static_cast<regoSize>(json.size() + 1);
   }
 
   regoEnum regoNodeJSON(regoNode* node, char* buffer, regoSize size)
   {
     logging::Debug() << "regoNodeJSON: " << buffer << "[" << size << "]";
+
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
-    std::string json = rego::to_json(node_ptr->shared_from_this());
+    trieste::WFContext context(rego::wf_result);
+    std::string json = rego::to_key(node_ptr->shared_from_this(), true);
     if (size < json.size() + 1)
     {
       return REGO_ERROR_BUFFER_TOO_SMALL;

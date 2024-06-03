@@ -68,65 +68,12 @@ namespace
 
   double get_double(const Node& node)
   {
-    return std::stod(to_json(node));
+    return std::stod(to_key(node));
   }
 }
 
 namespace rego
 {
-  bool contains_ref(const Node& node)
-  {
-    if (node->type() == NestedBody)
-    {
-      return false;
-    }
-
-    if (node->type() == Ref || node->type() == Var)
-    {
-      return true;
-    }
-
-    for (auto& child : *node)
-    {
-      if (contains_ref(child))
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  bool contains_local(const Node& node)
-  {
-    if (node->type() == NestedBody)
-    {
-      return false;
-    }
-
-    if (node->type() == Var)
-    {
-      Nodes defs = node->lookup();
-      if (defs.size() == 0)
-      {
-        // check if it is a temporary variable
-        // (which may not yet be in the symbol table)
-        return node->location().view().find('$') != std::string::npos;
-      }
-      return defs.size() == 1 && defs[0]->type() == Local;
-    }
-
-    for (auto& child : *node)
-    {
-      if (contains_local(child))
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   bool is_in(const Node& node, const std::set<Token>& types)
   {
     if (contains(types, node->type()))
@@ -134,7 +81,7 @@ namespace rego
       return true;
     }
 
-    if (node->type() == Rego)
+    if (node->type() == Top)
     {
       return false;
     }
@@ -248,23 +195,7 @@ namespace rego
     return std::string(str);
   }
 
-  bool in_query(const Node& node)
-  {
-    if (node->type() == Rego)
-    {
-      return false;
-    }
-
-    if (node->type() == RuleComp)
-    {
-      std::string name = std::string((node / Var)->location().view());
-      return name.find("query$") != std::string::npos;
-    }
-
-    return in_query(node->parent()->shared_from_this());
-  }
-
-  Node err(const NodeRange& r, const std::string& msg, const std::string& code)
+  Node err(NodeRange& r, const std::string& msg, const std::string& code)
   {
     return Error << (ErrorMsg ^ msg) << (ErrorAst << r) << (ErrorCode ^ code);
   }
@@ -392,6 +323,26 @@ namespace rego
     return ::get_double(node);
   }
 
+  std::optional<BigInt> try_get_int(const Node& node)
+  {
+    if (node == Int)
+    {
+      return ::get_int(node);
+    }
+
+    if (node == Float)
+    {
+      double value = ::get_double(node);
+      double floor = std::floor(value);
+      if (value == floor)
+      {
+        return BigInt(static_cast<size_t>(floor));
+      }
+    }
+
+    return std::nullopt;
+  }
+
   std::string get_string(const Node& node)
   {
     Node value = node;
@@ -417,53 +368,6 @@ namespace rego
   {
     assert(node->type() == True || node->type() == False);
     return node->type() == True;
-  }
-
-  bool is_truthy(const Node& node)
-  {
-    assert(node->type() == Term || node->type() == TermSet);
-    if (node->type() == TermSet)
-    {
-      return true;
-    }
-
-    Node value = node->front();
-    if (value->type() == Scalar)
-    {
-      value = value->front();
-      return value->type() != False;
-    }
-
-    if (
-      value->type() == Object || value->type() == Array || value->type() == Set)
-    {
-      return true;
-    }
-
-    return false;
-  }
-
-  bool is_undefined(const Node& node)
-  {
-    if (node->type() == DataModule)
-    {
-      return false;
-    }
-
-    if (node->type() == Undefined)
-    {
-      return true;
-    }
-
-    for (auto& child : *node)
-    {
-      if (is_undefined(child))
-      {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   bool is_falsy(const Node& node)
@@ -522,7 +426,13 @@ namespace rego
       return "boolean";
     }
 
-    return std::string(type.str());
+    std::string name(type.str());
+    if (starts_with(name, "rego-"))
+    {
+      name = name.substr(5);
+    }
+
+    return name;
   }
 
   std::string type_name(const Node& node, bool specify_number)
@@ -789,11 +699,6 @@ namespace rego
   Node set(const Nodes& set_members)
   {
     return Set << set_members;
-  }
-
-  bool is_module(const Node& var)
-  {
-    return var->type().in({Submodule, DataItem, Data});
   }
 
   ActionMetrics::ActionMetrics(const char* file, std::size_t line) :

@@ -358,7 +358,7 @@ namespace rego
   {
     if (BigInt::less_than(lhs.digits(), rhs.digits()))
     {
-      return BigInt();
+      return lhs;
     }
 
     if (rhs.is_zero())
@@ -367,7 +367,7 @@ namespace rego
     }
 
     auto remainder = BigInt::divide(lhs.digits(), rhs.digits()).remainder;
-    if (lhs.is_negative())
+    if (lhs.is_negative() && remainder != "0")
     {
       remainder.insert(remainder.begin(), '-');
     }

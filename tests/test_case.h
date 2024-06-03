@@ -22,6 +22,8 @@ namespace rego_test
       const std::filesystem::path& path,
       const std::filesystem::path& debug_path = "");
 
+    TestCase();
+
     Result run(const std::filesystem::path& debug_path, bool wf_checks) const;
 
     /** name of the test case category. */
@@ -79,6 +81,10 @@ namespace rego_test
     bool strict_error() const;
     TestCase& strict_error(bool strict_error);
 
+    /** indicates that the test is broken and should be skipped */
+    bool broken() const;
+    TestCase& broken(bool broken);
+
   private:
     BindingMap to_binding_map(const Node& node) const;
     bool compare(
@@ -88,7 +94,7 @@ namespace rego_test
       const std::string& wanted,
       std::ostream& os) const;
 
-    static std::optional<Node> maybe_get_file(
+    static std::optional<Node> maybe_get_object(
       const Node& mapping, const std::string& name);
     static std::optional<std::string> maybe_get_string(
       const Node& mapping, const std::string& name);
@@ -116,6 +122,7 @@ namespace rego_test
     std::string m_want_error;
     bool m_sort_bindings;
     bool m_strict_error;
+    bool m_broken;
   };
 
 }

@@ -16,7 +16,7 @@ from ._regopy import (
     regoQuery,
     regoSetDebugEnabled,
     regoSetDebugPath,
-    regoSetInputJSON,
+    regoSetInputTerm,
     regoSetStrictBuiltInErrors,
     regoSetWellFormedChecksEnabled
 )
@@ -199,6 +199,37 @@ class Interpreter:
         """
         self.add_data_json(json.dumps(data))
 
+    def set_input_term(self, term: str):
+        """Sets the input term of the interpreter.
+
+        This can be called several times during the lifetime of the interpreter.
+
+        Args:
+            term (str): The input term.
+
+        Raises:
+            RegoError: If an error occurs in the Rego interpreter.
+
+        Example:
+            >>> from regopy import Interpreter
+            >>> input = '''
+            ...   {
+            ...     "a": 10,
+            ...     "b": "20",
+            ...     "c": 30.0,
+            ...     "d": true
+            ...   }
+            ... '''
+            >>> rego = Interpreter()
+            >>> rego.set_input_json(input)
+            >>> output = rego.query("input.a")
+            >>> print(output)
+            10
+        """
+        err = regoSetInputTerm(self._impl, term)
+        if err == REGO_ERROR:
+            raise RegoError(regoGetError(self._impl))
+
     def set_input_json(self, json: str):
         """Sets the input document of the interpreter.
 
@@ -227,7 +258,7 @@ class Interpreter:
             >>> print(output)
             10
         """
-        err = regoSetInputJSON(self._impl, json)
+        err = regoSetInputTerm(self._impl, json)
         if err == REGO_ERROR:
             raise RegoError(regoGetError(self._impl))
 
@@ -246,7 +277,7 @@ class Interpreter:
         See Also:
             :func:`~regopy.Interpreter.set_input_json`
         """
-        self.set_input_json(json.dumps(value))
+        self.set_input_term(json.dumps(value))
 
     @property
     def debug_enabled(self) -> bool:

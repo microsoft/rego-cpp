@@ -1,0 +1,159 @@
+# Tests for fixed bugs to prevent regression
+cases:
+- note: regocpp/bug95
+  modules:
+  - |
+    package test
+
+    x = c {
+      a = b
+      b = c
+      a = 12
+    }
+  query: data.test.x = x
+  want_result:
+    - x: 12
+- note: regocpp/bug97
+  modules:
+  - |
+    package test
+
+    x = y {
+      a = [1, 2, 3]
+      y = {z | z = a[_]}
+    }
+  query: data.test.x = x
+  want_result:
+    - x:
+      - 1
+      - 2
+      - 3
+- note: regocpp/bug101
+  modules:
+  - |
+    package test
+
+    x = y {
+      y = [z |
+        z = a[_]
+        a = [1, 2, 3]
+      ]
+    }
+  query: data.test.x = x
+  want_result:
+    - x:
+      - 1
+      - 2
+      - 3
+- note: regocpp/bug112
+  modules:
+  - |
+    package test
+    x = {
+      "a"
+      : 1
+    }
+  query: data.test.x = x
+  want_result:
+    - x:
+        a: 1
+- note: regocpp/bug114
+  modules:
+  - |
+    package test
+
+    x = {1} | {2} | {3}
+  query: data.test.x = x
+  want_result:
+    - x:
+      - 1
+      - 2
+      - 3
+- note: regocpp/bug115
+  modules:
+  - |
+    package test
+
+    x = [{1} | {2} | {3}]
+  query: data.test.x = x
+  want_result:
+    - x:
+      - - 1
+- note: regocpp/bug116
+  query: x = (12/3)%3
+  want_result:
+    - x: 1
+- note: regocpp/bug124
+  modules:
+  - |
+    package test
+
+    x := 1 == {"a": 1}.a
+  query: data.test.x = x
+  want_result:
+    - x: true
+- note: regocpp/bug126
+  modules:
+  - |
+    package test
+
+    a = {"a"} | {"b"}
+  query: data.test.a = x
+  want_result:
+    - x:
+      - a
+      - b
+- note: regocpp/bug127
+  modules:
+  - |
+    package test
+
+    a = y {
+      y = {1}
+      | {2}
+    }
+  query: data.test.a = x
+  want_result:
+    - x:
+      - 1
+      - 2
+- note: regocpp/bug129
+  modules:
+  - |
+    package example
+
+    a = 1 % 3
+    b = 2 % 3
+    c = 3 % 3
+    d = 4 % 3
+    e = 5 % 3
+    f = 6 % 3
+  query: "data.example = x"
+  want_result:
+    - x:
+        a: 1
+        b: 2
+        c: 0
+        d: 1
+        e: 2
+        f: 0
+- note: regocpp/bug130
+  modules:
+  - |
+    package example
+
+    x = 5 * y
+    y = input.a
+    z = 1
+  query: "data.example = x"
+  want_result:
+    - x:
+        z: 1
+- note: regocpp/bug134
+  query: "(1 - 7) % 3 = x"
+  want_result:
+    - x: 0
+- note: regocpp/bug135
+  query: "[1, 2][1/1] = x"
+  want_result:
+    - x: 2

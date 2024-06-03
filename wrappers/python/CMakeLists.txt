@@ -30,9 +30,10 @@ FetchContent_Declare(
 FetchContent_Declare(
   pybind11
   GIT_REPOSITORY https://github.com/pybind/pybind11/
-  GIT_TAG        v2.11.1
+  GIT_TAG        v2.12.0
 )
 
+set(BUILD_SHARED_LIBS ON)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 set(SNMALLOC_ENABLE_DYNAMIC_LOADING ON)
 set(REGOCPP_USE_CXX17 ON)
