@@ -191,7 +191,7 @@ set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
 set(INSTALL_INCLUDEDIR include)
 
-install(TARGETS rego snmalloc trieste snmallocshim-static re2
+install(TARGETS rego trieste json yaml snmalloc snmallocshim-static re2
   EXPORT ${PROJECT_NAME}_Targets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
