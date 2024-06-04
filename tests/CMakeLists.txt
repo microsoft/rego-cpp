@@ -1,31 +1,28 @@
-set( SOURCES
-test_case.cc
-parse.cc
-rego_test.cc
-)
-
-add_executable(rego_test main.cc ${SOURCES})
+add_executable(rego_test main.cc test_case.cc)
 target_link_libraries(rego_test
   PRIVATE 
   regocpp::rego)
 
-add_executable(yaml_trieste driver.cc ${SOURCES})
-
-target_link_libraries(yaml_trieste
-  PRIVATE
+add_executable(rego_test_c_api c_api.cc)
+target_link_libraries(rego_test_c_api
+  PRIVATE 
   regocpp::rego)
 
 if(REGOCPP_BUILD_TOOLS)
-  add_test(NAME rego_trieste COMMAND rego_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_trieste>)
+  add_test(NAME rego_fuzzer_reader COMMAND rego_fuzzer reader -f WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_fuzzer>)
+  add_test(NAME rego_fuzzer_unify COMMAND rego_fuzzer unify -f WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_fuzzer>)
 endif()
 
-add_test(NAME yaml_trieste COMMAND yaml_trieste test -f WORKING_DIRECTORY $<TARGET_FILE_DIR:yaml_trieste>)
-add_test(NAME rego_test COMMAND rego_test regocpp.yaml WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+add_test(NAME rego_test_regocpp COMMAND rego_test regocpp.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+add_test(NAME rego_test_bugs COMMAND rego_test bugs.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_aci COMMAND rego_test aci/aci.yaml WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+add_test(NAME rego_test_c_api COMMAND rego_test_c_api WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 set_tests_properties(rego_test_aci PROPERTIES TIMEOUT 300)
 
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/regocpp.yaml $<TARGET_FILE_DIR:rego_test>/regocpp.yaml)
+add_custom_command(TARGET rego_test POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bugs.yaml $<TARGET_FILE_DIR:rego_test>/bugs.yaml)
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/aci $<TARGET_FILE_DIR:rego_test>/aci)
 
@@ -37,6 +34,8 @@ if(REGOCPP_OPA_TESTS)
   arithmetic
   array
   assignments
+  base64builtins
+  base64urlbuiltins
   baseandvirtualdocs
   bitsand
   bitsnegate
@@ -64,10 +63,12 @@ if(REGOCPP_OPA_TESTS)
   functionerrors
   functions
   helloworld
+  hexbuiltins
   indexing
   indirectreferences
   inputvalues
   intersection
+  jsonbuiltins
   negation
   nestedreferences
   numbersrange
@@ -86,6 +87,7 @@ if(REGOCPP_OPA_TESTS)
   partialobjectdoc
   partialsetdoc
   rand
+  reachable
   replacen
   refheads
   regexfind
@@ -116,6 +118,7 @@ if(REGOCPP_OPA_TESTS)
   undos
   union
   units
+  urlbuiltins
   varreferences
   virtualdocs
   withkeyword

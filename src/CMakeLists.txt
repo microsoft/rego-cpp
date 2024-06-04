@@ -15,47 +15,40 @@ builtins.cc
 internal.cc
 rego_c.cc
 encoding.cc
-passes/input_data.cc
-passes/modules.cc
-passes/lists.cc
-passes/imports.cc
-passes/keywords.cc
-passes/membership.cc
-passes/if_else.cc
-passes/rules.cc
-passes/build_calls.cc
-passes/build_refs.cc
-passes/structure.cc
-passes/strings.cc
-passes/merge_data.cc
-passes/lift_refheads.cc
-passes/symbols.cc
-passes/replace_argvals.cc
-passes/lift_query.cc
-passes/expand_imports.cc
-passes/constants.cc
-passes/enumerate.cc
-passes/locals.cc
-passes/compr.cc
-passes/absolute_refs.cc
-passes/merge_modules.cc
-passes/skips.cc
-passes/arithmetic.cc
-passes/comparison.cc
-passes/assign.cc
-passes/skip_refs.cc
-passes/simple_refs.cc
-passes/init.cc
-passes/rulebody.cc
-passes/lift_to_rule.cc
-passes/functions.cc
-passes/unify.cc
-passes/query.cc
+json.cc
+yaml.cc
+reader.cc
+unify.cc
+unify/strings.cc
+unify/merge_data.cc
+unify/lift_refheads.cc
+unify/symbols.cc
+unify/replace_argvals.cc
+unify/lift_query.cc
+unify/expand_imports.cc
+unify/constants.cc
+unify/enumerate.cc
+unify/locals.cc
+unify/compr.cc
+unify/absolute_refs.cc
+unify/merge_modules.cc
+unify/skips.cc
+unify/infix.cc
+unify/assign.cc
+unify/skip_refs.cc
+unify/simple_refs.cc
+unify/init.cc
+unify/rulebody.cc
+unify/lift_to_rule.cc
+unify/functions.cc
+unify/unify.cc
+unify/result.cc
 builtins/aggregates.cc
 builtins/arrays.cc
 builtins/bits.cc
 builtins/casts.cc
 builtins/encoding.cc
+builtins/graph.cc
 builtins/numbers.cc
 builtins/objects.cc
 builtins/regex.cc
@@ -65,7 +58,6 @@ builtins/strings.cc
 builtins/time.cc
 builtins/types.cc
 builtins/units.cc
-builtins/utf8.cc
 # third-party
 builtins/base64/base64.cpp
 )
@@ -81,13 +73,11 @@ endif()
 target_link_libraries(rego
   PUBLIC
     trieste::trieste
+    trieste::json
+    trieste::yaml
 )
 
 if(MSVC)
-  target_precompile_headers(rego
-    PRIVATE
-      internal.hh
-  )
   target_compile_options(rego PUBLIC "/Zc:__cplusplus")
   target_compile_definitions(rego PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
 endif()

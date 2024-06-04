@@ -1,4 +1,4 @@
-#include "internal.hh"
+#include "unify.hh"
 
 namespace
 {
@@ -21,7 +21,7 @@ namespace rego
     m_invalid(false),
     m_rank(rank)
   {
-    m_json = to_json(m_node);
+    m_json = to_key(m_node);
     std::ostringstream os;
     ValueDef::build_string(os, *this, m_var, true);
     m_str = os.str();
@@ -282,7 +282,7 @@ namespace rego
 
   rank_t ValueDef::get_rank(const Node& node)
   {
-    return std::stoul(to_json(node));
+    return std::stoul(to_key(node));
   }
 
   void ValueDef::reduce_set()

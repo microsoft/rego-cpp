@@ -127,7 +127,7 @@ jobs:
 
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
-        run: cargo test
+        run: cargo test -vv
         env:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        python_version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -222,7 +222,7 @@ jobs:
 
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust
-        run: cargo test
+        run: cargo test -vv
         env:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
@@ -231,7 +231,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        python_version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -330,7 +330,7 @@ jobs:
 
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
-        run: cargo test
+        run: cargo test -vv
         env:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
@@ -339,7 +339,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python_version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        python_version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -439,7 +439,7 @@ jobs:
 
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
-        run: cargo test
+        run: cargo test -vv
         env:
           REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
           REGOCPP_C_WRAPPER_TAG: ${{github.sha}}

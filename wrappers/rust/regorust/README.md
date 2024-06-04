@@ -206,6 +206,8 @@ all the standard builtins. The following builtins are currently supported:
 - `arrays`
 - `bits`
 - `casts`
+- `encoding`
+- `graphs`
 - `numbers`
 - `objects`
 - `regex`
@@ -215,9 +217,6 @@ all the standard builtins. The following builtins are currently supported:
 - `types`
 - `units`
 - miscellaneous
-    * `base64_encode`
-    * `base64_decode`
-    * `json.marshal`
     * `opa.runtime`
     * `print`
     * `time.now_ns`
@@ -234,16 +233,14 @@ To build with the OPA tests available for testing, use one of the following pres
 - `release-opa`
 
 At present, we are **NOT** passing the following test suites in full:
-- `base64*`
 - `crypto*`
 - `glob*`
 - `graphql`
 - `invalidkeyerror`
-- `json*`
+- `json*`  (except `jsonbuiltins`)
 - `jwt*`
 - `net*`
 - `planner-ir`
 - `providers-aws`
-- `reachable`
-- `urlbuiltins`
+- `time`
 - `walkbuiltin`

@@ -62,7 +62,7 @@ cases:
   - framework.rego
   - policy.rego
   input:
-    encrypted: true,
+    encrypted: true
     target: /mnt/layer6
   data:
     metadata: {}

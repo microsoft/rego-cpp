@@ -1,5 +1,7 @@
 #include "builtins/builtins.h"
 
+#include "internal.hh"
+
 namespace
 {
   using namespace rego;
@@ -7,11 +9,6 @@ namespace
   Node opa_runtime(const Nodes&)
   {
     return version();
-  }
-
-  Node json_marshal(const Nodes& args)
-  {
-    return JSONString ^ to_json(args[0], true);
   }
 
   Node print(const Nodes& args)
@@ -30,7 +27,7 @@ namespace
       args.end(),
       " ",
       [](std::ostream& stream, const Node& n) {
-        stream << to_json(n, true);
+        stream << to_key(n);
         return true;
       })
       << std::endl;
@@ -47,25 +44,25 @@ namespace rego
     return std::make_shared<BuiltInDef>(BuiltInDef{name, arity, behavior});
   }
 
-  BuiltIns::BuiltIns() noexcept : m_strict_errors(false) {}
+  BuiltInsDef::BuiltInsDef() noexcept : m_strict_errors(false) {}
 
-  bool BuiltIns::strict_errors() const
+  bool BuiltInsDef::strict_errors() const
   {
     return m_strict_errors;
   }
 
-  BuiltIns& BuiltIns::strict_errors(bool strict_errors)
+  BuiltInsDef& BuiltInsDef::strict_errors(bool strict_errors)
   {
     m_strict_errors = strict_errors;
     return *this;
   }
 
-  bool BuiltIns::is_builtin(const Location& name) const
+  bool BuiltInsDef::is_builtin(const Location& name) const
   {
     return contains(m_builtins, name);
   }
 
-  Node BuiltIns::call(const Location& name, const Nodes& args) const
+  Node BuiltInsDef::call(const Location& name, const Nodes& args) const
   {
     if (!is_builtin(name))
     {
@@ -102,17 +99,16 @@ namespace rego
     return result;
   }
 
-  BuiltIns& BuiltIns::register_builtin(const BuiltIn& built_in)
+  BuiltInsDef& BuiltInsDef::register_builtin(const BuiltIn& built_in)
   {
     m_builtins[built_in->name] = built_in;
     return *this;
   }
 
-  BuiltIns& BuiltIns::register_standard_builtins()
+  BuiltInsDef& BuiltInsDef::register_standard_builtins()
   {
     register_builtins<std::initializer_list<BuiltIn>>({
       BuiltInDef::create(Location("print"), AnyArity, ::print),
-      BuiltInDef::create(Location("json.marshal"), 1, ::json_marshal),
       BuiltInDef::create(Location("opa.runtime"), 0, ::opa_runtime),
     });
 
@@ -121,6 +117,7 @@ namespace rego
     register_builtins(builtins::bits());
     register_builtins(builtins::casts());
     register_builtins(builtins::encoding());
+    register_builtins(builtins::graph());
     register_builtins(builtins::numbers());
     register_builtins(builtins::objects());
     register_builtins(builtins::regex());
@@ -134,17 +131,24 @@ namespace rego
     return *this;
   }
 
-  std::map<Location, BuiltIn>::const_iterator BuiltIns::begin() const
+  BuiltIns BuiltInsDef::create()
+  {
+    BuiltIns builtins = std::make_shared<BuiltInsDef>();
+    builtins->register_standard_builtins();
+    return builtins;
+  }
+
+  std::map<Location, BuiltIn>::const_iterator BuiltInsDef::begin() const
   {
     return m_builtins.begin();
   }
 
-  std::map<Location, BuiltIn>::const_iterator BuiltIns::end() const
+  std::map<Location, BuiltIn>::const_iterator BuiltInsDef::end() const
   {
     return m_builtins.end();
   }
 
-  const BuiltIn& BuiltIns::at(const Location& name) const
+  const BuiltIn& BuiltInsDef::at(const Location& name) const
   {
     return m_builtins.at(name);
   }

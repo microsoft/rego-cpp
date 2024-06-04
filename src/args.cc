@@ -1,4 +1,4 @@
-#include "internal.hh"
+#include "unify.hh"
 
 namespace rego
 {
@@ -57,7 +57,7 @@ namespace rego
       std::string sub_separator = "";
       for (auto& value : values)
       {
-        os << sub_separator << to_json(value->node());
+        os << sub_separator << to_key(value->node());
         sub_separator = ", ";
       }
       os << "}";

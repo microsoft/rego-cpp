@@ -1,70 +1,11 @@
 #include "builtins.h"
+#include "trieste/json.h"
 
 #include <regex>
 
 namespace
 {
   using namespace rego;
-
-  std::string json_to_raw(const std::string& json_string)
-  {
-    std::string raw_string;
-    raw_string.reserve(json_string.size());
-    auto pos = json_string.begin();
-    while (pos != json_string.end())
-    {
-      char c0 = *pos;
-      ++pos;
-
-      if (c0 != '\\')
-      {
-        raw_string.push_back(c0);
-        continue;
-      }
-
-      char c1 = *pos;
-      ++pos;
-      switch (c1)
-      {
-        case '"':
-          raw_string.push_back('"');
-          break;
-
-        case '\\':
-          raw_string.push_back('\\');
-          break;
-
-        case '/':
-          raw_string.push_back('/');
-          break;
-
-        case 'b':
-          raw_string.push_back('\b');
-          break;
-
-        case 'f':
-          raw_string.push_back('\f');
-          break;
-
-        case 'n':
-          raw_string.push_back('\n');
-          break;
-
-        case 'r':
-          raw_string.push_back('\r');
-          break;
-
-        case 't':
-          raw_string.push_back('\t');
-          break;
-
-        default:
-          throw std::runtime_error("invalid escape sequence");
-      }
-    }
-
-    return raw_string;
-  }
 
   Node error(
     const Node& pattern_node,
@@ -189,7 +130,7 @@ namespace
       return value_node;
     }
 
-    std::string pattern = json_to_raw(get_string(pattern_node));
+    std::string pattern = json::unescape(get_string(pattern_node));
     std::string value = get_string(value_node);
 
     try
@@ -213,7 +154,7 @@ namespace
       return Resolver::scalar(false);
     }
 
-    std::string pattern = json_to_raw(get_string(pattern_node));
+    std::string pattern = json::unescape(get_string(pattern_node));
 
     try
     {
@@ -250,8 +191,8 @@ namespace
     }
 
     std::string s = get_string(s_node);
-    std::string pattern = json_to_raw(get_string(pattern_node));
-    std::string value = json_to_raw(get_string(value_node));
+    std::string pattern = json::unescape(get_string(pattern_node));
+    std::string value = json::unescape(get_string(value_node));
 
     std::ostringstream os;
 
@@ -290,7 +231,7 @@ namespace
       return number_node;
     }
 
-    std::string pattern = json_to_raw(get_string(pattern_node));
+    std::string pattern = json::unescape(get_string(pattern_node));
     std::string value = get_string(value_node);
     std::size_t number = get_int(number_node).to_size();
 
@@ -344,7 +285,7 @@ namespace
       return number_node;
     }
 
-    std::string pattern = json_to_raw(get_string(pattern_node));
+    std::string pattern = json::unescape(get_string(pattern_node));
     std::string value = get_string(value_node);
     std::size_t number = get_int(number_node).to_size();
 
@@ -397,7 +338,7 @@ namespace
       return value_node;
     }
 
-    std::string pattern = json_to_raw(get_string(pattern_node));
+    std::string pattern = json::unescape(get_string(pattern_node));
     std::string value = get_string(value_node);
 
     std::regex re;
@@ -532,7 +473,7 @@ namespace
       return delimiter_end_node;
     }
 
-    std::string template_ = json_to_raw(get_string(template_node));
+    std::string template_ = json::unescape(get_string(template_node));
     std::string value = get_string(value_node);
     std::string delimiter_start = get_string(delimiter_start_node);
     std::string delimiter_end = get_string(delimiter_end_node);

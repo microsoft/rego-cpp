@@ -1,5 +1,38 @@
 # Changelog
 
+## 2024-06-04 - Version 0.4.0
+Major refactor of the code to use the new version of Trieste.
+
+**New Features**
+- Updated to latest version of Trieste
+- Uses Trieste's YAML and JSON parsers and emitters
+- Uses Trieste's more robust Unicode support
+- Passes broken up into a `Reader`, which parses Rego files, and a `Rewriter` which performs unification
+- Added the `encoding` and `graphs` builtins
+- Added `set_log_level_from_string` and `setLogLevelFromString` to make it easier to set the log level. All executables now use this option.
+
+**Improvements**
+- The Interpreter caches intermediate versions of all modules, reducing query execution time
+- All of the early passes have been rewritten and are more efficient, resulting in reduced parsing time
+- The reduction of the input passes (and their restriction to a single file) along with other optimizations to header files has resulted in reduced compile times
+- The `rego_fuzzer` xecutable allows for more fine-grained fuzzing and testing of the Rego toolchain
+- Multiple bug fixes
+
+**Deprecation**
+- The `regoSetInputJSON` method is a misnomer, as the input does not strictly need to be JSON. This has been replaced with an (otherwise identical) function called
+  `regoSetInputTerm` which does the same thing, and the `JSON` version has been deprecated.
+
+**Breaking Changes**
+- The `rego_trieste` executable has been replaced by the new `rego_fuzzer` executable
+
+**New Test Coverage**
+- `base64builtins`
+- `base64urlbuiltins`
+- `hexbuiltins`
+- `jsonbuiltins`
+- `reachable`
+- `urlbuiltins`
+
 ## 2024-01-19 - Version 0.3.11
 Minor improvements and bug fixes.
 

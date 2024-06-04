@@ -80,16 +80,29 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # -------------------- Find packages --------------------------
 
+# Used to provide
+# FetchContent_MakeAvailable_ExcludeFromAll
+FetchContent_Declare(
+    cmake_utils
+    GIT_REPOSITORY https://github.com/mjp41/cmake_utils
+    GIT_TAG 2bf98b5773ea7282197c823e205547d8c2e323c0
+    GIT_SHALLOW FALSE
+)
+
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        58a6eeeaeda4f5c96dad30c23b2d4e3feae7a60c
+  GIT_TAG        27b11771a0c07fca676e5d515f6cde61ece5117c
 )
+
+FetchContent_MakeAvailable(cmake_utils)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 
 set(TRIESTE_USE_CXX17 ${REGOCPP_USE_CXX17})
 set(TRIESTE_BUILD_SAMPLES OFF)
+set(TRIESTE_BUILD_PARSERS ON)
+set(TRIESTE_CLEAN_INSTALL ON)
 
 if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
   if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -104,7 +117,7 @@ if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mllvm -x86-speculative-load-hardening")
 endif()
 
-FetchContent_MakeAvailable(trieste)
+FetchContent_MakeAvailable_ExcludeFromAll(trieste)
 
 if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_SAVED}")
@@ -119,7 +132,8 @@ else()
   file(GLOB_RECURSE ALL_SOURCE_FILES CONFIGURE_DEPENDS
         src/*.cc
         src/*.hh
-        src/passes/*.cc
+        src/reader/*.cc
+        src/unify/*.cc
         src/*.h
         include/rego/*.h
         include/rego/*.hh
@@ -177,7 +191,7 @@ set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
 set(INSTALL_INCLUDEDIR include)
 
-install(TARGETS rego
+install(TARGETS rego trieste json yaml snmalloc snmallocshim-static re2
   EXPORT ${PROJECT_NAME}_Targets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -208,7 +222,7 @@ install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
 
 if (REGOCPP_BUILD_TOOLS)
-  install(TARGETS rego_interpreter rego_trieste RUNTIME)
+  install(TARGETS rego_interpreter rego_fuzzer RUNTIME)
 endif()
 
 if (REGOCPP_COPY_EXAMPLES)
@@ -216,8 +230,8 @@ if (REGOCPP_COPY_EXAMPLES)
 endif()
 
 if (REGOCPP_BUILD_TESTS)
-  install(TARGETS rego_test yaml_trieste RUNTIME)
-  install(FILES tests/regocpp.yaml tests/bigint.yaml DESTINATION tests)
+  install(TARGETS rego_test rego_test_c_api RUNTIME)
+  install(FILES tests/regocpp.yaml tests/bigint.yaml tests/bugs.yaml DESTINATION tests)
   install(DIRECTORY tests/aci DESTINATION tests)
 endif()
 

@@ -1,4 +1,4 @@
-#include "internal.hh"
+#include "unify.hh"
 
 namespace rego
 {
@@ -9,7 +9,7 @@ namespace rego
     const Node& rulebody,
     CallStack call_stack,
     WithStack with_stack,
-    const BuiltIns& builtins,
+    BuiltIns builtins,
     UnifierCache cache) :
     m_rule(rule),
     m_call_stack(call_stack),
@@ -676,8 +676,8 @@ namespace rego
               }
               else if (new_result->rank() == old_result->rank())
               {
-                std::string old_str = to_json(result->to_term());
-                std::string new_str = to_json(maybe_result.value()->to_term());
+                std::string old_str = to_key(result->to_term());
+                std::string new_str = to_key(maybe_result.value()->to_term());
                 if (old_str == "undefined" && new_str != "undefined")
                 {
                   result = maybe_result.value();
@@ -924,18 +924,6 @@ namespace rego
         {
           values.push_back(ValueDef::create(def));
         }
-        else if (def->type() == DataItem)
-        {
-          Node value = def / Val;
-          if (value->type() == DataModule)
-          {
-            values.push_back(ValueDef::create(def));
-          }
-          else
-          {
-            values.push_back(ValueDef::create(value));
-          }
-        }
         else
         {
           values.push_back(
@@ -1144,9 +1132,9 @@ namespace rego
       std::back_inserter(function_args),
       [](auto& arg) { return arg->node(); });
 
-    if (m_builtins.is_builtin(function->location()))
+    if (m_builtins->is_builtin(function->location()))
     {
-      Node node = m_builtins.call(function->location(), function_args);
+      Node node = m_builtins->call(function->location(), function_args);
       return ValueDef::create(var, node, sources);
     }
 
@@ -1690,8 +1678,8 @@ namespace rego
         }
         else if (index == rank)
         {
-          std::string result_str = to_json(result);
-          std::string value_str = to_json(value);
+          std::string result_str = to_key(result);
+          std::string value_str = to_key(value);
           if (result_str != value_str)
           {
             return err(
@@ -2057,7 +2045,7 @@ namespace rego
     const Node& rulebody,
     const CallStack& call_stack,
     const WithStack& with_stack,
-    const BuiltIns& builtins,
+    BuiltIns builtins,
     const UnifierCache& cache)
   {
     if (contains(cache, key))

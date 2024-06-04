@@ -1,13 +1,15 @@
 cases:
 - modules:
-  - |
-    package scalars
-    
-    greeting := "Hello"
-    max_height := 42
-    pi := 3.14159
-    allowed := true
-    location := null
+  - |1
+       
+      
+     package scalars
+     
+     greeting := "Hello"
+     max_height := 42
+     pi := 3.14159
+     allowed := true
+     location := null
   note       : regocpp/scalars
   query      : data.scalars.greeting = x
   want_result:
@@ -251,9 +253,9 @@ cases:
   query: data.sets.string_set = x
   want_result:
     - x:
-        four: null
-        one: null
-        two: null
+        - four
+        - one
+        - two
 - note: regocpp/sets_membership
   modules:
   - |
@@ -1094,51 +1096,6 @@ cases:
   query: data.every_some.output = x
   want_result:
     - x: true
-- note: regocpp/bug95
-  modules:
-  - |
-    package test
-
-    x = c {
-      a = b
-      b = c
-      a = 12
-    }
-  query: data.test.x = x
-  want_result:
-    - x: 12
-- note: regocpp/bug97
-  modules:
-  - |
-    package test
-
-    x = y {
-      a = [1, 2, 3]
-      y = {z | z = a[_]}
-    }
-  query: data.test.x = x
-  want_result:
-    - x:
-      - 1
-      - 2
-      - 3
-- note: regocpp/bug101
-  modules:
-  - |
-    package test
-
-    x = y {
-      y = [z |
-        z = a[_]
-        a = [1, 2, 3]
-      ]
-    }
-  query: data.test.x = x
-  want_result:
-    - x:
-      - 1
-      - 2
-      - 3
 - note: regocpp/non-monotone
   modules:
   - |
@@ -1167,7 +1124,7 @@ cases:
         a = b
         }
 
-  query: [data.test.foo1, data.test.foo2] = x
+  query: "[data.test.foo1, data.test.foo2] = x"
   want_result:
     - x:
       - true

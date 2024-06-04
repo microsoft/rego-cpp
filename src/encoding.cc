@@ -1,4 +1,8 @@
-#include "internal.hh"
+#include "trieste/json.h"
+#include "unify.hh"
+
+#include <sstream>
+#include <string_view>
 
 namespace
 {
@@ -21,7 +25,7 @@ namespace
         node = node->front();
       }
 
-      key = to_json(node, false);
+      key = to_key(node);
     }
 
     bool operator<(const NodeKey& other) const
@@ -98,7 +102,7 @@ namespace
 
 namespace rego
 {
-  std::string to_json(const Node& node, bool set_as_array, bool sort_arrays)
+  std::string to_key(const Node& node, bool set_as_array, bool sort_arrays)
   {
     std::ostringstream buf;
     if (node->type() == Int)
@@ -164,14 +168,14 @@ namespace rego
         std::sort(keys.begin(), keys.end());
         std::transform(
           keys.begin(), keys.end(), std::back_inserter(items), [&](auto& key) {
-            return to_json(key.node, set_as_array, sort_arrays);
+            return to_key(key.node, set_as_array, sort_arrays);
           });
       }
       else
       {
         for (const auto& child : *node)
         {
-          items.push_back(to_json(child, set_as_array, sort_arrays));
+          items.push_back(to_key(child, set_as_array, sort_arrays));
         }
       }
 
@@ -213,7 +217,7 @@ namespace rego
         ", ",
         [set_as_array,
          sort_arrays](std::ostream& stream, const NodeKey& node_key) {
-          stream << to_json(node_key.node, set_as_array, sort_arrays);
+          stream << to_key(node_key.node, set_as_array, sort_arrays);
           return true;
         });
 
@@ -233,12 +237,12 @@ namespace rego
       {
         auto key = child / Key;
         auto value = child / Val;
-        std::string key_str = to_json(key, set_as_array, sort_arrays);
+        std::string key_str = to_key(key, set_as_array, sort_arrays);
         if (!is_quoted(key_str))
         {
-          key_str = '"' + key_str + '"';
+          key_str = '"' + json::escape(key_str) + '"';
         }
-        items.insert({key_str, to_json(value, set_as_array, sort_arrays)});
+        items.insert({key_str, to_key(value, set_as_array, sort_arrays)});
       }
 
       buf << "{";
@@ -257,12 +261,12 @@ namespace rego
       node->type() == Scalar || node->type() == Term ||
       node->type() == DataTerm)
     {
-      return to_json(node->front(), set_as_array, sort_arrays);
+      return to_key(node->front(), set_as_array, sort_arrays);
     }
     else if (node->type() == Binding)
     {
       buf << (node / Var)->location().view() << " = "
-          << to_json(node / Term, set_as_array, sort_arrays);
+          << to_key(node / Term, set_as_array, sort_arrays);
     }
     else if (node->type() == TermSet)
     {
@@ -273,7 +277,7 @@ namespace rego
         node->end(),
         ", ",
         [set_as_array, sort_arrays](std::ostream& stream, const Node& n) {
-          stream << to_json(n, set_as_array, sort_arrays);
+          stream << to_key(n, set_as_array, sort_arrays);
           return true;
         });
       buf << "}";

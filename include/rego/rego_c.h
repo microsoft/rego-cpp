@@ -19,6 +19,7 @@ typedef unsigned int regoSize;
 #define REGO_OK 0
 #define REGO_ERROR 1
 #define REGO_ERROR_BUFFER_TOO_SMALL 2
+#define REGO_ERROR_INVALID_LOG_LEVEL 3
 
 // term node types
 #define REGO_NODE_BINDING 1000
@@ -72,8 +73,21 @@ extern "C"
    *              REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
    *              REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
    *              REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
+   * @return REGO_OK if successful, REGO_ERROR_INVALID_LOG_LEVEL otherwise.
    */
-  void regoSetLogLevel(regoEnum level);
+  regoEnum regoSetLogLevel(regoEnum level);
+
+  /**
+   * Sets the level of logging.
+   *
+   * This setting controls the amount of logging that will be output to stdout.
+   * The default level is REGO_LOG_LEVEL_NONE.
+   *
+   * @param level One of the following strings: "None", "Error", "Output",
+   *              "Warn", "Info", "Debug", "Trace".
+   * @return REGO_OK if successful, REGO_ERROR_INVALID_LOG_LEVEL otherwise.
+   */
+  regoEnum regoSetLogLevelFromString(const char* level);
 
   /**
    * Allocates and initializes a new Rego interpreter.
@@ -174,11 +188,29 @@ extern "C"
    * If an error code is returned, more error information can be
    * obtained by calling regoGetError.
    *
+   * @deprecated This method's name is misleading, as the input term can be any
+   * valid Rego (i.e. not just JSON). Please use the updated version
+   * `regoSetInputTerm`.
    * @param rego The interpreter.
    * @param contents The contents of the JSON value.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
   regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents);
+
+  /**
+   * Sets the current input document from the specified string.
+   *
+   * The string should contain a single Rego data term. The value will be
+   * parsed and set as the interpreter's input document.
+   *
+   * If an error code is returned, more error information can be
+   * obtained by calling regoGetError.
+   *
+   * @param rego The interpreter.
+   * @param contents The contents of the Rego data term.
+   * @return REGO_OK if successful, REGO_ERROR otherwise.
+   */
+  regoEnum regoSetInputTerm(regoInterpreter* rego, const char* contents);
 
   /**
    * Sets the debug mode of the interpreter.

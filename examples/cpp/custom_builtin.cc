@@ -29,5 +29,5 @@ int main()
   Interpreter rego;
   rego.builtins().register_builtin(
     BuiltInDef::create(Location("myadd"), 2, add));
-  std::cout << rego.query("myadd(2, 3)");
+  logging::Output() << rego.query("myadd(2, 3)");
 }

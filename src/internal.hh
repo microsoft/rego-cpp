@@ -9,33 +9,8 @@
 
 namespace rego
 {
-  const inline auto ScalarToken =
-    T(Int) / T(Float) / T(True) / T(False) / T(Null);
-  const inline auto ArithToken =
-    T(Add) / T(Subtract) / T(Multiply) / T(Divide) / T(Modulo);
-  const inline auto ArithInfixArg = T(Expr) / T(NumTerm) / T(Ref) /
-    T(UnaryExpr) / T(ArithInfix) / T(RefTerm) / T(ExprCall);
-  const inline auto BinInfixArg = T(Expr) / T(Ref) / T(RefTerm) / T(ExprCall) /
-    T(Set) / T(SetCompr) / T(BinInfix);
-  const auto inline RefArg = T(RefArgDot) / T(RefArgBrack);
-  const inline auto BoolToken = T(Equals) / T(NotEquals) / T(GreaterThan) /
-    T(LessThan) / T(GreaterThanOrEquals) / T(LessThanOrEquals);
-  const inline auto TermToken = T(Var) / T(Ref) / T(Array) / T(Object) /
-    T(Set) / T(ArrayCompr) / T(ObjectCompr) / T(SetCompr);
-  const inline auto StringToken = T(JSONString) / T(RawString);
-  const inline auto ExprToken = T(Term) / ArithToken / BoolToken / StringToken /
-    T(Expr) / ScalarToken / TermToken / T(JSONString) / T(Array) / T(Set) /
-    T(Object) / T(Paren) / T(Not) / T(Dot) / T(And) / T(Or) / T(ExprCall);
-  const auto inline MembershipToken = ScalarToken / T(JSONString) /
-    T(RawString) / T(Var) / T(Object) / T(Array) / T(Set) / T(Dot) / T(Paren) /
-    ArithToken / BoolToken / T(And) / T(Or) / T(ExprCall);
-  const auto inline RuleRefToken = T(Var) / T(Dot) / T(Array);
-
   inline const std::set<std::string> Keywords(
     {"if", "in", "contains", "every"});
-
-  inline const std::set<Token> RuleTypes(
-    {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
 
   bool all_alnum(const std::string_view& str);
   bool contains_local(const Node& node);
@@ -78,7 +53,7 @@ namespace rego
     static Node term(const char* value);
     static Node term(const std::string& value);
     static Node term();
-    static Node resolve_query(const Node& query, const BuiltIns& builtins);
+    static Node resolve_query(const Node& query, BuiltIns builtins);
     static void stmt_str(logging::Log&, const Node& stmt);
     static void func_str(logging::Log&, const Node& func);
     static void arg_str(logging::Log&, const Node& arg);
@@ -123,51 +98,59 @@ namespace rego
       Node& object, const std::string& path, const Node& value);
   };
 
-  PassDef input_data();
-  PassDef modules();
-  PassDef imports();
-  PassDef keywords();
-  PassDef lists();
-  PassDef ifs();
-  PassDef elses();
-  PassDef rules();
-  PassDef build_calls();
-  PassDef membership();
-  PassDef build_refs();
-  PassDef structure();
-  PassDef strings();
-  PassDef merge_data();
-  PassDef lift_refheads();
-  PassDef symbols();
-  PassDef replace_argvals();
-  PassDef lift_query();
-  PassDef expand_imports();
-  PassDef constants();
-  PassDef explicit_enums();
-  PassDef body_locals(const BuiltIns& builtins);
-  PassDef value_locals(const BuiltIns& builtins);
-  PassDef compr_locals(const BuiltIns& builtins);
-  PassDef rules_to_compr();
-  PassDef compr();
-  PassDef absolute_refs();
-  PassDef merge_modules();
-  PassDef datarule();
-  PassDef skips();
-  PassDef unary();
-  PassDef multiply_divide();
-  PassDef add_subtract();
-  PassDef comparison();
-  PassDef assign(const BuiltIns& builtins);
-  PassDef skip_refs(const BuiltIns& builtins);
-  PassDef simple_refs();
-  PassDef init();
-  PassDef implicit_enums();
-  PassDef enum_locals();
-  PassDef rulebody();
-  PassDef lift_to_rule();
-  PassDef functions();
-  PassDef unify(const BuiltIns& builtins);
-  PassDef query();
+  inline const auto NewLine = TokenDef("rego-newline");
+  inline const auto Brace = TokenDef("rego-brace");
+  inline const auto Dot = TokenDef("rego-dot");
+  inline const auto Colon = TokenDef("rego-colon");
+  inline const auto Square = TokenDef("rego-square");
+  inline const auto Paren = TokenDef("rego-paren");
+  inline const auto Comma = TokenDef("rego-comma");
+  inline const auto EmptySet = TokenDef("rego-emptyset");
+
+  // Utility tokens
+  inline const auto Op = TokenDef("rego-op");
+  inline const auto Id = TokenDef("rego-id");
+  inline const auto Head = TokenDef("rego-head");
+  inline const auto Tail = TokenDef("rego-tail");
+  inline const auto Lhs = TokenDef("rego-lhs");
+  inline const auto Rhs = TokenDef("rego-rhs");
+  inline const auto LhsVars = TokenDef("rego-lhsvars");
+  inline const auto RhsVars = TokenDef("rego-rhsvars");
+  inline const auto RefTerm = TokenDef("rego-refterm");
+  inline const auto NumTerm = TokenDef("rego-numterm");
+  inline const auto AssignArg = TokenDef("rego-assignarg");
+  inline const auto Idx = TokenDef("rego-idx");
+  inline const auto ArgSeq = TokenDef("rego-argseq");
+
+  inline const auto wf_json = JSONString | Int | Float | True | False | Null;
+  inline const auto wf_parse_tokens = Query | Module | wf_json | wf_arith_op |
+    wf_bool_op | wf_bin_op | Package | Var | Brace | Square | Dot | Paren |
+    Assign | Unify | EmptySet | Colon | RawString | Default | Some | Import |
+    Else | As | With | NewLine | Comma;
+
+  // clang-format off
+  inline const auto wf_parser =
+    (Top <<= File)
+    | (File <<= Group)
+    | (Module <<= Group++[1])
+    | (Query <<= Group)
+    | (Brace <<= Group++)
+    | (Square <<= Group++)
+    | (Paren <<= Group++)
+    | (Group <<= wf_parse_tokens++)
+    ;
+  // clang-format on
+
+  Parse parser();
+
+  inline const auto Input = TokenDef("rego-input", flag::lookup);
+  inline const auto DataModule = TokenDef("rego-datamodule", flag::lookup);
+  inline const auto DataTerm = TokenDef("rego-dataterm");
+  inline const auto DataObject = TokenDef("rego-dataobject");
+  inline const auto DataObjectItem = TokenDef("rego-dataobjectitem");
+  inline const auto DataArray = TokenDef("rego-dataarray");
+  inline const auto DataSet = TokenDef("rego-dataset");
+  inline const auto DataRule = TokenDef("rego-datarule", flag::lookup);
 
   template <typename I, typename S, typename F>
   S& join(S& stream, const I& begin, const I& end, const char* sep, F&& writer)
@@ -211,298 +194,6 @@ namespace rego
   // Deduction guide.
   template <typename K, typename V>
   MapValuesStr(const std::map<K, V>&) -> MapValuesStr<K, V>;
-
-  class ValueDef;
-  using rank_t = std::size_t;
-  using Value = std::shared_ptr<ValueDef>;
-  using Values = std::vector<Value>;
-  using RankedNode = std::pair<rank_t, Node>;
-
-  class ValueDef
-  {
-  public:
-    void mark_as_valid();
-    void mark_as_invalid();
-    void reduce_set();
-
-    const std::string& str() const;
-    const std::string& json() const;
-    bool depends_on(const Value& value) const;
-    bool invalid() const;
-    const Location& var() const;
-    const Node& node() const;
-    const Values& sources() const;
-    Node to_term() const;
-    rank_t rank() const;
-    friend std::ostream& operator<<(std::ostream& os, const Value& value);
-    friend std::ostream& operator<<(std::ostream& os, const ValueDef& value);
-    friend bool operator==(const Value& lhs, const Value& rhs);
-    friend bool operator<(const Value& lhs, const Value& rhs);
-
-    static Value create(const RankedNode& value);
-    static Value create(const Location& var, const RankedNode& value);
-    static Value create(
-      const Location& var, const RankedNode& value, const Values& sources);
-    static Value create(const Node& value);
-    static Value create(const Location& var, const Node& value);
-    static Value create(
-      const Location& var, const Node& value, const Values& sources);
-    static Value copy_to(const Value& value, const Location& var);
-    static Values filter_by_rank(const Values& values);
-    static rank_t get_rank(const Node& node);
-
-  private:
-    static void build_string(
-      std::ostream& buf,
-      const ValueDef& current,
-      const Location& root,
-      bool first);
-    Location m_var;
-    Node m_node;
-    Values m_sources;
-    bool m_invalid;
-    rank_t m_rank;
-    std::string m_str;
-    std::string m_json;
-    ValueDef(
-      const Location& var,
-      const Node& value,
-      const Values& sources,
-      rank_t rank);
-    ValueDef(const Node& value);
-    ValueDef(const RankedNode& value);
-    ValueDef(const Location& var, const Node& value);
-    ValueDef(const Location& var, const RankedNode& value);
-    ValueDef(const Location& var, const Node& value, const Values& sources);
-    ValueDef(
-      const Location& var, const RankedNode& value, const Values& sources);
-  };
-
-  class ValueMap
-  {
-  public:
-    ValueMap();
-    ValueMap(
-      const Values::const_iterator& begin, const Values::const_iterator& end);
-    bool contains(const Value& value) const;
-    bool intersect_with(const Values& values);
-    bool remove_values_not_contained_in(const Values& values);
-    void clear();
-    bool insert(const Value& value);
-    bool erase(const std::string& json);
-    bool empty() const;
-    Nodes to_terms() const;
-    Values valid_values() const;
-    bool remove_invalid_values();
-    void mark_valid_values(bool include_falsy);
-    void mark_invalid_values();
-
-    friend std::ostream& operator<<(std::ostream& os, const ValueMap& values);
-
-  private:
-    std::multimap<std::string, Value> m_map;
-    std::set<std::pair<std::string, std::string>> m_values;
-    std::set<std::string> m_keys;
-  };
-
-  /**
-   * The Args class provides an interable interface over the Cartesian product
-   * of all sets of arguments to a function. It will contain N sets of argument
-   * sources, and will produce s_0 * s_1 * ... * s_n arguments, where s_i is the
-   * size of the i-th argument source.
-   */
-  class Args
-  {
-  public:
-    Args();
-    void push_back_source(const Values& values);
-    void mark_invalid(const std::set<Value>& active) const;
-    void mark_invalid_except(const std::set<Value>& active) const;
-    Values at(std::size_t index) const;
-    std::size_t size() const;
-    std::string str() const;
-    std::size_t source_size() const;
-    const Values& source_at(std::size_t index) const;
-    Args subargs(std::size_t start) const;
-    friend std::ostream& operator<<(std::ostream& os, const Args& args);
-
-  private:
-    std::vector<Values> m_values;
-    std::vector<size_t> m_stride;
-    std::size_t m_size;
-  };
-
-  class Variable
-  {
-  public:
-    Variable(const Node& local, std::size_t id);
-    bool unify(const Values& others);
-    std::string str() const;
-    bool remove_invalid_values();
-    void mark_invalid_values();
-    void mark_valid_values();
-    Values valid_values() const;
-    Node to_term() const;
-    Node bind();
-    void reset();
-
-    bool is_unify() const;
-    bool is_user_var() const;
-    Location name() const;
-    std::size_t id() const;
-
-    static bool is_unify(const std::string_view& name);
-    static bool is_user_var(const std::string_view& name);
-
-    friend std::ostream& operator<<(std::ostream& os, const Variable& variable);
-    friend std::ostream& operator<<(
-      std::ostream& os, const std::map<Location, Variable>& variables);
-
-  private:
-    bool intersect_with(const Values& others);
-    bool initialize(const Values& others);
-
-    Node m_local;
-    ValueMap m_values;
-    bool m_unify;
-    bool m_user_var;
-    bool m_initialized;
-    std::size_t m_id;
-  };
-
-  enum class UnifierType
-  {
-    RuleBody,
-    RuleValue
-  };
-
-  struct UnifierKey
-  {
-    Location key;
-    UnifierType type;
-    bool operator<(const UnifierKey& other) const;
-  };
-
-  class UnifierDef;
-  using Unifier = std::shared_ptr<UnifierDef>;
-  using CallStack = std::shared_ptr<std::vector<Location>>;
-  using ValuesLookup = std::map<std::string, Values>;
-  using WithStack = std::shared_ptr<std::vector<ValuesLookup>>;
-  using UnifierCache = std::shared_ptr<std::map<UnifierKey, Unifier>>;
-
-  class UnifierDef
-  {
-  public:
-    UnifierDef(
-      const Location& rule,
-      const Node& rulebody,
-      CallStack call_stack,
-      WithStack with_stack,
-      const BuiltIns& builtins,
-      UnifierCache unifier_cache);
-    Node unify();
-    Nodes expressions() const;
-    Nodes bindings() const;
-    std::string str() const;
-    std::string dependency_str() const;
-    static Unifier create(
-      const UnifierKey& key,
-      const Location& rule,
-      const Node& rulebody,
-      const CallStack& call_stack,
-      const WithStack& with_stack,
-      const BuiltIns& builtins,
-      const UnifierCache& unifier_cache);
-    std::optional<Node> resolve_rule(const Nodes& defs) const;
-    std::optional<Node> resolve_rulecomp(const Nodes& rulecomp) const;
-    std::optional<Node> resolve_ruleset(const Nodes& ruleset) const;
-    std::optional<Node> resolve_ruleobj(const Nodes& ruleobj) const;
-    std::optional<RankedNode> resolve_rulefunc(
-      const Node& rulefunc, const Nodes& args) const;
-    Node resolve_module(const Node& module) const;
-
-    struct Dependency
-    {
-      std::string name;
-      std::set<std::size_t> dependencies;
-      std::size_t score;
-    };
-
-    struct Statement
-    {
-      std::size_t id;
-      Node node;
-    };
-
-  private:
-    Unifier rule_unifier(
-      const UnifierKey& key, const Location& rule, const Node& rulebody) const;
-    void init_from_body(
-      const Node& rulebody,
-      std::vector<Statement>& statements,
-      std::size_t root);
-    std::size_t add_variable(const Node& local);
-    std::size_t add_unifyexpr(const Node& unifyexpr);
-    void add_withpush(const Node& withpush);
-    void add_withpop(const Node& withpop);
-    void reset();
-
-    void compute_dependency_scores();
-    std::size_t compute_dependency_score(
-      std::size_t index, std::set<size_t>& visited);
-    std::size_t dependency_score(const Variable& var) const;
-    std::size_t dependency_score(const Statement& stmt) const;
-    std::size_t detect_cycles() const;
-    bool has_cycle(std::size_t id) const;
-
-    Values evaluate(const Location& var, const Node& value);
-    Values evaluate_function(
-      const Location& var, const std::string& func_name, const Args& args);
-    Values resolve_var(const Node& var, bool exclude_with = false);
-    Values enumerate(const Location& var, const Node& container);
-    Values resolve_skip(const Node& skip);
-    Values check_with(const Node& var, bool bypass_recurse_check = false);
-    Values apply_access(const Location& var, const Values& args);
-    std::optional<Value> call_function(
-      const Location& var, const Values& args) const;
-    std::optional<Value> call_named_function(
-      const Location& var, const std::string& name, const Values& args);
-    bool is_local(const Node& var);
-    std::size_t scan_vars(const Node& expr, std::vector<Location>& locals);
-    void pass();
-    void execute_statements(
-      std::vector<Statement>::iterator begin,
-      std::vector<Statement>::iterator end);
-    void remove_invalid_values();
-    void mark_invalid_values();
-    Variable& get_variable(const Location& name);
-    bool is_variable(const Location& name) const;
-    Node bind_variables();
-    Args create_args(const Node& args);
-    bool would_recurse(const Node& node);
-
-    bool push_rule(const Location& rule);
-    void pop_rule(const Location& rule);
-
-    void push_with(const Node& withseq);
-    void pop_with();
-
-    void push_not();
-    void pop_not();
-
-    Location m_rule;
-    std::map<Location, Variable> m_variables;
-    std::vector<Statement> m_statements;
-    std::map<std::size_t, std::vector<Statement>> m_nested_statements;
-    CallStack m_call_stack;
-    WithStack m_with_stack;
-    const BuiltIns& m_builtins;
-    UnifierCache m_cache;
-    std::size_t m_retries;
-    Token m_parent_type;
-    std::vector<Dependency> m_dependency_graph;
-    bool m_negate;
-  };
 
   class ActionMetrics
   {
@@ -636,60 +327,6 @@ namespace rego
 #endif
 
 }
-
-// Use ADL to extend Trieste logging capabilities with additional types.
-namespace trieste::logging
-{
-  inline void append(
-    Log& log, const std::vector<rego::UnifierDef::Dependency>& deps)
-  {
-    for (auto it = deps.begin(); it != deps.end(); ++it)
-    {
-      auto& dep = *it;
-      log << "[" << dep.name << "](" << dep.score << ") -> {";
-
-      logging::Sep sep{", "};
-      for (auto& idx : dep.dependencies)
-      {
-        log << sep << deps[idx].name;
-      }
-      log << "}" << std::endl;
-    }
-  }
-
-  template <typename T>
-  inline void append(Log& log, const std::vector<T>& values)
-  {
-    log << "[";
-    logging::Sep sep{", "};
-    for (auto& value : values)
-    {
-      log << sep << value;
-    }
-    log << "]" << std::endl;
-  }
-
-  inline void append(Log& log, const Location& loc)
-  {
-    log << loc.view();
-  }
-
-  inline void append(Log& log, const rego::UnifierDef::Statement& statement)
-  {
-    rego::Resolver::stmt_str(log, statement.node);
-  }
-
-  template <typename K, typename V>
-  inline void append(Log& log, const rego::MapValuesStr<K, V>& map)
-  {
-    log << "{" << std::endl;
-    for (auto& [_, value] : map.values)
-    {
-      log << value << std::endl;
-    }
-    log << "}" << std::endl;
-  }
-} // trieste::logging
 
 #ifdef REGOCPP_ACTION_METRICS
 #define ACTION() rego::ActionMetrics __action_metrics(__FILE__, __LINE__)

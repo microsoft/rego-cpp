@@ -6,9 +6,9 @@ target_link_libraries(rego_interpreter
 
 set_target_properties(rego_interpreter PROPERTIES OUTPUT_NAME "rego")
 
-add_executable(rego_trieste driver.cc)
+add_executable(rego_fuzzer fuzzer.cc)
 
-target_link_libraries(rego_trieste
+target_link_libraries(rego_fuzzer
   PRIVATE
   regocpp::rego)
 

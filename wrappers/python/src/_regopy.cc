@@ -76,6 +76,11 @@ PYBIND11_MODULE(_regopy, m)
     &regoSetLogLevel,
     "Sets the level of logging.",
     "level"_a);
+  m.def(
+    "regoSetLogLevelFromString",
+    &regoSetLogLevelFromString,
+    "Sets the level of logging.",
+    "level"_a);
   m.def("regoNew", &regoNew, "Returns a pointer to a new rego instance.");
   m.def("regoFree", &regoFree, "Deletes a rego instance.");
   m.def(
@@ -112,6 +117,12 @@ PYBIND11_MODULE(_regopy, m)
   m.def(
     "regoSetInputJSON",
     &regoSetInputJSON,
+    "Sets the input document for the rego instance.",
+    "rego"_a,
+    "contents"_a);
+  m.def(
+    "regoSetInputTerm",
+    &regoSetInputTerm,
     "Sets the input document for the rego instance.",
     "rego"_a,
     "contents"_a);

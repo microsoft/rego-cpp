@@ -15,7 +15,8 @@ from ._regopy import (
     REGOCPP_BUILD_TOOLCHAIN,
     REGOCPP_PLATFORM,
     REGOCPP_VERSION,
-    regoSetLogLevel
+    regoSetLogLevel,
+    regoSetLogLevelFromString
 )
 from .interpreter import Interpreter, RegoError
 from .node import Node, NodeKind
@@ -48,6 +49,17 @@ def set_log_level(level: LogLevel):
         level (LogLevel): The log level.
     """
     regoSetLogLevel(level)
+
+
+def set_log_level_from_string(level: str):
+    """Sets the log level from a string.
+
+    Args:
+        level (str): The log level. One of "None",
+                     "Error", "Output", "Warn", "Info",
+                     "Debug", "Trace".
+    """
+    regoSetLogLevelFromString(level)
 
 
 def build_info() -> str:

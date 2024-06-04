@@ -222,6 +222,7 @@
       "args": [
         "-d",
         "./examples/every.rego",
+        "./examples/data2.json",
         "-q",
         "data.every.output"
       ],
@@ -304,10 +305,10 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "trieste",
-      "program": "${workspaceFolder}/build/dist/bin/rego_trieste",
+      "name": "fuzzer",
+      "program": "${workspaceFolder}/build/dist/bin/rego_fuzzer",
       "args": [
-        "test",
+        "reader",
         "-f"
       ],
       "cwd": "${workspaceFolder}/build/dist/"

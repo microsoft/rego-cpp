@@ -1,4 +1,4 @@
-#include "internal.hh"
+#include "unify.hh"
 
 namespace
 {
@@ -349,11 +349,11 @@ namespace rego
     {
       Node lhs_number = maybe_lhs_number.node;
       Node rhs_number = maybe_rhs_number.node;
-      if (
-        lhs_number->type() == Int && rhs_number->type() == Int &&
-        op->type() != Divide)
+      auto lhs_int = try_get_int(lhs_number);
+      auto rhs_int = try_get_int(rhs_number);
+      if (lhs_int.has_value() && rhs_int.has_value() && op->type() != Divide)
       {
-        return do_arith(op, get_int(lhs_number), get_int(rhs_number));
+        return do_arith(op, *lhs_int, *rhs_int);
       }
       else
       {
@@ -374,9 +374,12 @@ namespace rego
         return err(rhs, "operand 2 must be number but got set", EvalTypeError);
       }
 
-      return err(
-        op->parent()->shared_from_this(),
-        "Cannot perform arithmetic operations on non-numeric values");
+      if (maybe_lhs_set.success && maybe_rhs_number.success)
+      {
+        return err(rhs, "operand 2 must be set but got number", EvalTypeError);
+      }
+
+      return Undefined;
     }
   }
 
@@ -404,9 +407,7 @@ namespace rego
     }
     else
     {
-      return err(
-        op->parent()->shared_from_this(),
-        "Cannot perform set operations on non-set values");
+      return Undefined;
     }
   }
 
@@ -445,7 +446,7 @@ namespace rego
     }
     else
     {
-      return do_bool(op, to_json(lhs), to_json(rhs));
+      return do_bool(op, to_key(lhs), to_key(rhs));
     }
   }
 
@@ -470,9 +471,10 @@ namespace rego
         index = index->front();
       }
 
-      if (index->type() == Int)
+      auto maybe_i = try_get_int(index);
+      if (maybe_i.has_value())
       {
-        auto i = get_int(index).to_size();
+        auto i = maybe_i->to_size();
         if (i < container->size())
         {
           Node value = container->at(i);
@@ -496,23 +498,21 @@ namespace rego
       return object_lookdown(container, query);
     }
 
-    if (
-      container->type() == Data || container->type() == DataItem ||
-      container->type() == Submodule)
+    if (container->type() == Data || container->type() == Submodule)
     {
       Node key = arg->front();
       std::string key_str = std::string((container / Key)->location().view());
-      key_str += "." + strip_quotes(to_json(key));
+      key_str += "." + strip_quotes(to_key(key));
       return module_lookdown(container, key_str);
     }
 
     if (container->type() == Set)
     {
       std::set<std::string> reprs;
-      std::string query_repr = to_json(arg);
+      std::string query_repr = to_key(arg);
       for (Node member : *container)
       {
-        std::string repr = to_json(member);
+        std::string repr = to_key(member);
         if (repr == query_repr)
         {
           return Nodes({to_term(arg)});
@@ -561,11 +561,11 @@ namespace rego
         return object_items->at(i);
       }
 
-      std::string key = to_json(object_items->at(i));
+      std::string key = to_key(object_items->at(i));
       if (contains(items, key))
       {
-        std::string current = to_json(items[key] / Val);
-        std::string next = to_json(object_items->at(i + 1));
+        std::string current = to_key(items[key] / Val);
+        std::string next = to_key(object_items->at(i + 1));
         if (current != next)
         {
           if (is_rule)
@@ -630,7 +630,7 @@ namespace rego
         throw std::runtime_error("Not implemented");
       }
 
-      std::string repr = to_json(member);
+      std::string repr = to_key(member);
       if (!contains(members, repr))
       {
         members[repr] = to_term(member);
@@ -661,12 +661,12 @@ namespace rego
     std::set<std::string> values;
     for (auto term : *lhs)
     {
-      values.insert(to_json(term));
+      values.insert(to_key(term));
     }
 
     for (auto term : *rhs)
     {
-      if (contains(values, to_json(term)))
+      if (contains(values, to_key(term)))
       {
         set->push_back(term->clone());
       }
@@ -690,12 +690,12 @@ namespace rego
     std::map<std::string, Node> members;
     for (auto term : *lhs)
     {
-      members[to_json(term)] = term;
+      members[to_key(term)] = term;
     }
 
     for (auto term : *rhs)
     {
-      std::string key = to_json(term);
+      std::string key = to_key(term);
       if (!contains(members, key))
       {
         members[key] = term;
@@ -727,12 +727,12 @@ namespace rego
     std::set<std::string> values;
     for (auto term : *rhs)
     {
-      values.insert(to_json(term));
+      values.insert(to_key(term));
     }
 
     for (auto term : *lhs)
     {
-      if (!contains(values, to_json(term)))
+      if (!contains(values, to_key(term)))
       {
         set->push_back(term->clone());
       }
@@ -778,7 +778,7 @@ namespace rego
 
   void Resolver::term_str(logging::Log& log, const Node& node)
   {
-    log << node->type().str() << "(" << to_json(node) << ")";
+    log << node->type().str() << "(" << to_key(node) << ")";
   }
 
   void Resolver::with_str(logging::Log& os, const Node& unifyexprwith)
@@ -905,7 +905,7 @@ namespace rego
     }
     else
     {
-      os << to_json(arg);
+      os << to_key(arg);
     }
   }
 
@@ -960,8 +960,8 @@ namespace rego
       Node arg = args[i]->clone();
       if (rulearg->type() == ArgVal)
       {
-        std::string rulearg_str = to_json(rulearg->front());
-        std::string arg_str = to_json(arg);
+        std::string rulearg_str = to_key(rulearg->front());
+        std::string arg_str = to_key(arg);
         if (rulearg_str != arg_str)
         {
           return Undefined;
@@ -980,9 +980,7 @@ namespace rego
     const Node& container, const std::string& query)
   {
     Node module = container;
-    if (
-      module->type() == Submodule || module->type() == Data ||
-      module->type() == DataItem)
+    if (module->type() == Submodule || module->type() == Data)
     {
       module = module / Val;
     }
@@ -1027,7 +1025,7 @@ namespace rego
   Nodes Resolver::object_lookdown(const Node& object, const Node& query)
   {
     Nodes terms;
-    std::string query_str = to_json(query);
+    std::string query_str = to_key(query);
     for (auto& object_item : *object)
     {
       Node key = object_item / Key;
@@ -1036,7 +1034,7 @@ namespace rego
         throw std::runtime_error("Not implemented.");
       }
 
-      std::string key_str = to_json(key);
+      std::string key_str = to_key(key);
       if (key_str == query_str)
       {
         terms.push_back((object_item / Val)->clone());
@@ -1063,7 +1061,7 @@ namespace rego
           Nodes defs = result->lookdown(var->location());
           for (auto& def : defs)
           {
-            if (def->type() == DataItem || def->type() == Submodule)
+            if (def->type() == Submodule)
             {
               new_results.push_back(def / Val);
             }
@@ -1086,7 +1084,7 @@ namespace rego
     std::set<std::string> values;
     for (Node term : *termset)
     {
-      std::string repr = to_json(term);
+      std::string repr = to_key(term);
       if (!contains(values, repr))
       {
         values.insert(repr);
@@ -1102,7 +1100,7 @@ namespace rego
     return reduce;
   }
 
-  Node Resolver::resolve_query(const Node& query, const BuiltIns& builtins)
+  Node Resolver::resolve_query(const Node& query, BuiltIns builtins)
   {
     Nodes defs = query->front()->lookup();
     if (defs.size() != 1)
@@ -1211,18 +1209,18 @@ namespace rego
     std::vector<std::string> indices;
     if (items->type() == Array || items->type() == Set)
     {
-      indices = array_find(items, to_json(item));
+      indices = array_find(items, to_key(item));
     }
     else if (items->type() == Object)
     {
-      indices = object_find(items, to_json(item));
+      indices = object_find(items, to_key(item));
     }
     else
     {
       return False ^ "false";
     }
 
-    std::string index_str = to_json(index);
+    std::string index_str = to_key(index);
     for (auto& i : indices)
     {
       if (i == index_str)
@@ -1245,11 +1243,11 @@ namespace rego
     std::vector<std::string> indices;
     if (items->type() == Array || items->type() == Set)
     {
-      indices = array_find(items, to_json(item));
+      indices = array_find(items, to_key(item));
     }
     else if (items->type() == Object)
     {
-      indices = object_find(items, to_json(item));
+      indices = object_find(items, to_key(item));
     }
     else
     {
@@ -1271,7 +1269,7 @@ namespace rego
     for (std::size_t i = 0; i < array->size(); ++i)
     {
       Node item = array->at(i);
-      if (to_json(item) == search)
+      if (to_key(item) == search)
       {
         indices.push_back(std::to_string(i));
       }
@@ -1286,9 +1284,9 @@ namespace rego
     std::vector<std::string> indices;
     for (auto& objectitem : *object)
     {
-      if (to_json(objectitem / Val) == search)
+      if (to_key(objectitem / Val) == search)
       {
-        indices.push_back(to_json(objectitem / Key));
+        indices.push_back(to_key(objectitem / Key));
       }
     }
 
@@ -1358,7 +1356,7 @@ namespace rego
         Node value = current / Val;
         if (value->type() == Term)
         {
-          os << to_json(value) << std::endl;
+          os << to_key(value) << std::endl;
         }
         else
         {
@@ -1460,11 +1458,11 @@ namespace rego
       Node query = JSONString ^ prefix;
 
       bool found = false;
-      std::string query_str = to_json(query);
+      std::string query_str = to_key(query);
       for (auto& object_item : *current)
       {
         Node key = object_item / Key;
-        std::string key_str = to_json(key);
+        std::string key_str = to_key(key);
         if (key_str == query_str)
         {
           current = object_item / Val;
@@ -1501,12 +1499,12 @@ namespace rego
     }
 
     Node key = (Scalar << (JSONString ^ path.substr(start)));
-    std::string key_str = to_json(key);
+    std::string key_str = to_key(key);
     Node existing = nullptr;
     for (auto& object_item : *current)
     {
       Node item_key = object_item / Key;
-      std::string item_key_str = to_json(item_key);
+      std::string item_key_str = to_key(item_key);
       if (key_str == item_key_str)
       {
         existing = object_item;
