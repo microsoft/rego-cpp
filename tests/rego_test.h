@@ -95,7 +95,7 @@ namespace rego_test
       std::ostream& os) const;
 
     static std::optional<Node> maybe_get_object(
-      const Node& mapping, const std::string& name);
+      const std::filesystem::path& dir, const Node& mapping, const std::string& name);
     static std::optional<std::string> maybe_get_string(
       const Node& mapping, const std::string& name);
     static std::string get_string(const Node& mapping, const std::string& name);
@@ -125,4 +125,5 @@ namespace rego_test
     bool m_broken;
   };
 
+  std::vector<BuiltIn> cheriot_builtins();
 }

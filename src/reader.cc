@@ -1452,13 +1452,6 @@ namespace
         In(VarSeq) * (T(Term) << T(Var)[Var]) >>
           [](Match& _) { return _(Var); },
 
-        In(RefArgBrack) *
-            (T(Expr) << (T(Term) << T(Scalar, Var, Object, Array, Set)[Idx])) >>
-          [](Match& _) { return _(Idx); },
-
-        In(RefArgBrack) * (T(Expr) << T(ExprInfix)[ExprInfix]) >>
-          [](Match& _) { return _(ExprInfix); },
-
         In(RuleHead) * (T(RuleHeadComp) << End) >>
           [](Match&) {
             return RuleHeadComp

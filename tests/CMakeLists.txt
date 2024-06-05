@@ -1,4 +1,4 @@
-add_executable(rego_test main.cc test_case.cc)
+add_executable(rego_test main.cc test_case.cc cheriot/builtins.cpp)
 target_link_libraries(rego_test
   PRIVATE 
   regocpp::rego)
@@ -16,6 +16,7 @@ endif()
 add_test(NAME rego_test_regocpp COMMAND rego_test regocpp.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_bugs COMMAND rego_test bugs.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_aci COMMAND rego_test aci/aci.yaml WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+add_test(NAME rego_test_cheriot COMMAND rego_test cheriot/cheriot.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_c_api COMMAND rego_test_c_api WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 set_tests_properties(rego_test_aci PROPERTIES TIMEOUT 300)
 
@@ -25,6 +26,8 @@ add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bugs.yaml $<TARGET_FILE_DIR:rego_test>/bugs.yaml)
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/aci $<TARGET_FILE_DIR:rego_test>/aci)
+add_custom_command(TARGET rego_test POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/cheriot $<TARGET_FILE_DIR:rego_test>/cheriot)
 
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS

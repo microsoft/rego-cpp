@@ -144,7 +144,7 @@ namespace rego
     | (SetCompr <<= Expr * (Body >>= NestedBody))
     | (RefTerm <<= Ref | Var)
     | (NumTerm <<= Int | Float)
-    | (RefArgBrack <<= RefTerm | Scalar | Object | Array | Set | Expr)
+    | (RefArgBrack <<= RefTerm | NumTerm | Scalar | Object | Array | Set | Expr)
     | (Expr <<= wf_symbols_exprs)
     | (NestedBody <<= Key * (Val >>= UnifyBody))
     ;

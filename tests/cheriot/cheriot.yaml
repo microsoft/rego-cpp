@@ -1,0 +1,41 @@
+cases:
+- note: Check that we can demangle a library export correctly
+  modules:
+  - compartment.rego
+  data: sail.yaml
+  input: test-suite.json
+  query: data.compartment.compartment_call_allow_list("allocator_test", `test_allocator\(\)`, {"test_runner"}) = x
+  want_result:
+  - x : true
+- note: Check that we can demangle a compartment export correctly
+  modules:
+  - compartment.rego
+  data: sail.yaml
+  input: test-suite.json
+  query: export_entry_demangle("alloc", input.compartments.allocator.exports[6].export_symbol) = x
+  want_result:
+  - x: heap_free(SObjStruct*, void*)
+- note: Check that we can demangle a library export correctly
+  modules:
+  - compartment.rego
+  data: sail.yaml
+  input: test-suite.json
+  query: export_entry_demangle("token_library", input.compartments.token_library.exports[0].export_symbol) = x
+  want_result:
+  - x: token_obj_unseal(SKeyStruct*, SObjStruct*)
+- note: Check that we can demangle a library export correctly
+  modules:
+  - compartment.rego
+  data: sail.yaml
+  input: test-suite.json
+  query: data.compartment.mmio_allow_list("clint", {"scheduler"}) = x
+  want_result:
+  - x: true
+- note: Check that we can demangle a library export correctly.
+  modules:
+  - rtos.rego
+  data: sail.yaml
+  input: test-suite.json
+  query: sum([ data.rtos.decode_allocator_capability(c).quota | c = input.compartments[_].imports[_] ; data.rtos.is_allocator_capability(c) ]) = x
+  want_result:
+  - x: 1070080

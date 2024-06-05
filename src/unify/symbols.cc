@@ -436,16 +436,23 @@ namespace rego
             return NumTerm << _(Val);
           },
 
-        In(RefArgBrack) * T(Var)[Var] >>
+        In(RefArgBrack) * (T(Expr) << T(RefTerm, NumTerm)[Term]) >>
           [](Match& _) {
+            ACTION();
+            return _(Term);
+          },
+        
+        In(RefArgBrack) * T(Var)[Var] >>
+          [](Match& _){
             ACTION();
             return RefTerm << _(Var);
           },
 
-        In(RefArgBrack) * T(ExprInfix)[ExprInfix] >>
+        In(RefArgBrack) *
+            (T(Expr) << (T(Term) << T(Scalar, Object, Array, Set)[Term])) >>
           [](Match& _) {
             ACTION();
-            return Expr << _(ExprInfix);
+            return _(Term);
           },
 
         In(UnifyBody) *

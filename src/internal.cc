@@ -263,6 +263,16 @@ namespace rego
       else
       {
         Node index = arg->front();
+        if(index == Expr)
+        {
+          index = index->front();
+        }
+
+        if (index == Term)
+        {
+          index = index->front();
+        }
+
         if (index->type() == Scalar)
         {
           index = index->front();

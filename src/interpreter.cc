@@ -354,8 +354,8 @@ namespace rego
     return m_reader.wf_check_enabled();
   }
 
-  BuiltIns Interpreter::builtins() const
+  BuiltInsDef& Interpreter::builtins() const
   {
-    return m_builtins;
+    return *m_builtins;
   }
 }

@@ -168,7 +168,7 @@ namespace rego
     | (Ref <<= RefHead * RefArgSeq)
     | (RefHead <<= Var | Array | Object | Set | ArrayCompr | ObjectCompr | SetCompr | ExprCall)
     | (RefArgSeq <<= (RefArgDot | RefArgBrack)++)
-    | (RefArgBrack <<= ExprInfix | Scalar | Var | Array | Object | Set | Placeholder)
+    | (RefArgBrack <<= Expr | Placeholder)
     | (RefArgDot <<= Var)
     | (Scalar <<= String | Int | Float | True | False | Null)
     | (String <<= JSONString | RawString)
@@ -945,7 +945,7 @@ namespace rego
      * This object can be used to register custom built-ins created using
      * BuiltInDef::create.
      */
-    BuiltIns builtins() const;
+    BuiltInsDef& builtins() const;
 
   private:
     friend const char* ::regoGetError(regoInterpreter* rego);

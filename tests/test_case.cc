@@ -1,5 +1,4 @@
-#include "test_case.h"
-
+#include "rego_test.h"
 #include "trieste/json.h"
 #include "trieste/wf.h"
 #include "trieste/yaml.h"
@@ -146,7 +145,9 @@ namespace rego_test
   {}
 
   std::optional<Node> TestCase::maybe_get_object(
-    const Node& mapping, const std::string& name)
+    const std::filesystem::path& dir,
+    const Node& mapping,
+    const std::string& name)
   {
     Location loc(name);
     Nodes defs = mapping->lookdown(loc);
@@ -155,14 +156,61 @@ namespace rego_test
       throw std::runtime_error("Expected exactly one " + name + " block");
     }
 
-    if (defs.size() == 1)
+    if (defs.size() != 1)
     {
-      assert(defs[0] == json::Member);
-      Node val = defs[0] / json::Value;
-      return Top << val;
+      return std::nullopt;
     }
 
-    return std::nullopt;
+    assert(defs[0] == json::Member);
+    Node val = defs[0] / json::Value;
+
+    auto value = val->location().view();
+    value = value.substr(1, value.size() - 2); // remove quotes
+    auto path = dir / value;
+
+    if (ends_with(value, ".json"))
+    {
+      if (!std::filesystem::exists(path))
+      {
+        logging::Error() << "Could not find file " << path;
+        return std::nullopt;
+      }
+
+      auto result = json::reader().file(path).read();
+      if (result.ok)
+      {
+        return result.ast;
+      }
+      else
+      {
+        logging::Error err;
+        result.print_errors(err);
+        return std::nullopt;
+      }
+    }
+
+    if (ends_with(value, ".yaml"))
+    {
+      if (!std::filesystem::exists(path))
+      {
+        logging::Error() << "Could not find file " << path;
+        return std::nullopt;
+      }
+
+      auto result = yaml::reader().file(path) >> yaml::to_json();
+      if (result.ok)
+      {
+        return result.ast;
+      }
+      else
+      {
+        logging::Error err;
+        result.print_errors(err);
+        return std::nullopt;
+      }
+    }
+
+    return Top << val;
   }
 
   std::optional<std::string> TestCase::maybe_get_string(
@@ -497,13 +545,15 @@ namespace rego_test
         throw std::runtime_error("Query is required");
       }
 
-      auto data = maybe_get_object(test_case_obj, "data");
+      auto data =
+        maybe_get_object(filename.parent_path(), test_case_obj, "data");
       if (data.has_value() && (*data)->front() == json::Object)
       {
         test_case = test_case.data(*data);
       }
 
-      auto input = maybe_get_object(test_case_obj, "input");
+      auto input =
+        maybe_get_object(filename.parent_path(), test_case_obj, "input");
       if (input.has_value())
       {
         test_case = test_case.input(*input);
@@ -575,7 +625,8 @@ namespace rego_test
     const std::filesystem::path& debug_path, bool wf_checks) const
   {
     rego::Interpreter interpreter;
-    interpreter.builtins()->strict_errors(m_strict_error);
+    interpreter.builtins().strict_errors(m_strict_error);
+    interpreter.builtins().register_builtins(cheriot_builtins());
     interpreter.wf_check_enabled(wf_checks)
       .debug_enabled(!debug_path.empty())
       .debug_path(debug_path);

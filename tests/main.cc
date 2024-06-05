@@ -1,4 +1,4 @@
-#include "test_case.h"
+#include "rego_test.h"
 
 #include <CLI/CLI.hpp>
 #include <type_traits>

@@ -248,7 +248,7 @@ extern "C"
   void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled)
   {
     logging::Debug() << "regoSetStrictBuiltInErrors: " << enabled;
-    reinterpret_cast<rego::Interpreter*>(rego)->builtins()->strict_errors(
+    reinterpret_cast<rego::Interpreter*>(rego)->builtins().strict_errors(
       enabled);
   }
 
@@ -257,7 +257,7 @@ extern "C"
     logging::Debug() << "regoGetStrictBuiltInErrors";
     return reinterpret_cast<rego::Interpreter*>(rego)
       ->builtins()
-      ->strict_errors();
+      .strict_errors();
   }
 
   // Output functions
