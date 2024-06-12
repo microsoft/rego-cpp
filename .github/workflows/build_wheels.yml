@@ -19,7 +19,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-win*
           CIBW_ENVIRONMENT: >
@@ -47,7 +47,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: x86_64
@@ -94,7 +94,7 @@ jobs:
           export PATH=$(python3 -m site --user-base)/bin:$PATH
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: arm64
@@ -124,7 +124,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-manylinux*
           CIBW_BEFORE_ALL: yum makecache && yum -y install devtoolset-10-libatomic-devel
@@ -153,7 +153,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-musllinux*
           CIBW_ENVIRONMENT: >
