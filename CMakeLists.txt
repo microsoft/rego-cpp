@@ -64,7 +64,6 @@ option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" O
 option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
 option(REGOCPP_BUILD_DOCS "Specifies whether to build the documentation" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
-option(REGOCPP_CHERIOT_TESTS "Specifies whether to load and run the Cheriot-audit tests" OFF)
 option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
 option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
 option(REGOCPP_USE_CXX17 "Specifies whether to use C++17" OFF)
