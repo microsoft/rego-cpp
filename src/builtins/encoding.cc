@@ -169,24 +169,13 @@ namespace
 
   Node json_marshal(const Nodes& args)
   {
-    Node term = args[0];
-    if (term != Term)
+    Node x = Resolver::to_term(args[0]);
+    if (x->type() == Error)
     {
-      if (term->in({Int, Float, True, False, Null, JSONString}))
-      {
-        term = Term << (Scalar << term);
-      }
-      else if (term->in({Array, Object, Set, Scalar}))
-      {
-        term = Term << term;
-      }
-      else
-      {
-        return err(args[0], "failed to marshal JSON", EvalBuiltInError);
-      }
+      return x;
     }
 
-    auto result = to_json().wf_check_enabled(true).rewrite(Top << term);
+    auto result = to_json().wf_check_enabled(true).rewrite(Top << x);
     if (!result.ok)
     {
       logging::Error log;
@@ -195,6 +184,96 @@ namespace
     }
 
     std::string json = json::to_string(result.ast);
+    return JSONString ^ ('"' + json::escape(json) + '"');
+  }
+
+  Node json_marshal_with_options(const Nodes& args)
+  {
+    Node x = Resolver::to_term(args[0]);
+    if (x->type() == Error)
+    {
+      return x;
+    }
+
+    Node opts = unwrap_arg(args, UnwrapOpt(1).type(Object));
+    if (opts == Error)
+    {
+      return opts;
+    }
+
+    std::optional<bool> maybe_pretty = std::nullopt;
+    std::string indent = "\t";
+    std::string prefix = "";
+
+    for (auto& item : *opts)
+    {
+      auto maybe_key = unwrap(item / Key, JSONString);
+      if (!maybe_key.success)
+      {
+        return err(item, "key must be a string", EvalBuiltInError);
+      }
+
+      std::string key = get_string(maybe_key.node);
+      if (key == "pretty")
+      {
+        auto maybe_bool = unwrap(item / Val, {True, False});
+        if (!maybe_bool.success)
+        {
+          return err(item, "value must be a boolean", EvalBuiltInError);
+        }
+        maybe_pretty = get_bool(maybe_bool.node);
+      }
+      else if (key == "indent")
+      {
+        indent = get_string(item / Val);
+        if (!maybe_pretty.has_value())
+        {
+          maybe_pretty = true;
+        }
+      }
+      else if (key == "prefix")
+      {
+        prefix = get_string(item / Val);
+        if (!maybe_pretty.has_value())
+        {
+          maybe_pretty = true;
+        }
+      }
+      else
+      {
+        std::string message = "object contained unknown key \"" + key + '"';
+        return err(item, message, EvalTypeError);
+      }
+    }
+
+    bool pretty = maybe_pretty.value_or(false);
+
+    auto result = to_json().wf_check_enabled(true).rewrite(Top << x);
+    if (!result.ok)
+    {
+      logging::Error log;
+      result.print_errors(log);
+      return err(args[0], "failed to marshal JSON", EvalBuiltInError);
+    }
+
+    std::string json = json::to_string(result.ast, pretty, false, indent);
+
+    if (pretty && !prefix.empty())
+    {
+      std::ostringstream prefixed;
+      prefixed << prefix;
+      size_t start = 0;
+      size_t end = json.find('\n');
+      while (end != std::string::npos)
+      {
+        prefixed << json.substr(start, end - start) << '\n' << prefix;
+        start = end + 1;
+        end = json.find('\n', start);
+      }
+      prefixed << json.substr(start);
+      json = prefixed.str();
+    }
+
     return JSONString ^ ('"' + json::escape(json) + '"');
   }
 
@@ -222,7 +301,7 @@ namespace
 
   Node json_is_valid(const Nodes& args)
   {
-    auto maybe_x = unwrap(args[0], {JSONString});
+    auto maybe_x = unwrap(args[0], JSONString);
     if (!maybe_x.success)
     {
       return False ^ "false";
@@ -289,7 +368,7 @@ namespace
 
   Node yaml_is_valid(const Nodes& args)
   {
-    auto maybe_x = unwrap(args[0], {JSONString});
+    auto maybe_x = unwrap(args[0], JSONString);
     if (!maybe_x.success)
     {
       return False ^ "false";
@@ -344,7 +423,7 @@ namespace
     std::ostringstream encoded;
     for (std::size_t i = 0; i < object->size(); ++i)
     {
-      auto maybe_key = unwrap(object->at(i) / Key, {JSONString});
+      auto maybe_key = unwrap(object->at(i) / Key, JSONString);
       if (!maybe_key.success)
       {
         return err(maybe_key.node, "key must be a string", EvalBuiltInError);
@@ -378,7 +457,7 @@ namespace
         Node array = maybe_value.node;
         for (std::size_t j = 0; j < array->size(); ++j)
         {
-          maybe_value = unwrap(array->at(j), {JSONString});
+          maybe_value = unwrap(array->at(j), JSONString);
           if (!maybe_value.success)
           {
             return err(
@@ -531,6 +610,8 @@ namespace rego
         BuiltInDef::create(Location("hex.decode"), 1, hex_decode),
         BuiltInDef::create(Location("hex.encode"), 1, hex_encode),
         BuiltInDef::create(Location("json.marshal"), 1, json_marshal),
+        BuiltInDef::create(
+          Location("json.marshal_with_options"), 2, json_marshal_with_options),
         BuiltInDef::create(Location("json.unmarshal"), 1, json_unmarshal),
         BuiltInDef::create(Location("json.is_valid"), 1, json_is_valid),
         BuiltInDef::create(Location("urlquery.decode"), 1, urlquery_decode),

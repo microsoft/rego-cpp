@@ -93,6 +93,7 @@ namespace rego
   inline const auto Import =
     TokenDef("rego-import", flag::lookdown | flag::lookup | flag::shadowing);
   inline const auto Placeholder = TokenDef("rego-placeholder");
+  inline const auto Version = TokenDef("rego-version", flag::print);
 
   // intermediate tokens
   inline const auto RuleBodySeq = TokenDef("rego-rulebodyseq");
@@ -110,7 +111,10 @@ namespace rego
   inline const auto Undefined = TokenDef("rego-undefined");
 
   // other tokens
+  inline const auto Results = TokenDef("rego-results", flag::symtab);
   inline const auto Result = TokenDef("rego-result", flag::symtab);
+  inline const auto Bindings = TokenDef("rego-bindings");
+  inline const auto Terms = TokenDef("rego-terms");
   inline const auto Binding = TokenDef("rego-binding", flag::lookdown);
   inline const auto ErrorCode = TokenDef("rego-errorcode");
   inline const auto ErrorSeq = TokenDef("rego-errorseq");
@@ -126,7 +130,7 @@ namespace rego
   // clang-format off
   inline const auto wf =
       (Top <<= Query | Module)
-    | (Module <<= Package * ImportSeq * Policy)
+    | (Module <<= Package * Version * ImportSeq * Policy)
     | (ImportSeq <<= Import++)
     | (Import <<= Ref * Var)
     | (Package <<= Ref)
@@ -141,7 +145,7 @@ namespace rego
     | (RuleArgs <<= Term++)
     | (RuleBodySeq <<= (Else | Query)++)
     | (Else <<= Expr * Query)
-    | (Query <<= Literal++[1])
+    | (Query <<= Literal++)
     | (Literal <<= (Expr >>= SomeDecl | Expr | NotExpr) * WithSeq)
     | (WithSeq <<= With++)
     | (With <<= Term * Expr)
@@ -168,7 +172,7 @@ namespace rego
     | (Ref <<= RefHead * RefArgSeq)
     | (RefHead <<= Var | Array | Object | Set | ArrayCompr | ObjectCompr | SetCompr | ExprCall)
     | (RefArgSeq <<= (RefArgDot | RefArgBrack)++)
-    | (RefArgBrack <<= ExprInfix | Scalar | Var | Array | Object | Set | Placeholder)
+    | (RefArgBrack <<= Expr | Placeholder)
     | (RefArgDot <<= Var)
     | (Scalar <<= String | Int | Float | True | False | Null)
     | (String <<= JSONString | RawString)
@@ -181,9 +185,12 @@ namespace rego
 
   // clang-format off
   inline const auto wf_result =
-    (Top <<= Result)
-    | (Result <<= (Binding | Term)++)
-    | (Binding <<= Var * Term)[Var]
+    (Top <<= Results | Undefined)
+    | (Results <<= Result++[1])
+    | (Result <<= Terms * Bindings)
+    | (Terms <<= Term++)
+    | (Bindings <<= Binding++)
+    | (Binding <<= (Key >>= Var) * (Val >>= Term))[Key]
     | (Term <<= Scalar | Array | Object | Set)
     | (Array <<= Term++)
     | (Set <<= Term++)
@@ -402,6 +409,15 @@ namespace rego
   Node unwrap_arg(const Nodes& args, const UnwrapOpt& options);
 
   /**
+   * Attempts to unwrap an argument to a specified type.
+   *
+   * @param term The term to unwrap.
+   * @param type The acceptable type.
+   * @return An unwrap result.
+   */
+  UnwrapResult unwrap(const Node& term, const Token& type);
+
+  /**
    * Attempts to unwrap an argument to one of the specified types.
    *
    * @param term The term to unwrap.
@@ -453,6 +469,15 @@ namespace rego
    * @return The boolean value of the node.
    */
   bool get_bool(const Node& node);
+
+  /**
+   * Tries to get an item within an object using its key.
+   *
+   * @param node The object to search.
+   * @param key The key to search for.
+   */
+  std::optional<Node> try_get_item(
+    const Node& node, const std::string_view& key);
 
   /**
    * Converts the value to a scalar node.
@@ -631,13 +656,24 @@ namespace rego
     bool is_builtin(const Location& name) const;
 
     /**
+     * Determines whether the provided builtin name is deprecated in the
+     * provided version.
+     *
+     * @param version The version to check.
+     * @param name The name to check.
+     */
+    bool is_deprecated(const Location& version, const Location& name) const;
+
+    /**
      * Calls the built-in with the provided name and arguments.
      *
      * @param name The name of the built-in to call.
      * @param args The arguments to pass to the built-in.
+     * @param version The Rego version.
      * @return The result of the built-in call.
      */
-    Node call(const Location& name, const Nodes& args) const;
+    Node call(
+      const Location& name, const Location& version, const Nodes& args) const;
 
     /**
      * Registers a built-in.
@@ -707,9 +743,12 @@ namespace rego
   const std::string EvalTypeError = "eval_type_error";
   const std::string EvalBuiltInError = "eval_builtin_error";
   const std::string RegoTypeError = "rego_type_error";
+  const std::string RegoParseError = "rego_parse_error";
+  const std::string RegoCompileError = "rego_compile_error";
   const std::string EvalConflictError = "eval_conflict_error";
   const std::string WellFormedError = "wellformed_error";
   const std::string RuntimeError = "runtime_error";
+  const std::string DefaultVersion = "v0";
 
   /**
    * Generates an error node.
@@ -816,8 +855,9 @@ namespace rego
      * the file.
      *
      * @param path The path to the module file.
+     * @returns either an error node or a nullptr if the module is valid.
      */
-    bool add_module_file(const std::filesystem::path& path);
+    Node add_module_file(const std::filesystem::path& path);
 
     /**
      * Adds a module (i.e. virtual document) to the interpreter.
@@ -826,8 +866,9 @@ namespace rego
      *
      * @param name The name of the module.
      * @param contents The contents of the module.
+     * @returns either an error node or a nullptr if the module is valid.
      */
-    bool add_module(const std::string& name, const std::string& contents);
+    Node add_module(const std::string& name, const std::string& contents);
 
     /**
      * Adds a base document to the interpreter.
@@ -836,8 +877,9 @@ namespace rego
      * of the file.
      *
      * @param module The module to add.
+     * @returns either an error node or a nullptr if the JSON is valid.
      */
-    bool add_data_json_file(const std::filesystem::path& path);
+    Node add_data_json_file(const std::filesystem::path& path);
 
     /**
      * Adds a base document to the interpreter.
@@ -846,8 +888,9 @@ namespace rego
      * parsed and added to the interpreter's data sequence.
      *
      * @param json The contents of the document.
+     * @returns either an error node or a nullptr if the JSON is valid.
      */
-    bool add_data_json(const std::string& json);
+    Node add_data_json(const std::string& json);
 
     /**
      * Adds a base document to the interpreter.
@@ -857,7 +900,7 @@ namespace rego
      *
      * @param node The contents of the document.
      */
-    bool add_data(const Node& node);
+    Node add_data(const Node& node);
 
     /**
      * Sets the input document to the interpreter.
@@ -866,8 +909,10 @@ namespace rego
      * of the file.
      *
      * @param path The path to the input file.
+     * @returns either an error node or a nullptr if the input document is
+     * valid.
      */
-    bool set_input_json_file(const std::filesystem::path& path);
+    Node set_input_json_file(const std::filesystem::path& path);
 
     /**
      * Sets the input term of the interpreter.
@@ -875,8 +920,9 @@ namespace rego
      * The string must contain a single valid Rego data term.
      *
      * @param term The contents of the term.
+     * @returns either an error node or a nullptr if the input term is valid.
      */
-    bool set_input_term(const std::string& term);
+    Node set_input_term(const std::string& term);
 
     /**
      * Sets the input document to the interpreter.
@@ -886,7 +932,7 @@ namespace rego
      *
      * @param node The contents of the document.
      */
-    bool set_input(const Node& node);
+    Node set_input(const Node& node);
 
     /**
      * Executes a query against the interpreter.
@@ -945,7 +991,7 @@ namespace rego
      * This object can be used to register custom built-ins created using
      * BuiltInDef::create.
      */
-    BuiltIns builtins() const;
+    BuiltInsDef& builtins() const;
 
   private:
     friend const char* ::regoGetError(regoInterpreter* rego);

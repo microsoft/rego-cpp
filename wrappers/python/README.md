@@ -86,8 +86,6 @@ print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
 
 ## Language Support
 
-At present we support v0.55.0 of Rego as defined by OPA, with the following grammar:
-
 ```ebnf
 module          = package { import } policy
 package         = "package" ref
@@ -118,7 +116,7 @@ set-compr       = "{" term "|" query "}"
 object-compr    = "{" object-item "|" query "}"
 infix-operator  = assign-operator | bool-operator | arith-operator | bin-operator
 bool-operator   = "==" | "!=" | "<" | ">" | ">=" | "<="
-arith-operator  = "+" | "-" | "*" | "/"
+arith-operator  = "+" | "-" | "*" | "/" | "%"
 bin-operator    = "&" | "|"
 assign-operator = ":=" | "="
 ref             = ( var | array | object | set | array-compr | object-compr | set-compr | expr-call ) { ref-arg }
@@ -136,6 +134,9 @@ set             = empty-set | non-empty-set
 non-empty-set   = "{" term { "," term } "}"
 empty-set       = "set(" ")"
 ```
+
+> [!NOTE]
+> This grammar corresponds to Rego with `rego.v1` enabled (See [OPA v1.0](https://www.openpolicyagent.org/docs/latest/opa-1) for more info).
 
 Definitions:
 ```

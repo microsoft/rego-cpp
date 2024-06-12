@@ -281,44 +281,57 @@ namespace rego_test
     return modules;
   }
 
-  BindingMap TestCase::to_binding_map(const Node& node) const
+  BindingMaps TestCase::to_binding_maps(const Node& node) const
   {
-    BindingMap bindings;
+    BindingMaps binding_maps;
+
     if (node == Array)
     {
-      for (auto& binding : *node)
+      for (auto& object : *node)
       {
-        assert(binding == Object);
-        for (auto& member : *binding)
+        assert(object == Object);
+        BindingMap binding_map;
+        for (auto& item : *object)
         {
-          Node string = member->front()->front()->front();
+          Node string = (item / Key)->front()->front();
           assert(string == JSONString);
           std::string key = std::string(string->location().view());
           key = key.substr(1, key.size() - 2); // remove quotes
-          std::string value =
-            rego::to_key(member->back(), true, m_sort_bindings);
-          bindings[key] = value;
+          std::string value = rego::to_key(item / Val, true, m_sort_bindings);
+          binding_map[key] = value;
         }
+
+        std::string binding_key = rego::to_key(object, true, m_sort_bindings);
+        binding_maps[binding_key] = binding_map;
       }
     }
-    else
+    else if (node == Results)
     {
-      for (auto& binding : *node)
+      for (auto& result : *node)
       {
-        if (binding->type() != rego::Binding)
+        BindingMap binding_map;
+        assert(result == rego::Result);
+        Node bindings = result / Bindings;
+        if (bindings->empty())
         {
-          // raw term
           continue;
         }
 
-        std::string key = std::string((binding / rego::Var)->location().view());
-        std::string value =
-          rego::to_key((binding / rego::Term), true, m_sort_bindings);
-        bindings[key] = value;
+        for (auto& binding : *bindings)
+        {
+          std::string key =
+            std::string((binding / rego::Key)->location().view());
+          std::string value =
+            rego::to_key((binding / rego::Val), true, m_sort_bindings);
+          binding_map[key] = value;
+        }
+
+        std::string binding_key = rego::to_key(bindings, true, m_sort_bindings);
+        binding_maps[binding_key] = binding_map;
       }
     }
 
-    return bindings;
+    return binding_maps;
   }
 
   void TestCase::diff(
@@ -367,8 +380,8 @@ namespace rego_test
   bool TestCase::compare(
     const Node& actual, const Node& wanted, std::ostream& os) const
   {
-    BindingMap actual_bindings = to_binding_map(actual);
-    BindingMap wanted_bindings = to_binding_map(wanted);
+    BindingMaps actual_bindings = to_binding_maps(actual);
+    BindingMaps wanted_bindings = to_binding_maps(wanted);
 
     if (wanted_bindings.size() == 0)
     {
@@ -379,18 +392,13 @@ namespace rego_test
       }
     }
 
+    bool pass = true;
     for (auto& [key, value] : wanted_bindings)
     {
       if (actual_bindings.find(key) == actual_bindings.end())
       {
-        os << "Missing binding for " << key << std::endl;
-        return false;
-      }
-
-      if (actual_bindings[key] != value)
-      {
-        diff(key + " = " + actual_bindings[key], key + " = " + value, os);
-        return false;
+        os << "Wanted binding: " << key << std::endl;
+        pass = false;
       }
     }
 
@@ -398,12 +406,12 @@ namespace rego_test
     {
       if (wanted_bindings.find(key) == wanted_bindings.end())
       {
-        os << "Unexpected binding for " << key << std::endl;
-        return false;
+        os << "Actual binding: " << key << std::endl;
+        pass = false;
       }
     }
 
-    return true;
+    return pass;
   }
 
   bool TestCase::compare(
@@ -528,11 +536,13 @@ namespace rego_test
         // as written, this test case can never pass (the result is the
         // opa.runtime object, which is not equal to the empty object) so we
         // write in the result of calling rego::version()
-        Node want_result = NodeDef::create(yaml::Sequence);
-        Node result = NodeDef::create(rego::Binding);
-        result << (rego::Var ^ "x");
-        result << (rego::Term << rego::version());
-        test_case.want_result(want_result << result);
+        test_case.want_result(
+          rego::Results
+          << (rego::Result << rego::Terms
+                           << (rego::Bindings
+                               << (rego::Binding
+                                   << (rego::Var ^ "x")
+                                   << (rego::Term << rego::version())))));
       }
 
       if (test_case.note() == "regexmatch/re_match: bad pattern err")
@@ -575,15 +585,20 @@ namespace rego_test
     const std::filesystem::path& debug_path, bool wf_checks) const
   {
     rego::Interpreter interpreter;
-    interpreter.builtins()->strict_errors(m_strict_error);
+    interpreter.builtins().strict_errors(m_strict_error);
     interpreter.wf_check_enabled(wf_checks)
       .debug_enabled(!debug_path.empty())
       .debug_path(debug_path);
 
+    Node actual;
     for (std::size_t i = 0; i < m_modules.size(); ++i)
     {
       std::string name = "module" + std::to_string(i);
-      interpreter.add_module(name, m_modules[i]);
+      actual = interpreter.add_module(name, m_modules[i]);
+      if (actual != nullptr)
+      {
+        break;
+      }
     }
 
     if (m_data != nullptr)
@@ -591,7 +606,7 @@ namespace rego_test
       interpreter.add_data(m_data);
     }
 
-    if (m_input_term.size() > 0)
+    if (actual == nullptr && m_input_term.size() > 0)
     {
       interpreter.set_input_term(m_input_term);
     }
@@ -602,14 +617,17 @@ namespace rego_test
 
     bool pass = true;
     std::ostringstream error;
-    Node actual;
-    try
+
+    if (actual == nullptr)
     {
-      actual = interpreter.raw_query(m_query);
-    }
-    catch (const std::exception& e)
-    {
-      return {false, e.what()};
+      try
+      {
+        actual = interpreter.raw_query(m_query);
+      }
+      catch (const std::exception& e)
+      {
+        return {false, e.what()};
+      }
     }
 
     if (m_broken)
@@ -661,15 +679,23 @@ namespace rego_test
     }
     else if (m_want_error_code.length() > 0)
     {
-      std::string actual_code =
-        std::string((actual / ErrorCode)->location().view());
-      pass = compare(actual_code, m_want_error_code, error);
+      if (actual != Error)
+      {
+        pass = false;
+        error << "wanted an error code, actual: " << actual << std::endl;
+      }
+      else
+      {
+        std::string actual_code =
+          std::string((actual / ErrorCode)->location().view());
+        pass = compare(actual_code, m_want_error_code, error);
+      }
     }
     else if (m_want_result)
     {
-      if (actual->size() > 0)
+      if (actual != Undefined)
       {
-        if (actual->type() == Error)
+        if (actual == Error)
         {
           pass = false;
           error << "wanted a result, received: " << std::endl;
@@ -704,7 +730,7 @@ namespace rego_test
     }
     else if (m_want_defined)
     {
-      if (actual->size() > 0)
+      if (actual != Undefined)
       {
         pass = true;
       }
@@ -716,7 +742,7 @@ namespace rego_test
     }
     else
     {
-      if (actual->size() == 0)
+      if (actual == Undefined)
       {
         pass = true;
       }

@@ -7,6 +7,7 @@ namespace rego
   UnifierDef::UnifierDef(
     const Location& rule,
     const Node& rulebody,
+    const Location& version,
     CallStack call_stack,
     WithStack with_stack,
     BuiltIns builtins,
@@ -17,7 +18,8 @@ namespace rego
     m_builtins(builtins),
     m_cache(cache),
     m_parent_type(rulebody->parent()->type()),
-    m_negate(false)
+    m_negate(false),
+    m_version(version)
   {
     logging::Debug() << "---ASSEMBLING UNIFICATION---";
     m_dependency_graph.push_back({"start", {}, 0});
@@ -542,6 +544,10 @@ namespace rego
       {
         values.push_back(ValueDef::create(NodeDef::create(Object)));
       }
+      else if (func_name == "dynamic-object")
+      {
+        values.push_back(ValueDef::create(NodeDef::create(DynamicObject)));
+      }
       else if (func_name == "set")
       {
         values.push_back(ValueDef::create(NodeDef::create(Set)));
@@ -828,7 +834,7 @@ namespace rego
         {
           Resolver::flatten_terms_into(termset_value->node(), argseq);
         }
-        values.push_back(ValueDef::create(var, Resolver::set(argseq)));
+        values.push_back(ValueDef::create(var, Resolver::set(argseq, false)));
       }
       else if (func_name == "object-compr")
       {
@@ -886,10 +892,130 @@ namespace rego
       peek_type == RuleSet || peek_type == RuleObj || peek_type == RuleComp ||
       peek_type == Submodule)
     {
-      auto maybe_node = resolve_rule(defs);
-      if (maybe_node)
+      // TODO
+      // if a prefix of this rule is a ruleobj, then we need to resolve that
+      // instead and look this up within it. However, the current implementation
+      // was built on assumptions from the pre-varrefhead era (0.55) and so
+      // there really isn't an elegant way of doing this. Instead, we have to
+      // walk the reference, find the first prefix which is a RuleObj (i.e. a
+      // varref) and then resolve that and look this up within it instead of
+      // just resolving the rule as originally designed. When the eventual
+      // refactor of unify() is done, this should be taken into consideration
+      // and made as efficient as possible, probably via a trie.
+      auto scope = defs.front()->scope();
+      Location loc = node->location();
+      std::string_view var_str = loc.view();
+      size_t end = var_str.find_first_of('.');
+      Node value;
+      while (end != std::string::npos)
       {
-        values.push_back(ValueDef::create(*maybe_node));
+        loc.len = end;
+        Nodes prefix_defs = scope->lookdown(loc);
+        if (std::find_if(prefix_defs.begin(), prefix_defs.end(), [](auto& def) {
+              if (def == RuleObj)
+              {
+                return def / IsVarRef == True;
+              }
+              else
+              {
+                return false;
+              }
+            }) != prefix_defs.end())
+        {
+          auto maybe_node = resolve_rule(prefix_defs);
+          if (maybe_node)
+          {
+            value = maybe_node.value();
+            break;
+          }
+        }
+
+        end = var_str.find_first_of('.', end + 1);
+      }
+
+      if (value)
+      {
+        // We found a RuleObj, so we have to do this the hard way
+        auto maybe_object = unwrap(value, DynamicObject);
+        if (!maybe_object.success)
+        {
+          values.push_back(ValueDef::create(err(value, "Expected object")));
+          return values;
+        }
+
+        Node object = maybe_object.node;
+
+        // look down into the object
+        size_t start = end + 1;
+        end = var_str.find_first_of('.', start);
+        while (end != std::string::npos)
+        {
+          // Oh yay, multiple nesting levels.
+          std::string key = add_quotes(var_str.substr(start, end - start));
+          defs = Resolver::object_lookdown(object, key);
+          if (defs.empty())
+          {
+            object = nullptr;
+            break;
+          }
+          else if (defs.size() > 1)
+          {
+            logging::Warn() << "Multiple definitions found for "
+                            << var_str.substr(start, end - start);
+            object = nullptr;
+            break;
+          }
+          else
+          {
+            value = defs.front();
+          }
+
+          maybe_object = unwrap(value, DynamicObject);
+          if (!maybe_object.success)
+          {
+            values.push_back(ValueDef::create(err(value, "Expected object")));
+            return values;
+          }
+
+          object = maybe_object.node;
+          start = end + 1;
+          end = var_str.find_first_of('.', start);
+        }
+
+        if (object)
+        {
+          // look up the final key
+          std::string key = add_quotes(var_str.substr(start));
+          defs = Resolver::object_lookdown(object, key);
+          if (defs.empty())
+          {
+            value = nullptr;
+          }
+          else if (defs.size() > 1)
+          {
+            logging::Warn()
+              << "Multiple definitions found for " << var_str.substr(start);
+            value = nullptr;
+          }
+          else
+          {
+            value = defs.front();
+          }
+        }
+      }
+      else
+      {
+        // the old path
+        auto maybe_node = resolve_rule(defs);
+        if (maybe_node)
+        {
+          value = maybe_node.value();
+        }
+      }
+
+      if (value)
+      {
+        values.push_back(ValueDef::create(value));
       }
     }
     else
@@ -1066,7 +1192,7 @@ namespace rego
       return ValueDef::create(var, result, sources);
     }
 
-    if (func_name == "object")
+    if (func_name == "object" || func_name == "dynamic-object")
     {
       Node object_items = NodeDef::create(ArgSeq);
       for (auto& arg : args)
@@ -1079,7 +1205,9 @@ namespace rego
         object_items->push_back(arg->node()->clone());
       }
       return ValueDef::create(
-        var, Resolver::object(object_items, false), sources);
+        var,
+        Resolver::object(object_items, func_name == "dynamic-object"),
+        sources);
     }
 
     if (func_name == "array")
@@ -1097,7 +1225,7 @@ namespace rego
       return ValueDef::create(var, Resolver::array(array_members), sources);
     }
 
-    if (func_name == "set")
+    if (func_name == "set" || func_name == "dynamic-set")
     {
       Node set_members = NodeDef::create(ArgSeq);
       for (auto& arg : args)
@@ -1109,7 +1237,8 @@ namespace rego
 
         set_members->push_back(arg->node()->clone());
       }
-      return ValueDef::create(var, Resolver::set(set_members), sources);
+      return ValueDef::create(
+        var, Resolver::set(set_members, func_name == "dynamic-set"), sources);
     }
 
     return std::nullopt;
@@ -1134,7 +1263,8 @@ namespace rego
 
     if (m_builtins->is_builtin(function->location()))
     {
-      Node node = m_builtins->call(function->location(), function_args);
+      Node node =
+        m_builtins->call(function->location(), m_version, function_args);
       return ValueDef::create(var, node, sources);
     }
 
@@ -1179,7 +1309,7 @@ namespace rego
         }
       }
 
-      if (container->type() == Object)
+      if (container == Object || container == DynamicObject)
       {
         for (const Node& object_item : *container)
         {
@@ -1190,7 +1320,7 @@ namespace rego
         }
       }
 
-      if (container->type() == Set)
+      if (container == Set || container == DynamicSet)
       {
         for (const Node& value : *container)
         {
@@ -1364,7 +1494,7 @@ namespace rego
         object = object->front();
       }
 
-      if (object->type() != Object)
+      if (!(object == Object || object == DynamicObject))
       {
         logging::Debug() << "Replacing with object (cannot merge partials)";
         object = NodeDef::create(Object);
@@ -1372,7 +1502,7 @@ namespace rego
     }
     else
     {
-      object = NodeDef::create(Object);
+      object = NodeDef::create(DynamicObject);
     }
 
     for (auto& [key, val] : partials)
@@ -1439,7 +1569,7 @@ namespace rego
     Location prefix = (dataitem / Key)->location();
     std::size_t prefix_len = prefix.len;
 
-    Node object = NodeDef::create(Object);
+    Node object = NodeDef::create(DynamicObject);
     std::map<Location, Nodes> rule_nodes;
     for (auto& rule : *module)
     {
@@ -1549,7 +1679,7 @@ namespace rego
       return resolve_ruleset(rules_by_type[RuleSet]);
     }
 
-    Node object = NodeDef::create(Object);
+    Node object = NodeDef::create(DynamicObject);
     if (contains(rules_by_type, RuleObj))
     {
       auto maybe_node = resolve_ruleobj(rules_by_type[RuleObj]);
@@ -1574,7 +1704,11 @@ namespace rego
         }
 
         mod_object = mod_object->front();
-        object->insert(object->end(), mod_object->begin(), mod_object->end());
+        object = Resolver::merge_objects(object, mod_object, false);
+        if (object->type() == Error)
+        {
+          return object;
+        }
       }
     }
 
@@ -1595,6 +1729,7 @@ namespace rego
 
       Location rulekey = (rulecomp / Key)->location();
       Location rulename = (rulecomp / Var)->location();
+      Location version = (rulecomp / Version)->location();
       Node rulebody = rulecomp / Body;
       Node value = rulecomp / Val;
       rank_t index = ValueDef::get_rank(rulecomp / Idx);
@@ -1608,10 +1743,12 @@ namespace rego
       {
         try
         {
-          body_result =
-            rule_unifier(
-              UnifierKey{rulekey, UnifierType::RuleBody}, rulename, rulebody)
-              ->unify();
+          body_result = rule_unifier(
+                          UnifierKey{rulekey, UnifierType::RuleBody},
+                          rulename,
+                          version,
+                          rulebody)
+                          ->unify();
         }
         catch (const std::exception& e)
         {
@@ -1634,7 +1771,10 @@ namespace rego
           try
           {
             Unifier unifier = rule_unifier(
-              UnifierKey{rulekey, UnifierType::RuleValue}, rulename, value);
+              UnifierKey{rulekey, UnifierType::RuleValue},
+              rulename,
+              version,
+              value);
             unifier->unify();
             auto bindings = unifier->bindings();
             Node binding_val;
@@ -1722,6 +1862,7 @@ namespace rego
 
     Location rulekey = (rule / Key)->location();
     Location rulename = (rule / Var)->location();
+    Location version = (rule / Version)->location();
     Node rulebody = rule / Body;
     Node body_result;
 
@@ -1733,10 +1874,12 @@ namespace rego
     {
       try
       {
-        body_result =
-          rule_unifier(
-            UnifierKey{rulekey, UnifierType::RuleBody}, rulename, rulebody)
-            ->unify();
+        body_result = rule_unifier(
+                        UnifierKey{rulekey, UnifierType::RuleBody},
+                        rulename,
+                        version,
+                        rulebody)
+                        ->unify();
       }
       catch (const std::exception& e)
       {
@@ -1765,7 +1908,10 @@ namespace rego
       try
       {
         Unifier unifier = rule_unifier(
-          UnifierKey{rulekey, UnifierType::RuleValue}, rulename, value);
+          UnifierKey{rulekey, UnifierType::RuleValue},
+          rulename,
+          version,
+          value);
         unifier->unify();
         auto bindings = unifier->bindings();
         for (auto& binding : bindings)
@@ -1801,6 +1947,7 @@ namespace rego
 
       Location rulekey = (rule / Key)->location();
       Location rulename = (rule / Var)->location();
+      Location version = (rule / Version)->location();
       Node rulebody = rule / Body;
       Node value = rule / Val;
 
@@ -1814,10 +1961,12 @@ namespace rego
       {
         try
         {
-          body_result =
-            rule_unifier(
-              UnifierKey{rulekey, UnifierType::RuleBody}, rulename, rulebody)
-              ->unify();
+          body_result = rule_unifier(
+                          UnifierKey{rulekey, UnifierType::RuleBody},
+                          rulename,
+                          version,
+                          rulebody)
+                          ->unify();
         }
         catch (const std::exception& e)
         {
@@ -1840,7 +1989,10 @@ namespace rego
           try
           {
             Unifier unifier = rule_unifier(
-              UnifierKey{rulekey, UnifierType::RuleValue}, rulename, value);
+              UnifierKey{rulekey, UnifierType::RuleValue},
+              rulename,
+              version,
+              value);
             unifier->unify();
             auto bindings = unifier->bindings();
             Node result;
@@ -1883,7 +2035,7 @@ namespace rego
       return NodeDef::create(Set);
     }
 
-    return Resolver::set(argseq);
+    return Resolver::set(argseq, true);
   }
 
   std::optional<Node> UnifierDef::resolve_ruleobj(const Nodes& ruleobj) const
@@ -1904,6 +2056,7 @@ namespace rego
 
       Location rulekey = (rule / Key)->location();
       Location rulename = (rule / Var)->location();
+      Location version = (rule / Version)->location();
       Node rulebody = rule / Body;
       Node value = rule / Val;
 
@@ -1917,10 +2070,12 @@ namespace rego
       {
         try
         {
-          body_result =
-            rule_unifier(
-              UnifierKey{rulekey, UnifierType::RuleBody}, rulename, rulebody)
-              ->unify();
+          body_result = rule_unifier(
+                          UnifierKey{rulekey, UnifierType::RuleBody},
+                          rulename,
+                          version,
+                          rulebody)
+                          ->unify();
         }
         catch (const std::exception& e)
         {
@@ -1943,7 +2098,10 @@ namespace rego
           try
           {
             Unifier unifier = rule_unifier(
-              UnifierKey{rulekey, UnifierType::RuleValue}, rulename, value);
+              UnifierKey{rulekey, UnifierType::RuleValue},
+              rulename,
+              version,
+              value);
             unifier->unify();
             auto bindings = unifier->bindings();
             Node result;
@@ -2042,6 +2200,7 @@ namespace rego
   Unifier UnifierDef::create(
     const UnifierKey& key,
     const Location& rule,
+    const Location& version,
     const Node& rulebody,
     const CallStack& call_stack,
     const WithStack& with_stack,
@@ -2057,17 +2216,27 @@ namespace rego
     else
     {
       Unifier unifier = std::shared_ptr<UnifierDef>(new UnifierDef(
-        rule, rulebody, call_stack, with_stack, builtins, cache));
+        rule, rulebody, version, call_stack, with_stack, builtins, cache));
       cache->insert({key, unifier});
       return unifier;
     }
   }
 
   Unifier UnifierDef::rule_unifier(
-    const UnifierKey& key, const Location& rule, const Node& rulebody) const
+    const UnifierKey& key,
+    const Location& rule,
+    const Location& version,
+    const Node& rulebody) const
   {
     return create(
-      key, rule, rulebody, m_call_stack, m_with_stack, m_builtins, m_cache);
+      key,
+      rule,
+      version,
+      rulebody,
+      m_call_stack,
+      m_with_stack,
+      m_builtins,
+      m_cache);
   }
 
   bool UnifierDef::is_variable(const Location& name) const

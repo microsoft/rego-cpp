@@ -13,7 +13,7 @@ namespace
   {
     for (auto term : *collection)
     {
-      auto maybe_item = unwrap(term, {JSONString});
+      auto maybe_item = unwrap(term, JSONString);
       if (!maybe_item.success)
       {
         return maybe_item.node;

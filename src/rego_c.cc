@@ -1,3 +1,5 @@
+#include "rego_c.h"
+
 #include "internal.hh"
 
 namespace logging = trieste::logging;
@@ -86,13 +88,26 @@ extern "C"
     delete reinterpret_cast<rego::Interpreter*>(rego);
   }
 
+  regoEnum ok_or_error(const rego::Node& result)
+  {
+    if (result == nullptr)
+    {
+      return REGO_OK;
+    }
+
+    std::ostringstream output_buf;
+    output_buf << result;
+    rego::setError(nullptr, output_buf.str());
+    return REGO_ERROR;
+  }
+
   regoEnum regoAddModuleFile(regoInterpreter* rego, const char* path)
   {
     logging::Debug() << "regoAddModuleFile: " << path;
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->add_module_file(path);
-      return REGO_OK;
+      return ok_or_error(
+        reinterpret_cast<rego::Interpreter*>(rego)->add_module_file(path));
     }
     catch (const std::exception& e)
     {
@@ -107,8 +122,8 @@ extern "C"
     logging::Debug() << "regoAddModule: " << name;
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->add_module(name, contents);
-      return REGO_OK;
+      return ok_or_error(
+        reinterpret_cast<rego::Interpreter*>(rego)->add_module(name, contents));
     }
     catch (const std::exception& e)
     {
@@ -122,8 +137,8 @@ extern "C"
     logging::Debug() << "regoAddDataJSONFile: " << path;
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->add_data_json_file(path);
-      return REGO_OK;
+      return ok_or_error(
+        reinterpret_cast<rego::Interpreter*>(rego)->add_data_json_file(path));
     }
     catch (const std::exception& e)
     {
@@ -137,8 +152,8 @@ extern "C"
     logging::Debug() << "regoAddDataJSON: " << contents;
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->add_data_json(contents);
-      return REGO_OK;
+      return ok_or_error(
+        reinterpret_cast<rego::Interpreter*>(rego)->add_data_json(contents));
     }
     catch (const std::exception& e)
     {
@@ -152,8 +167,8 @@ extern "C"
     logging::Debug() << "regoSetInputJSONFile: " << path;
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->set_input_json_file(path);
-      return REGO_OK;
+      return ok_or_error(
+        reinterpret_cast<rego::Interpreter*>(rego)->set_input_json_file(path));
     }
     catch (const std::exception& e)
     {
@@ -175,7 +190,8 @@ extern "C"
     logging::Debug() << "regoSetInputTerm: " << contents;
     try
     {
-      reinterpret_cast<rego::Interpreter*>(rego)->set_input_term(contents);
+      ok_or_error(
+        reinterpret_cast<rego::Interpreter*>(rego)->set_input_term(contents));
       return REGO_OK;
     }
     catch (const std::exception& e)
@@ -248,7 +264,7 @@ extern "C"
   void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled)
   {
     logging::Debug() << "regoSetStrictBuiltInErrors: " << enabled;
-    reinterpret_cast<rego::Interpreter*>(rego)->builtins()->strict_errors(
+    reinterpret_cast<rego::Interpreter*>(rego)->builtins().strict_errors(
       enabled);
   }
 
@@ -257,7 +273,7 @@ extern "C"
     logging::Debug() << "regoGetStrictBuiltInErrors";
     return reinterpret_cast<rego::Interpreter*>(rego)
       ->builtins()
-      ->strict_errors();
+      .strict_errors();
   }
 
   // Output functions
@@ -268,16 +284,23 @@ extern "C"
       rego::ErrorSeq;
   }
 
-  regoNode* regoOutputNode(regoOutput* output)
+  regoSize regoOutputSize(regoOutput* output)
   {
-    logging::Debug() << "regoOutputNode";
-    return reinterpret_cast<regoNode*>(
-      reinterpret_cast<rego::regoOutput*>(output)->node.get());
+    logging::Debug() << "regoOutputSize";
+    auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
+    auto node_ptr = reinterpret_cast<trieste::NodeDef*>(output_ptr->node.get());
+    if (node_ptr->type() == rego::ErrorSeq)
+    {
+      return 0;
+    }
+
+    assert(node_ptr->type() == rego::Results);
+    return static_cast<regoSize>(node_ptr->size());
   }
 
-  regoNode* regoOutputBinding(regoOutput* output, const char* name)
+  regoNode* regoOutputExpressionsAtIndex(regoOutput* output, regoSize index)
   {
-    logging::Debug() << "regoOutputBinding: " << name;
+    logging::Debug() << "regoOutputExpressionsAtIndex: " << index;
     auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(output_ptr->node.get());
     if (node_ptr->type() == rego::ErrorSeq)
@@ -285,16 +308,54 @@ extern "C"
       return nullptr;
     }
 
-    assert(node_ptr->type() == rego::Result);
+    assert(node_ptr->type() == rego::Results);
     trieste::WFContext context(rego::wf_result);
-    auto defs = node_ptr->lookdown({name});
+    rego::Node result = node_ptr->at(index);
+    rego::Node terms = result / rego::Terms;
+    return reinterpret_cast<regoNode*>(terms.get());
+  }
+
+  regoNode* regoOutputExpressions(regoOutput* output)
+  {
+    logging::Debug() << "regoOutputExpressions";
+    return regoOutputExpressionsAtIndex(output, 0);
+  }
+
+  regoNode* regoOutputNode(regoOutput* output)
+  {
+    logging::Debug() << "regoOutputNode";
+    return reinterpret_cast<regoNode*>(
+      reinterpret_cast<rego::regoOutput*>(output)->node.get());
+  }
+
+  regoNode* regoOutputBindingAtIndex(
+    regoOutput* output, regoSize index, const char* name)
+  {
+    logging::Debug() << "regoOutputBindingAtIndex: " << name;
+    auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
+    auto node_ptr = reinterpret_cast<trieste::NodeDef*>(output_ptr->node.get());
+    if (node_ptr->type() == rego::ErrorSeq)
+    {
+      return nullptr;
+    }
+
+    assert(node_ptr->type() == rego::Results);
+    trieste::WFContext context(rego::wf_result);
+    auto result = node_ptr->at(index);
+    auto defs = result->lookdown({name});
     if (defs.empty())
     {
       return nullptr;
     }
 
-    rego::Node val = defs[0] / rego::Term;
+    rego::Node val = defs[0] / rego::Val;
     return reinterpret_cast<regoNode*>(val.get());
+  }
+
+  regoNode* regoOutputBinding(regoOutput* output, const char* name)
+  {
+    logging::Debug() << "regoOutputBinding: " << name;
+    return regoOutputBindingAtIndex(output, 0, name);
   }
 
   const char* regoOutputString(regoOutput* output)
@@ -315,102 +376,122 @@ extern "C"
     logging::Debug() << "regoNodeType";
     auto node = reinterpret_cast<trieste::NodeDef*>(node_ptr);
 
-    if (node->type() == rego::Binding)
+    if (node == rego::Binding)
     {
       return REGO_NODE_BINDING;
     }
 
-    if (node->type() == rego::Var)
+    if (node == rego::Var)
     {
       return REGO_NODE_VAR;
     }
 
-    if (node->type() == rego::Term)
+    if (node == rego::Term)
     {
       return REGO_NODE_TERM;
     }
 
-    if (node->type() == rego::Scalar)
+    if (node == rego::Scalar)
     {
       return REGO_NODE_SCALAR;
     }
 
-    if (node->type() == rego::Array)
+    if (node == rego::Array)
     {
       return REGO_NODE_ARRAY;
     }
 
-    if (node->type() == rego::Set)
+    if (node == rego::Set)
     {
       return REGO_NODE_SET;
     }
 
-    if (node->type() == rego::Object)
+    if (node == rego::Object)
     {
       return REGO_NODE_OBJECT;
     }
 
-    if (node->type() == rego::ObjectItem)
+    if (node == rego::ObjectItem)
     {
       return REGO_NODE_OBJECT_ITEM;
     }
 
-    if (node->type() == rego::Int)
+    if (node == rego::Int)
     {
       return REGO_NODE_INT;
     }
 
-    if (node->type() == rego::Float)
+    if (node == rego::Float)
     {
       return REGO_NODE_FLOAT;
     }
 
-    if (node->type() == rego::JSONString)
+    if (node == rego::JSONString)
     {
       return REGO_NODE_STRING;
     }
 
-    if (node->type() == rego::True)
+    if (node == rego::True)
     {
       return REGO_NODE_TRUE;
     }
 
-    if (node->type() == rego::False)
+    if (node == rego::False)
     {
       return REGO_NODE_FALSE;
     }
 
-    if (node->type() == rego::Null)
+    if (node == rego::Null)
     {
       return REGO_NODE_NULL;
     }
 
-    if (node->type() == rego::Undefined)
+    if (node == rego::Undefined)
     {
       return REGO_NODE_UNDEFINED;
     }
 
-    if (node->type() == rego::Error)
+    if (node == rego::Terms)
+    {
+      return REGO_NODE_TERMS;
+    }
+
+    if (node == rego::Bindings)
+    {
+      return REGO_NODE_BINDINGS;
+    }
+
+    if (node == rego::Results)
+    {
+      return REGO_NODE_RESULTS;
+    }
+
+    if (node == rego::Result)
+    {
+      return REGO_NODE_RESULT;
+    }
+
+    if (node == rego::Error)
     {
       return REGO_NODE_ERROR;
     }
 
-    if (node->type() == rego::ErrorMsg)
+    if (node == rego::ErrorMsg)
     {
       return REGO_NODE_ERROR_MESSAGE;
     }
 
-    if (node->type() == rego::ErrorAst)
+    if (node == rego::ErrorAst)
     {
       return REGO_NODE_ERROR_AST;
     }
 
-    if (node->type() == rego::ErrorCode)
+    if (node == rego::ErrorCode)
     {
       return REGO_NODE_ERROR_CODE;
     }
 
-    if (node->type() == rego::ErrorSeq)
+    if (node == rego::ErrorSeq)
     {
       return REGO_NODE_ERROR_SEQ;
     }

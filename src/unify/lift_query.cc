@@ -19,8 +19,10 @@ namespace rego
          Node module =
            Module << (Package
                       << (Ref << (RefHead << (Var ^ querymodule)) << RefArgSeq))
+                  << (Version ^ DefaultVersion)
                   << (Policy
                       << (RuleComp << (Var ^ queryrule) << Empty << _(Query)
+                                   << (Version ^ DefaultVersion)
                                    << (Int ^ "0")));
          std::ostringstream oss;
          oss << "data." << querymodule.view() << "." << queryrule.view();

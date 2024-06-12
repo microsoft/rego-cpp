@@ -21,6 +21,7 @@ reader.cc
 unify.cc
 unify/strings.cc
 unify/merge_data.cc
+unify/varrefheads.cc
 unify/lift_refheads.cc
 unify/symbols.cc
 unify/replace_argvals.cc

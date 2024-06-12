@@ -15,6 +15,7 @@ namespace rego
   bool all_alnum(const std::string_view& str);
   bool contains_local(const Node& node);
   bool contains_ref(const Node& node);
+  bool refargs_contain_varref(const Node& node);
   Node concat_refs(const Node& lhs, const Node& rhs);
   std::string flatten_ref(const Node& ref);
   bool is_in(const Node& node, const std::set<Token>& token);
@@ -27,6 +28,7 @@ namespace rego
   bool is_ref_to_type(const Node& var, const std::set<Token>& types);
   bool is_module(const Node& var);
   std::string strip_quotes(const std::string_view& str);
+  std::string add_quotes(const std::string_view& str);
   std::string type_name(const Token& type, bool specify_number = false);
   std::string type_name(const Node& node, bool specify_number = false);
 
@@ -53,7 +55,7 @@ namespace rego
     static Node term(const char* value);
     static Node term(const std::string& value);
     static Node term();
-    static Node resolve_query(const Node& query, BuiltIns builtins);
+    static Nodes resolve_query(const Node& query, BuiltIns builtins);
     static void stmt_str(logging::Log&, const Node& stmt);
     static void func_str(logging::Log&, const Node& func);
     static void arg_str(logging::Log&, const Node& arg);
@@ -73,15 +75,20 @@ namespace rego
     static Node boolinfix(const Node& op, const Node& lhs, const Node& rhs);
     static std::optional<Nodes> apply_access(
       const Node& container, const Node& index);
-    static Node object(const Node& object_items, bool is_rule);
+    static Node merge_sets(const Node& lhs, const Node& rhs, bool unwrapped);
+    static Node merge_objects(const Node& lhs, const Node& rhs, bool unwrapped);
+    static Node object(const Node& object_items, bool is_dynamic);
     static Node array(const Node& array_members);
-    static Node set(const Node& set_members);
+    static Node set(const Node& set_members, bool is_dynamic);
     static Node set_intersection(const Node& lhs, const Node& rhs);
     static Node set_union(const Node& lhs, const Node& rhs);
     static Node set_difference(const Node& lhs, const Node& rhs);
     static Nodes resolve_varseq(const Node& varseq);
     static Nodes object_lookdown(const Node& object, const Node& query);
-    static Nodes module_lookdown(const Node& module, const std::string& name);
+    static Nodes object_lookdown(
+      const Node& object, const std::string_view& query);
+    static Nodes module_lookdown(
+      const Node& module, const std::string_view& name);
     static Node inject_args(const Node& rulefunc, const Nodes& args);
     static Node membership(
       const Node& index, const Node& item, const Node& itemseq);
@@ -121,6 +128,8 @@ namespace rego
   inline const auto AssignArg = TokenDef("rego-assignarg");
   inline const auto Idx = TokenDef("rego-idx");
   inline const auto ArgSeq = TokenDef("rego-argseq");
+  inline const auto DynamicObject = TokenDef("rego-dynamicobject");
+  inline const auto DynamicSet = TokenDef("rego-dynamicset");
 
   inline const auto wf_json = JSONString | Int | Float | True | False | Null;
   inline const auto wf_parse_tokens = Query | Module | wf_json | wf_arith_op |

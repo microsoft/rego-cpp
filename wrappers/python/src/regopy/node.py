@@ -25,6 +25,10 @@ from ._regopy import (
     REGO_NODE_TRUE,
     REGO_NODE_UNDEFINED,
     REGO_NODE_VAR,
+    REGO_NODE_TERMS,
+    REGO_NODE_BINDINGS,
+    REGO_NODE_RESULTS,
+    REGO_NODE_RESULT,
     regoNodeGet,
     regoNodeJSON,
     regoNodeSize,
@@ -51,6 +55,10 @@ class NodeKind(IntEnum):
     Boolean = REGO_NODE_TRUE
     Null = REGO_NODE_NULL
     Undefined = REGO_NODE_UNDEFINED
+    Terms = REGO_NODE_TERMS
+    Bindings = REGO_NODE_BINDINGS
+    Results = REGO_NODE_RESULTS
+    Result = REGO_NODE_RESULT
     Error = REGO_NODE_ERROR
     ErrorMessage = REGO_NODE_ERROR_MESSAGE
     ErrorAst = REGO_NODE_ERROR_AST
@@ -188,7 +196,7 @@ class Node:
         if self._kind == NodeKind.Term:
             return self.at(0).index(index)
 
-        if self._kind == NodeKind.Array:
+        if self._kind in [NodeKind.Array, NodeKind.Terms, NodeKind.Results]:
             if index < 0 or index >= len(self):
                 raise IndexError("index out of bounds")
 

@@ -247,7 +247,7 @@ namespace
 
     Node array = NodeDef::create(Array);
     std::smatch match;
-    for (std::size_t i = 0; i < number; ++i)
+    for (std::size_t i = 0; i < number && !value.empty(); ++i)
     {
       std::regex_search(value, match, re);
       if (match.empty())
@@ -264,22 +264,24 @@ namespace
 
   Node find_all_string_submatch_n(const Nodes& args)
   {
-    Node pattern_node =
-      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("regex.find_n"));
+    Node pattern_node = unwrap_arg(
+      args,
+      UnwrapOpt(0).type(JSONString).func("regex.find_all_string_submatch_n"));
     if (pattern_node->type() == Error)
     {
       return pattern_node;
     }
 
-    Node value_node =
-      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("regex.find_n"));
+    Node value_node = unwrap_arg(
+      args,
+      UnwrapOpt(1).type(JSONString).func("regex.find_all_string_submatch_n"));
     if (value_node->type() == Error)
     {
       return value_node;
     }
 
-    Node number_node =
-      unwrap_arg(args, UnwrapOpt(2).type({Int}).func("regex.find_n"));
+    Node number_node = unwrap_arg(
+      args, UnwrapOpt(2).type({Int}).func("regex.find_all_string_submatch_n"));
     if (number_node->type() == Error)
     {
       return number_node;
@@ -301,7 +303,7 @@ namespace
 
     Node array = NodeDef::create(Array);
     std::smatch match;
-    for (std::size_t i = 0; i < number; ++i)
+    for (std::size_t i = 0; i < number && !value.empty(); ++i)
     {
       std::regex_search(value, match, re);
       if (match.empty())
@@ -356,7 +358,7 @@ namespace
     while (true)
     {
       std::regex_search(value, match, re);
-      if (match.empty())
+      if (match.empty() || value.empty())
       {
         array->push_back(Resolver::scalar(value));
         break;

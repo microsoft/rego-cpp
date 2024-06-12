@@ -1,4 +1,5 @@
 #include "internal.hh"
+#include "rego.hh"
 
 namespace
 {
@@ -209,8 +210,8 @@ namespace
   // clang-format off
   const auto wf_keywords =
     wf_prep
-    | (Module <<= (Group | Package | Import | Keyword)++)
-    | (Keyword <<= Var)[Var]
+    | (Module <<= (Group | Package | Import | Keyword | Version)++)
+    | (Keyword <<= Var)[Var] 
     | (Group <<= wf_keywords_tokens++)
     ;
   // clang-format on
@@ -235,22 +236,62 @@ namespace
           },
 
         In(Module) *
-            (T(Import)
+            (T(Import)[Import]
+             << (T(RefGroup)
+                 << (T(Var, "rego") * T(Dot) * T(Var, "v1")[Version]))) >>
+          [keywords](Match& _) {
+            auto nodes = NodeDef::create(Seq);
+            if (keywords->empty())
+            {
+              keywords->insert({"if", If});
+              nodes << (Keyword << (Var ^ "if"));
+              keywords->insert({"in", IsIn});
+              nodes << (Keyword << (Var ^ "in"));
+              keywords->insert({"contains", Contains});
+              nodes << (Keyword << (Var ^ "contains"));
+              keywords->insert({"every", Every});
+              nodes << (Keyword << (Var ^ "every"));
+              keywords->insert({"version", Version});
+              nodes << (Version ^ _(Version));
+            }
+            else
+            {
+              return err(
+                _(Import),
+                "the `rego.v1` import implies `future.keywords`, these are "
+                "therefore mutually exclusive",
+                RegoParseError);
+            }
+
+            return nodes;
+          },
+
+        In(Module) *
+            (T(Import)[Import]
              << (T(RefGroup)
                  << (T(Var, "future") * T(Dot) * T(Var, "keywords") *
                      ~(T(Dot) * T(Var, "(?:if|in|contains|every)")[Var])))) >>
           [keywords](Match& _) {
+            if (contains(keywords, "version"))
+            {
+              return err(
+                _(Import),
+                "the `rego.v1` import implies `future.keywords`, these are "
+                "therefore mutually exclusive",
+                RegoParseError);
+            }
+
             auto nodes = NodeDef::create(Seq);
             if (_(Var) == nullptr)
             {
               keywords->insert({"if", If});
-              nodes << (Lift << Module << (Keyword << (Var ^ "if")));
+              nodes << (Keyword << (Var ^ "if"));
               keywords->insert({"in", IsIn});
-              nodes << (Lift << Module << (Keyword << (Var ^ "in")));
+              nodes << (Keyword << (Var ^ "in"));
               keywords->insert({"contains", Contains});
-              nodes << (Lift << Module << (Keyword << (Var ^ "contains")));
+              nodes << (Keyword << (Var ^ "contains"));
               keywords->insert({"every", Every});
-              nodes << (Lift << Module << (Keyword << (Var ^ "every")));
+              nodes << (Keyword << (Var ^ "every"));
             }
             else
             {
@@ -272,7 +313,7 @@ namespace
                 keywords->insert({"in", IsIn});
                 keywords->insert({"every", Every});
               }
-              nodes << (Lift << Module << (Keyword << _(Var)));
+              nodes << (Keyword << _(Var));
             }
 
             return nodes;
@@ -295,6 +336,16 @@ namespace
     ;
   // clang-format on
 
+  Node to_var(Node node)
+  {
+    if (node == Var)
+    {
+      return node;
+    }
+
+    return Var ^ node->fresh(node->location());
+  }
+
   PassDef some_every()
   {
     return {
@@ -316,13 +367,15 @@ namespace
           return some;
         },
 
-        In(Group) * (T(Every) * T(Var)[Head] * (T(Comma) * T(Var))++[Tail]) >>
+        In(Group) *
+            (T(Every) * T(Var, Placeholder)[Head] *
+             (T(Comma) * T(Var, Placeholder))++[Tail]) >>
           [](Match& _) {
-            Node every = Every << _(Head);
+            Node every = Every << to_var(_(Head));
             for (auto it = _[Tail].begin(); it != _[Tail].end(); it += 2)
             {
               // skip the comma
-              every << it[1];
+              every << to_var(it[1]);
             }
 
             return every;
@@ -428,7 +481,8 @@ namespace
                        << (RefArgSeq << _(Head) << _[Tail]);
           },
 
-        In(Group, RefGroup) * T(Var)[Var] >>
+        In(Group, RefGroup) *
+            T(Var)[Var]([](auto& n) { return !in_parent(n, RefArgBrack); }) >>
           [](Match& _) { return Ref << (RefHead << _(Var)) << RefArgSeq; },
 
         In(Group) * T(ExprCall)[ExprCall] >>
@@ -636,10 +690,31 @@ namespace
       return 0;
     });
 
-    pass.post([comma_groups, colon_groups, or_groups](Node) {
+    std::shared_ptr<std::map<Location, Location>> import_vars =
+      std::make_shared<std::map<Location, Location>>();
+    pass.post(Import, [import_vars](Node node) {
+      Location ref = (node / Ref)->location();
+      Location loc = (node / Var)->location();
+      if (contains(*import_vars, loc))
+      {
+        std::ostringstream err_buf;
+        err_buf << "import must not shadow import "
+                << import_vars->at(loc).view();
+        node->parent()->replace(
+          node, err(node, err_buf.str(), RegoCompileError));
+      }
+      else
+      {
+        import_vars->insert({loc, ref});
+      }
+      return 0;
+    });
+
+    pass.post([comma_groups, colon_groups, or_groups, import_vars](Node) {
       comma_groups->clear();
       colon_groups->clear();
       or_groups->clear();
+      import_vars->clear();
       return 0;
     });
 
@@ -964,7 +1039,8 @@ namespace
 
   PassDef else_not()
   {
-    return {
+    std::shared_ptr<bool> strict = std::make_shared<bool>(false);
+    PassDef pass = {
       "else_not",
       wf_else_not,
       dir::bottomup | dir::once,
@@ -993,11 +1069,7 @@ namespace
           },
 
         In(Group) * (T(Else) * T(Assign, Unify) * T(Expr)[Expr]) >>
-          [](Match& _) {
-            return Else << _(Expr)
-                        << (Query
-                            << (Group << (Expr << (Term << (Scalar << True)))));
-          },
+          [](Match& _) { return Else << _(Expr) << (Query << Group); },
 
         In(Group) * (T(If)[If] * ~T(Not)[Not] * T(Expr, SomeDecl)[Query]) >>
           [](Match& _) {
@@ -1012,6 +1084,21 @@ namespace
         In(Group) * (T(Not) * T(Expr)[Expr]) >>
           [](Match& _) { return NotExpr << _(Expr); },
 
+        In(ExprInfix) *
+            ((T(Expr)
+              << (T(Term)
+                  << (T(Ref)
+                      << ((T(RefHead) << T(Var, "input|data")[Var]) *
+                          (T(RefArgSeq) << End))))) *
+             (T(InfixOperator) << T(AssignOperator)))(
+              [strict](auto&) { return *strict; }) >>
+          [](Match& _) {
+            std::ostringstream err_buf;
+            err_buf << "variables must not shadow " << _(Var)->location().view()
+                    << " (use a different variable name)";
+            return err(_(Var), err_buf.str(), RegoCompileError);
+          },
+
         // errors
 
         T(Else)[Else] << End >>
@@ -1019,6 +1106,18 @@ namespace
             return err(_(Else), "Invalid else statement", WellFormedError);
           },
       }};
+
+    pass.pre(Version, [strict](Node) {
+      *strict = true;
+      return 0;
+    });
+
+    pass.post([strict](Node) {
+      *strict = false;
+      return 0;
+    });
+
+    return pass;
   }
 
   const auto wf_collections_tokens = wf_else_not_tokens -
@@ -1218,13 +1317,14 @@ namespace
 
   PassDef rules()
   {
-    return {
+    std::shared_ptr<bool> strict = std::make_shared<bool>(false);
+    PassDef pass = {
       "rules",
       wf_rules,
       dir::bottomup | dir::once,
       {
         In(Group)([](auto& n) { return in_parent(n, Module); }) *
-            ((T(Expr)
+            ((T(Expr)[Rule]
               << (T(ExprInfix)
                   << ((T(Expr)
                        << (T(Term)
@@ -1237,8 +1337,16 @@ namespace
                                    })))))) *
                       (T(InfixOperator) << T(AssignOperator)) *
                       T(Expr)[Val]))) *
-             ~T(If) * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
-          [](Match& _) {
+             ~T(If)[If] * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
+          [strict](Match& _) {
+            if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
+            {
+              return err(
+                _(Rule),
+                "`if` keyword is required before rule body",
+                RegoParseError);
+            }
+
             Node refargseq = _(RefArgSeq);
             Node key = refargseq->pop_back()->front();
             Node ruleref = _(RuleRef);
@@ -1253,7 +1361,7 @@ namespace
           },
 
         In(Group)([](auto& n) { return in_parent(n, Module); }) *
-            ((T(Expr)
+            ((T(Expr)[Rule]
               << (T(Term)
                   << (T(Ref)
                       << ((T(RefHead) << T(Var)[RuleRef]) *
@@ -1262,19 +1370,28 @@ namespace
                             return !refargseq->empty() &&
                               refargseq->back()->type() == RefArgBrack;
                           })))))) *
-             ~T(If) * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
-          [](Match& _) {
+             ~T(If)[If] * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
+          [strict](Match& _) {
+            if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
+            {
+              return err(
+                _(Rule),
+                "`if` keyword is required before rule body",
+                RegoParseError);
+            }
+
             Node refargseq = _(RefArgSeq);
             Node value = refargseq->pop_back()->front();
             Node ruleref = _(RuleRef);
+            auto defs = _(RuleRef)->scope()->lookdown({"contains"});
+
             if (!refargseq->empty())
             {
               ruleref = Ref << (RefHead << ruleref) << refargseq;
             }
 
-            auto defs = _(RuleRef)->scope()->lookdown({"contains"});
             Node rulehead;
-            if (defs.empty())
+            if (defs.empty() && !refargs_contain_varref(refargseq))
             {
               rulehead = RuleHead << (RuleRef << ruleref)
                                   << (RuleHeadSet << value);
@@ -1292,13 +1409,21 @@ namespace
 
         In(Group)([](auto& n) { return in_parent(n, Module); }) *
             (~T(Default)[Default] *
-             (T(Expr)
+             (T(Expr)[Rule]
               << (T(ExprInfix)
                   << ((T(Expr) << (T(Term) << T(Ref)[RuleRef])) *
                       (T(InfixOperator) << T(AssignOperator)) *
                       T(Expr)[Expr]))) *
-             ~T(If) * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
-          [](Match& _) {
+             ~T(If)[If] * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
+          [strict](Match& _) {
+            if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
+            {
+              return err(
+                _(Rule),
+                "`if` keyword is required before rule body",
+                RegoParseError);
+            }
+
             return Rule << (_(Default) != nullptr ? True : False)
                         << (RuleHead << (RuleRef << _(RuleRef))
                                      << (RuleHeadComp << _(Expr)))
@@ -1306,9 +1431,18 @@ namespace
           },
 
         In(Group)([](auto& n) { return in_parent(n, Module); }) *
-            (~T(Default)[Default] * (T(Expr) << (T(Term) << T(Ref)[RuleRef])) *
-             ~T(If) * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
-          [](Match& _) {
+            (~T(Default)[Default] *
+             (T(Expr)[Rule] << (T(Term) << T(Ref)[RuleRef])) * ~T(If)[If] *
+             T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
+          [strict](Match& _) {
+            if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
+            {
+              return err(
+                _(Rule),
+                "`if` keyword is required before rule body",
+                RegoParseError);
+            }
+
             return Rule << (_(Default) != nullptr ? True : False)
                         << (RuleHead
                             << (RuleRef << _(RuleRef))
@@ -1320,15 +1454,23 @@ namespace
 
         In(Group)([](auto& n) { return in_parent(n, Module); }) *
             (~T(Default)[Default] *
-             (T(Expr)
+             (T(Expr)[Rule]
               << (T(ExprInfix)
                   << ((T(Expr)
                        << (T(ExprCall)
                            << (T(Ref)[RuleRef] * T(ExprSeq)[RuleArgs]))) *
                       (T(InfixOperator) << T(AssignOperator)) *
                       T(Expr)[Expr]))) *
-             ~T(If) * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
-          [](Match& _) {
+             ~T(If)[If] * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
+          [strict](Match& _) {
+            if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
+            {
+              return err(
+                _(Rule),
+                "`if` keyword is required before rule body",
+                RegoParseError);
+            }
+
             return Rule << (_(Default) != nullptr ? True : False)
                         << (RuleHead
                             << (RuleRef << _(RuleRef))
@@ -1339,10 +1481,18 @@ namespace
 
         In(Group)([](auto& n) { return in_parent(n, Module); }) *
             (~T(Default)[Default] *
-             (T(Expr)
+             (T(Expr)[Rule]
               << (T(ExprCall) << (T(Ref)[RuleRef] * T(ExprSeq)[RuleArgs]))) *
-             ~T(If) * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
-          [](Match& _) {
+             ~T(If)[If] * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
+          [strict](Match& _) {
+            if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
+            {
+              return err(
+                _(Rule),
+                "`if` keyword is required before rule body",
+                RegoParseError);
+            }
+
             return Rule << (_(Default) != nullptr ? True : False)
                         << (RuleHead
                             << (RuleRef << _(RuleRef))
@@ -1354,10 +1504,18 @@ namespace
           },
 
         In(Group)([](auto& n) { return in_parent(n, Module); }) *
-            ((T(Expr) << (T(Term) << (T(Ref)[RuleRef]))) * T(Contains) *
-             T(Expr)[Expr] * ~T(If) * T(Query, Else)++[RuleBodySeq] *
+            ((T(Expr)[Rule] << (T(Term) << (T(Ref)[RuleRef]))) * T(Contains) *
+             T(Expr)[Expr] * ~T(If)[If] * T(Query, Else)++[RuleBodySeq] *
              T(NewLine)) >>
-          [](Match& _) {
+          [strict](Match& _) {
+            if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
+            {
+              return err(
+                _(Rule),
+                "`if` keyword is required before rule body",
+                RegoParseError);
+            }
+
             return Rule << False
                         << (RuleHead << (RuleRef << _(RuleRef))
                                      << (RuleHeadSet << _(Expr)))
@@ -1369,10 +1527,22 @@ namespace
             return err(_(Op), "Invalid rule head", WellFormedError);
           },
       }};
+
+    pass.pre(Version, [strict](Node) {
+      *strict = true;
+      return 0;
+    });
+
+    pass.post([strict](Node) {
+      *strict = false;
+      return 0;
+    });
+
+    return pass;
   }
 
   const auto wf_literals_tokens = (wf_rules_tokens | Literal) -
-    (Expr | NotExpr | SomeDecl | With | NewLine | Keyword);
+    (Expr | NotExpr | SomeDecl | With | NewLine | Keyword | Version);
 
   // clang-format off
   const auto wf_literals =
@@ -1422,16 +1592,54 @@ namespace
       dir::bottomup | dir::once,
       {
         In(Module) *
-            (T(Package)[Package] * T(Import)++[ImportSeq] *
+            (T(Package)[Package] * T(Import, Version)++[ImportSeq] *
              (T(Group) << (T(Rule)++[Policy] * End))) >>
           [](Match& _) {
-            return Seq << _(Package) << (ImportSeq << _[ImportSeq])
+            Node version;
+            Node importseq = NodeDef::create(ImportSeq);
+            for (auto node : _[ImportSeq])
+            {
+              if (node == Version)
+              {
+                version = node;
+              }
+              else
+              {
+                importseq << node;
+              }
+            }
+
+            if (version == nullptr)
+            {
+              version = Version ^ DefaultVersion;
+            }
+
+            return Seq << _(Package) << version << importseq
                        << (Policy << _[Policy]);
           },
 
         In(Module) * (T(Package)[Package] * T(Import)++[ImportSeq] * End) >>
           [](Match& _) {
-            return Seq << _(Package) << (ImportSeq << _[ImportSeq]) << Policy;
+            Node version;
+            Node importseq = NodeDef::create(ImportSeq);
+            for (auto node : _[ImportSeq])
+            {
+              if (node == Version)
+              {
+                version = node;
+              }
+              else
+              {
+                importseq << node;
+              }
+            }
+
+            if (version == nullptr)
+            {
+              version = Version ^ DefaultVersion;
+            }
+
+            return Seq << _(Package) << version << importseq << Policy;
           },
 
         In(Query) * (T(Group) << (T(Literal)++[Query] * End)) >>
@@ -1452,13 +1660,6 @@ namespace
         In(VarSeq) * (T(Term) << T(Var)[Var]) >>
           [](Match& _) { return _(Var); },
 
-        In(RefArgBrack) *
-            (T(Expr) << (T(Term) << T(Scalar, Var, Object, Array, Set)[Idx])) >>
-          [](Match& _) { return _(Idx); },
-
-        In(RefArgBrack) * (T(Expr) << T(ExprInfix)[ExprInfix]) >>
-          [](Match& _) { return _(ExprInfix); },
-
         In(RuleHead) * (T(RuleHeadComp) << End) >>
           [](Match&) {
             return RuleHeadComp
@@ -1471,14 +1672,14 @@ namespace
             return err(_(Group), "Syntax error", WellFormedError);
           },
 
-        T(Module)[Module] << (T(Import, Group)++ * End) >>
+        T(Module)[Module] << (T(Import, Version, Group)++ * End) >>
           [](Match& _) {
             return err(
               _(Module), "Missing package declaration", WellFormedError);
           },
 
-        T(Module)[Module] << T(Package) * T(Import)++ * T(Group) *
-              T(Import)[Import] >>
+        T(Module)[Module] << T(Package) * T(Import, Version)++ * T(Group) *
+              T(Import, Version)[Import] >>
           [](Match& _) {
             return err(
               _(Import),

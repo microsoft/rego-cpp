@@ -1,13 +1,51 @@
 """Module providing an interface to a rego-cpp output object."""
 
+import json
+from typing import Union
 from ._regopy import (
     regoFreeOutput,
-    regoOutputBinding,
     regoOutputNode,
     regoOutputOk,
     regoOutputString,
+    regoOutputExpressionsAtIndex,
+    regoOutputBindingAtIndex,
 )
 from .node import Node
+
+class Result:
+    """A result from a Rego output.
+    
+    Each result contains a list of terms, and set of bindings.
+
+    Examples:
+        >>> from regopy import Interpreter
+        >>> rego = Interpreter()
+        >>> output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5")
+        >>> result = output[0]
+        >>> print(result)
+        {"expressions": [10], "bindings": {"x": 5, "y": 9.4}}
+
+        >>> print(result["x"])
+        5
+
+        >>> print(result[0])
+        10
+    """
+    def __init__(self, obj: dict):
+        self.expressions = obj.get("expressions", [])
+        self.bindings = obj.get("bindings", {})
+    
+    def __str__(self) -> str:
+        return json.dumps({"expressions": self.expressions, "bindings": self.bindings})
+
+    def __repr__(self) -> str:
+        return f"Result({self.expressions}, {self.bindings})"
+
+    def __getitem__(self, key: Union[str, int]):
+        if isinstance(key, int):
+            return self.expressions[key]
+        else:
+            return self.bindings[key]
 
 
 class Output:
@@ -20,10 +58,9 @@ class Output:
     Examples:
         >>> from regopy import Interpreter
         >>> rego = Interpreter()
-        >>> output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4")
+        >>> output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5")
         >>> print(output)
-        x = 5
-        y = 9.4
+        {"expressions":[10], "bindings":{"x":5, "y":9.4}}
 
         >>> x = output.binding("x")
         >>> print(x.json())
@@ -37,6 +74,14 @@ class Output:
         As such, this initializer should not be called directly.
         """
         self._impl = impl
+        if regoOutputOk(impl):
+            output = json.loads(regoOutputString(impl))
+            if isinstance(output, list):
+                self.results = [Result(obj) for obj in output]
+            else:
+                self.results = [Result(output)]
+        else:
+            self.results = []
 
     def __del__(self):
         """Destructor."""
@@ -57,12 +102,35 @@ class Output:
         """Returns a string representation of the output."""
         return "Output({}@{})".format(regoOutputString(self._impl), self._impl)
 
+    def __len__(self) -> int:
+        """Returns the number of results in the output."""
+        return len(self.results)
+
+    def __getitem__(self, index: int) -> Result:
+        """Returns the result at the given index."""
+        return self.results[index]
+
     def node(self) -> Node:
         """Returns the root node of the output."""
         return Node(regoOutputNode(self._impl))
+       
+    def expressions(self, index=0) -> Node:
+        """Returns the output terms at the given index.
 
-    def binding(self, name: str) -> Node:
+        Args:
+            index (int, optional): The index of the term to return.
+        
+        Returns:
+            Node: A node contains a list of node objects
+        """
+        return Node(regoOutputExpressionsAtIndex(self._impl, index))
+
+    def binding(self, name: str, index=0) -> Node:
         """Attempts to return the binding for the given variable name.
+    
+        Args:
+            name (str): The name of the variable to return.
+            index (int, optional): The index of the binding to return.
 
         Returns:
             Node: The binding for the given variable name.
@@ -70,7 +138,7 @@ class Output:
         Raises:
             ValueError: If the variable is not bound.
         """
-        impl = regoOutputBinding(self._impl, name)
+        impl = regoOutputBindingAtIndex(self._impl, index, name)
         if impl:
             return Node(impl)
 

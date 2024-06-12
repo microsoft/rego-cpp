@@ -108,7 +108,8 @@ namespace rego
             (T(DataRule) << (T(Var)[Var] * T(DataTerm)[DataTerm])) >>
           [](Match& _) {
             ACTION();
-            return RuleComp << _(Var) << Empty << _(DataTerm) << (Int ^ "0");
+            return RuleComp << _(Var) << Empty << _(DataTerm)
+                            << (Version ^ DefaultVersion) << (Int ^ "0");
           },
       }};
   }

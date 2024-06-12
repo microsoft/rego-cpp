@@ -1,4 +1,7 @@
+#include "rego.hh"
 #include "unify.hh"
+
+#include <algorithm>
 
 namespace
 {
@@ -362,8 +365,8 @@ namespace rego
     }
     else
     {
-      auto maybe_lhs_set = unwrap(lhs, {Set});
-      auto maybe_rhs_set = unwrap(rhs, {Set});
+      auto maybe_lhs_set = unwrap(lhs, {Set, DynamicSet});
+      auto maybe_rhs_set = unwrap(rhs, {Set, DynamicSet});
       if (maybe_lhs_set.success && maybe_rhs_set.success)
       {
         return bininfix(op, maybe_lhs_set.node, maybe_rhs_set.node);
@@ -385,8 +388,8 @@ namespace rego
 
   Node Resolver::bininfix(const Node& op, const Node& lhs, const Node& rhs)
   {
-    auto maybe_lhs_set = unwrap(lhs, {Set});
-    auto maybe_rhs_set = unwrap(rhs, {Set});
+    auto maybe_lhs_set = unwrap(lhs, {Set, DynamicSet});
+    auto maybe_rhs_set = unwrap(rhs, {Set, DynamicSet});
 
     if (maybe_lhs_set.success && maybe_rhs_set.success)
     {
@@ -488,10 +491,10 @@ namespace rego
       }
     }
 
-    if (container->type() == Object)
+    if (container == Object || container == DynamicObject)
     {
       Node query = arg;
-      if (query->type() == Term)
+      if (query == Term)
       {
         query = arg->front();
       }
@@ -506,7 +509,7 @@ namespace rego
       return module_lookdown(container, key_str);
     }
 
-    if (container->type() == Set)
+    if (container == Set || container == DynamicSet)
     {
       std::set<std::string> reprs;
       std::string query_repr = to_key(arg);
@@ -527,14 +530,14 @@ namespace rego
 
   Node Resolver::to_term(const Node& value)
   {
-    if (value->type() == Term || value->type() == TermSet)
+    if (value == Term || value == TermSet)
     {
       return value->clone();
     }
 
     if (
-      value->type() == Array || value->type() == Set ||
-      value->type() == Object || value->type() == Scalar)
+      value == Array || value == DynamicSet || value == Set ||
+      value == DynamicObject || value == Object || value == Scalar)
     {
       return Term << value->clone();
     }
@@ -550,42 +553,240 @@ namespace rego
     return err(value, "Not a term");
   }
 
-  Node Resolver::object(const Node& object_items, bool is_rule)
+  Node Resolver::merge_sets(const Node& lhs, const Node& rhs, bool unwrapped)
   {
-    Node object = NodeDef::create(Object);
-    std::map<std::string, Node> items;
-    for (std::size_t i = 0; i < object_items->size(); i += 2)
+    logging::Trace() << "merge_sets" << lhs << rhs << std::endl;
+
+    Node lhs_set = lhs;
+    Node rhs_set = rhs;
+
+    if (!unwrapped)
     {
-      if (object_items->at(i)->type() == Error)
-      {
-        return object_items->at(i);
-      }
+      auto maybe_lhs = unwrap(lhs, DynamicSet);
+      auto maybe_rhs = unwrap(rhs, DynamicSet);
 
-      std::string key = to_key(object_items->at(i));
-      if (contains(items, key))
+      if (!maybe_lhs.success && !maybe_rhs.success)
       {
-        std::string current = to_key(items[key] / Val);
-        std::string next = to_key(object_items->at(i + 1));
-        if (current != next)
+        auto lhs_key = to_key(lhs);
+        auto rhs_key = to_key(rhs);
+        if (lhs_key == rhs_key)
         {
-          if (is_rule)
-          {
-            return err(
-              object_items->at(i),
-              "complete rules must not produce multiple outputs",
-              EvalConflictError);
-          }
-
-          return err(
-            object_items->at(i),
-            "object keys must be unique",
-            EvalConflictError);
+          return lhs;
+        }
+        else
+        {
+          return err(lhs, "object keys must be unique", EvalConflictError);
         }
       }
 
-      Node item = ObjectItem << to_term(object_items->at(i))
-                             << to_term(object_items->at(i + 1));
-      items[key] = item;
+      if (!maybe_lhs.success)
+      {
+        return err(lhs, "conflicting values for rule", EvalConflictError);
+      }
+
+      if (!maybe_rhs.success)
+      {
+        return err(rhs, "conflicting values for rule", EvalConflictError);
+      }
+
+      lhs_set = maybe_lhs.node;
+      rhs_set = maybe_rhs.node;
+    }
+
+    Node set = NodeDef::create(DynamicSet);
+    std::set<std::string> items;
+    for (auto& item : *lhs_set)
+    {
+      items.insert(to_key(item));
+      set << item;
+    }
+
+    for (auto& item : *rhs_set)
+    {
+      if (!contains(items, to_key(item)))
+      {
+        set << item;
+      }
+    }
+
+    return Term << set;
+  }
+
+  Node Resolver::merge_objects(const Node& lhs, const Node& rhs, bool unwrapped)
+  {
+    logging::Trace() << "merge_objects" << lhs << rhs << std::endl;
+
+    Node lhs_obj = lhs;
+    Node rhs_obj = rhs;
+    if (!unwrapped)
+    {
+      auto maybe_lhs = unwrap(lhs, {DynamicObject, DynamicSet});
+      auto maybe_rhs = unwrap(rhs, {DynamicObject, DynamicSet});
+
+      if (!maybe_lhs.success && !maybe_rhs.success)
+      {
+        auto lhs_key = to_key(lhs);
+        auto rhs_key = to_key(rhs);
+        if (lhs_key == rhs_key)
+        {
+          return lhs;
+        }
+        else
+        {
+          return err(lhs, "object keys must be unique", EvalConflictError);
+        }
+      }
+
+      if (!maybe_lhs.success)
+      {
+        return err(lhs, "conflicting values for rule", EvalConflictError);
+      }
+
+      if (!maybe_rhs.success)
+      {
+        return err(rhs, "conflicting values for rule", EvalConflictError);
+      }
+
+      lhs_obj = maybe_lhs.node;
+      rhs_obj = maybe_rhs.node;
+
+      if (lhs_obj == DynamicSet && rhs_obj == DynamicSet)
+      {
+        return merge_sets(lhs_obj, rhs_obj, true);
+      }
+
+      if (lhs_obj != DynamicObject || rhs_obj != DynamicObject)
+      {
+        return err(rhs, "conflicting values for rule", EvalConflictError);
+      }
+    }
+
+    std::map<std::string, Node> items;
+    for (auto& item : *lhs_obj)
+    {
+      items[to_key(item / Key)] = item;
+    }
+
+    for (auto& item : *rhs_obj)
+    {
+      std::string key = to_key(item / Key);
+      if (contains(items, key))
+      {
+        Node merged = merge_objects(items[key] / Val, item / Val, false);
+        if (merged == Error)
+        {
+          return merged;
+        }
+        items[key] = ObjectItem << (item / Key) << merged;
+      }
+      else
+      {
+        items[key] = item;
+      }
+    }
+
+    auto object = NodeDef::create(DynamicObject);
+    for (auto& [_, item] : items)
+    {
+      object->push_back(item);
+    }
+
+    return Term << object;
+  }
+
+  Node Resolver::object(const Node& object_items, bool is_dynamic)
+  {
+    Node object = NodeDef::create(is_dynamic ? DynamicObject : Object);
+    std::map<std::string, Node> items;
+    for (std::size_t i = 0; i < object_items->size(); i += 2)
+    {
+      const Node& key = object_items->at(i);
+      const Node& val = object_items->at(i + 1);
+      if (key == Error)
+      {
+        return key;
+      }
+
+      if (val == Error)
+      {
+        return val;
+      }
+
+      std::string key_str = to_key(key);
+      if (contains(items, key_str))
+      {
+        Node old_val = items[key_str] / Val;
+        auto maybe_lhs = unwrap(old_val, {DynamicObject, DynamicSet});
+        auto maybe_rhs = unwrap(val, {DynamicObject, DynamicSet});
+
+        if (!maybe_lhs.success && !maybe_rhs.success)
+        {
+          auto lhs_str = to_key(old_val);
+          auto rhs_str = to_key(val);
+          if (lhs_str != rhs_str)
+          {
+            if (is_dynamic)
+            {
+              return err(
+                val,
+                "complete rules must not produce multiple outputs",
+                EvalConflictError);
+            }
+            else
+            {
+              return err(val, "object keys must be unique", EvalConflictError);
+            }
+          }
+          else
+          {
+            continue;
+          }
+        }
+
+        if (!maybe_lhs.success)
+        {
+          return err(old_val, "conflicting values for rule", EvalConflictError);
+        }
+
+        if (!maybe_rhs.success)
+        {
+          return err(val, "conflicting values for rule", EvalConflictError);
+        }
+
+        Node lhs = maybe_lhs.node;
+        Node rhs = maybe_rhs.node;
+
+        if (lhs == DynamicObject)
+        {
+          if (rhs == DynamicObject)
+          {
+            items[key_str] = ObjectItem << key << merge_objects(lhs, rhs, true);
+          }
+          else
+          {
+            return err(val, "conflicting values for rule", EvalConflictError);
+          }
+        }
+        else if (lhs == DynamicSet)
+        {
+          if (rhs == DynamicSet)
+          {
+            items[key_str] = ObjectItem << key << merge_sets(lhs, rhs, true);
+          }
+          else
+          {
+            return err(val, "conflicting values for rule", EvalConflictError);
+          }
+        }
+        else
+        {
+          return err(old_val, "conflicting values for rule", EvalConflictError);
+        }
+      }
+      else
+      {
+        items[key_str] = ObjectItem << key << val;
+      }
     }
 
     // objects need to be created with sorted keys
@@ -620,7 +821,7 @@ namespace rego
     }
   }
 
-  Node Resolver::set(const Node& set_members)
+  Node Resolver::set(const Node& set_members, bool is_dynamic)
   {
     std::map<std::string, Node> members;
     for (Node member : *set_members)
@@ -637,7 +838,7 @@ namespace rego
       }
     }
 
-    Node set = NodeDef::create(Set);
+    Node set = NodeDef::create(is_dynamic ? DynamicSet : Set);
     for (auto [_, member] : members)
     {
       set->push_back(member);
@@ -647,17 +848,19 @@ namespace rego
 
   Node Resolver::set_intersection(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set)
+    if (!(lhs == Set || lhs == DynamicSet))
     {
       return err(lhs, "intersection: both arguments must be sets");
     }
 
-    if (rhs->type() != Set)
+    if (!(rhs == Set || rhs == DynamicSet))
     {
       return err(rhs, "intersection: both arguments must be sets");
     }
 
-    Node set = NodeDef::create(Set);
+    Node set = NodeDef::create(
+      lhs == DynamicSet || rhs == DynamicSet ? DynamicSet : Set);
+
     std::set<std::string> values;
     for (auto term : *lhs)
     {
@@ -677,15 +880,18 @@ namespace rego
 
   Node Resolver::set_union(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set)
+    if (!(lhs == Set || lhs == DynamicSet))
     {
       return err(lhs, "union: both arguments must be sets");
     }
 
-    if (rhs->type() != Set)
+    if (!(rhs == Set || rhs == DynamicSet))
     {
       return err(rhs, "union: both arguments must be sets");
     }
+
+    Node set = NodeDef::create(
+      lhs == DynamicSet || rhs == DynamicSet ? DynamicSet : Set);
 
     std::map<std::string, Node> members;
     for (auto term : *lhs)
@@ -702,7 +908,6 @@ namespace rego
       }
     }
 
-    Node set = NodeDef::create(Set);
     for (auto [_, member] : members)
     {
       set->push_back(member->clone());
@@ -713,17 +918,18 @@ namespace rego
 
   Node Resolver::set_difference(const Node& lhs, const Node& rhs)
   {
-    if (lhs->type() != Set)
+    if (!(lhs == Set || lhs == DynamicSet))
     {
       return err(lhs, "difference: both arguments must be sets");
     }
 
-    if (rhs->type() != Set)
+    if (!(rhs == Set || rhs == DynamicSet))
     {
       return err(rhs, "difference: both arguments must be sets");
     }
 
-    Node set = NodeDef::create(Set);
+    Node set = NodeDef::create(
+      lhs == DynamicSet || rhs == DynamicSet ? DynamicSet : Set);
     std::set<std::string> values;
     for (auto term : *rhs)
     {
@@ -977,7 +1183,7 @@ namespace rego
   }
 
   Nodes Resolver::module_lookdown(
-    const Node& container, const std::string& query)
+    const Node& container, const std::string_view& query)
   {
     Node module = container;
     if (module->type() == Submodule || module->type() == Data)
@@ -1013,7 +1219,7 @@ namespace rego
         name = (rule / Var)->location();
       }
 
-      if (name == query)
+      if (name.view() == query)
       {
         rules.push_back(rule);
       }
@@ -1024,8 +1230,13 @@ namespace rego
 
   Nodes Resolver::object_lookdown(const Node& object, const Node& query)
   {
+    return Resolver::object_lookdown(object, to_key(query));
+  }
+
+  Nodes Resolver::object_lookdown(
+    const Node& object, const std::string_view& query_str)
+  {
     Nodes terms;
-    std::string query_str = to_key(query);
     for (auto& object_item : *object)
     {
       Node key = object_item / Key;
@@ -1100,44 +1311,46 @@ namespace rego
     return reduce;
   }
 
-  Node Resolver::resolve_query(const Node& query, BuiltIns builtins)
+  Nodes Resolver::resolve_query(const Node& query, BuiltIns builtins)
   {
     Nodes defs = query->front()->lookup();
     if (defs.size() != 1)
     {
-      return err(query, "query not found");
+      return {err(query, "query not found")};
     }
 
     Node rulebody = defs[0] / Val;
     Location rulename{"query"};
+    Location version = (defs[0] / Version)->location();
     UnifierCache cache = std::make_shared<std::map<UnifierKey, Unifier>>();
     auto unifier = UnifierDef::create(
       UnifierKey{rulename, UnifierType::RuleBody},
       rulename,
+      version,
       rulebody,
       std::make_shared<std::vector<Location>>(),
       std::make_shared<std::vector<ValuesLookup>>(),
       builtins,
       cache);
-    Node result = unifier->unify();
+    Node maybe_error = unifier->unify();
 
     // now that unification is complete, we need to empty the
     // Unifier cache. Since they all maintain a pointer to the
     // cache, it will not be able to be freed otherwise.
     cache->clear();
 
-    if (result->type() == Error)
+    if (maybe_error == Error)
     {
-      return Query << result;
+      return {Result << maybe_error};
     }
 
-    result = NodeDef::create(Query);
+    Nodes results{Result << Terms << Bindings};
 
     for (auto& child : *rulebody)
     {
       if (child->type() == Error)
       {
-        result->push_back(child);
+        results.back() / Terms << child;
         continue;
       }
 
@@ -1161,40 +1374,70 @@ namespace rego
         }
       }
 
-      if (term->type() != Term)
-      {
-        term = Term << term;
-      }
-
       if (is_undefined(term))
       {
         continue;
       }
 
-      if (contains_multiple_outputs(term))
-      {
-        result->push_back(err(
-          term,
-          "complete rules must not produce multiple outputs",
-          EvalConflictError));
-        continue;
-      }
-
       std::string name = std::string(var->location().view());
 
-      if (starts_with(name, "value$"))
+      if (term == TermSet)
       {
-        result->push_back(term);
+        Node termset = term;
+        // there are multiple bindings/terms
+        while (results.size() < termset->size())
+        {
+          results.push_back(Result << Terms << Bindings);
+        }
+
+        for (std::size_t i = 0; i < termset->size(); i++)
+        {
+          term = termset->at(i);
+          if (contains_multiple_outputs(term))
+          {
+            results[i] / Terms << err(
+              term,
+              "complete rules must not produce multiple outputs",
+              EvalConflictError);
+          }
+          else if (starts_with(name, "value$"))
+          {
+            results[i] / Terms << term;
+          }
+          else
+          {
+            results[i] / Bindings << (Binding << var->clone() << term);
+          }
+        }
       }
-      else if (name.find('$') == std::string::npos || name[0] == '$')
+      else if (results.size() == 1)
       {
-        // either a user-defined variable (no $) or
-        // a fuzzer variable ($ followed by a number)
-        result->push_back(Binding << var << term);
+        if (contains_multiple_outputs(term))
+        {
+          results.back() / Terms << err(
+            term,
+            "complete rules must not produce multiple outputs",
+            EvalConflictError);
+        }
+        else if (starts_with(name, "value$"))
+        {
+          results.back() / Terms << term;
+        }
+        else if (name.find('$') == std::string::npos || name[0] == '$')
+        {
+          results.back() / Bindings << (Binding << var << term);
+        }
       }
     }
 
-    return result;
+    if (
+      results.size() == 1 && (results.back() / Terms)->empty() &&
+      (results.back() / Bindings)->empty())
+    {
+      results.pop_back();
+    }
+
+    return results;
   }
 
   Node Resolver::membership(
@@ -1489,7 +1732,7 @@ namespace rego
       pos = path.find('.', start);
     }
 
-    if (current->type() != Object)
+    if (!(current == Object || current == DynamicObject))
     {
       logging::Warn() << "Conflict: cannot merge partials into non-object: "
                       << TermStr(current);

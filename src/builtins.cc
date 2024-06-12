@@ -62,11 +62,48 @@ namespace rego
     return contains(m_builtins, name);
   }
 
-  Node BuiltInsDef::call(const Location& name, const Nodes& args) const
+  bool BuiltInsDef::is_deprecated(
+    const Location& version, const Location& name) const
+  {
+    if (version.view() == "v0")
+    {
+      return false;
+    }
+
+    std::vector<std::string> deprecated = {
+      "any",
+      "all",
+      "re_match",
+      "net.cidr_overlap",
+      "set_diff",
+      "cast_array",
+      "cast_set",
+      "cast_string",
+      "cast_boolean",
+      "cast_null",
+      "cast_object"};
+
+    return std::find_if(
+             deprecated.begin(),
+             deprecated.end(),
+             [name](const std::string& n) { return n == name.view(); }) !=
+      deprecated.end();
+  }
+
+  Node BuiltInsDef::call(
+    const Location& name, const Location& version, const Nodes& args) const
   {
     if (!is_builtin(name))
     {
       return err(args[0], "unknown builtin");
+    }
+
+    if (is_deprecated(version, name))
+    {
+      std::ostringstream err_buff;
+      err_buff << "deprecated built-in function calls in expression: "
+               << name.view();
+      return err(args[0], err_buff.str(), RegoTypeError);
     }
 
     auto& builtin = m_builtins.at(name);

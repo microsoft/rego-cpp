@@ -37,6 +37,10 @@ typedef unsigned int regoSize;
 #define REGO_NODE_FALSE 1012
 #define REGO_NODE_NULL 1013
 #define REGO_NODE_UNDEFINED 1014
+#define REGO_NODE_TERMS 1015
+#define REGO_NODE_BINDINGS 1016
+#define REGO_NODE_RESULTS 1017
+#define REGO_NODE_RESULT 1018
 
 #define REGO_NODE_ERROR 1800
 #define REGO_NODE_ERROR_MESSAGE 1801
@@ -332,10 +336,37 @@ extern "C"
   regoBoolean regoOutputOk(regoOutput* output);
 
   /**
+   * Returns the number of results in the output.
+   *
+   * Each query can potentially generate multiple results. This function
+   * returns the number of results in the output.
+   */
+  regoSize regoOutputSize(regoOutput* output);
+
+  /**
+   * Returns a node containing a list of terms resulting from the query at
+   * the specified index.
+   *
+   * @param output The output.
+   * @param index The result index.
+   * @return The output node.
+   */
+  regoNode* regoOutputExpressionsAtIndex(regoOutput* output, regoSize index);
+
+  /**
+   * Returns a node containing a list of terms resulting from the query
+   * at the default index.
+   *
+   * @param output The output.
+   * @return The output node.
+   */
+  regoNode* regoOutputExpressions(regoOutput* output);
+
+  /**
    * Returns the node containing the output of the query.
    *
-   * This will either be a node which contains sequence of terms and/or
-   * bindings, or an error sequence.
+   * This will either be a node which contains one or more results,
+   * or an error sequence.
    *
    * @param output The output.
    * @return The output node.
@@ -344,6 +375,19 @@ extern "C"
 
   /**
    * Returns the bound value for a given variable name.
+   *
+   * If the variable is not bound, then this function will return NULL.
+   *
+   * @param output The output.
+   * @param index The result index.
+   * @param name The variable name.
+   * @return The bound value (or NULL if the variable was not bound)
+   */
+  regoNode* regoOutputBindingAtIndex(
+    regoOutput* output, regoSize index, const char* name);
+
+  /**
+   * Returns the bound value for a given variable name at the first index.
    *
    * If the variable is not bound, then this function will return NULL.
    *

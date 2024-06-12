@@ -169,6 +169,7 @@ namespace rego
       {
         strings(),
         merge_data(),
+        varrefheads(),
         lift_refheads(),
         symbols(),
         replace_argvals(),

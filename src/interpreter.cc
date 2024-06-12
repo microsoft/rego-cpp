@@ -69,7 +69,7 @@ namespace rego
     }
   }
 
-  bool Interpreter::add_module_file(const std::filesystem::path& path)
+  Node Interpreter::add_module_file(const std::filesystem::path& path)
   {
     if (!std::filesystem::exists(path))
     {
@@ -83,14 +83,14 @@ namespace rego
     {
       logging::Error err;
       result.print_errors(err);
-      return false;
+      return ErrorSeq << result.errors;
     }
 
     merge(result.ast->front());
-    return true;
+    return nullptr;
   }
 
-  bool Interpreter::add_module(
+  Node Interpreter::add_module(
     const std::string& name, const std::string& contents)
   {
     std::string debug = "module" + std::to_string(m_data_count++);
@@ -100,16 +100,16 @@ namespace rego
     {
       logging::Error err;
       result.print_errors(err);
-      return false;
+      return ErrorSeq << result.errors;
     }
 
     merge(result.ast->front());
     logging::Info() << "Adding module: " << name << "(" << contents.size()
                     << " bytes)";
-    return true;
+    return nullptr;
   }
 
-  bool Interpreter::add_data_json_file(const std::filesystem::path& path)
+  Node Interpreter::add_data_json_file(const std::filesystem::path& path)
   {
     if (!std::filesystem::exists(path))
     {
@@ -124,14 +124,14 @@ namespace rego
     {
       logging::Error err;
       result.print_errors(err);
-      return false;
+      return ErrorSeq << result.errors;
     }
 
     merge(Data << result.ast->front());
-    return true;
+    return nullptr;
   }
 
-  bool Interpreter::add_data_json(const std::string& json)
+  Node Interpreter::add_data_json(const std::string& json)
   {
     logging::Info() << "Adding data (" << json.size() << " bytes)";
     std::string debug = "data" + std::to_string(m_data_count++);
@@ -142,14 +142,14 @@ namespace rego
     {
       logging::Error err;
       result.print_errors(err);
-      return false;
+      return ErrorSeq << result.errors;
     }
 
     merge(Data << result.ast->front());
-    return true;
+    return nullptr;
   }
 
-  bool Interpreter::add_data(const Node& node)
+  Node Interpreter::add_data(const Node& node)
   {
     logging::Info() << "Adding data from JSON AST";
     std::string debug = "data" + std::to_string(m_data_count++);
@@ -158,14 +158,14 @@ namespace rego
     {
       logging::Error err;
       result.print_errors(err);
-      return false;
+      return ErrorSeq << result.errors;
     }
 
     merge(Data << result.ast->front());
-    return true;
+    return nullptr;
   }
 
-  bool Interpreter::set_input_json_file(const std::filesystem::path& path)
+  Node Interpreter::set_input_json_file(const std::filesystem::path& path)
   {
     if (!std::filesystem::exists(path))
     {
@@ -179,14 +179,14 @@ namespace rego
     {
       logging::Error err;
       result.print_errors(err);
-      return false;
+      return ErrorSeq << result.errors;
     }
 
     merge(Input << result.ast->front());
-    return true;
+    return nullptr;
   }
 
-  bool Interpreter::set_input_term(const std::string& term)
+  Node Interpreter::set_input_term(const std::string& term)
   {
     logging::Info() << "Setting input (" << term.size() << " bytes)";
     auto result = m_reader.synthetic(term) >> m_to_input;
@@ -194,14 +194,14 @@ namespace rego
     {
       logging::Error err;
       result.print_errors(err);
-      return false;
+      return ErrorSeq << result.errors;
     }
 
     merge(result.ast->front());
-    return true;
+    return nullptr;
   }
 
-  bool Interpreter::set_input(const Node& node)
+  Node Interpreter::set_input(const Node& node)
   {
     logging::Info() << "Setting input from JSON AST";
     auto result = node >> m_from_json.debug_path(m_debug_path / "input");
@@ -209,11 +209,12 @@ namespace rego
     {
       logging::Error err;
       result.print_errors(err);
-      return false;
+      return ErrorSeq << result.errors;
+      ;
     }
 
     merge(Input << result.ast->front());
-    return true;
+    return nullptr;
   }
 
   Node Interpreter::raw_query(const std::string& query_expr)
@@ -283,7 +284,7 @@ namespace rego
         ast->begin(),
         ast->end(),
         std::back_inserter(results),
-        [](auto& result) { return rego::to_key(result); });
+        [](auto& result) { return rego::to_key(result, true); });
       std::sort(results.begin(), results.end());
       join(
         output_buf,
@@ -354,8 +355,8 @@ namespace rego
     return m_reader.wf_check_enabled();
   }
 
-  BuiltIns Interpreter::builtins() const
+  BuiltInsDef& Interpreter::builtins() const
   {
-    return m_builtins;
+    return *m_builtins;
   }
 }

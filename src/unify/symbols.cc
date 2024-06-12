@@ -31,6 +31,19 @@ namespace
     }
   }
 
+  Node get_version(Node rule)
+  {
+    auto policy = rule->parent();
+    auto module = policy->parent();
+    assert(module == Module);
+    auto it = module->find_first(Version, module->begin());
+    if (it == module->end())
+    {
+      return err(module->shared_from_this(), "No version found in module");
+    }
+    return (*it)->clone();
+  }
+
   const inline auto LocalToken = T(RefTerm) / T(Term);
 }
 
@@ -83,7 +96,7 @@ namespace rego
           },
 
         In(Policy) *
-            (T(Rule)
+            (T(Rule)[Rule]
              << (T(False) *
                  (T(RuleHead)
                   << ((T(RuleRef) << T(Var)[Id]) *
@@ -92,6 +105,7 @@ namespace rego
           [](Match& _) {
             ACTION();
             std::size_t num_items = _(RuleBodySeq)->size();
+            Node version = get_version(_(Rule));
 
             Node val = _(Expr);
             if (is_constant(val->front()))
@@ -101,7 +115,8 @@ namespace rego
 
             if (num_items == 0)
             {
-              return RuleComp << _(Id) << Empty << val << (Int ^ "0");
+              return RuleComp << _(Id) << Empty << val << version
+                              << (Int ^ "0");
             }
 
             if (num_items == 1)
@@ -109,7 +124,7 @@ namespace rego
               Node item = _(RuleBodySeq)->front();
               Node body = UnifyBody ^ item;
               body->insert(body->end(), item->begin(), item->end());
-              return RuleComp << _(Id) << body << val << (Int ^ "0");
+              return RuleComp << _(Id) << body << val << version << (Int ^ "0");
             }
 
             // Else precedence is per rule chain. This means that
@@ -141,6 +156,7 @@ namespace rego
                 body->insert(body->end(), item->begin(), item->end());
                 rule_seq
                   << (RuleComp << rule_id->clone() << body << val->clone()
+                               << version->clone()
                                << (Int ^ std::to_string(i)));
               }
               else if (item == Else)
@@ -152,10 +168,19 @@ namespace rego
                 }
 
                 Node query = item / Query;
-                body = UnifyBody ^ query;
-                body->insert(body->end(), query->begin(), query->end());
+                if (query->empty())
+                {
+                  body = NodeDef::create(Empty);
+                }
+                else
+                {
+                  body = UnifyBody ^ query;
+                  body->insert(body->end(), query->begin(), query->end());
+                }
+
                 rule_seq
                   << (RuleComp << rule_id->clone() << body << item_val
+                               << version->clone()
                                << (Int ^ std::to_string(i)));
               }
             }
@@ -163,14 +188,14 @@ namespace rego
             // then we create the proxy rule
             rule_seq
               << (RuleComp << _(Id) << Empty
-                           << (Expr << (Term << (Var ^ rule_id)))
+                           << (Expr << (Term << (Var ^ rule_id))) << version
                            << (Int ^ "0"));
 
             return rule_seq;
           },
 
         In(Policy) *
-            (T(Rule)
+            (T(Rule)[Rule]
              << (T(True) *
                  (T(RuleHead)
                   << ((T(RuleRef) << T(Var)[Id]) *
@@ -179,12 +204,12 @@ namespace rego
           [](Match& _) {
             ACTION();
             std::size_t rank = std::numeric_limits<std::uint16_t>::max();
-            return RuleComp << _(Id) << Empty << _(Expr)
+            return RuleComp << _(Id) << Empty << _(Expr) << get_version(_(Rule))
                             << (Int ^ std::to_string(rank));
           },
 
         In(Policy) *
-            (T(Rule)
+            (T(Rule)[Rule]
              << (T(False) *
                  (T(RuleHead)
                   << ((T(RuleRef) << T(Var)[Id]) *
@@ -195,6 +220,7 @@ namespace rego
             ACTION();
             std::size_t num_items = _(RuleBodySeq)->size();
 
+            Node version = get_version(_(Rule));
             Node val = _(Expr);
             if (is_constant(val->front()))
             {
@@ -203,7 +229,7 @@ namespace rego
 
             if (num_items == 0)
             {
-              return RuleFunc << _(Id) << _(RuleArgs) << Empty << val
+              return RuleFunc << _(Id) << _(RuleArgs) << Empty << val << version
                               << (Int ^ "0");
             }
 
@@ -212,7 +238,7 @@ namespace rego
               Node item = _(RuleBodySeq)->front();
               Node body = UnifyBody ^ item;
               body->insert(body->end(), item->begin(), item->end());
-              return RuleFunc << _(Id) << _(RuleArgs) << body << val
+              return RuleFunc << _(Id) << _(RuleArgs) << body << val << version
                               << (Int ^ "0");
             }
 
@@ -231,7 +257,7 @@ namespace rego
                 body->insert(body->end(), item->begin(), item->end());
                 rule_seq
                   << (RuleFunc << rule_id->clone() << _(RuleArgs)->clone()
-                               << body << val->clone()
+                               << body << val->clone() << version->clone()
                                << (Int ^ std::to_string(i)));
               }
               else if (item == Else)
@@ -243,11 +269,19 @@ namespace rego
                 }
 
                 Node query = item / Query;
-                body = UnifyBody ^ query;
-                body->insert(body->end(), query->begin(), query->end());
+                if (query->empty())
+                {
+                  body = NodeDef::create(Empty);
+                }
+                else
+                {
+                  body = UnifyBody ^ query;
+                  body->insert(body->end(), query->begin(), query->end());
+                }
+
                 rule_seq
                   << (RuleFunc << rule_id->clone() << _(RuleArgs)->clone()
-                               << body << item_val
+                               << body << item_val << version->clone()
                                << (Int ^ std::to_string(i)));
               }
               else if (item == Literal)
@@ -255,7 +289,7 @@ namespace rego
                 body = UnifyBody << item;
                 rule_seq
                   << (RuleFunc << rule_id->clone() << _(RuleArgs)->clone()
-                               << body << val->clone()
+                               << body << val->clone() << version->clone()
                                << (Int ^ std::to_string(i)));
               }
             }
@@ -293,13 +327,13 @@ namespace rego
             Node proxy_val = Expr << (Term << (Var ^ out));
             rule_seq
               << (RuleFunc << _(Id) << _(RuleArgs) << proxy_body << proxy_val
-                           << (Int ^ "0"));
+                           << version << (Int ^ "0"));
 
             return rule_seq;
           },
 
         In(Policy) *
-            (T(Rule)
+            (T(Rule)[Rule]
              << (T(True) *
                  (T(RuleHead)
                   << ((T(RuleRef) << T(Var)[Id]) *
@@ -310,11 +344,12 @@ namespace rego
             ACTION();
             std::size_t rank = std::numeric_limits<std::uint16_t>::max();
             return RuleFunc << _(Id) << _(RuleArgs) << Empty << _(Expr)
+                            << get_version(_(Rule))
                             << (Int ^ std::to_string(rank));
           },
 
         In(Policy) *
-            (T(Rule)
+            (T(Rule)[Rule]
              << (T(False) *
                  (T(RuleHead)
                   << ((T(RuleRef) << T(Var)[Id]) *
@@ -324,6 +359,7 @@ namespace rego
             ACTION();
             std::size_t num_items = _(RuleBodySeq)->size();
 
+            Node version = get_version(_(Rule));
             Node val = _(Expr);
             if (is_constant(val->front()))
             {
@@ -332,50 +368,49 @@ namespace rego
 
             if (num_items == 0)
             {
-              return RuleSet << _(Id) << Empty << val << (Int ^ "0");
+              return RuleSet << _(Id) << Empty << val << version;
             }
 
-            Node rule_seq = NodeDef::create(Seq);
+            Node item = _(RuleBodySeq)->front();
 
-            for (std::size_t i = 0; i < num_items; ++i)
+            if (item == Else)
             {
-              Node item = _(RuleBodySeq)->at(i);
-              Node body;
-              if (item == Query)
-              {
-                body = UnifyBody ^ item;
-                body->insert(body->end(), item->begin(), item->end());
-                rule_seq
-                  << (RuleSet << _(Id)->clone() << body << val->clone()
-                              << (Int ^ std::to_string(i)));
-              }
-              else if (item == Else)
-              {
-                return err(
-                  item, "else keyword cannot be used on multi-value rules");
-              }
-              else if (item == Literal)
-              {
-                body = UnifyBody << item;
-                rule_seq
-                  << (RuleSet << _(Id)->clone() << body << val->clone()
-                              << (Int ^ std::to_string(i)));
-              }
+              return err(
+                item, "else keyword cannot be used on multi-value rules");
             }
 
-            return rule_seq;
+            Node body;
+            if (item == Query)
+            {
+              body = UnifyBody ^ item;
+              body->insert(body->end(), item->begin(), item->end());
+              return RuleSet << _(Id)->clone() << body << val->clone()
+                             << version->clone();
+            }
+
+            if (item == Literal)
+            {
+              body = UnifyBody << item;
+              return RuleSet << _(Id)->clone() << body << val->clone()
+                             << version->clone();
+            }
+
+            return err(item, "Invalid rule body");
           },
 
         In(Policy) *
-            (T(Rule)
+            (T(Rule)[Rule]
              << (T(False) *
                  (T(RuleHead)
                   << ((T(RuleRef) << T(Var)[Id]) *
-                      (T(RuleHeadObj) << (T(Expr)[Key] * T(Expr)[Val])))) *
+                      (T(RuleHeadObj)
+                       << (T(Expr)[Key] * T(Expr)[Val] *
+                           T(True, False)[IsVarRef])))) *
                  T(RuleBodySeq)[RuleBodySeq])) >>
           [](Match& _) {
             ACTION();
             std::size_t num_items = _(RuleBodySeq)->size();
+            Node version = get_version(_(Rule));
 
             Node key = _(Key);
             if (is_constant(key->front()))
@@ -390,38 +425,36 @@ namespace rego
 
             if (num_items == 0)
             {
-              return RuleObj << _(Id) << Empty << key << val << (Int ^ "0");
+              return RuleObj << _(Id) << Empty << key << val << _(IsVarRef)
+                             << version;
             }
 
-            Node rule_seq = NodeDef::create(Seq);
-
-            for (std::size_t i = 0; i < num_items; ++i)
+            Node item = _(RuleBodySeq)->front();
+            Node body;
+            if (item == Else)
             {
-              Node item = _(RuleBodySeq)->at(i);
-              Node body;
-              if (item == Query)
-              {
-                body = UnifyBody ^ item;
-                body->insert(body->end(), item->begin(), item->end());
-                rule_seq
-                  << (RuleObj << _(Id)->clone() << body << key->clone()
-                              << val->clone() << (Int ^ std::to_string(i)));
-              }
-              else if (item == Else)
-              {
-                return err(
-                  item, "else keyword cannot be used on multi-value rules");
-              }
-              else if (item == Literal)
-              {
-                body = UnifyBody << item;
-                rule_seq
-                  << (RuleObj << _(Id)->clone() << body << key->clone()
-                              << val->clone() << (Int ^ std::to_string(i)));
-              }
+              return err(
+                item, "else keyword cannot be used on multi-value rules");
             }
 
-            return rule_seq;
+            if (item == Query)
+            {
+              body = UnifyBody ^ item;
+              body->insert(body->end(), item->begin(), item->end());
+              return RuleObj << _(Id)->clone() << body << key->clone()
+                             << val->clone() << _(IsVarRef)->clone()
+                             << version->clone();
+            }
+
+            if (item == Literal)
+            {
+              body = UnifyBody << item;
+              return RuleObj << _(Id)->clone() << body << key->clone()
+                             << val->clone() << _(IsVarRef)->clone()
+                             << version->clone();
+            }
+
+            return err(item, "Invalid rule body");
           },
 
         In(Expr) * (T(Term) << (T(Ref) / T(Var))[Val]) >>
@@ -436,16 +469,23 @@ namespace rego
             return NumTerm << _(Val);
           },
 
+        In(RefArgBrack) * (T(Expr) << T(RefTerm, NumTerm)[Term]) >>
+          [](Match& _) {
+            ACTION();
+            return _(Term);
+          },
+
         In(RefArgBrack) * T(Var)[Var] >>
           [](Match& _) {
             ACTION();
             return RefTerm << _(Var);
           },
 
-        In(RefArgBrack) * T(ExprInfix)[ExprInfix] >>
+        In(RefArgBrack) *
+            (T(Expr) << (T(Term) << T(Scalar, Object, Array, Set)[Term])) >>
           [](Match& _) {
             ACTION();
-            return Expr << _(ExprInfix);
+            return _(Term);
           },
 
         In(UnifyBody) *
@@ -646,7 +686,7 @@ namespace rego
                        << (ExprSeq
                            << (Expr
                                << (ExprCall
-                                   << (Ref << (RefHead << (Var ^ "cast_set"))
+                                   << (Ref << (RefHead << (Var ^ "cast_set_ex"))
                                            << RefArgSeq)
                                    << (ExprSeq
                                        << (Expr
@@ -783,6 +823,18 @@ namespace rego
           [](Match& _) {
             ACTION();
             return err(_(Term), "Invalid with term");
+          },
+
+        T(Query)[Query] << End >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Query), "Invalid query");
+          },
+
+        T(Placeholder)[Placeholder] >>
+          [](Match& _) {
+            ACTION();
+            return err(_(Placeholder), "Invalid placeholder");
           },
       }};
   }

@@ -1,5 +1,10 @@
 #include "unify.hh"
 
+namespace
+{
+  const auto FreshVarPattern = R"([[:alnum:]]+\$\d+)";
+}
+
 namespace rego
 {
   // Extracts the query result from the AST.
@@ -10,11 +15,22 @@ namespace rego
       wf_result,
       dir::topdown,
       {
-        In(Top) * (T(Rego) << T(Query)[Query]) >>
+        In(Top) * (T(Rego) << (T(Query) << T(Result)++[Result])) >>
           [](Match& _) {
             ACTION();
-            return Result << *_[Query];
+            if (_[Result].empty())
+            {
+              return Undefined ^ "";
+            }
+            return Results << _[Result];
           },
+
+        T(ObjectItem)
+            << (T(Term) << (T(Scalar) << T(JSONString, FreshVarPattern))) >>
+          [](Match&) -> Node { return nullptr; },
+
+        T(Binding) << T(Var, FreshVarPattern) >>
+          [](Match&) -> Node { return nullptr; },
 
         (T(Array) / T(Set)) * T(Error)[Error] >>
           [](Match& _) {

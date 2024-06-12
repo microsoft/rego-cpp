@@ -94,7 +94,7 @@ namespace
     }
     else if (collection->type() == Array)
     {
-      auto maybe_key = unwrap(keys->at(index), {Int});
+      auto maybe_key = unwrap(keys->at(index), Int);
       if (!maybe_key.success)
       {
         return std::nullopt;

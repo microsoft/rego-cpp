@@ -9,22 +9,22 @@ project( regoc VERSION 0.1.0 LANGUAGES C CXX )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (DEFINED ENV{REGOCPP_C_WRAPPER_REPO})
-  set(REGOCPP_C_WRAPPER_REPO $ENV{REGOCPP_C_WRAPPER_REPO})
+if (DEFINED ENV{REGOCPP_REPO})
+  set(REGOCPP_REPO $ENV{REGOCPP_REPO})
 else ()
-  set(REGOCPP_C_WRAPPER_REPO "https://github.com/microsoft/rego-cpp/")
+  set(REGOCPP_REPO "https://github.com/microsoft/rego-cpp/")
 endif ()
 
-if (DEFINED ENV{REGOCPP_C_WRAPPER_TAG})
-  set(REGOCPP_C_WRAPPER_TAG $ENV{REGOCPP_C_WRAPPER_TAG})
+if (DEFINED ENV{REGOCPP_TAG})
+  set(REGOCPP_TAG $ENV{REGOCPP_TAG})
 else ()
-  set(REGOCPP_C_WRAPPER_TAG "main")
+  set(REGOCPP_TAG "main")
 endif()
 
 FetchContent_Declare(
   regocpp
-  GIT_REPOSITORY ${REGOCPP_C_WRAPPER_REPO}
-  GIT_TAG        ${REGOCPP_C_WRAPPER_TAG}
+  GIT_REPOSITORY ${REGOCPP_REPO}
+  GIT_TAG        ${REGOCPP_TAG}
 )
 
 FetchContent_Declare(
