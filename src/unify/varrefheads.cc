@@ -40,9 +40,17 @@ namespace
       std::string key_str = add_quotes(node->front()->location().view());
       return term_to_expr(Scalar << (JSONString ^ key_str));
     }
-    else
+    else if (node->front() == Expr)
     {
       return node->front();
+    }
+    else if (node->front() == Placeholder)
+    {
+      return Expr << (Term << (Var ^ node->fresh(node->location())));
+    }
+    else
+    {
+      return err(node, "Cannot convert refarg to object key");
     }
   }
 }
