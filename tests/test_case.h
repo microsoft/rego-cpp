@@ -7,6 +7,7 @@ namespace rego_test
   using namespace rego;
 
   using BindingMap = std::map<std::string, std::string>;
+  using BindingMaps = std::map<std::string, BindingMap>;
 
   struct Result
   {
@@ -86,7 +87,7 @@ namespace rego_test
     TestCase& broken(bool broken);
 
   private:
-    BindingMap to_binding_map(const Node& node) const;
+    BindingMaps to_binding_maps(const Node& node) const;
     bool compare(
       const Node& actual, const Node& wanted, std::ostream& os) const;
     bool compare(

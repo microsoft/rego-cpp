@@ -10,9 +10,9 @@ namespace rego
     return {
       "strings",
       wf_pass_strings,
-      dir::topdown,
+      dir::bottomup | dir::once,
       {
-        In(String) * T(RawString)[RawString] >>
+        In(Scalar) * (T(String) << T(RawString)[RawString]) >>
           [](Match& _) {
             ACTION();
             std::string raw_string =

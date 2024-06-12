@@ -99,8 +99,8 @@ jobs:
         working-directory: ${{github.workspace}}/examples/c
         run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -129,8 +129,8 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
         run: cargo test -vv
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
   linux-wrappers-python:
     runs-on: ubuntu-latest
@@ -158,8 +158,8 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/python/
         run: pip install -e .[dev]
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
@@ -199,8 +199,8 @@ jobs:
         working-directory: ${{github.workspace}}/examples/c
         run: cmake -B ${{github.workspace}}/examples/c/build --preset release
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
         run: cmake --build . --config Release --target INSTALL
@@ -224,8 +224,8 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/rust/regorust
         run: cargo test -vv
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
   windows-wrappers-python:
     runs-on: ubuntu-latest
@@ -254,8 +254,8 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/python/
         run: pip install -e .[dev]
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
@@ -302,8 +302,8 @@ jobs:
         working-directory: ${{github.workspace}}/examples/c
         run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -332,8 +332,8 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
         run: cargo test -vv
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
   macos-wrappers-python:
     runs-on: macos-latest
@@ -361,8 +361,8 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/python/
         run: pip install -e .[dev]
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
           CXX: g++-11
           CC: gcc-11
 
@@ -411,8 +411,8 @@ jobs:
         working-directory: ${{github.workspace}}/examples/c
         run: cmake -B ${{github.workspace}}/examples/c/build --preset release-clang
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -441,8 +441,8 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
         run: cargo test -vv
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
 
   applesilicon-wrappers-python:
     runs-on: macos-latest-xlarge
@@ -470,8 +470,8 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/python/
         run: pip install -e .[dev]
         env:
-          REGOCPP_C_WRAPPER_REPO: https://github.com/${{github.repository}}
-          REGOCPP_C_WRAPPER_TAG: ${{github.sha}}
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
           CXX: g++-11
           CC: gcc-11
 

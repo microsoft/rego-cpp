@@ -52,6 +52,10 @@ PYBIND11_MODULE(_regopy, m)
   m.attr("REGO_NODE_FALSE") = REGO_NODE_FALSE;
   m.attr("REGO_NODE_NULL") = REGO_NODE_NULL;
   m.attr("REGO_NODE_UNDEFINED") = REGO_NODE_UNDEFINED;
+  m.attr("REGO_NODE_TERMS") = REGO_NODE_TERMS;
+  m.attr("REGO_NODE_BINDINGS") = REGO_NODE_BINDINGS;
+  m.attr("REGO_NODE_RESULTS") = REGO_NODE_RESULTS;
+  m.attr("REGO_NODE_RESULT") = REGO_NODE_RESULT;
 
   m.attr("REGO_NODE_ERROR") = REGO_NODE_ERROR;
   m.attr("REGO_NODE_ERROR_MESSAGE") = REGO_NODE_ERROR_MESSAGE;
@@ -184,7 +188,30 @@ PYBIND11_MODULE(_regopy, m)
     "Returns true if the output is ok.",
     "output"_a);
   m.def(
+    "regoOutputSize",
+    &regoOutputSize,
+    "Returns the number of results in the output.",
+    "output"_a);
+  m.def(
+    "regoOutputExpressionsAtIndex",
+    &regoOutputExpressionsAtIndex,
+    "Returns the terms at the specified index.",
+    "output"_a,
+    "index"_a);
+  m.def(
+    "regoOutputExpressions",
+    &regoOutputExpressions,
+    "Returns the terms.",
+    "output"_a);
+  m.def(
     "regoOutputNode", &regoOutputNode, "Returns the output node.", "output"_a);
+  m.def(
+    "regoOutputBindingAtIndex",
+    &regoOutputBindingAtIndex,
+    "Returns the output binding at the specified index.",
+    "output"_a,
+    "index"_a,
+    "name"_a);
   m.def(
     "regoOutputBinding",
     &regoOutputBinding,

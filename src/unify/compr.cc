@@ -13,14 +13,15 @@ namespace rego
         In(Policy) *
             (T(RuleSet)
              << (T(Var)[Var] * (T(UnifyBody) / T(Empty))[Body] *
-                 T(DataTerm)[Val])) >>
+                 T(DataTerm)[Val] * T(Version)[Version])) >>
           [](Match& _) {
             ACTION();
             return RuleSet << _(Var) << _(Body)
-                           << (DataTerm << (DataSet << _[Val]));
+                           << (DataTerm << (DataSet << _[Val])) << _(Version);
           },
 
-        In(Policy) * T(RuleSet) << (T(Var)[Var] * T(Empty) * T(Expr)[Val]) >>
+        In(Policy) * T(RuleSet)
+            << (T(Var)[Var] * T(Empty) * T(Expr)[Val] * T(Version)[Version]) >>
           [](Match& _) {
             ACTION();
             Location value = _.fresh({"value"});
@@ -31,11 +32,13 @@ namespace rego
                                    << (Expr << expr_infix(
                                          Unify,
                                          RefTerm << (Var ^ value),
-                                         Term << (Set << _(Val))))));
+                                         Term << (Set << _(Val))))))
+                           << _(Version);
           },
 
         In(Policy) * T(RuleSet)
-            << (T(Var)[Var] * T(UnifyBody)[Body] * T(Expr)[Val]) >>
+            << (T(Var)[Var] * T(UnifyBody)[Body] * T(Expr)[Val] *
+                T(Version)[Version]) >>
           [](Match& _) {
             ACTION();
             Location value = _.fresh({"value"});
@@ -48,12 +51,14 @@ namespace rego
                                 << (Expr << expr_infix(
                                       Unify,
                                       RefTerm << (Var ^ value),
-                                      Term << (SetCompr << _(Val) << body)))));
+                                      Term << (SetCompr << _(Val) << body)))))
+              << _(Version);
           },
 
         In(Policy) *
             (T(RuleObj)
-             << (T(Var)[Var] * T(Empty) * T(Expr)[Key] * T(Expr)[Val])) >>
+             << (T(Var)[Var] * T(Empty) * T(Expr)[Key] * T(Expr)[Val] *
+                 T(True, False)[IsVarRef] * T(Version)[Version])) >>
           [](Match& _) {
             ACTION();
             Location value = _.fresh({"value"});
@@ -74,25 +79,29 @@ namespace rego
                               << (Object
                                   << (ObjectItem
                                       << (Expr << (RefTerm << (Var ^ key)))
-                                      << _(Val)))))));
+                                      << _(Val)))))))
+              << _(IsVarRef) << _(Version);
           },
 
         In(Policy) *
             (T(RuleObj)
              << (T(Var)[Var] * (T(UnifyBody) / T(Empty))[Body] *
-                 (T(DataTerm)[Key]) * T(DataTerm)[Val])) >>
+                 T(DataTerm)[Key] * T(DataTerm)[Val] *
+                 T(True, False)[IsVarRef] * T(Version)[Version])) >>
           [](Match& _) {
             ACTION();
             return RuleObj << _(Var) << _(Body)
                            << (DataTerm
                                << (DataObject
-                                   << (DataObjectItem << _(Key) << _(Val))));
+                                   << (DataObjectItem << _(Key) << _(Val))))
+                           << _(IsVarRef) << _(Version);
           },
 
         In(Policy) *
             (T(RuleObj)
              << (T(Var)[Var] * T(UnifyBody)[Body] * T(Expr)[Key] *
-                 T(Expr)[Val])) >>
+                 T(Expr)[Val] * T(True, False)[IsVarRef] *
+                 T(Version)[Version])) >>
           [](Match& _) {
             ACTION();
             Location value = _.fresh({"value"});
@@ -115,7 +124,8 @@ namespace rego
                                          RefTerm << (Var ^ value),
                                          Term
                                            << (ObjectCompr << _(Key) << _(Val)
-                                                           << body)))));
+                                                           << body)))))
+                           << _(IsVarRef) << _(Version);
           },
 
         // errors

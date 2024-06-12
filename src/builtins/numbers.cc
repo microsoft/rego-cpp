@@ -138,6 +138,77 @@ namespace
     return array;
   }
 
+  Node numbers_range_step(const Nodes& args)
+  {
+    Node lhs_number = unwrap_arg(
+      args,
+      UnwrapOpt(0).type(Int).func("numbers.range_step").specify_number(true));
+    if (lhs_number->type() == Error)
+    {
+      return lhs_number;
+    }
+
+    Node rhs_number = unwrap_arg(
+      args,
+      UnwrapOpt(1).type(Int).func("numbers.range_step").specify_number(true));
+    if (rhs_number->type() == Error)
+    {
+      return rhs_number;
+    }
+
+    Node step_number = unwrap_arg(
+      args,
+      UnwrapOpt(2).type(Int).func("numbers.range_step").specify_number(true));
+    if (step_number->type() == Error)
+    {
+      return step_number;
+    }
+
+    BigInt lhs = get_int(lhs_number);
+    BigInt rhs = get_int(rhs_number);
+    BigInt step = get_int(step_number);
+
+    if (step < BigInt({"1"}))
+    {
+      return err(
+        step_number,
+        "numbers.range_step: step must be a positive number above zero",
+        EvalBuiltInError);
+    }
+
+    Node array = Array ^ args[0];
+    if (lhs < rhs)
+    {
+      BigInt curr = lhs;
+      while (curr < rhs)
+      {
+        array->push_back(Term << (Scalar << (Int ^ curr.loc())));
+        curr = curr + step;
+      }
+
+      if (curr == rhs)
+      {
+        array->push_back(Term << (Scalar << (Int ^ curr.loc())));
+      }
+    }
+    else
+    {
+      BigInt curr = lhs;
+      while (curr > rhs)
+      {
+        array->push_back(Term << (Scalar << (Int ^ curr.loc())));
+        curr = curr - step;
+      }
+
+      if (curr == rhs)
+      {
+        array->push_back(Term << (Scalar << (Int ^ curr.loc())));
+      }
+    }
+
+    return array;
+  }
+
   Node rand_intn(const Nodes& args)
   {
     Node seed_string_node =
@@ -175,6 +246,8 @@ namespace rego
         BuiltInDef::create(Location("floor"), 1, floor),
         BuiltInDef::create(Location("round"), 1, round),
         BuiltInDef::create(Location("numbers.range"), 2, numbers_range),
+        BuiltInDef::create(
+          Location("numbers.range_step"), 3, numbers_range_step),
         BuiltInDef::create(Location("rand.intn"), 2, rand_intn)};
     }
   }

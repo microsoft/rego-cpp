@@ -45,8 +45,7 @@ class Interpreter:
         >>> from regopy import Interpreter
         >>> rego = Interpreter()
         >>> print(rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4"))
-        x = 5
-        y = 9.4
+        {"bindings":{"x":5, "y":9.4}}
 
         >>> input = {
         ...     "a": 10,
@@ -102,7 +101,7 @@ class Interpreter:
         >>> rego.add_data(data1)
         >>> rego.add_module("objects", module)
         >>> print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
-        x = [{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]
+        {"bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]}}
     """
 
     def __init__(self):
@@ -138,7 +137,7 @@ class Interpreter:
             >>> rego.add_module("scalars", module)
             >>> output = rego.query("data.scalars.greeting")
             >>> print(output)
-            "Hello"
+            {"expressions":["Hello"]}
         """
         err = regoAddModule(self._impl, name, source)
         if err == REGO_ERROR:
@@ -177,7 +176,7 @@ class Interpreter:
             >>> rego.add_data_json(data)
             >>> output = rego.query("data.one.bar")
             >>> print(output)
-            "Foo"
+            {"expressions":["Foo"]}
         """
         err = regoAddDataJSON(self._impl, json)
         if err == REGO_ERROR:
@@ -224,7 +223,7 @@ class Interpreter:
             >>> rego.set_input_json(input)
             >>> output = rego.query("input.a")
             >>> print(output)
-            10
+            {"expressions":[10]}
         """
         err = regoSetInputTerm(self._impl, term)
         if err == REGO_ERROR:
@@ -256,7 +255,7 @@ class Interpreter:
             >>> rego.set_input_json(input)
             >>> output = rego.query("input.a")
             >>> print(output)
-            10
+            {"expressions":[10]}
         """
         err = regoSetInputTerm(self._impl, json)
         if err == REGO_ERROR:
@@ -384,15 +383,15 @@ class Interpreter:
             >>> rego.set_input(input0)
             >>> output = rego.query("data.multi.a")
             >>> print(output)
-            1
+            {"expressions":[1]}
             >>> rego.set_input(input1)
             >>> output = rego.query("data.multi.a")
             >>> print(output)
-            41
+            {"expressions":[41]}
             >>> rego.set_input(input2)
             >>> output = rego.query("data.multi.a")
             >>> print(output)
-            70
+            {"expressions":[70]}
         """
         impl = regoQuery(self._impl, query)
         if impl is None:

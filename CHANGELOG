@@ -1,5 +1,25 @@
 # Changelog
 
+## 2024-06-12 - Update to rego v0.65.0
+Update to Rego v0.65.0
+
+**New Features**
+- Updated the supported version of Rego to v0.65.0.
+- `json.marshal_with_options`
+- `numbers.range_step`
+- `rego.v1` import and behaviour, plus a set of tests in `regov1.yaml`
+- The interpreter now returns more than one `Result` when appropriate, and separates out the `Bindings` and `Terms`.
+- The output of `rego` is now JSON instead of plain text
+- Added `regoOutputSize`, `regoExpressions`, `regoBindingsAtIndex`, and `regoExpressionsAtIndex` to the C API
+- Updated the Python and Rust wrappers to use the new API
+
+**Breaking Changes**
+- Output of `rego` tool has changed. Any downstream tooling that was parsing that will need to be updated to parse the JSON.
+- `rego::wf_result` has changed. Any tooling that was using the output node directly will need to be updated
+- the `add_*` methods on `Interpreter`, as they now perform parsing, now produce either a `nullptr` if successful or an error `Node`.
+  Downstream consumers that were checking the boolean return value will need to be updated. Behavior in the C API is unchanged, but
+  there will now be detailed parse/compile errors when an individual module etc. fails to compile.
+
 ## 2024-06-04 - Version 0.4.0
 Major refactor of the code to use the new version of Trieste.
 

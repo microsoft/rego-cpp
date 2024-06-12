@@ -96,9 +96,10 @@ cases:
 - note: regocpp/query_math
   query: 'x=5;
     y=x + (2 - 4 * 0.25) * -3 + 7.4'
+  sort_bindings: true
   want_result:
     - x: 5
-    - y: 9.4
+      y: 9.4
 - note: regocpp/expressions
   modules:
   - |

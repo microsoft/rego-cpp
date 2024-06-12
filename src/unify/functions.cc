@@ -142,6 +142,16 @@ namespace
       return Function << (JSONString ^ "set") << argseq;
     }
 
+    if (node == DynamicSet)
+    {
+      Node argseq = NodeDef::create(ArgSeq);
+      for (auto& child : *node)
+      {
+        argseq << unwrap_node(child);
+      }
+      return Function << (JSONString ^ "dynamic-set") << argseq;
+    }
+
     if (node == Object)
     {
       if (is_constant(node))
@@ -155,6 +165,16 @@ namespace
         argseq << unwrap_node(child / Key) << unwrap_node(child / Val);
       }
       return Function << (JSONString ^ "object") << argseq;
+    }
+
+    if (node == DynamicObject)
+    {
+      Node argseq = NodeDef::create(ArgSeq);
+      for (auto& child : *node)
+      {
+        argseq << unwrap_node(child / Key) << unwrap_node(child / Val);
+      }
+      return Function << (JSONString ^ "dynamic-object") << argseq;
     }
 
     return err(term, "Invalid term");

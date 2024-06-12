@@ -135,6 +135,27 @@ namespace
       }
     }
   }
+
+  Node get_version(NodeDef* node)
+  {
+    if (node == Top)
+    {
+      return nullptr;
+    }
+
+    if (node->in({Module, RuleComp, RuleFunc, RuleObj, RuleSet}))
+    {
+      auto it = node->find_first(Version, node->begin());
+      if (it != node->end())
+      {
+        return (*it)->clone();
+      }
+
+      return err(node->shared_from_this(), "Missing version");
+    }
+
+    return get_version(node->parent());
+  }
 }
 
 namespace rego
@@ -154,6 +175,7 @@ namespace rego
                  T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
             ACTION();
+            Node version = get_version(_(UnifyBody)->parent());
             Node rulebody = _(UnifyBody);
             // in vars
             Locs invars;
@@ -183,7 +205,7 @@ namespace rego
                 // we don't want return values to be passed in as arguments.
                 // i.e. we implicitly disable an in/out pattern, as the
                 // values which are are returned from this function will
-                // be merged with the varibles in the outer unification via
+                // be merged with the variables in the outer unification via
                 // a different mechanism.
                 invars.erase(var);
               }
@@ -227,7 +249,7 @@ namespace rego
             Node result = Seq
               << (Lift << DataModule
                        << (RuleFunc << rulename << ruleargs << rulebody
-                                    << rulevalue << (Int ^ "0")))
+                                    << rulevalue << version << (Int ^ "0")))
               << (UnifyExpr
                   << _(Item)
                   << (Expr << (Enumerate << (Expr << (RefTerm << _(ItemSeq))))))
@@ -256,6 +278,7 @@ namespace rego
                  (T(NestedBody) << (T(Key)[Key] * T(UnifyBody)[UnifyBody])))) >>
           [](Match& _) {
             ACTION();
+            Node version = get_version(_(Var)->parent());
             Node rulebody = _(UnifyBody);
             Locs invars;
             find_invars(_(UnifyBody), invars);
@@ -284,12 +307,15 @@ namespace rego
                 << (UnifyExpr
                     << (Var ^ value)
                     << (Expr << (_(Compr)->type() << _(Compr) / Var)));
-              return Seq << (Lift << DataModule
-                                  << (RuleComp << rulename << rulebody
-                                               << rulevalue << (Int ^ "0")))
-                         << (Lift << DataModule
-                                  << (RuleComp << rulename->clone() << Empty
-                                               << default_value << (Int ^ "1")))
+              return Seq << (Lift
+                             << DataModule
+                             << (RuleComp << rulename << rulebody << rulevalue
+                                          << version->clone() << (Int ^ "0")))
+                         << (Lift
+                             << DataModule
+                             << (RuleComp << rulename->clone() << Empty
+                                          << default_value << version->clone()
+                                          << (Int ^ "1")))
                          << (UnifyExpr
                              << _(Var)
                              << (Expr << (RefTerm << rulename->clone())));
@@ -315,10 +341,12 @@ namespace rego
               return Seq
                 << (Lift << DataModule
                          << (RuleFunc << rulename << ruleargs << rulebody
-                                      << rulevalue << (Int ^ "0")))
+                                      << rulevalue << version->clone()
+                                      << (Int ^ "0")))
                 << (Lift << DataModule
                          << (RuleFunc << rulename->clone() << ruleargs->clone()
-                                      << Empty << default_value << (Int ^ "1")))
+                                      << Empty << default_value
+                                      << version->clone() << (Int ^ "1")))
                 << (Local << (Var ^ partial) << Undefined)
                 << (UnifyExpr
                     << (Var ^ partial)
@@ -332,6 +360,7 @@ namespace rego
             ((T(ExprEvery) * In(DataModule)++) << T(UnifyBody)[UnifyBody]) >>
           [](Match& _) {
             ACTION();
+            Node version = get_version(_(UnifyBody)->parent());
             Node rulebody = _(UnifyBody);
             Locs invars;
             find_invars(_(UnifyBody), invars);
@@ -342,7 +371,8 @@ namespace rego
             {
               return Seq << (Lift << DataModule
                                   << (RuleComp << (Var ^ rulename) << rulebody
-                                               << rulevalue << (Int ^ "0")))
+                                               << rulevalue << version
+                                               << (Int ^ "0")))
                          << (RefTerm << (Var ^ rulename));
             }
 
@@ -356,7 +386,7 @@ namespace rego
 
             return Seq << (Lift << DataModule
                                 << (RuleFunc << (Var ^ rulename) << ruleargs
-                                             << rulebody << rulevalue
+                                             << rulebody << rulevalue << version
                                              << (Int ^ "0")))
                        << (ExprCall << (Var ^ rulename) << exprseq);
           },

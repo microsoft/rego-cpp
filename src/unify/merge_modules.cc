@@ -24,7 +24,7 @@ namespace
         {
           // NB virtual doc rules are only merged if there is a name conflict
           // with a non-virtual doc rule. This seems counter-intuitive but
-          // is correct as of v0.55.0 of Rego.
+          // is correct as of v0.65.0 of Rego.
           dst->push_back(src);
         }
       }
@@ -91,7 +91,7 @@ namespace rego
                  << (T(Ref)
                      << ((T(RefHead) << T(Var)[Var]) *
                          T(RefArgSeq)[RefArgSeq]))) *
-                T(Policy)[Policy])) >>
+                T(Version) * T(Policy)[Policy])) >>
          [](Match& _) {
            ACTION();
            Node args = _(RefArgSeq);

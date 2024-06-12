@@ -171,7 +171,7 @@ namespace
 
   Node is_valid(const Nodes& args)
   {
-    auto vsn = unwrap(args[0], {JSONString});
+    auto vsn = unwrap(args[0], JSONString);
     if (!vsn.success)
     {
       return False ^ "false";

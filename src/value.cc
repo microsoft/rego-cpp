@@ -5,7 +5,8 @@ namespace
   using namespace rego;
 
   std::set<Token> scalar_tokens = {Int, Float, JSONString, True, False, Null};
-  std::set<Token> term_tokens = {Scalar, Array, Object, Set, Undefined};
+  std::set<Token> term_tokens = {
+    Scalar, Array, DynamicObject, Object, DynamicSet, Set, Undefined};
 }
 
 namespace rego

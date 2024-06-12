@@ -45,6 +45,16 @@ cases:
       - 1
       - 2
       - 3
+- note: regocpp/bug110
+  query: "[1, 2, 3][_] = x"
+  want_result:
+    - x: 1
+    - x: 2
+    - x: 3
+- note: regocpp/bug111
+  query: "not data.foo = x"
+  want_result:
+    - x: true
 - note: regocpp/bug112
   modules:
   - |
@@ -83,6 +93,25 @@ cases:
   query: x = (12/3)%3
   want_result:
     - x: 1
+- note: regocpp/bug117
+  data:
+    letters:
+    - i: 0
+      x: 'a'
+    - i: 1
+      x: 'b'
+    - i: 2
+      x: 'c'
+    - i: 3
+      x: 'd'
+  modules:
+  - |
+    package test
+
+    odd_letters := [ letter.x | letter = data.letters[_]; letter.i % 2 == 1 ]
+  query: data.test.odd_letters = x
+  want_result:
+  - x: [b, d]
 - note: regocpp/bug124
   modules:
   - |
@@ -92,6 +121,19 @@ cases:
   query: data.test.x = x
   want_result:
     - x: true
+- note: regocpp/bug121
+  modules:
+  - |
+    package test
+
+    a.b.c = 1
+    a.b.d = 2
+    y = a.b
+  query: data.test.y = x
+  want_result:
+    - x:
+        c: 1
+        d: 2
 - note: regocpp/bug126
   modules:
   - |

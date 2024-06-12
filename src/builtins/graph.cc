@@ -118,7 +118,7 @@ namespace
       argseq->push_back(nodes[std::string(key)]);
     }
 
-    return Resolver::set(argseq);
+    return Resolver::set(argseq, false);
   }
 
   class Path
@@ -277,7 +277,7 @@ namespace
       argseq->push_back(path.to_node(nodes));
     }
 
-    return Resolver::set(argseq);
+    return Resolver::set(argseq, false);
   }
 }
 

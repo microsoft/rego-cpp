@@ -18,13 +18,12 @@ namespace rego
       wf_pass_unify,
       dir::bottomup | dir::once,
       {
-        In(Query, Array, Set, ObjectItem) *
-            (ScalarToken / T(JSONString))[Scalar] >>
+        In(Array, Set, ObjectItem) * (ScalarToken / T(JSONString))[Scalar] >>
           [](Match& _) {
             ACTION();
             return Term << (Scalar << _(Scalar));
           },
-        In(Query, Array, Set, ObjectItem) *
+        In(Array, Set, ObjectItem) *
             (T(Object) / T(Array) / T(Set) / T(Scalar))[Term] >>
           [](Match& _) {
             ACTION();
@@ -50,6 +49,26 @@ namespace rego
             ACTION();
             return Object << *_[DataObject];
           },
+        In(ObjectItem) * T(DynamicObject)[DynamicObject] >>
+          [](Match& _) {
+            ACTION();
+            return Term << (Object << *_[DynamicObject]);
+          },
+        In(Term) * T(DynamicObject)[DynamicObject] >>
+          [](Match& _) {
+            ACTION();
+            return Object << *_[DynamicObject];
+          },
+        In(ObjectItem) * T(DynamicSet)[DynamicSet] >>
+          [](Match& _) {
+            ACTION();
+            return Term << (Set << *_[DynamicSet]);
+          },
+        In(Term) * T(DynamicSet)[DynamicSet] >>
+          [](Match& _) {
+            ACTION();
+            return Set << *_[DynamicSet];
+          },
       }};
 
     unify.pre(Rego, [builtins](Node node) {
@@ -59,8 +78,8 @@ namespace rego
       Node query = node / Query;
       try
       {
-        Node result = Resolver::resolve_query(query, builtins);
-        node->replace(query, result);
+        Nodes results = Resolver::resolve_query(query, builtins);
+        node->replace(query, Query << results);
       }
       catch (const std::exception& e)
       {

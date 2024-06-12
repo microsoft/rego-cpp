@@ -216,6 +216,10 @@ pub enum NodeKind {
     True,
     False,
     Null,
+    Terms,
+    Bindings,
+    Results,
+    Result,
     Error,
     ErrorSeq,
     ErrorMessage,
@@ -419,7 +423,7 @@ impl Interpreter {
     /// rego.add_module("scalars", module);
     /// let result = rego.query("data.scalars.greeting").unwrap();
     /// println!("{}", result.to_str().unwrap());
-    /// # assert_eq!(result.to_str().unwrap(), r#""Hello""#);
+    /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":["Hello"]}"#);
     /// ```
     pub fn add_module(&self, name: &str, source: &str) -> Result<(), &str> {
         let name_cstr = CString::new(name).unwrap();
@@ -495,7 +499,7 @@ impl Interpreter {
     /// rego.add_data_json(data);
     /// let result = rego.query("data.one.bar").unwrap();
     /// println!("{}", result.to_str().unwrap());
-    /// # assert_eq!(result.to_str().unwrap(), r#""Foo""#);
+    /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":["Foo"]}"#);
     /// ```
     pub fn add_data_json(&self, data: &str) -> Result<(), &str> {
         let data_cstr = CString::new(data).unwrap();
@@ -578,7 +582,7 @@ impl Interpreter {
     /// rego.set_input_json(input);
     /// let result = rego.query("input.a").unwrap();
     /// println!("{}", result.to_str().unwrap());
-    /// # assert_eq!(result.to_str().unwrap(), "10");
+    /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":[10]}"#);
     /// ```
     pub fn set_input_json(&self, input: &str) -> Result<(), &str> {
         let input_cstr = CString::new(input).unwrap();
@@ -701,15 +705,15 @@ impl Interpreter {
     /// rego.set_input_json(input0);
     /// let result = rego.query("data.multi.a").unwrap();
     /// println!("{}", result.to_str().unwrap());
-    /// # assert_eq!(result.to_str().unwrap(), "1");
+    /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":[1]}"#);
     /// rego.set_input_json(input1);
     /// let result = rego.query("data.multi.a").unwrap();
     /// println!("{}", result.to_str().unwrap());
-    /// # assert_eq!(result.to_str().unwrap(), "41");
+    /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":[41]}"#);
     /// rego.set_input_json(input2);
     /// let result = rego.query("data.multi.a").unwrap();
     /// println!("{}", result.to_str().unwrap());
-    /// # assert_eq!(result.to_str().unwrap(), "70");
+    /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":[70]}"#);
     /// ```
     pub fn query(&self, query: &str) -> Result<Output, &str> {
         let query_cstr = CString::new(query).unwrap();
@@ -762,7 +766,7 @@ impl Output {
         c_ok == 1
     }
 
-    /// Returns the output as a human readable string.
+    /// Returns the output as a JSON-encoded string.
     ///
     /// If the result of [`Self::ok()`] is false, the result will be an string
     /// containing error information.
@@ -796,20 +800,54 @@ impl Output {
     /// If the output is not OK or the variable is not bound, then
     /// this will return an [`Result::Err`] with the output node.
     /// Otherwise it will return the bound value for the variable.
-    pub fn binding(&self, name: &str) -> Result<Node, Node> {
+    pub fn binding_at_index(&self, index: regoSize, name: &str) -> Result<Node, Node> {
         if !self.ok() {
             return self.to_node();
         }
 
         let name_cstr = CString::new(name).unwrap();
         let name_ptr = name_cstr.as_ptr();
-        let node_ptr = unsafe { regoOutputBinding(self.c_ptr, name_ptr) };
+        let node_ptr = unsafe { regoOutputBindingAtIndex(self.c_ptr, index, name_ptr) };
 
         if node_ptr == std::ptr::null_mut() {
             self.to_node()
         } else {
             Ok(Node::new(node_ptr))
         }
+    }
+
+    /// Attempts to return the binding for the given variable name.
+    ///
+    /// If the output is not OK or the variable is not bound, then
+    /// this will return an [`Result::Err`] with the output node.
+    /// Otherwise it will return the bound value for the variable.
+    pub fn binding(&self, name: &str) -> Result<Node, Node> {
+        self.binding_at_index(0, name)
+    }
+
+    /// Attempts to return the expressions at a given result index.
+    pub fn expressions_at_index(&self, index: regoSize) -> Result<Node, Node> {
+        if !self.ok() {
+            return self.to_node();
+        }
+
+        let node_ptr = unsafe { regoOutputExpressionsAtIndex(self.c_ptr, index) };
+
+        if node_ptr == std::ptr::null_mut() {
+            self.to_node()
+        } else {
+            Ok(Node::new(node_ptr))
+        }
+    }
+
+    /// Attempts to return the expressions at a given result index.
+    pub fn expressions(&self) -> Result<Node, Node> {
+        self.expressions_at_index(0)
+    }
+
+    /// Returns the number of results in the output.
+    pub fn size(&self) -> regoSize {
+        unsafe { regoOutputSize(self.c_ptr) }
     }
 }
 
@@ -846,6 +884,10 @@ impl NodeKind {
             REGO_NODE_TRUE => NodeKind::True,
             REGO_NODE_FALSE => NodeKind::False,
             REGO_NODE_NULL => NodeKind::Null,
+            REGO_NODE_TERMS => NodeKind::Terms,
+            REGO_NODE_BINDINGS => NodeKind::Bindings,
+            REGO_NODE_RESULTS => NodeKind::Results,
+            REGO_NODE_RESULT => NodeKind::Result,
             REGO_NODE_ERROR => NodeKind::Error,
             REGO_NODE_ERROR_SEQ => NodeKind::ErrorSeq,
             REGO_NODE_ERROR_MESSAGE => NodeKind::ErrorMessage,

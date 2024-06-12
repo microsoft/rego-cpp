@@ -152,10 +152,11 @@ namespace rego
           [](Match& _) {
             ACTION();
             Node pkg = _(Lhs) / Package;
+            Node version = _(Lhs) / Version;
             Node policy = _(Lhs) / Policy;
             Node rhs_policy = _(Rhs) / Policy;
             policy->push_back({rhs_policy->begin(), rhs_policy->end()});
-            return Module << pkg << policy;
+            return Module << pkg << version << policy;
           },
 
         // errors

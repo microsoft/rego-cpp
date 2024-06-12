@@ -5,11 +5,12 @@ from regopy import Interpreter
 
 def test_query_math():
     rego = Interpreter()
-    output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4")
+    output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5")
     assert output is not None
-    assert str(output) == "x = 5\ny = 9.4"
+    assert str(output) == '{"expressions":[10], "bindings":{"x":5, "y":9.4}}'
     assert output.binding("x").json() == "5"
     assert output.binding("y").json() == "9.4"
+    assert output.expressions()[0].json() == "10"
 
 
 def test_input_data():
@@ -109,7 +110,7 @@ def test_multiple_inputs():
     rego.add_module("multi", module)
     rego.set_input(input0)
     output = rego.query("x = data.multi.a")
-    assert str(output) == "x = 1"
+    assert str(output) == """{"bindings":{"x":1}}"""
     assert output.binding("x").value == 1
     rego.set_input(input1)
     output = rego.query("x = data.multi.a")

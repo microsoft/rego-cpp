@@ -15,12 +15,15 @@ endif()
 
 add_test(NAME rego_test_regocpp COMMAND rego_test regocpp.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_bugs COMMAND rego_test bugs.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+add_test(NAME rego_test_v1 COMMAND rego_test regov1.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_aci COMMAND rego_test aci/aci.yaml WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_c_api COMMAND rego_test_c_api WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 set_tests_properties(rego_test_aci PROPERTIES TIMEOUT 300)
 
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/regocpp.yaml $<TARGET_FILE_DIR:rego_test>/regocpp.yaml)
+add_custom_command(TARGET rego_test POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/regov1.yaml $<TARGET_FILE_DIR:rego_test>/regov1.yaml)
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bugs.yaml $<TARGET_FILE_DIR:rego_test>/bugs.yaml)
 add_custom_command(TARGET rego_test POST_BUILD
@@ -72,6 +75,7 @@ if(REGOCPP_OPA_TESTS)
   negation
   nestedreferences
   numbersrange
+  numbersrangestep
   objectfilter
   objectfilteridempotent
   objectfilternonstringkey
@@ -88,7 +92,6 @@ if(REGOCPP_OPA_TESTS)
   partialsetdoc
   rand
   reachable
-  replacen
   refheads
   regexfind
   regexfindallstringsubmatch
@@ -97,6 +100,7 @@ if(REGOCPP_OPA_TESTS)
   regexreplace
   regexsplit
   regexmatchtemplate
+  replacen
   semvercompare
   semverisvalid
   sets

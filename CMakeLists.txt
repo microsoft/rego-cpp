@@ -15,7 +15,7 @@ list( GET REGOCPP_VERSION_LIST 1 REGOCPP_VERSION_MINOR )
 
 list( GET REGOCPP_VERSION_LIST 2 REGOCPP_VERSION_REVISION )
 
-set ( REGOCPP_OPA_VERSION 0.55.0 )
+set ( REGOCPP_OPA_VERSION 0.65.0 )
 
 set( REGOCPP_VERSION ${REGOCPP_VERSION_MAJOR}.${REGOCPP_VERSION_MINOR}.${REGOCPP_VERSION_REVISION} )
 
@@ -68,6 +68,7 @@ option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculati
 option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
 option(REGOCPP_USE_CXX17 "Specifies whether to use C++17" OFF)
 option(REGOCPP_ACTION_METRICS "Specifies whether to metricate Trieste Actions" OFF)
+option(REGOCPP_CLEAN_INSTALL "Whether the install directory should be cleaned before install" OFF)
 set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 
 if(REGOCPP_USE_CXX17)
@@ -102,7 +103,6 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(TRIESTE_USE_CXX17 ${REGOCPP_USE_CXX17})
 set(TRIESTE_BUILD_SAMPLES OFF)
 set(TRIESTE_BUILD_PARSERS ON)
-set(TRIESTE_CLEAN_INSTALL ON)
 
 if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
   if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -153,7 +153,7 @@ endif()
 
 if(REGOCPP_OPA_TESTS)
   if(NOT IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/opa)
-    execute_process(COMMAND ${GIT_EXECUTABLE} clone --depth=1 --branch v0.55.0 https://github.com/open-policy-agent/opa/ 
+    execute_process(COMMAND ${GIT_EXECUTABLE} clone --depth=1 --branch v${REGOCPP_OPA_VERSION} https://github.com/open-policy-agent/opa/ 
                     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                     OUTPUT_QUIET)
   endif()
@@ -186,6 +186,15 @@ if(REGOCPP_BUILD_DOCS)
 endif()
 
 # -------------------- Install ------------------------------------
+
+if(REGOCPP_CLEAN_INSTALL)
+  message("${CMAKE_INSTALL_PREFIX} will be recursively cleaned before install")
+  # Clear all existing files and folders from the install directory
+  install(CODE [[
+    file(REMOVE_RECURSE ${CMAKE_INSTALL_PREFIX}/.)
+    ]])
+endif()
+
 
 set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
@@ -231,7 +240,7 @@ endif()
 
 if (REGOCPP_BUILD_TESTS)
   install(TARGETS rego_test rego_test_c_api RUNTIME)
-  install(FILES tests/regocpp.yaml tests/bigint.yaml tests/bugs.yaml DESTINATION tests)
+  install(FILES tests/regocpp.yaml tests/bigint.yaml tests/bugs.yaml tests/regov1.yaml DESTINATION tests)
   install(DIRECTORY tests/aci DESTINATION tests)
 endif()
 

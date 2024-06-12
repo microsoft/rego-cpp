@@ -25,7 +25,30 @@ namespace
       return items;
     }
 
-    return Resolver::set(items);
+    return Resolver::set(items, false);
+  }
+
+  Node cast_set_ex(const Nodes& args)
+  {
+    auto items = unwrap_arg(
+      args, UnwrapOpt(0).types({Array, Set, Object}).exclude_got(true));
+    if (items->type() == Error)
+    {
+      return items;
+    }
+
+    if (items == Object)
+    {
+      Node vals = NodeDef::create(ArgSeq);
+      for (auto& item : *items)
+      {
+        vals << item / Val;
+      }
+
+      items = vals;
+    }
+
+    return Resolver::set(items, false);
   }
 
   Node cast_object(const Nodes& args)
@@ -131,6 +154,7 @@ namespace rego
         BuiltInDef::create(Location("cast_boolean"), 1, cast_boolean),
         BuiltInDef::create(Location("cast_null"), 1, cast_null),
         BuiltInDef::create(Location("cast_set"), 1, cast_set),
+        BuiltInDef::create(Location("cast_set_ex"), 1, cast_set_ex),
         BuiltInDef::create(Location("cast_string"), 1, cast_string),
         BuiltInDef::create(Location("cast_object"), 1, cast_object),
         BuiltInDef::create(Location("to_number"), 1, to_number),

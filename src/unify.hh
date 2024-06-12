@@ -52,7 +52,7 @@ namespace rego
   inline const auto UnifyExpr = TokenDef("rego-unifyexpr");
   inline const auto UnifyExprNot = TokenDef("rego-unifyexprnot");
   inline const auto UnifyExprWith = TokenDef("rego-unifyexprwith");
-  inline const auto UnifyExprEnum = TokenDef("rego-unifyexrenum");
+  inline const auto UnifyExprEnum = TokenDef("rego-unifyexprenum");
   inline const auto UnifyExprCompr = TokenDef("rego-unifyexprcompr");
   inline const auto Compr = TokenDef("rego-compr");
   inline const auto SkipSeq = TokenDef("rego-skipseq");
@@ -60,6 +60,7 @@ namespace rego
   inline const auto BuiltInHook = TokenDef("rego-builtinhook", flag::lookup);
   inline const auto ElseSeq = TokenDef("rego-elseseq");
   inline const auto TermSet = TokenDef("rego-termset");
+  inline const auto IsVarRef = TokenDef("rego-isvarref");
 
   const std::set<Token> RuleTypes(
     {RuleComp, RuleFunc, RuleSet, RuleObj, DefaultRule});
@@ -115,7 +116,18 @@ namespace rego
   // clang-format on
 
   // clang-format off
-  inline const auto wf_pass_lift_refheads = wf_pass_merge_data;
+  inline const auto wf_pass_varrefheads =
+    wf_pass_merge_data
+    | (Term <<= Ref | Var | Scalar | Array | DynamicObject | Object | DynamicSet | Set | Membership | ArrayCompr | ObjectCompr | SetCompr)
+    | (RuleHead <<= RuleRef * (RuleHeadType >>= (RuleHeadSet | RuleHeadObj | RuleHeadFunc | RuleHeadComp)))
+    | (RuleHeadObj <<= Expr * Expr * (IsVarRef >>= True | False))
+    | (DynamicObject <<= ObjectItem)
+    | (DynamicSet <<= Expr)
+    ;
+  // clang-format on
+
+  // clang-format off
+  inline const auto wf_pass_lift_refheads = wf_pass_varrefheads;
   // clang-format on
 
   inline const auto wf_symbols_exprs =
@@ -124,12 +136,12 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_symbols =
     wf_pass_lift_refheads
-    | (Module <<= Package * Policy)
+    | (Module <<= Package * Version * Policy)
     | (Policy <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj)++)
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int))[Var]
-    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | Term) * (Idx >>= Int))[Var]
-    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | Term) * (Val >>= Expr | Term) * (Idx >>= Int))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Version * (Idx >>= Int))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Version * (Idx >>= Int))[Var]
+    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | Term) * Version)[Var]
+    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | Term) * (Val >>= Expr | Term) * (IsVarRef >>= True | False) * Version)[Var]
     | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum)++[1])
     | (Local <<= Var * (Val >>= Undefined))[Var]
     | (Literal <<= Expr | NotExpr | SomeDecl)
@@ -138,15 +150,16 @@ namespace rego
     | (With <<= RuleRef * Expr)
     | (ExprCall <<= RuleRef * ExprSeq)
     | (Query <<= (Body >>= UnifyBody))
-    | (Term <<= Scalar | Array | Object | Set | ArrayCompr | SetCompr | ObjectCompr | Membership)
+    | (Term <<= Scalar | Array | DynamicObject | Object | DynamicSet | Set | ArrayCompr | SetCompr | ObjectCompr | Membership)
     | (ObjectCompr <<= Expr * Expr * (Body >>= NestedBody))
     | (ArrayCompr <<= Expr * (Body >>= NestedBody))
     | (SetCompr <<= Expr * (Body >>= NestedBody))
     | (RefTerm <<= Ref | Var)
     | (NumTerm <<= Int | Float)
-    | (RefArgBrack <<= RefTerm | Scalar | Object | Array | Set | Expr)
+    | (RefArgBrack <<= RefTerm | NumTerm | Scalar | Object | Array | Set | Expr)
     | (Expr <<= wf_symbols_exprs)
     | (NestedBody <<= Key * (Val >>= UnifyBody))
+    | (Skip <<= Key * (Val >>= Undefined))[Key]
     ;
   // clang-format on
 
@@ -172,10 +185,10 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_constants =
     wf_pass_expand_imports
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= Int))[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * (Idx >>= Int))[Var]
-    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | DataTerm) * (Idx >>= Int))[Var]
-    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | DataTerm) * (Val >>= Expr | DataTerm) * (Idx >>= Int))[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * Version * (Idx >>= Int))[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | DataTerm) * Version * (Idx >>= Int))[Var]
+    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | DataTerm) * Version)[Var]
+    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | DataTerm) * (Val >>= Expr | DataTerm) * (IsVarRef >>= True | False) * Version)[Var]
     ;
   // clang-format on
 
@@ -190,8 +203,8 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_rules_to_compr =
     wf_pass_locals
-    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
-    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)))[Var]
+    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)) * Version)[Var]
+    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= (UnifyBody | DataTerm)) * (IsVarRef >>= True | False) * Version)[Var]
     ;
   // clang-format on
 
@@ -219,7 +232,6 @@ namespace rego
   inline const auto wf_pass_datarule = 
     wf_pass_merge_modules
     | (DataModule <<= (RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
-    | (Rego <<= Query * Input * Data)
     ;
   // clang-format on
 
@@ -332,17 +344,20 @@ namespace rego
     | (Set <<= Term++)
     | (Object <<= ObjectItem++)
     | (ObjectItem <<= (Key >>= Term) * (Val >>= Term))
-    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int) * Key)[Var]
-    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (Idx >>= Int) * Key)[Var]
-    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Key)[Var]
-    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Key)[Var]
+    | (RuleComp <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Version * (Idx >>= Int) * Key)[Var]
+    | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Version * (Idx >>= Int) * Key)[Var]
+    | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Version * Key)[Var]
+    | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * (IsVarRef >>= True | False) * Version * Key)[Var]
     ;
   // clang-format on
 
   // clang-format off
   inline const auto wf_pass_unify =
     wf_pass_functions
-    | (Query <<= (Term | Binding)++)
+    | (Query <<= Result++)
+    | (Result <<= Terms * Bindings)
+    | (Terms <<= Term++)
+    | (Bindings <<= Binding++)
     | (Binding <<= Var * Term)[Var]
     | (Term <<= Scalar | Array | Object | Set)
     ;
@@ -350,6 +365,7 @@ namespace rego
 
   PassDef strings();
   PassDef merge_data();
+  PassDef varrefheads();
   PassDef lift_refheads();
   PassDef symbols();
   PassDef replace_argvals();
@@ -563,6 +579,7 @@ namespace rego
     UnifierDef(
       const Location& rule,
       const Node& rulebody,
+      const Location& version,
       CallStack call_stack,
       WithStack with_stack,
       BuiltIns builtins,
@@ -575,6 +592,7 @@ namespace rego
     static Unifier create(
       const UnifierKey& key,
       const Location& rule,
+      const Location& version,
       const Node& rulebody,
       const CallStack& call_stack,
       const WithStack& with_stack,
@@ -603,7 +621,10 @@ namespace rego
 
   private:
     Unifier rule_unifier(
-      const UnifierKey& key, const Location& rule, const Node& rulebody) const;
+      const UnifierKey& key,
+      const Location& rule,
+      const Location& version,
+      const Node& rulebody) const;
     void init_from_body(
       const Node& rulebody,
       std::vector<Statement>& statements,
@@ -669,6 +690,7 @@ namespace rego
     Token m_parent_type;
     std::vector<Dependency> m_dependency_graph;
     bool m_negate;
+    Location m_version;
   };
 
   Node expr_infix(Token op_token, Node lhs, Node rhs);

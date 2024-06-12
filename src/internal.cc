@@ -1,5 +1,7 @@
 #include "internal.hh"
 
+#include <trieste/json.h>
+
 namespace logging = trieste::logging;
 
 #ifdef _WIN32
@@ -195,6 +197,18 @@ namespace rego
     return std::string(str);
   }
 
+  std::string add_quotes(const std::string_view& str)
+  {
+    if (is_quoted(str))
+    {
+      return std::string(str);
+    }
+
+    std::string quoted(str.size() + 2, '"');
+    std::copy(str.begin(), str.end(), quoted.begin() + 1);
+    return quoted;
+  }
+
   Node err(NodeRange& r, const std::string& msg, const std::string& code)
   {
     return Error << (ErrorMsg ^ msg) << (ErrorAst << r) << (ErrorCode ^ code);
@@ -221,6 +235,7 @@ namespace rego
   Node concat_refs(const Node& lhs, const Node& rhs)
   {
     Node ref;
+
     if (lhs->type() == Var)
     {
       ref = Ref << (RefHead << lhs->clone()) << RefArgSeq;
@@ -263,6 +278,16 @@ namespace rego
       else
       {
         Node index = arg->front();
+        if (index == Expr)
+        {
+          index = index->front();
+        }
+
+        if (index == Term)
+        {
+          index = index->front();
+        }
+
         if (index->type() == Scalar)
         {
           index = index->front();
@@ -370,6 +395,20 @@ namespace rego
     return node->type() == True;
   }
 
+  std::optional<Node> try_get_item(
+    const Node& node, const std::string_view& key)
+  {
+    assert(node == Object || node == DynamicObject);
+
+    auto defs = Resolver::object_lookdown(node, key);
+    if (defs.empty())
+    {
+      return std::nullopt;
+    }
+
+    return defs[0];
+  }
+
   bool is_falsy(const Node& node)
   {
     Node value = node;
@@ -426,6 +465,16 @@ namespace rego
       return "boolean";
     }
 
+    if (type == DynamicObject)
+    {
+      return "object";
+    }
+
+    if (type == DynamicSet)
+    {
+      return "set";
+    }
+
     std::string name(type.str());
     if (starts_with(name, "rego-"))
     {
@@ -459,7 +508,16 @@ namespace rego
   Node UnwrapOpt::unwrap(const Nodes& args) const
   {
     Node node = args[m_index];
-    auto result = rego::unwrap(node, std::set(m_types.begin(), m_types.end()));
+    std::set<Token> types(m_types.begin(), m_types.end());
+    if (contains(types, Object))
+    {
+      types.insert(DynamicObject);
+    }
+    if (contains(types, Set))
+    {
+      types.insert(DynamicSet);
+    }
+    auto result = rego::unwrap(node, types);
     if (result.success)
     {
       return result.node;
@@ -508,6 +566,37 @@ namespace rego
       error << " but got " << type_name(result.node->type(), m_specify_number);
     }
     return err(node, error.str(), m_code);
+  }
+
+  UnwrapResult unwrap(const Node& node, const Token& type)
+  {
+    Node value = node;
+    if (value == type)
+    {
+      return {value, true};
+    }
+
+    if (value == Term)
+    {
+      value = value->front();
+    }
+
+    if (value == type)
+    {
+      return {value, true};
+    }
+
+    if (value == Scalar)
+    {
+      value = value->front();
+    }
+
+    if (value == type)
+    {
+      return {value, true};
+    }
+
+    return {value, false};
   }
 
   UnwrapResult unwrap(const Node& node, const std::set<Token>& types)

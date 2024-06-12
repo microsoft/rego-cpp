@@ -191,7 +191,8 @@ namespace rego
         });
       buf << "]";
     }
-    else if (node->type() == Set || node->type() == DataSet)
+    else if (
+      node->type() == Set || node->type() == DataSet || node == DynamicSet)
     {
       std::vector<NodeKey> node_keys;
       for (const auto& child : *node)
@@ -230,7 +231,9 @@ namespace rego
         buf << ">";
       }
     }
-    else if (node->type() == Object || node->type() == DataObject)
+    else if (
+      node == Object || node == DataObject || node == DynamicObject ||
+      node == Bindings)
     {
       std::map<std::string, std::string> items;
       for (const auto& child : *node)
@@ -263,10 +266,46 @@ namespace rego
     {
       return to_key(node->front(), set_as_array, sort_arrays);
     }
-    else if (node->type() == Binding)
+    else if (node == Result)
     {
-      buf << (node / Var)->location().view() << " = "
-          << to_key(node / Term, set_as_array, sort_arrays);
+      Node terms = node / Terms;
+      Node bindings = node / Bindings;
+      buf << "{";
+      if (!terms->empty())
+      {
+        buf << '"' << "expressions" << '"' << ":"
+            << to_key(terms, set_as_array, sort_arrays);
+        if (!bindings->empty())
+        {
+          buf << ", ";
+        }
+      }
+
+      if (!bindings->empty())
+      {
+        buf << '"' << "bindings" << '"' << ":"
+            << to_key(bindings, set_as_array, sort_arrays);
+      }
+
+      buf << "}";
+    }
+    else if (node == Terms)
+    {
+      buf << '[';
+      join(
+        buf,
+        node->begin(),
+        node->end(),
+        ", ",
+        [set_as_array, sort_arrays](std::ostream& stream, const Node& n) {
+          stream << to_key(n, set_as_array, sort_arrays);
+          return true;
+        });
+      buf << ']';
+    }
+    else if (node->type() == Var)
+    {
+      buf << node->location().view();
     }
     else if (node->type() == TermSet)
     {
@@ -294,6 +333,25 @@ namespace rego
     {
       buf << node->type().str() << "(" << (node / Var)->location().view() << ":"
           << static_cast<void*>(node.get()) << ")";
+    }
+    else if (node == Results)
+    {
+      if (node->size() == 1)
+      {
+        return to_key(node->front(), set_as_array, sort_arrays);
+      }
+
+      buf << '[';
+      join(
+        buf,
+        node->begin(),
+        node->end(),
+        ", ",
+        [set_as_array, sort_arrays](std::ostream& stream, const Node& n) {
+          stream << to_key(n, set_as_array, sort_arrays);
+          return true;
+        });
+      buf << ']';
     }
     else
     {
