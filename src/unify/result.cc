@@ -2,7 +2,7 @@
 
 namespace
 {
-  const auto FreshVarPattern = R"([[:alnum:]]+\$\d+)";
+  const auto FreshVarPattern = R"([[:alnum:]|_]+\$\d+)";
 }
 
 namespace rego

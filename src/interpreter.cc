@@ -279,22 +279,7 @@ namespace rego
     else
     {
       WFContext context(rego::wf_result);
-      std::vector<std::string> results;
-      std::transform(
-        ast->begin(),
-        ast->end(),
-        std::back_inserter(results),
-        [](auto& result) { return rego::to_key(result, true); });
-      std::sort(results.begin(), results.end());
-      join(
-        output_buf,
-        results.begin(),
-        results.end(),
-        "\n",
-        [](std::ostream& stream, const std::string& result) {
-          stream << result;
-          return true;
-        });
+      output_buf << rego::to_key(ast, true);      
     }
 
     return output_buf.str();
