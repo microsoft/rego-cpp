@@ -45,6 +45,16 @@ cases:
       - 1
       - 2
       - 3
+- note: regocpp/bug110
+  query: "[1, 2, 3][_] = x"
+  want_result:
+    - x: 1
+    - x: 2
+    - x: 3
+- note: regocpp/bug111
+  query: "not data.foo = x"
+  want_result:
+    - x: true
 - note: regocpp/bug112
   modules:
   - |

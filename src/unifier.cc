@@ -278,7 +278,7 @@ namespace rego
         Values values = evaluate(lhs->location(), stmt.node / Val);
         if (values.size() == 0)
         {
-          if (m_negate && var.is_unify())
+          if (m_negate && (var.is_unify() || var.is_user_var()))
           {
             var.unify({ValueDef::create(True ^ "true")});
             logging::Debug() << "> result: " << var;
@@ -290,7 +290,7 @@ namespace rego
         }
         else
         {
-          if (m_negate && var.is_unify())
+          if (m_negate && (var.is_unify() || var.is_user_var()))
           {
             bool all_false = true;
             for (auto& value : values)

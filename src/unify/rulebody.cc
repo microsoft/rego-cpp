@@ -624,6 +624,24 @@ namespace rego
             return _(UnifyExpr);
           },
 
+        In(UnifyExprNot) * (T(UnifyBody)[UnifyBody] << T(Local)) >>
+          [](Match& _) {
+            ACTION();
+            Node body = _(UnifyBody);
+            auto end = std::find_if(body->begin(), body->end(), [](Node n) {
+              return n->type() != Local;
+            });
+
+            Node seq = NodeDef::create(Seq);
+            for (auto it = body->begin(); it != end; ++it)
+            {
+              seq << (Lift << UnifyBody << *it);
+            }
+
+            body->erase(body->begin(), end);
+            return seq << body;
+          },
+
         // <compr>
         In(UnifyBody) *
             (T(UnifyExpr)
@@ -686,6 +704,9 @@ namespace rego
           },
 
         // errors
+
+        In(UnifyExprNot) * (T(UnifyBody)[UnifyBody] << End) >>
+          [](Match& _) { return err(_(UnifyBody), "Invalid not expression"); },
 
         In(Term, Expr) * T(SetCompr)[SetCompr] >>
           [](Match& _) {
