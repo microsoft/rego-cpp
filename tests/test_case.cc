@@ -281,28 +281,35 @@ namespace rego_test
     return modules;
   }
 
-  BindingMaps TestCase::to_binding_maps(const Node& node) const
+  const TermsAndBindings TestCase::to_terms_and_bindings(const Node& node) const
   {
-    BindingMaps binding_maps;
+    TermsAndBindings terms_and_bindings;
 
     if (node == Array)
     {
       for (auto& object : *node)
       {
-        assert(object == Object);
-        BindingMap binding_map;
-        for (auto& item : *object)
+        if (object == Object)
         {
-          Node string = (item / Key)->front()->front();
-          assert(string == JSONString);
-          std::string key = std::string(string->location().view());
-          key = key.substr(1, key.size() - 2); // remove quotes
-          std::string value = rego::to_key(item / Val, true, m_sort_bindings);
-          binding_map[key] = value;
-        }
+          BindingMap binding_map;
+          for (auto& item : *object)
+          {
+            Node string = (item / Key)->front()->front();
+            assert(string == JSONString);
+            std::string key = std::string(string->location().view());
+            key = key.substr(1, key.size() - 2); // remove quotes
+            std::string value = rego::to_key(item / Val, true, m_sort_bindings);
+            binding_map[key] = value;
+          }
 
-        std::string binding_key = rego::to_key(object, true, m_sort_bindings);
-        binding_maps[binding_key] = binding_map;
+          std::string binding_key = rego::to_key(object, true, m_sort_bindings);
+          terms_and_bindings.binding_maps[binding_key] = binding_map;
+        }
+        else
+        {
+          std::string term_key = rego::to_key(object, true, true);
+          terms_and_bindings.terms.push_back(term_key);
+        }
       }
     }
     else if (node == Results)
@@ -311,27 +318,34 @@ namespace rego_test
       {
         BindingMap binding_map;
         assert(result == rego::Result);
+
+        Node terms = result / Terms;
+        for (auto& term : *terms)
+        {
+          std::string term_key = rego::to_key(term, true, true);
+          terms_and_bindings.terms.push_back(term_key);
+        }
+
         Node bindings = result / Bindings;
-        if (bindings->empty())
+        if (!bindings->empty())
         {
-          continue;
-        }
+          for (auto& binding : *bindings)
+          {
+            std::string key =
+              std::string((binding / rego::Key)->location().view());
+            std::string value =
+              rego::to_key((binding / rego::Val), true, m_sort_bindings);
+            binding_map[key] = value;
+          }
 
-        for (auto& binding : *bindings)
-        {
-          std::string key =
-            std::string((binding / rego::Key)->location().view());
-          std::string value =
-            rego::to_key((binding / rego::Val), true, m_sort_bindings);
-          binding_map[key] = value;
+          std::string binding_key =
+            rego::to_key(bindings, true, m_sort_bindings);
+          terms_and_bindings.binding_maps[binding_key] = binding_map;
         }
-
-        std::string binding_key = rego::to_key(bindings, true, m_sort_bindings);
-        binding_maps[binding_key] = binding_map;
       }
     }
 
-    return binding_maps;
+    return terms_and_bindings;
   }
 
   void TestCase::diff(
@@ -380,35 +394,70 @@ namespace rego_test
   bool TestCase::compare(
     const Node& actual, const Node& wanted, std::ostream& os) const
   {
-    BindingMaps actual_bindings = to_binding_maps(actual);
-    BindingMaps wanted_bindings = to_binding_maps(wanted);
+    auto actual_terms_and_bindings = to_terms_and_bindings(actual);
+    auto wanted_terms_and_bindings = to_terms_and_bindings(wanted);
 
-    if (wanted_bindings.size() == 0)
+    if (
+      wanted_terms_and_bindings.binding_maps.size() == 0 &&
+      wanted_terms_and_bindings.terms.size() == 0)
     {
       if (wanted->size() > 0)
       {
-        os << "No wanted bindings found (invalid test case?)" << std::endl;
+        os << "No wanted bindings or terms found (invalid test case?)"
+           << std::endl;
         return false;
       }
     }
 
     bool pass = true;
-    for (auto& [key, value] : wanted_bindings)
+    for (auto& [key, value] : wanted_terms_and_bindings.binding_maps)
     {
-      if (actual_bindings.find(key) == actual_bindings.end())
+      if (
+        actual_terms_and_bindings.binding_maps.find(key) ==
+        actual_terms_and_bindings.binding_maps.end())
       {
         os << "Wanted binding: " << key << std::endl;
         pass = false;
       }
     }
 
-    for (auto& [key, value] : actual_bindings)
+    for (auto& [key, value] : actual_terms_and_bindings.binding_maps)
     {
-      if (wanted_bindings.find(key) == wanted_bindings.end())
+      if (
+        wanted_terms_and_bindings.binding_maps.find(key) ==
+        wanted_terms_and_bindings.binding_maps.end())
       {
         os << "Actual binding: " << key << std::endl;
         pass = false;
       }
+    }
+
+    if (wanted_terms_and_bindings.terms != actual_terms_and_bindings.terms)
+    {
+      auto join_term_strs =
+        [](const std::vector<std::string>& terms) -> std::string {
+        if (terms.size() == 0)
+        {
+          return "";
+        }
+        std::string output = terms.front();
+        std::accumulate(
+          ++terms.begin(),
+          terms.end(),
+          &output,
+          [](auto output, const auto& elem) {
+            (*output += "\n") += elem;
+            return output;
+          });
+        return output;
+      };
+
+      os << "Mismatch between actual and wanted terms." << std::endl;
+      diff(
+        join_term_strs(actual_terms_and_bindings.terms),
+        join_term_strs(wanted_terms_and_bindings.terms),
+        os);
+      pass = false;
     }
 
     return pass;

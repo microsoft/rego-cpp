@@ -45,6 +45,12 @@ cases:
       - 1
       - 2
       - 3
+- note: regocpp/bug109
+  query: true; [1,2,3]; 2
+  want_result:
+    - true
+    - [1, 2, 3]
+    - 2
 - note: regocpp/bug110
   query: "[1, 2, 3][_] = x"
   want_result:
