@@ -9,6 +9,12 @@ namespace rego_test
   using BindingMap = std::map<std::string, std::string>;
   using BindingMaps = std::map<std::string, BindingMap>;
 
+  struct TermsAndBindings
+  {
+    std::vector<std::string> terms;
+    BindingMaps binding_maps;
+  };
+
   struct Result
   {
     bool passed;
@@ -87,7 +93,7 @@ namespace rego_test
     TestCase& broken(bool broken);
 
   private:
-    BindingMaps to_binding_maps(const Node& node) const;
+    const TermsAndBindings to_terms_and_bindings(const Node& node) const;
     bool compare(
       const Node& actual, const Node& wanted, std::ostream& os) const;
     bool compare(
