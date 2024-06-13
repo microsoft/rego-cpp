@@ -19,7 +19,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-win*
           CIBW_ENVIRONMENT: >
@@ -31,42 +31,9 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl
-
-  build_macos_wheels:
+  build_mac_wheels:
     name: Build wheels on mac
     runs-on: macos-latest
-    strategy:
-      matrix:
-        python: [cp39, cp310, cp311, cp312, pp39, pp310]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
-        env:
-          CIBW_BUILD: ${{ matrix.python }}-macosx*
-          CIBW_ARCHS_MACOS: x86_64
-          CIBW_ENVIRONMENT_MACOS : >
-            MACOSX_DEPLOYMENT_TARGET=10.15
-            CC=gcc-11
-            CXX=g++-11
-            REGOCPP_REPO=https://github.com/${{github.repository}}
-            REGOCPP_TAG=${{github.sha}}
-        with:
-          package-dir: ${{github.workspace}}/wrappers/python/
-
-      - uses: actions/upload-artifact@v3
-        with:
-          path: ./wheelhouse/*.whl
-
-  build_apple_silicon_wheels:
-    name: Build wheels on Apple Silicon
-    runs-on: macos-latest-xlarge
     strategy:
       matrix:
         python: [cp310, cp311, cp312]
@@ -94,7 +61,7 @@ jobs:
           export PATH=$(python3 -m site --user-base)/bin:$PATH
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: arm64
@@ -108,7 +75,6 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl
-
   build_manylinux_wheels:
     name: Build wheels on manylinux
     runs-on: ubuntu-latest
@@ -124,7 +90,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-manylinux*
           CIBW_BEFORE_ALL: yum makecache && yum -y install devtoolset-10-libatomic-devel
@@ -153,7 +119,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-musllinux*
           CIBW_ENVIRONMENT: >

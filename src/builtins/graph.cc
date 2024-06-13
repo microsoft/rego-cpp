@@ -292,6 +292,6 @@ namespace rego
         BuiltInDef::create(
           Location("graph.reachable_paths"), 2, reachable_paths),
       };
-    };
+    }
   }
 }
