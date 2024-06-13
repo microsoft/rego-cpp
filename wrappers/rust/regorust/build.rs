@@ -82,7 +82,7 @@ fn main() {
 
     println!("cargo:rustc-link-search={}", libdir_path.to_str().unwrap());
     println!("cargo:rustc-link-lib=static=re2");
-    println!("cargo:rustc-link-lib=static=snmallocshim-static");
+    println!("cargo:rustc-link-lib=static=snmalloc-new-override");
     println!("cargo:rustc-link-lib=static=rego");
     println!("cargo:rustc-link-lib=static=json");
     println!("cargo:rustc-link-lib=static=yaml");
