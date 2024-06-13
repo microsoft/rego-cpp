@@ -32,7 +32,7 @@ jobs:
         with:
           path: ./wheelhouse/*.whl
   build_mac_wheels:
-    name: Build wheels on Mac
+    name: Build wheels on mac
     runs-on: macos-latest
     strategy:
       matrix:
