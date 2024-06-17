@@ -2,24 +2,97 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <deque>
+#include <list>
 
 namespace
 {
   using namespace rego;
   using namespace wf::ops;
 
-  struct InitSide
+  struct StmtSide
   {
     std::set<Location> vars;
     std::set<Location> inits;
   };
 
-  struct InitInfo
+  std::ostream& operator<<(std::ostream& os, const StmtSide& side)
+  {
+    os << "[{";
+    join(
+      os, side.inits.begin(), side.inits.end(), ",", [](auto& os, auto& loc) {
+        os << loc.view();
+        return true;
+      });
+    os << "} < {";
+    join(os, side.vars.begin(), side.vars.end(), ",", [](auto& os, auto& loc) {
+      os << loc.view();
+      return true;
+    });
+    return os << "}]";
+  }
+
+  struct StmtInfo
   {
     std::size_t index;
-    InitSide lhs;
-    InitSide rhs;
+    StmtSide lhs;
+    StmtSide rhs;
+
+    bool remove(const Location& loc)
+    {
+      bool removed = lhs.vars.erase(loc) > 0;
+      removed |= lhs.inits.erase(loc) > 0;
+      removed |= rhs.vars.erase(loc) > 0;
+      removed |= rhs.inits.erase(loc) > 0;
+      return removed;
+    }
+
+    bool is_strict_init() const
+    {
+      return (!lhs.inits.empty() && rhs.vars.empty()) ||
+        (!rhs.inits.empty() && lhs.vars.empty());
+    }
+
+    bool is_init() const
+    {
+      return !lhs.inits.empty() || !rhs.inits.empty();
+    }
+  };
+
+  std::ostream& operator<<(std::ostream& os, const StmtInfo& info)
+  {
+    return os << info.index << ": " << info.lhs << " / " << info.rhs;
+  }
+
+  struct Locals
+  {
+    std::vector<std::set<Location>> locals;
+
+    void insert(const Location& loc)
+    {
+      locals.back().insert(loc);
+    }
+
+    void erase(const Location& loc)
+    {
+      locals.back().erase(loc);
+    }
+
+    bool contains(const Location& loc) const
+    {
+      return std::any_of(locals.rbegin(), locals.rend(), [loc](auto& set) {
+        return set.count(loc) > 0;
+      });
+    }
+
+    void push()
+    {
+      locals.push_back({});
+    }
+
+    void pop()
+    {
+      locals.pop_back();
+    }
   };
 
   Node to_init(
@@ -48,10 +121,9 @@ namespace
     return LiteralInit << lhs_vars << rhs_vars << (AssignInfix << lhs << rhs);
   }
 
-  void inits_from(
-    Node node, const std::set<Location>& locals, std::set<Location>& inits)
+  void inits_from(Node node, const Locals& locals, std::set<Location>& inits)
   {
-    if (node->type() == Var && contains(locals, node->location()))
+    if (node->type() == Var && locals.contains(node->location()))
     {
       inits.insert(node->location());
       return;
@@ -82,8 +154,7 @@ namespace
       node = node->front();
     }
 
-    std::set<Token> include_parents = {AssignArg, RefTerm, Object, Array};
-    if (!contains(include_parents, node->type()))
+    if (!node->in({AssignArg, RefTerm, Object, Array}))
     {
       return;
     }
@@ -94,12 +165,16 @@ namespace
     }
   }
 
-  void vars_from(
-    Node node, const std::set<Location>& locals, std::set<Location>& vars)
+  void vars_from(Node node, const Locals& locals, std::set<Location>& vars)
   {
     if (node->type() == Var && contains(locals, node->location()))
     {
       vars.insert(node->location());
+    }
+
+    if (node == RefArgDot)
+    {
+      return;
     }
 
     for (Node child : *node)
@@ -108,15 +183,15 @@ namespace
     }
   }
 
-  InitSide side_from(Node node, const std::set<Location>& locals)
+  StmtSide side_from(Node node, Locals& locals)
   {
-    InitSide side;
+    StmtSide side;
     inits_from(node, locals, side.inits);
     vars_from(node, locals, side.vars);
     return side;
   }
 
-  bool any_compiler_inits(const InitSide& lhs)
+  bool any_compiler_inits(const StmtSide& lhs)
   {
     return std::any_of(lhs.inits.begin(), lhs.inits.end(), [](auto& loc) {
       std::string name = loc.str();
@@ -125,91 +200,57 @@ namespace
     });
   }
 
-  void remove_locals(
-    std::deque<InitInfo>& init_deque, const std::set<Location>& to_remove)
+  void find_init_stmts(Node unifybody, Locals& locals)
   {
-    std::size_t count = init_deque.size();
-    for (std::size_t i = 0; i < count; ++i)
-    {
-      InitInfo& init_stmt = init_deque.front();
-      for (auto& loc : to_remove)
-      {
-        init_stmt.lhs.vars.erase(loc);
-        init_stmt.lhs.inits.erase(loc);
-        init_stmt.rhs.vars.erase(loc);
-        init_stmt.rhs.inits.erase(loc);
-      }
-      if (!init_stmt.lhs.inits.empty() || !init_stmt.rhs.inits.empty())
-      {
-        init_deque.push_back(init_stmt);
-      }
-
-      init_deque.pop_front();
-    }
-  }
-
-  std::vector<InitInfo> sort_init_stmts(
-    const std::set<Location>& locals, std::deque<InitInfo>& init_deque)
-  {
-    std::set<Location> initialized;
-    std::vector<InitInfo> init_stmts;
-    while (!init_deque.empty() && initialized != locals)
-    {
-      // find all strict init statements
-      auto it =
-        std::find_if(init_deque.begin(), init_deque.end(), [](auto& init_stmt) {
-          return init_stmt.lhs.vars.empty() || init_stmt.rhs.vars.empty();
-        });
-
-      if (it == init_deque.end())
-      {
-        // we have a cycle, so we use the first statement
-        it = init_deque.begin();
-        init_stmts.push_back(*it);
-      }
-      else
-      {
-        init_stmts.push_back(*it);
-      }
-
-      std::set<Location> to_remove;
-      to_remove.insert(it->lhs.inits.begin(), it->lhs.inits.end());
-      to_remove.insert(it->rhs.inits.begin(), it->rhs.inits.end());
-      init_deque.erase(it);
-      remove_locals(init_deque, to_remove);
-      initialized.insert(to_remove.begin(), to_remove.end());
-    }
-
-    return init_stmts;
-  }
-
-  void find_init_stmts(Node unifybody, std::set<Location>& locals)
-  {
-    std::deque<InitInfo> potential_init_stmts;
+    logging::Trace() << std::endl
+                     << "Finding init statements and re-ordering body";
+    locals.push();
+    // Our ultimate goal is a re-ordering of statements such that all init
+    // statements come before the statements which depend on them
+    std::vector<StmtInfo> stmts;
+    std::map<Location, std::size_t> local_stmts;
     for (std::size_t i = 0; i < unifybody->size(); ++i)
     {
       Node stmt = unifybody->at(i);
       if (stmt->type() == Local)
       {
-        locals.insert((stmt / Var)->location());
+        // this is a local for this context
+        // as such it forms a starting point for the graph
+        Location loc = (stmt / Var)->location();
+        locals.insert(loc);
+        local_stmts[loc] = i;
+        stmts.push_back({i, {}, {}});
+        logging::Trace() << "Local: " << loc.view();
       }
       else if (stmt->type() == LiteralEnum)
       {
-        locals.erase((stmt / Item)->location());
+        // a literal enum initializes its item from the item sequence, which
+        // cannot be an init statement. The item variable is only
+        // used inside the enum, so we can safely ignore it.
+        Location item_loc = (stmt / Item)->location();
+        locals.erase(item_loc);
+        StmtSide rhs;
+        vars_from(stmt / ItemSeq, locals, rhs.vars);
+        stmts.push_back({i, {}, rhs});
       }
       else if (stmt->type() == Literal)
       {
         Node expr = stmt->front()->front();
         if (expr->type() != AssignInfix)
         {
+          // no possibility of assignment
+          // store this for later ordering
+          StmtSide rhs;
+          vars_from(stmt->front(), locals, rhs.vars);
+          stmts.push_back({i, {}, rhs});
           continue;
         }
 
         Node lhs = expr->front();
         Node rhs = expr->back();
 
-        InitSide lhs_side = side_from(lhs, locals);
-        InitSide rhs_side = side_from(rhs, locals);
+        StmtSide lhs_side = side_from(lhs, locals);
+        StmtSide rhs_side = side_from(rhs, locals);
 
         if (any_compiler_inits(lhs_side))
         {
@@ -218,74 +259,175 @@ namespace
           rhs_side.inits.clear();
         }
 
-        if (lhs_side.inits.empty() && rhs_side.inits.empty())
-        {
-          continue;
-        }
-
-        potential_init_stmts.push_back({i, lhs_side, rhs_side});
+        stmts.push_back({i, lhs_side, rhs_side});
+      }
+      else
+      {
+        StmtSide rhs;
+        vars_from(stmt->front(), locals, rhs.vars);
+        stmts.push_back({i, {}, rhs});
       }
     }
 
-    std::vector<InitInfo> init_stmts =
-      sort_init_stmts(locals, potential_init_stmts);
-    for (std::size_t i = 0; i < init_stmts.size(); ++i)
+    for (auto& stmt : stmts)
     {
-      InitInfo& init_stmt = init_stmts[i];
-      Node expr = unifybody->at(init_stmt.index)->front()->front();
+      logging::Trace() << stmt;
+    }
 
-      Node lhs = expr->front();
-      Node rhs = expr->back();
+    // build the graph
+    std::list<size_t> remaining(stmts.size());
+    std::iota(remaining.begin(), remaining.end(), 0);
+    std::vector<std::set<size_t>> edges(stmts.size());
+    while (!remaining.empty())
+    {
+      // find the first strict init statement
+      auto it =
+        std::find_if(remaining.begin(), remaining.end(), [stmts](auto& i) {
+          return stmts[i].is_strict_init();
+        });
 
-      for (auto& loc : init_stmt.lhs.inits)
+      if (it == remaining.end())
       {
-        locals.erase(loc);
+        // there is a loop, so break the tie using statement order
+        it = std::find_if(remaining.begin(), remaining.end(), [stmts](auto& i) {
+          return stmts[i].is_init();
+        });
+
+        if (it == remaining.end())
+        {
+          // no init statements left
+          break;
+        }
       }
 
-      for (auto& loc : init_stmt.rhs.inits)
+      size_t index = *it;
+      remaining.erase(it);
+
+      StmtInfo& stmt = stmts[index];
+      std::set<Location> init;
+      init.insert(stmt.lhs.inits.begin(), stmt.lhs.inits.end());
+      init.insert(stmt.rhs.inits.begin(), stmt.rhs.inits.end());
+      for (auto& loc : init)
       {
-        locals.erase(loc);
+        logging::Trace() << "removing init " << loc.view();
+        edges[stmt.index].insert(local_stmts[loc]);
+        for (auto& s : stmts)
+        {
+          if (s.index == index)
+          {
+            continue;
+          }
+
+          if (s.remove(loc))
+          {
+            edges[s.index].insert(index);
+          }
+        }
+      }
+    }
+
+    // topological sort
+    std::set<size_t> not_visited;
+    std::set<size_t> frontier;
+    for (size_t i = 0; i < stmts.size(); ++i)
+    {
+      not_visited.insert(i);
+      if (edges[i].empty())
+      {
+        frontier.insert(i);
+      }
+    }
+
+    logging::Trace() << "Reordered statements:";
+    Nodes ordered_stmts;
+    while (!frontier.empty())
+    {
+      size_t index = *frontier.begin();
+      frontier.erase(frontier.begin());
+      not_visited.erase(index);
+
+      StmtInfo& stmt = stmts[index];
+      logging::Trace() << stmt;
+      Node node = unifybody->at(index);
+      if (stmt.is_init())
+      {
+        Node expr = node->front()->front();
+
+        Node lhs = expr->front();
+        Node rhs = expr->back();
+        for (auto& loc : stmt.lhs.inits)
+        {
+          locals.erase(loc);
+        }
+
+        for (auto& loc : stmt.rhs.inits)
+        {
+          locals.erase(loc);
+        }
+
+        ordered_stmts.push_back(
+          to_init(lhs, stmt.lhs.inits, rhs, stmt.rhs.inits));
+      }
+      else
+      {
+        ordered_stmts.push_back(node);
       }
 
-      unifybody->replace_at(
-        init_stmt.index,
-        to_init(lhs, init_stmt.lhs.inits, rhs, init_stmt.rhs.inits));
+      for (size_t i = 0; i < stmts.size(); ++i)
+      {
+        if (edges[i].erase(index) > 0 && edges[i].empty())
+        {
+          frontier.insert(i);
+        }
+      }
+    }
+
+    if (!not_visited.empty())
+    {
+      logging::Warn() << "Unable to order body statements, possible error in "
+                         "unification logic";
+
+      while (!not_visited.empty())
+      {
+        size_t index = *not_visited.begin();
+        not_visited.erase(not_visited.begin());
+        Node node = unifybody->at(index);
+        ordered_stmts.push_back(node);
+      }
     }
 
     // where appropriate, recurse with the updated locals
-    for (Node stmt : *unifybody)
+    for (Node stmt : ordered_stmts)
     {
-      if (stmt->type() == LiteralEnum)
-      {
-        find_init_stmts(stmt / UnifyBody, locals);
-      }
-      else if (stmt->type() == LiteralWith)
-      {
-        find_init_stmts(stmt / UnifyBody, locals);
-      }
-      else if (stmt->type() == LiteralNot)
+      if (stmt->in({LiteralEnum, LiteralWith, LiteralNot}))
       {
         find_init_stmts(stmt / UnifyBody, locals);
       }
     }
+
+    unifybody->erase(unifybody->begin(), unifybody->end());
+    unifybody->push_back(ordered_stmts);
+    locals.pop();
   }
 
-  void register_init_stmts(const Node& rule)
+  int register_init_stmts(Node rule)
   {
     Node body = rule / Body;
     Node val = rule / Val;
 
     if (body->type() == UnifyBody)
     {
-      std::set<Location> locals;
+      Locals locals;
       find_init_stmts(body, locals);
     }
 
     if (val->type() == UnifyBody)
     {
-      std::set<Location> locals;
+      Locals locals;
       find_init_stmts(val, locals);
     }
+
+    return 0;
   }
 }
 
@@ -300,34 +442,18 @@ namespace rego
   {
     PassDef init = {"init", wf_pass_init, dir::once | dir::bottomup};
 
-    init.pre(RuleComp, [](Node rule) {
-      register_init_stmts(rule);
-      return 0;
-    });
-
-    init.pre(RuleFunc, [](Node rule) {
-      register_init_stmts(rule);
-      return 0;
-    });
-
-    init.pre(RuleSet, [](Node rule) {
-      register_init_stmts(rule);
-      return 0;
-    });
-
-    init.pre(RuleObj, [](Node rule) {
-      register_init_stmts(rule);
-      return 0;
-    });
-
+    init.pre(RuleComp, register_init_stmts);
+    init.pre(RuleFunc, register_init_stmts);
+    init.pre(RuleSet, register_init_stmts);
+    init.pre(RuleObj, register_init_stmts);
     init.pre(NestedBody, [](Node nested) {
-      std::set<Location> locals;
+      Locals locals;
       find_init_stmts(nested / Val, locals);
       return 0;
     });
 
     init.pre(ExprEvery, [](Node exprevery) {
-      std::set<Location> locals;
+      Locals locals;
       find_init_stmts(exprevery / UnifyBody, locals);
       return 0;
     });

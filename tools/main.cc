@@ -64,7 +64,24 @@ int main(int argc, char** argv)
       return 1;
     }
 
-    interpreter.set_input_json_file(input_path);
+    rego::Node result;
+    try
+    {
+      result = interpreter.set_input_json_file(input_path);
+    }
+    catch (const std::exception& e)
+    {
+      trieste::logging::Error() << e.what() << std::endl;
+      return 1;
+    }
+
+    if (result != nullptr)
+    {
+      trieste::logging::Error()
+        << "Invalid input file: "
+        << std::filesystem::weakly_canonical(input_path) << std::endl;
+      return 1;
+    }
   }
 
   for (auto& path : data_paths)
@@ -76,13 +93,30 @@ int main(int argc, char** argv)
       return 1;
     }
 
-    if (path.extension() == ".json")
+    try
     {
-      interpreter.add_data_json_file(path);
+      rego::Node result;
+      if (path.extension() == ".json")
+      {
+        result = interpreter.add_data_json_file(path);
+      }
+      else
+      {
+        result = interpreter.add_module_file(path);
+      }
+
+      if (result != nullptr)
+      {
+        trieste::logging::Error()
+          << "Invalid data file:" << std::filesystem::weakly_canonical(path)
+          << std::endl;
+        return 1;
+      }
     }
-    else
+    catch (const std::exception& e)
     {
-      interpreter.add_module_file(path);
+      trieste::logging::Error() << e.what() << std::endl;
+      return 1;
     }
   }
 

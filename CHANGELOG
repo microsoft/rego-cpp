@@ -1,5 +1,12 @@
 # Changelog
 
+## 2024-06-14 - Hardening
+Hardening for the 0.4.0 release.
+
+- Errors with individual input and data files are handled properly
+- Issues with binary inputs have been dealt with upstream in Trieste
+- Fixed an error with nested enumerations where results were incorrectly handled in some circumstances.
+
 ## 2024-06-12 - Update to rego v0.65.0
 Update to Rego v0.65.0
 

@@ -406,6 +406,10 @@ namespace rego_test
     {
       if (wanted_bindings.find(key) == wanted_bindings.end())
       {
+        if (!pass)
+        {
+          os << "  ";
+        }
         os << "Actual binding: " << key << std::endl;
         pass = false;
       }
