@@ -93,7 +93,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        d7ccb706729e05b4a10eca91dac81f433470d9f7
+  GIT_TAG        37b1b35fb19db799367d1ca1a82273d8d268695d
 )
 
 FetchContent_MakeAvailable(cmake_utils)
