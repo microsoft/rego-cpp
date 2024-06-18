@@ -19,15 +19,20 @@ namespace
   {
     os << "[{";
     join(
-      os, side.inits.begin(), side.inits.end(), ",", [](auto& os, auto& loc) {
-        os << loc.view();
+      os,
+      side.inits.begin(),
+      side.inits.end(),
+      ",",
+      [](auto& stream, auto& loc) {
+        stream << loc.view();
         return true;
       });
     os << "} < {";
-    join(os, side.vars.begin(), side.vars.end(), ",", [](auto& os, auto& loc) {
-      os << loc.view();
-      return true;
-    });
+    join(
+      os, side.vars.begin(), side.vars.end(), ",", [](auto& stream, auto& loc) {
+        stream << loc.view();
+        return true;
+      });
     return os << "}]";
   }
 
@@ -167,7 +172,7 @@ namespace
 
   void vars_from(Node node, const Locals& locals, std::set<Location>& vars)
   {
-    if (node->type() == Var && contains(locals, node->location()))
+    if (node->type() == Var && locals.contains(node->location()))
     {
       vars.insert(node->location());
     }
@@ -406,7 +411,8 @@ namespace
     }
 
     unifybody->erase(unifybody->begin(), unifybody->end());
-    unifybody->push_back(ordered_stmts);
+    unifybody->insert(
+      unifybody->end(), ordered_stmts.begin(), ordered_stmts.end());
     locals.pop();
   }
 
