@@ -93,7 +93,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        c0234a5102fbc8ec84993dabcdbecedac82095d9
+  GIT_TAG        d7ccb706729e05b4a10eca91dac81f433470d9f7
 )
 
 FetchContent_MakeAvailable(cmake_utils)
@@ -199,8 +199,13 @@ endif()
 set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
 set(INSTALL_INCLUDEDIR include)
+set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2)
 
-install(TARGETS rego trieste json yaml snmalloc snmalloc-new-override re2
+if(TRIESTE_USE_SNMALLOC)
+  list(APPEND REGOCPP_INSTALL_TARGETS snmalloc-new-override)
+endif()
+
+install(TARGETS ${REGOCPP_INSTALL_TARGETS}
   EXPORT ${PROJECT_NAME}_Targets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -240,7 +245,7 @@ endif()
 
 if (REGOCPP_BUILD_TESTS)
   install(TARGETS rego_test rego_test_c_api RUNTIME)
-  install(FILES tests/regocpp.yaml tests/bigint.yaml tests/bugs.yaml tests/regov1.yaml DESTINATION tests)
+  install(FILES tests/regocpp.yaml tests/bigint.yaml tests/bugs.yaml tests/regov1.yaml tests/bad.json DESTINATION tests)
   install(DIRECTORY tests/aci DESTINATION tests)
 endif()
 

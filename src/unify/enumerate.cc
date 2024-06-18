@@ -65,63 +65,6 @@ namespace
     auto it = unifybody->find(local) + 1;
     return find_enum(unifybody, it);
   }
-
-  void vars_from(Node node, std::set<Location>& vars)
-  {
-    if (node->type() == Var)
-    {
-      vars.insert(node->location());
-    }
-
-    for (Node child : *node)
-    {
-      vars_from(child, vars);
-    }
-  }
-
-  // Determines which statements following an implicit enum statement are needed
-  // to instantiate the item sequence for that enum and adds them to the outside
-  // list. Otherwise they should be captured by the enum and are placed in the
-  // inside list.
-  void capture_statements(
-    const NodeRange tail,
-    Node itemseq,
-    std::vector<Node>& outside,
-    std::vector<Node>& inside)
-  {
-    std::set<Location> vars;
-    vars_from(itemseq, vars);
-    for (Node stmt : tail)
-    {
-      if (stmt->type() == LiteralInit)
-      {
-        std::set<Location> init_vars;
-        vars_from(stmt / Lhs, init_vars);
-        vars_from(stmt / Rhs, init_vars);
-        std::set<Location> intersection;
-        std::set_intersection(
-          vars.begin(),
-          vars.end(),
-          init_vars.begin(),
-          init_vars.end(),
-          std::inserter(intersection, intersection.begin()));
-        if (intersection.empty())
-        {
-          inside.push_back(stmt);
-        }
-        else
-        {
-          // the item sequence depends on this init, so it must
-          // be outside the enum.
-          outside.push_back(stmt);
-        }
-      }
-      else
-      {
-        inside.push_back(stmt);
-      }
-    }
-  }
 }
 
 namespace rego
@@ -228,14 +171,10 @@ namespace rego
               return err(idx, "Invalid index for enumeration");
             }
 
-            std::vector<Node> outside;
-            std::vector<Node> inside;
-            capture_statements(_[Tail], _(ItemSeq), outside, inside);
-
             auto temp = _.fresh({"enum"});
             auto item = _.fresh({"item"});
             return Seq
-              << outside << (Local << (Var ^ item) << Undefined)
+              << (Local << (Var ^ item) << Undefined)
               << (LiteralEnum
                   << (Var ^ item) << _(ItemSeq)
                   << (UnifyBody
@@ -259,7 +198,7 @@ namespace rego
                                           << (Var ^ item)
                                           << (RefArgBrack
                                               << (Scalar << (Int ^ "1"))))))))
-                      << inside));
+                      << _[Tail]));
           },
 
         In(UnifyBody) *
@@ -301,14 +240,10 @@ namespace rego
               idx = Term << idx;
             }
 
-            std::vector<Node> outside;
-            std::vector<Node> inside;
-            capture_statements(_[Tail], _(ItemSeq), outside, inside);
-
             auto temp = _.fresh({"enum"});
             auto item = _.fresh({"item"});
             return Seq
-              << outside << (Local << (Var ^ item) << Undefined)
+              << (Local << (Var ^ item) << Undefined)
               << (LiteralEnum
                   << (Var ^ item) << _(ItemSeq)
                   << (UnifyBody
@@ -333,7 +268,7 @@ namespace rego
                                               << (RefArgBrack
                                                   << (Scalar
                                                       << (Int ^ "1")))))))))
-                      << inside));
+                      << _[Tail]));
           },
       }};
   }

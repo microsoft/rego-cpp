@@ -610,7 +610,6 @@ namespace rego
     {
       std::string name;
       std::set<std::size_t> dependencies;
-      std::size_t score;
     };
 
     struct Statement
@@ -635,11 +634,6 @@ namespace rego
     void add_withpop(const Node& withpop);
     void reset();
 
-    void compute_dependency_scores();
-    std::size_t compute_dependency_score(
-      std::size_t index, std::set<size_t>& visited);
-    std::size_t dependency_score(const Variable& var) const;
-    std::size_t dependency_score(const Statement& stmt) const;
     std::size_t detect_cycles() const;
     bool has_cycle(std::size_t id) const;
 
@@ -705,7 +699,7 @@ namespace trieste::logging
     for (auto it = deps.begin(); it != deps.end(); ++it)
     {
       auto& dep = *it;
-      log << "[" << dep.name << "](" << dep.score << ") -> {";
+      log << "[" << dep.name << "] -> {";
 
       logging::Sep sep{", "};
       for (auto& idx : dep.dependencies)

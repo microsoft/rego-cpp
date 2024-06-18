@@ -271,8 +271,12 @@ namespace rego
         output_buf << "---" << std::endl;
         output_buf << "error: " << (error / ErrorMsg)->location().view()
                    << std::endl;
-        output_buf << "code: " << (error / ErrorCode)->location().view()
-                   << std::endl;
+        auto error_code = error->find_first(ErrorCode, error->begin());
+        if (error_code != error->end())
+        {
+          output_buf << "code: " << (*error_code)->location().view()
+                     << std::endl;
+        }
         output_buf << error_ast;
       }
     }

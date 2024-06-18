@@ -45,6 +45,32 @@ cases:
       - 1
       - 2
       - 3
+- note: regocpp/bug105
+  modules:
+  - |
+    package test
+
+    x = {5, 1, 2, 4, 3, 6}
+
+    p = {a |
+      b > a * 2
+      x[a]
+      x[b]
+    }
+
+    q = {a |
+      b := a / 3
+      x[a]
+      x[b]
+    }
+
+    y = [p, q]
+  query: data.test.y = x
+  want_result:
+    - x:
+      - [1, 2]
+      - [3, 6]
+
 - note: regocpp/bug110
   query: "[1, 2, 3][_] = x"
   want_result:

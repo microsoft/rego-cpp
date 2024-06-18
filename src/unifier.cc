@@ -22,9 +22,8 @@ namespace rego
     m_version(version)
   {
     logging::Debug() << "---ASSEMBLING UNIFICATION---";
-    m_dependency_graph.push_back({"start", {}, 0});
+    m_dependency_graph.push_back({"start", {}});
     init_from_body(rulebody, m_statements, 0);
-    compute_dependency_scores();
     m_retries = detect_cycles();
     if (m_retries > 0)
     {
@@ -103,7 +102,7 @@ namespace rego
         std::size_t id = m_dependency_graph.size();
         statements.push_back({id, stmt});
         std::string name = "with" + std::to_string(id);
-        m_dependency_graph.push_back({name, {root}, 0});
+        m_dependency_graph.push_back({name, {root}});
         m_nested_statements[id] = {};
         init_from_body(stmt / UnifyBody, m_nested_statements[id], id);
 
@@ -128,7 +127,7 @@ namespace rego
         std::size_t id = m_dependency_graph.size();
         statements.push_back({id, stmt});
         std::string name = "not" + std::to_string(id);
-        m_dependency_graph.push_back({name, {root}, 0});
+        m_dependency_graph.push_back({name, {root}});
         m_nested_statements[id] = {};
         init_from_body(stmt->front(), m_nested_statements[id], root);
         for (auto& nested : m_nested_statements[id])
@@ -144,7 +143,7 @@ namespace rego
     auto name = (local / Var)->location();
     std::size_t id = m_dependency_graph.size();
     m_variables.insert({name, Variable(local, id)});
-    m_dependency_graph.push_back({std::string(name.view()), {}, 0});
+    m_dependency_graph.push_back({std::string(name.view()), {}});
     return id;
   }
 
@@ -172,62 +171,9 @@ namespace rego
     Resolver::expr_str(out, unifyexpr);
     std::string name = out.str();
     m_dependency_graph.push_back(
-      {name, std::set(dep_ids.begin(), dep_ids.end()), 0});
+      {name, std::set(dep_ids.begin(), dep_ids.end())});
     m_dependency_graph[var.id()].dependencies.insert(expr_id);
     return expr_id;
-  }
-
-  std::size_t UnifierDef::compute_dependency_score(
-    std::size_t id, std::set<std::size_t>& visited)
-  {
-    if (contains(visited, id))
-    {
-      return m_dependency_graph[id].score;
-    }
-
-    visited.insert(id);
-    std::size_t score = 1;
-    for (auto dep_id : m_dependency_graph[id].dependencies)
-    {
-      score += compute_dependency_score(dep_id, visited);
-    }
-
-    m_dependency_graph[id].score = score;
-    return score;
-  }
-
-  void UnifierDef::compute_dependency_scores()
-  {
-    std::set<std::size_t> visited;
-    for (std::size_t id = 0; id < m_dependency_graph.size(); ++id)
-    {
-      compute_dependency_score(id, visited);
-    }
-
-    std::sort(
-      m_statements.begin(), m_statements.end(), [this](auto& lhs, auto& rhs) {
-        return dependency_score(lhs) < dependency_score(rhs);
-      });
-
-    for (auto& [_, nested_statements] : m_nested_statements)
-    {
-      std::sort(
-        nested_statements.begin(),
-        nested_statements.end(),
-        [this](auto& lhs, auto& rhs) {
-          return dependency_score(lhs) < dependency_score(rhs);
-        });
-    }
-  }
-
-  std::size_t UnifierDef::dependency_score(const Statement& stmt) const
-  {
-    return m_dependency_graph[stmt.id].score;
-  }
-
-  std::size_t UnifierDef::dependency_score(const Variable& var) const
-  {
-    return m_dependency_graph[var.id()].score;
   }
 
   bool UnifierDef::is_local(const Node& var)
