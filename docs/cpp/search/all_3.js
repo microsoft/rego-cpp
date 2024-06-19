@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['debug_5fenabled_0',['debug_enabled',['../classrego_1_1Interpreter.html#aedcf60964281f98971ce0275eea237e9',1,'rego::Interpreter']]],
-  ['debug_5fpath_1',['debug_path',['../classrego_1_1Interpreter.html#a06a450331c862e3f9952998fc1ebc1a3',1,'rego::Interpreter']]],
-  ['driver_2',['driver',['../namespacerego.html#a1ca026e2a9639ab3827c2cef015d7aa9',1,'rego']]]
+  ['call_17',['call',['../classrego_1_1BuiltInsDef.html#a31734c86a8c8b0b100ab0a4b9beb3372',1,'rego::BuiltInsDef']]],
+  ['code_18',['code',['../classrego_1_1UnwrapOpt.html#a9a2f15d959825a6263a0add7fba642b3',1,'rego::UnwrapOpt']]],
+  ['create_19',['create',['../structrego_1_1BuiltInDef.html#afe42c3b9ebfbd569538f8e3b9fd26495',1,'rego::BuiltInDef::create()'],['../classrego_1_1BuiltInsDef.html#a48c271f622768481b4455fc895d21796',1,'rego::BuiltInsDef::create()']]]
 ];

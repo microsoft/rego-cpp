@@ -1,9 +1,11 @@
 var searchData=
 [
-  ['unwrap_0',['unwrap',['../classrego_1_1UnwrapOpt.html#aab732acc1d7d86cc5f51a8884ee237d8',1,'rego::UnwrapOpt::unwrap()'],['../namespacerego.html#a9be6c35ef6fbeee923ea1b526763f092',1,'rego::unwrap(const Node &amp;term, const std::set&lt; Token &gt; &amp;types)']]],
-  ['unwrap_5farg_1',['unwrap_arg',['../namespacerego.html#a4bbc90866d749c37f7f7d04c7c98af84',1,'rego']]],
-  ['unwrapopt_2',['unwrapopt',['../classrego_1_1UnwrapOpt.html',1,'rego::UnwrapOpt'],['../classrego_1_1UnwrapOpt.html#a615ed82258d00cd61f89927bb346e329',1,'rego::UnwrapOpt::UnwrapOpt()']]],
-  ['unwrapresult_3',['UnwrapResult',['../structrego_1_1UnwrapResult.html',1,'rego']]],
-  ['using_20the_20tt_20rego_20tt_20cli_4',['Using the &lt;tt&gt;rego&lt;/tt&gt; CLI',['../index.html#autotoc_md4',1,'']]],
-  ['using_20the_20tt_20rego_20tt_20library_5',['Using the &lt;tt&gt;rego&lt;/tt&gt; Library',['../index.html#autotoc_md5',1,'']]]
+  ['to_5finput_96',['to_input',['../namespacerego.html#a4289f092e732dbfad5758787d09c3b04',1,'rego']]],
+  ['to_5fjson_97',['to_json',['../namespacerego.html#ae2aca737556fd1ad1fbbd9c1ef7aa5ba',1,'rego']]],
+  ['to_5fkey_98',['to_key',['../namespacerego.html#a95d5445fa2f7ca535236568ead7ef44b',1,'rego']]],
+  ['to_5fyaml_99',['to_yaml',['../namespacerego.html#a689b0b6620ac219a3de7dde49e423c35',1,'rego']]],
+  ['try_5fget_5fint_100',['try_get_int',['../namespacerego.html#aabd9ba7a0135b05aa54d0b4302a2588e',1,'rego']]],
+  ['try_5fget_5fitem_101',['try_get_item',['../namespacerego.html#af3e2f9072ef00b322520e22847ed5071',1,'rego']]],
+  ['type_102',['type',['../classrego_1_1UnwrapOpt.html#aeb7e3d55add4fd81a212ae87eee0c972',1,'rego::UnwrapOpt']]],
+  ['types_103',['types',['../classrego_1_1UnwrapOpt.html#a971078fb013909911b2ac3184f7e0785',1,'rego::UnwrapOpt']]]
 ];

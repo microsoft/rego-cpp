@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['_7einterpreter_0',['~Interpreter',['../classrego_1_1Interpreter.html#affb5bb5a5881b407d6010d86f42033e5',1,'rego::Interpreter']]]
+  ['wf_5fcheck_5fenabled_110',['wf_check_enabled',['../classrego_1_1Interpreter.html#a9336e590bf9495b30e29dc25b5fd0b0d',1,'rego::Interpreter']]]
 ];

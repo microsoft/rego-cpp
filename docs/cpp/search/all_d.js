@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['query_0',['query',['../classrego_1_1Interpreter.html#a334b427647dbe4c3f36f811349534f39',1,'rego::Interpreter']]]
+  ['pre_40',['pre',['../classrego_1_1UnwrapOpt.html#a178d7b2e3462f3b0bbc2cb0f39908a76',1,'rego::UnwrapOpt']]]
 ];

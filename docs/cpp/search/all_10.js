@@ -1,13 +1,13 @@
 var searchData=
 [
-  ['the_20opa_20rego_20go_20implementation_0',['Compatibility with the OPA Rego Go implementation',['../index.html#autotoc_md8',1,'']]],
-  ['the_20tt_20rego_20tt_20cli_1',['Using the &lt;tt&gt;rego&lt;/tt&gt; CLI',['../index.html#autotoc_md4',1,'']]],
-  ['the_20tt_20rego_20tt_20library_2',['Using the &lt;tt&gt;rego&lt;/tt&gt; Library',['../index.html#autotoc_md5',1,'']]],
-  ['to_5fjson_3',['to_json',['../namespacerego.html#adc7b6b6fe5e4277b1b328ef6b1c3bdc3',1,'rego']]],
-  ['trademarks_4',['Trademarks',['../index.html#autotoc_md10',1,'']]],
-  ['tt_20rego_20cpp_20tt_5',['&lt;tt&gt;rego-cpp&lt;/tt&gt;',['../index.html',1,'']]],
-  ['tt_20rego_20tt_20cli_6',['Using the &lt;tt&gt;rego&lt;/tt&gt; CLI',['../index.html#autotoc_md4',1,'']]],
-  ['tt_20rego_20tt_20library_7',['Using the &lt;tt&gt;rego&lt;/tt&gt; Library',['../index.html#autotoc_md5',1,'']]],
-  ['type_8',['type',['../classrego_1_1UnwrapOpt.html#a1baa3498055407ef83b6d0f67b0acfa5',1,'rego::UnwrapOpt']]],
-  ['types_9',['types',['../classrego_1_1UnwrapOpt.html#af826c41849770e1daa53c72ab6cb07f6',1,'rego::UnwrapOpt']]]
+  ['scalar_86',['scalar',['../namespacerego.html#ae2472135737157347c38796f6a17abbc',1,'rego::scalar(BigInt value)'],['../namespacerego.html#a6070c3433d84fa888d941d7d7ef4b71d',1,'rego::scalar(double value)'],['../namespacerego.html#ad5095fabc1594a8bbcfba9109964862a',1,'rego::scalar(bool value)'],['../namespacerego.html#abe6baed88ebc54487bd3445c582c1ae9',1,'rego::scalar(const char *value)'],['../namespacerego.html#a74d622bc7e659ec2a055f77b2c0bf332',1,'rego::scalar(const std::string &amp;value)'],['../namespacerego.html#a0f699011db385484155281fb1d9bc719',1,'rego::scalar()']]],
+  ['set_87',['set',['../namespacerego.html#a33a98122316fbfa443bc71f963fe299f',1,'rego']]],
+  ['set_5finput_88',['set_input',['../classrego_1_1Interpreter.html#a64fb70a222860e89f0968a4a8b1b5710',1,'rego::Interpreter']]],
+  ['set_5finput_5fjson_5ffile_89',['set_input_json_file',['../classrego_1_1Interpreter.html#a2af0f7c0ff71f9e1a7587578e982426f',1,'rego::Interpreter']]],
+  ['set_5finput_5fterm_90',['set_input_term',['../classrego_1_1Interpreter.html#a1528fc5aa42944a7fbf795f21304816d',1,'rego::Interpreter']]],
+  ['set_5flog_5flevel_91',['set_log_level',['../namespacerego.html#a0172944422e39c3ea5d0465ddfa96c35',1,'rego']]],
+  ['set_5flog_5flevel_5ffrom_5fstring_92',['set_log_level_from_string',['../namespacerego.html#afd3736683aa702ee8564bc2ef7c82e51',1,'rego']]],
+  ['specify_5fnumber_93',['specify_number',['../classrego_1_1UnwrapOpt.html#a63e485df5c3626486194164aae2523d3',1,'rego::UnwrapOpt']]],
+  ['strict_5ferrors_94',['strict_errors',['../classrego_1_1BuiltInsDef.html#a336db846bccf0689805db95e46e12017',1,'rego::BuiltInsDef']]],
+  ['success_95',['success',['../structrego_1_1UnwrapResult.html#a0a62a0476eeb588c52e57042882b6935',1,'rego::UnwrapResult']]]
 ];

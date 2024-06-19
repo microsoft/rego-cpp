@@ -3,13 +3,13 @@
 <html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>regopy &#8212; regopy 0.3.10 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
-    <script src="_static/documentation_options.js?v=9f76a604"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <title>Welcome to regopy’s documentation! &#8212; regopy 0.4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -18,8 +18,9 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -31,218 +32,10 @@
 
           <div class="body" role="main">
             
-  <section id="regopy">
-<h1>regopy<a class="headerlink" href="#regopy" title="Link to this heading">¶</a></h1>
-<p><a class="reference external" href="https://www.openpolicyagent.org/docs/latest/policy-language/">Rego</a> is
-the native query language of the Open Policy Agent project. If you want to
-learn more about Rego as a language, and its various use cases, we refer
-you to the language documentation above which OPA provides.</p>
-<p>This module is a wrapper around <code class="docutils literal notranslate"><span class="pre">rego-cpp</span></code>, an open source cross-platform C++
-implementation of the Rego language compiler and runtime developed and maintained
-by Microsoft. You can learn more about that project <a class="reference external" href="https://github.com/microsoft/rego-cpp">here</a>.
-As much as possible in this wrapper we try to provide idiomatic Python interfaces
-to the Rego query engine. We hope the project is of use to those wishing to leverage
-the power of Rego within a Python context.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>While this project has progressed to the point that we support full Rego language
-(see :<a class="reference internal" href="#language-support"><span class="std std-ref">Language Support</span></a> below) we do not support all built-ins.
-That said, we have verified compliance with the OPA Rego test suite. Even so, it
-should still be considered experimental software and used with discretion.</p>
-</div>
-<section id="example-usage">
-<h2>Example Usage<a class="headerlink" href="#example-usage" title="Link to this heading">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
-<span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4&quot;</span><span class="p">))</span>
-<span class="c1"># x = 5</span>
-<span class="c1"># y = 9.4</span>
-<span class="n">input0</span> <span class="o">=</span> <span class="p">{</span>
-   <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-   <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span>
-   <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span>
-   <span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="kc">True</span>
-<span class="p">}</span>
-<span class="n">data0</span> <span class="o">=</span> <span class="p">{</span>
-   <span class="s2">&quot;one&quot;</span><span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;Foo&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-      <span class="s2">&quot;be&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-      <span class="s2">&quot;bop&quot;</span><span class="p">:</span> <span class="mf">23.4</span>
-   <span class="p">},</span>
-   <span class="s2">&quot;two&quot;</span><span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;Bar&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mf">12.3</span><span class="p">,</span>
-      <span class="s2">&quot;be&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-      <span class="s2">&quot;bop&quot;</span><span class="p">:</span> <span class="mi">42</span>
-   <span class="p">}</span>
-<span class="p">}</span>
-<span class="n">data1</span> <span class="o">=</span> <span class="p">{</span>
-   <span class="s2">&quot;three&quot;</span><span class="p">:</span> <span class="p">{</span>
-      <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;Baz&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
-      <span class="s2">&quot;be&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-      <span class="s2">&quot;bop&quot;</span><span class="p">:</span> <span class="mf">4.23</span>
-   <span class="p">}</span>
-<span class="p">}</span>
-<span class="n">module</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">   package objects</span>
-
-<span class="s1">   rect := {`width`: 2, &quot;height&quot;: 4}</span>
-<span class="s1">   cube := {&quot;width&quot;: 3, `height`: 4, &quot;depth&quot;: 5}</span>
-<span class="s1">   a := 42</span>
-<span class="s1">   b := false</span>
-<span class="s1">   c := null</span>
-<span class="s1">   d := {&quot;a&quot;: a, &quot;x&quot;: [b, c]}</span>
-<span class="s1">   index := 1</span>
-<span class="s1">   shapes := [rect, cube]</span>
-<span class="s1">   names := [&quot;prod&quot;, `smoke1`, &quot;dev&quot;]</span>
-<span class="s1">   sites := [{&quot;name&quot;: &quot;prod&quot;}, {&quot;name&quot;: names[index]}, {&quot;name&quot;: &quot;dev&quot;}]</span>
-<span class="s1">   e := {</span>
-<span class="s1">      a: &quot;foo&quot;,</span>
-<span class="s1">      &quot;three&quot;: c,</span>
-<span class="s1">      names[2]: b,</span>
-<span class="s1">      &quot;four&quot;: d,</span>
-<span class="s1">   }</span>
-<span class="s1">   f := e[&quot;dev&quot;]</span>
-<span class="s1">&#39;&#39;&#39;</span>
-<span class="n">rego</span><span class="o">.</span><span class="n">set_input</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
-<span class="n">rego</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">data0</span><span class="p">)</span>
-<span class="n">rego</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">data1</span><span class="p">)</span>
-<span class="n">rego</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s2">&quot;objects&quot;</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=[data.one, input.b, data.objects.sites[1]]&quot;</span><span class="p">))</span>
-<span class="c1"># x = [{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]</span>
-</pre></div>
-</div>
-</section>
-<section id="language-support">
-<span id="id1"></span><h2>Language Support<a class="headerlink" href="#language-support" title="Link to this heading">¶</a></h2>
-<p>At present we support v0.55.0 of Rego as defined by OPA, with the following grammar:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">module</span>          <span class="o">=</span> <span class="n">package</span> <span class="p">{</span> <span class="kn">import</span> <span class="p">}</span> <span class="n">policy</span>
-<span class="n">package</span>         <span class="o">=</span> <span class="s2">&quot;package&quot;</span> <span class="n">ref</span>
-<span class="kn">import</span>          <span class="o">=</span> <span class="s2">&quot;import&quot;</span> <span class="n">ref</span> <span class="p">[</span> <span class="s2">&quot;as&quot;</span> <span class="n">var</span> <span class="p">]</span>
-<span class="n">policy</span>          <span class="o">=</span> <span class="p">{</span> <span class="n">rule</span> <span class="p">}</span>
-<span class="n">rule</span>            <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;default&quot;</span> <span class="p">]</span> <span class="n">rule</span><span class="o">-</span><span class="n">head</span> <span class="p">{</span> <span class="n">rule</span><span class="o">-</span><span class="n">body</span> <span class="p">}</span>
-<span class="n">rule</span><span class="o">-</span><span class="n">head</span>       <span class="o">=</span> <span class="p">(</span> <span class="n">ref</span> <span class="o">|</span> <span class="n">var</span> <span class="p">)</span> <span class="p">(</span> <span class="n">rule</span><span class="o">-</span><span class="n">head</span><span class="o">-</span><span class="nb">set</span> <span class="o">|</span> <span class="n">rule</span><span class="o">-</span><span class="n">head</span><span class="o">-</span><span class="n">obj</span> <span class="o">|</span> <span class="n">rule</span><span class="o">-</span><span class="n">head</span><span class="o">-</span><span class="n">func</span> <span class="o">|</span> <span class="n">rule</span><span class="o">-</span><span class="n">head</span><span class="o">-</span><span class="n">comp</span> <span class="p">)</span>
-<span class="n">rule</span><span class="o">-</span><span class="n">head</span><span class="o">-</span><span class="n">comp</span>  <span class="o">=</span> <span class="p">[</span> <span class="n">assign</span><span class="o">-</span><span class="n">operator</span> <span class="n">term</span> <span class="p">]</span> <span class="p">[</span> <span class="s2">&quot;if&quot;</span> <span class="p">]</span>
-<span class="n">rule</span><span class="o">-</span><span class="n">head</span><span class="o">-</span><span class="n">obj</span>   <span class="o">=</span> <span class="s2">&quot;[&quot;</span> <span class="n">term</span> <span class="s2">&quot;]&quot;</span> <span class="p">[</span> <span class="n">assign</span><span class="o">-</span><span class="n">operator</span> <span class="n">term</span> <span class="p">]</span> <span class="p">[</span> <span class="s2">&quot;if&quot;</span> <span class="p">]</span>
-<span class="n">rule</span><span class="o">-</span><span class="n">head</span><span class="o">-</span><span class="n">func</span>  <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="n">rule</span><span class="o">-</span><span class="n">args</span> <span class="s2">&quot;)&quot;</span> <span class="p">[</span> <span class="n">assign</span><span class="o">-</span><span class="n">operator</span> <span class="n">term</span> <span class="p">]</span> <span class="p">[</span> <span class="s2">&quot;if&quot;</span> <span class="p">]</span>
-<span class="n">rule</span><span class="o">-</span><span class="n">head</span><span class="o">-</span><span class="nb">set</span>   <span class="o">=</span> <span class="s2">&quot;contains&quot;</span> <span class="n">term</span> <span class="p">[</span> <span class="s2">&quot;if&quot;</span> <span class="p">]</span> <span class="o">|</span> <span class="s2">&quot;[&quot;</span> <span class="n">term</span> <span class="s2">&quot;]&quot;</span>
-<span class="n">rule</span><span class="o">-</span><span class="n">args</span>       <span class="o">=</span> <span class="n">term</span> <span class="p">{</span> <span class="s2">&quot;,&quot;</span> <span class="n">term</span> <span class="p">}</span>
-<span class="n">rule</span><span class="o">-</span><span class="n">body</span>       <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;else&quot;</span> <span class="p">[</span> <span class="n">assign</span><span class="o">-</span><span class="n">operator</span> <span class="n">term</span> <span class="p">]</span> <span class="p">[</span> <span class="s2">&quot;if&quot;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">(</span> <span class="s2">&quot;{&quot;</span> <span class="n">query</span> <span class="s2">&quot;}&quot;</span> <span class="p">)</span> <span class="o">|</span> <span class="n">literal</span>
-<span class="n">query</span>           <span class="o">=</span> <span class="n">literal</span> <span class="p">{</span> <span class="p">(</span> <span class="s2">&quot;;&quot;</span> <span class="o">|</span> <span class="p">(</span> <span class="p">[</span><span class="n">CR</span><span class="p">]</span> <span class="n">LF</span> <span class="p">)</span> <span class="p">)</span> <span class="n">literal</span> <span class="p">}</span>
-<span class="n">literal</span>         <span class="o">=</span> <span class="p">(</span> <span class="n">some</span><span class="o">-</span><span class="n">decl</span> <span class="o">|</span> <span class="n">expr</span> <span class="o">|</span> <span class="s2">&quot;not&quot;</span> <span class="n">expr</span> <span class="p">)</span> <span class="p">{</span> <span class="k">with</span><span class="o">-</span><span class="n">modifier</span> <span class="p">}</span>
-<span class="k">with</span><span class="o">-</span><span class="n">modifier</span>   <span class="o">=</span> <span class="s2">&quot;with&quot;</span> <span class="n">term</span> <span class="s2">&quot;as&quot;</span> <span class="n">term</span>
-<span class="n">some</span><span class="o">-</span><span class="n">decl</span>       <span class="o">=</span> <span class="s2">&quot;some&quot;</span> <span class="n">term</span> <span class="p">{</span> <span class="s2">&quot;,&quot;</span> <span class="n">term</span> <span class="p">}</span> <span class="p">{</span> <span class="s2">&quot;in&quot;</span> <span class="n">expr</span> <span class="p">}</span>
-<span class="n">expr</span>            <span class="o">=</span> <span class="n">term</span> <span class="o">|</span> <span class="n">expr</span><span class="o">-</span><span class="n">call</span> <span class="o">|</span> <span class="n">expr</span><span class="o">-</span><span class="n">infix</span> <span class="o">|</span> <span class="n">expr</span><span class="o">-</span><span class="n">every</span> <span class="o">|</span> <span class="n">expr</span><span class="o">-</span><span class="n">parens</span> <span class="o">|</span> <span class="n">unary</span><span class="o">-</span><span class="n">expr</span>
-<span class="n">expr</span><span class="o">-</span><span class="n">call</span>       <span class="o">=</span> <span class="n">var</span> <span class="p">[</span> <span class="s2">&quot;.&quot;</span> <span class="n">var</span> <span class="p">]</span> <span class="s2">&quot;(&quot;</span> <span class="p">[</span> <span class="n">expr</span> <span class="p">{</span> <span class="s2">&quot;,&quot;</span> <span class="n">expr</span> <span class="p">}</span> <span class="p">]</span> <span class="s2">&quot;)&quot;</span>
-<span class="n">expr</span><span class="o">-</span><span class="n">infix</span>      <span class="o">=</span> <span class="n">expr</span> <span class="n">infix</span><span class="o">-</span><span class="n">operator</span> <span class="n">expr</span>
-<span class="n">expr</span><span class="o">-</span><span class="n">every</span>      <span class="o">=</span> <span class="s2">&quot;every&quot;</span> <span class="n">var</span> <span class="p">{</span> <span class="s2">&quot;,&quot;</span> <span class="n">var</span> <span class="p">}</span> <span class="s2">&quot;in&quot;</span> <span class="p">(</span> <span class="n">term</span> <span class="o">|</span> <span class="n">expr</span><span class="o">-</span><span class="n">call</span> <span class="o">|</span> <span class="n">expr</span><span class="o">-</span><span class="n">infix</span> <span class="p">)</span> <span class="s2">&quot;{&quot;</span> <span class="n">query</span> <span class="s2">&quot;}&quot;</span>
-<span class="n">expr</span><span class="o">-</span><span class="n">parens</span>     <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="n">expr</span> <span class="s2">&quot;)&quot;</span>
-<span class="n">unary</span><span class="o">-</span><span class="n">expr</span>      <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="n">expr</span>
-<span class="n">membership</span>      <span class="o">=</span> <span class="n">term</span> <span class="p">[</span> <span class="s2">&quot;,&quot;</span> <span class="n">term</span> <span class="p">]</span> <span class="s2">&quot;in&quot;</span> <span class="n">term</span>
-<span class="n">term</span>            <span class="o">=</span> <span class="n">ref</span> <span class="o">|</span> <span class="n">var</span> <span class="o">|</span> <span class="n">scalar</span> <span class="o">|</span> <span class="n">array</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">|</span> <span class="nb">set</span> <span class="o">|</span> <span class="n">membership</span> <span class="o">|</span> <span class="n">array</span><span class="o">-</span><span class="n">compr</span> <span class="o">|</span> <span class="nb">object</span><span class="o">-</span><span class="n">compr</span> <span class="o">|</span> <span class="nb">set</span><span class="o">-</span><span class="n">compr</span>
-<span class="n">array</span><span class="o">-</span><span class="n">compr</span>     <span class="o">=</span> <span class="s2">&quot;[&quot;</span> <span class="n">term</span> <span class="s2">&quot;|&quot;</span> <span class="n">query</span> <span class="s2">&quot;]&quot;</span>
-<span class="nb">set</span><span class="o">-</span><span class="n">compr</span>       <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="n">term</span> <span class="s2">&quot;|&quot;</span> <span class="n">query</span> <span class="s2">&quot;}&quot;</span>
-<span class="nb">object</span><span class="o">-</span><span class="n">compr</span>    <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="nb">object</span><span class="o">-</span><span class="n">item</span> <span class="s2">&quot;|&quot;</span> <span class="n">query</span> <span class="s2">&quot;}&quot;</span>
-<span class="n">infix</span><span class="o">-</span><span class="n">operator</span>  <span class="o">=</span> <span class="n">assign</span><span class="o">-</span><span class="n">operator</span> <span class="o">|</span> <span class="nb">bool</span><span class="o">-</span><span class="n">operator</span> <span class="o">|</span> <span class="n">arith</span><span class="o">-</span><span class="n">operator</span> <span class="o">|</span> <span class="nb">bin</span><span class="o">-</span><span class="n">operator</span>
-<span class="nb">bool</span><span class="o">-</span><span class="n">operator</span>   <span class="o">=</span> <span class="s2">&quot;==&quot;</span> <span class="o">|</span> <span class="s2">&quot;!=&quot;</span> <span class="o">|</span> <span class="s2">&quot;&lt;&quot;</span> <span class="o">|</span> <span class="s2">&quot;&gt;&quot;</span> <span class="o">|</span> <span class="s2">&quot;&gt;=&quot;</span> <span class="o">|</span> <span class="s2">&quot;&lt;=&quot;</span>
-<span class="n">arith</span><span class="o">-</span><span class="n">operator</span>  <span class="o">=</span> <span class="s2">&quot;+&quot;</span> <span class="o">|</span> <span class="s2">&quot;-&quot;</span> <span class="o">|</span> <span class="s2">&quot;*&quot;</span> <span class="o">|</span> <span class="s2">&quot;/&quot;</span>
-<span class="nb">bin</span><span class="o">-</span><span class="n">operator</span>    <span class="o">=</span> <span class="s2">&quot;&amp;&quot;</span> <span class="o">|</span> <span class="s2">&quot;|&quot;</span>
-<span class="n">assign</span><span class="o">-</span><span class="n">operator</span> <span class="o">=</span> <span class="s2">&quot;:=&quot;</span> <span class="o">|</span> <span class="s2">&quot;=&quot;</span>
-<span class="n">ref</span>             <span class="o">=</span> <span class="p">(</span> <span class="n">var</span> <span class="o">|</span> <span class="n">array</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">|</span> <span class="nb">set</span> <span class="o">|</span> <span class="n">array</span><span class="o">-</span><span class="n">compr</span> <span class="o">|</span> <span class="nb">object</span><span class="o">-</span><span class="n">compr</span> <span class="o">|</span> <span class="nb">set</span><span class="o">-</span><span class="n">compr</span> <span class="o">|</span> <span class="n">expr</span><span class="o">-</span><span class="n">call</span> <span class="p">)</span> <span class="p">{</span> <span class="n">ref</span><span class="o">-</span><span class="n">arg</span> <span class="p">}</span>
-<span class="n">ref</span><span class="o">-</span><span class="n">arg</span>         <span class="o">=</span> <span class="n">ref</span><span class="o">-</span><span class="n">arg</span><span class="o">-</span><span class="n">dot</span> <span class="o">|</span> <span class="n">ref</span><span class="o">-</span><span class="n">arg</span><span class="o">-</span><span class="n">brack</span>
-<span class="n">ref</span><span class="o">-</span><span class="n">arg</span><span class="o">-</span><span class="n">brack</span>   <span class="o">=</span> <span class="s2">&quot;[&quot;</span> <span class="p">(</span> <span class="n">scalar</span> <span class="o">|</span> <span class="n">var</span> <span class="o">|</span> <span class="n">array</span> <span class="o">|</span> <span class="nb">object</span> <span class="o">|</span> <span class="nb">set</span> <span class="o">|</span> <span class="s2">&quot;_&quot;</span> <span class="p">)</span> <span class="s2">&quot;]&quot;</span>
-<span class="n">ref</span><span class="o">-</span><span class="n">arg</span><span class="o">-</span><span class="n">dot</span>     <span class="o">=</span> <span class="s2">&quot;.&quot;</span> <span class="n">var</span>
-<span class="n">var</span>             <span class="o">=</span> <span class="p">(</span> <span class="n">ALPHA</span> <span class="o">|</span> <span class="s2">&quot;_&quot;</span> <span class="p">)</span> <span class="p">{</span> <span class="n">ALPHA</span> <span class="o">|</span> <span class="n">DIGIT</span> <span class="o">|</span> <span class="s2">&quot;_&quot;</span> <span class="p">}</span>
-<span class="n">scalar</span>          <span class="o">=</span> <span class="n">string</span> <span class="o">|</span> <span class="n">NUMBER</span> <span class="o">|</span> <span class="n">TRUE</span> <span class="o">|</span> <span class="n">FALSE</span> <span class="o">|</span> <span class="n">NULL</span>
-<span class="n">string</span>          <span class="o">=</span> <span class="n">STRING</span> <span class="o">|</span> <span class="n">raw</span><span class="o">-</span><span class="n">string</span>
-<span class="n">raw</span><span class="o">-</span><span class="n">string</span>      <span class="o">=</span> <span class="s2">&quot;`&quot;</span> <span class="p">{</span> <span class="n">CHAR</span><span class="o">-</span><span class="s2">&quot;`&quot;</span> <span class="p">}</span> <span class="s2">&quot;`&quot;</span>
-<span class="n">array</span>           <span class="o">=</span> <span class="s2">&quot;[&quot;</span> <span class="n">term</span> <span class="p">{</span> <span class="s2">&quot;,&quot;</span> <span class="n">term</span> <span class="p">}</span> <span class="s2">&quot;]&quot;</span>
-<span class="nb">object</span>          <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="nb">object</span><span class="o">-</span><span class="n">item</span> <span class="p">{</span> <span class="s2">&quot;,&quot;</span> <span class="nb">object</span><span class="o">-</span><span class="n">item</span> <span class="p">}</span> <span class="s2">&quot;}&quot;</span>
-<span class="nb">object</span><span class="o">-</span><span class="n">item</span>     <span class="o">=</span> <span class="p">(</span> <span class="n">scalar</span> <span class="o">|</span> <span class="n">ref</span> <span class="o">|</span> <span class="n">var</span> <span class="p">)</span> <span class="s2">&quot;:&quot;</span> <span class="n">term</span>
-<span class="nb">set</span>             <span class="o">=</span> <span class="n">empty</span><span class="o">-</span><span class="nb">set</span> <span class="o">|</span> <span class="n">non</span><span class="o">-</span><span class="n">empty</span><span class="o">-</span><span class="nb">set</span>
-<span class="n">non</span><span class="o">-</span><span class="n">empty</span><span class="o">-</span><span class="nb">set</span>   <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="n">term</span> <span class="p">{</span> <span class="s2">&quot;,&quot;</span> <span class="n">term</span> <span class="p">}</span> <span class="s2">&quot;}&quot;</span>
-<span class="n">empty</span><span class="o">-</span><span class="nb">set</span>       <span class="o">=</span> <span class="s2">&quot;set(&quot;</span> <span class="s2">&quot;)&quot;</span>
-</pre></div>
-</div>
-<p>Definitions:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[]</span>     <span class="n">optional</span> <span class="p">(</span><span class="n">zero</span> <span class="ow">or</span> <span class="n">one</span> <span class="n">instances</span><span class="p">)</span>
-<span class="p">{}</span>     <span class="n">repetition</span> <span class="p">(</span><span class="n">zero</span> <span class="ow">or</span> <span class="n">more</span> <span class="n">instances</span><span class="p">)</span>
-<span class="o">|</span>      <span class="n">alternation</span> <span class="p">(</span><span class="n">one</span> <span class="n">of</span> <span class="n">the</span> <span class="n">instances</span><span class="p">)</span>
-<span class="p">()</span>     <span class="n">grouping</span> <span class="p">(</span><span class="n">order</span> <span class="n">of</span> <span class="n">expansion</span><span class="p">)</span>
-<span class="n">STRING</span> <span class="n">JSON</span> <span class="n">string</span>
-<span class="n">NUMBER</span> <span class="n">JSON</span> <span class="n">number</span>
-<span class="n">TRUE</span>   <span class="n">JSON</span> <span class="n">true</span>
-<span class="n">FALSE</span>  <span class="n">JSON</span> <span class="n">false</span>
-<span class="n">NULL</span>   <span class="n">JSON</span> <span class="n">null</span>
-<span class="n">CHAR</span>   <span class="n">Unicode</span> <span class="n">character</span>
-<span class="n">ALPHA</span>  <span class="n">ASCII</span> <span class="n">characters</span> <span class="n">A</span><span class="o">-</span><span class="n">Z</span> <span class="ow">and</span> <span class="n">a</span><span class="o">-</span><span class="n">z</span>
-<span class="n">DIGIT</span>  <span class="n">ASCII</span> <span class="n">characters</span> <span class="mi">0</span><span class="o">-</span><span class="mi">9</span>
-<span class="n">CR</span>     <span class="n">Carriage</span> <span class="n">Return</span>
-<span class="n">LF</span>     <span class="n">Line</span> <span class="n">Feed</span>
-</pre></div>
-</div>
-<section id="builtins">
-<h3>Builtins<a class="headerlink" href="#builtins" title="Link to this heading">¶</a></h3>
-<p>At the moment only support a few builtins, but are actively working on adding
-all the standard builtins. The following builtins are currently supported:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">aggregates</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">arrays</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bits</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">casts</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">numbers</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">objects</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">regex</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">semver</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sets</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">strings</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">types</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">units</span></code></p></li>
-<li><dl class="simple">
-<dt>miscellaneous</dt><dd><ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">base64_encode</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">base64_decode</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">json.marshal</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">opa.runtime</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">print</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time.now_ns</span></code></p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</section>
-<section id="compatibility-with-the-opa-rego-go-implementation">
-<h3>Compatibility with the OPA Rego Go implementation<a class="headerlink" href="#compatibility-with-the-opa-rego-go-implementation" title="Link to this heading">¶</a></h3>
-<p>Our goal is to achieve and maintain full compatibility with the reference Go
-implementation. We have developed a test driver which runs the same tests
-and validates that we produce the same outputs. At this stage we pass all
-the non-builtin specific test suites, which we clone from the
-<a class="reference external" href="https://github.com/open-policy-agent/opa/tree/main/test/cases/testdata">OPA repository</a>.
-To build with the OPA tests available for testing, use one of the following presets:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">release-clang-opa</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">release-opa</span></code></p></li>
-</ul>
-<p>At present, we are <strong>NOT</strong> passing the following test suites in full:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">base64*</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">crypto*</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">glob*</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">graphql</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">invalidkeyerror</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">json*</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">jwt*</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">net*</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">planner-ir</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">providers-aws</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reachable</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">urlbuiltins</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">walkbuiltin</span></code></p></li>
-</ul>
+  <section id="welcome-to-regopy-s-documentation">
+<h1>Welcome to regopy’s documentation!<a class="headerlink" href="#welcome-to-regopy-s-documentation" title="Link to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#interpreter">Interpreter</a></li>
@@ -255,14 +48,12 @@ To build with the OPA tests available for testing, use one of the following pres
 </div>
 </section>
 <section id="indices-and-tables">
-<h3>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h3>
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
-</section>
-</section>
 </section>
 
 
@@ -285,6 +76,7 @@ To build with the OPA tests available for testing, use one of the following pres
 
 
 <h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 </ul>
@@ -297,7 +89,7 @@ To build with the OPA tests available for testing, use one of the following pres
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -305,7 +97,7 @@ To build with the OPA tests available for testing, use one of the following pres
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -320,11 +112,11 @@ To build with the OPA tests available for testing, use one of the following pres
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2023, Microsoft.
+      &#169;2024, Microsoft.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/index.rst.txt"

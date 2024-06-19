@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['regogeterror_0',['regoGetError',['../classrego_1_1Interpreter.html#a8ef56e9b52040b1d0a676355cd40b0f3',1,'rego::Interpreter']]],
-  ['regoquery_1',['regoQuery',['../classrego_1_1Interpreter.html#a4dfc1686d9104bb2377a3290fbae5d21',1,'rego::Interpreter']]]
+  ['regogeterror_223',['regoGetError',['../classrego_1_1Interpreter.html#a80943e566abfb91d5048f4280e6b49bb',1,'rego::Interpreter']]],
+  ['regoquery_224',['regoQuery',['../classrego_1_1Interpreter.html#ab099fa82c12284bda59bad9dce541fce',1,'rego::Interpreter']]]
 ];

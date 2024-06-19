@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['builtins_0',['builtins',['../classrego_1_1Interpreter.html#a5b235c5fa74bd75511a0aadb8cd3a8d1',1,'rego::Interpreter::builtins()'],['../classrego_1_1BuiltIns.html#a73a171c3d702554c882ef5576aa21032',1,'rego::BuiltIns::BuiltIns()']]]
+  ['builtins_126',['builtins',['../classrego_1_1Interpreter.html#a3e97c1b5d7c5c2a7c692afa4d76de150',1,'rego::Interpreter']]],
+  ['builtinsdef_127',['BuiltInsDef',['../classrego_1_1BuiltInsDef.html#abbed5b740b79053cf2adf9b3b56ea485',1,'rego::BuiltInsDef']]]
 ];

@@ -3,13 +3,13 @@
 <html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API &#8212; regopy 0.3.10 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
-    <script src="_static/documentation_options.js?v=9f76a604"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <title>API &#8212; regopy 0.4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -18,8 +18,9 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -46,8 +47,7 @@ the C API and converting the results to Python types.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4&quot;</span><span class="p">))</span>
-<span class="go">x = 5</span>
-<span class="go">y = 9.4</span>
+<span class="go">{&quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}</span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="p">{</span>
@@ -104,7 +104,7 @@ the C API and converting the results to Python types.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">data1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s2">&quot;objects&quot;</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=[data.one, input.b, data.objects.sites[1]]&quot;</span><span class="p">))</span>
-<span class="go">x = [{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]</span>
+<span class="go">{&quot;bindings&quot;:{&quot;x&quot;:[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]}}</span>
 </pre></div>
 </div>
 <dl class="py method">
@@ -161,7 +161,7 @@ the C API and converting the results to Python types.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">add_data_json</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;data.one.bar&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">&quot;Foo&quot;</span>
+<span class="go">{&quot;expressions&quot;:[&quot;Foo&quot;]}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -196,7 +196,7 @@ the C API and converting the results to Python types.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s2">&quot;scalars&quot;</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;data.scalars.greeting&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">&quot;Hello&quot;</span>
+<span class="go">{&quot;expressions&quot;:[&quot;Hello&quot;]}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -267,15 +267,15 @@ and then calling this method.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input</span><span class="p">(</span><span class="n">input0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;data.multi.a&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">1</span>
+<span class="go">{&quot;expressions&quot;:[1]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input</span><span class="p">(</span><span class="n">input1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;data.multi.a&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">41</span>
+<span class="go">{&quot;expressions&quot;:[41]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input</span><span class="p">(</span><span class="n">input2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;data.multi.a&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">70</span>
+<span class="go">{&quot;expressions&quot;:[70]}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -340,7 +340,39 @@ The input should be provided as single JSON-encoded value.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input_json</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;input.a&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">10</span>
+<span class="go">{&quot;expressions&quot;:[10]}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Interpreter.set_input_term">
+<span class="sig-name descname"><span class="pre">set_input_term</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.set_input_term" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the input term of the interpreter.</p>
+<p>This can be called several times during the lifetime of the interpreter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>term</strong> (<em>str</em>) – The input term.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RegoError</strong> – If an error occurs in the Rego interpreter.</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">... </span><span class="s1">  {</span>
+<span class="gp">... </span><span class="s1">    &quot;a&quot;: 10,</span>
+<span class="gp">... </span><span class="s1">    &quot;b&quot;: &quot;20&quot;,</span>
+<span class="gp">... </span><span class="s1">    &quot;c&quot;: 30.0,</span>
+<span class="gp">... </span><span class="s1">    &quot;d&quot;: true</span>
+<span class="gp">... </span><span class="s1">  }</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input_json</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;input.a&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="go">{&quot;expressions&quot;:[10]}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -377,10 +409,9 @@ for specific variables.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">x = 5</span>
-<span class="go">y = 9.4</span>
+<span class="go">{&quot;expressions&quot;:[10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}</span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">binding</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
@@ -390,17 +421,40 @@ for specific variables.</p>
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="regopy.Output.binding">
-<span class="sig-name descname"><span class="pre">binding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Output.binding" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">binding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Output.binding" title="Link to this definition">¶</a></dt>
 <dd><p>Attempts to return the binding for the given variable name.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The binding for the given variable name.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the variable to return.</p></li>
+<li><p><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the binding to return.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#regopy.Node" title="regopy.Node">Node</a></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The binding for the given variable name.</p>
 </dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If the variable is not bound.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#regopy.Node" title="regopy.Node">Node</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the variable is not bound.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Output.expressions">
+<span class="sig-name descname"><span class="pre">expressions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Output.expressions" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the output terms at the given index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the term to return.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A node contains a list of node objects</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#regopy.Node" title="regopy.Node">Node</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -411,7 +465,7 @@ for specific variables.</p>
 <dd><p>Returns the root node of the output.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#regopy.Node" title="regopy.node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#regopy.Node" title="regopy.node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -427,7 +481,7 @@ gives a quick way, without inspecting the result node, of finding whether
 it is ok.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -482,7 +536,7 @@ x = {“a”:10, “b”:”20”, “c”:[30, 60], “d”:true, “e”:null}
 <dd><p>Returns the child node at the given index.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#regopy.Node" title="regopy.node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#regopy.Node" title="regopy.node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -513,7 +567,7 @@ x = {“a”:10, “b”:”20”, “c”:[30, 60], “d”:true, “e”:null}
 <dd><p>Returns the node as a JSON string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -672,6 +726,26 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.NodeKind.Terms">
+<span class="sig-name descname"><span class="pre">Terms</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.Terms:</span> <span class="pre">1015&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.Terms" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.NodeKind.Bindings">
+<span class="sig-name descname"><span class="pre">Bindings</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.Bindings:</span> <span class="pre">1016&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.Bindings" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.NodeKind.Results">
+<span class="sig-name descname"><span class="pre">Results</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.Results:</span> <span class="pre">1017&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.Results" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.NodeKind.Result">
+<span class="sig-name descname"><span class="pre">Result</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.Result:</span> <span class="pre">1018&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.Result" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="regopy.NodeKind.Error">
 <span class="sig-name descname"><span class="pre">Error</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.Error:</span> <span class="pre">1800&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.Error" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -726,23 +800,28 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.LogLevel.OUTPUT">
+<span class="sig-name descname"><span class="pre">OUTPUT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.OUTPUT:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.OUTPUT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="regopy.LogLevel.WARN">
-<span class="sig-name descname"><span class="pre">WARN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.WARN:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.WARN" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">WARN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.WARN:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.WARN" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="regopy.LogLevel.INFO">
-<span class="sig-name descname"><span class="pre">INFO</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.INFO:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.INFO" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">INFO</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.INFO:</span> <span class="pre">4&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.INFO" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="regopy.LogLevel.DEBUG">
-<span class="sig-name descname"><span class="pre">DEBUG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.DEBUG:</span> <span class="pre">4&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.DEBUG" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">DEBUG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.DEBUG:</span> <span class="pre">5&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.DEBUG" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="regopy.LogLevel.TRACE">
-<span class="sig-name descname"><span class="pre">TRACE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.TRACE:</span> <span class="pre">5&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.TRACE" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">TRACE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.TRACE:</span> <span class="pre">6&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.TRACE" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -800,7 +879,7 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -808,7 +887,7 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -823,11 +902,11 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2023, Microsoft.
+      &#169;2024, Microsoft.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/api.rst.txt"
