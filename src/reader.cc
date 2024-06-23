@@ -1323,8 +1323,8 @@ namespace
       wf_rules,
       dir::bottomup | dir::once,
       {
-        In(Group)([](auto& n) { return in_parent(n, Module); }) *
-            ((T(Expr)[Rule]
+        In(Group) *
+            ((T(Expr)[Rule]([](auto& n) { return in_parent(n, Module); })
               << (T(ExprInfix)
                   << ((T(Expr)
                        << (T(Term)
@@ -1360,8 +1360,8 @@ namespace
                         << (RuleBodySeq << _[RuleBodySeq]);
           },
 
-        In(Group)([](auto& n) { return in_parent(n, Module); }) *
-            ((T(Expr)[Rule]
+        In(Group) *
+            ((T(Expr)[Rule]([](auto& n) { return in_parent(n, Module); })
               << (T(Term)
                   << (T(Ref)
                       << ((T(RefHead) << T(Var)[RuleRef]) *
@@ -1407,9 +1407,9 @@ namespace
             return Rule << False << rulehead << (RuleBodySeq << _[RuleBodySeq]);
           },
 
-        In(Group)([](auto& n) { return in_parent(n, Module); }) *
+        In(Group) *
             (~T(Default)[Default] *
-             (T(Expr)[Rule]
+             (T(Expr)[Rule]([](auto& n) { return in_parent(n, Module); })
               << (T(ExprInfix)
                   << ((T(Expr) << (T(Term) << T(Ref)[RuleRef])) *
                       (T(InfixOperator) << T(AssignOperator)) *
@@ -1430,10 +1430,11 @@ namespace
                         << (RuleBodySeq << _[RuleBodySeq]);
           },
 
-        In(Group)([](auto& n) { return in_parent(n, Module); }) *
+        In(Group) *
             (~T(Default)[Default] *
-             (T(Expr)[Rule] << (T(Term) << T(Ref)[RuleRef])) * ~T(If)[If] *
-             T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
+             (T(Expr)[Rule]([](auto& n) { return in_parent(n, Module); })
+              << (T(Term) << T(Ref)[RuleRef])) *
+             ~T(If)[If] * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
           [strict](Match& _) {
             if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
             {
@@ -1452,9 +1453,9 @@ namespace
                         << (RuleBodySeq << _[RuleBodySeq]);
           },
 
-        In(Group)([](auto& n) { return in_parent(n, Module); }) *
+        In(Group) *
             (~T(Default)[Default] *
-             (T(Expr)[Rule]
+             (T(Expr)[Rule]([](auto& n) { return in_parent(n, Module); })
               << (T(ExprInfix)
                   << ((T(Expr)
                        << (T(ExprCall)
@@ -1479,9 +1480,9 @@ namespace
                         << (RuleBodySeq << _[RuleBodySeq]);
           },
 
-        In(Group)([](auto& n) { return in_parent(n, Module); }) *
+        In(Group) *
             (~T(Default)[Default] *
-             (T(Expr)[Rule]
+             (T(Expr)[Rule]([](auto& n) { return in_parent(n, Module); })
               << (T(ExprCall) << (T(Ref)[RuleRef] * T(ExprSeq)[RuleArgs]))) *
              ~T(If)[If] * T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
           [strict](Match& _) {
@@ -1503,10 +1504,11 @@ namespace
                         << (RuleBodySeq << _[RuleBodySeq]);
           },
 
-        In(Group)([](auto& n) { return in_parent(n, Module); }) *
-            ((T(Expr)[Rule] << (T(Term) << (T(Ref)[RuleRef]))) * T(Contains) *
-             T(Expr)[Expr] * ~T(If)[If] * T(Query, Else)++[RuleBodySeq] *
-             T(NewLine)) >>
+        In(Group) *
+            ((T(Expr)[Rule]([](auto& n) { return in_parent(n, Module); })
+              << (T(Term) << (T(Ref)[RuleRef]))) *
+             T(Contains) * T(Expr)[Expr] * ~T(If)[If] *
+             T(Query, Else)++[RuleBodySeq] * T(NewLine)) >>
           [strict](Match& _) {
             if (*strict && _(If) == nullptr && !_[RuleBodySeq].empty())
             {

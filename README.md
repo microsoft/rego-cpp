@@ -51,19 +51,19 @@ some example commands using the provided example files and run from the suggeste
 `dist` install directory:
 
     ./bin/rego -d examples/scalars.rego -q data.scalars.greeting
-    "Hello"
+    {"expressions":["Hello"]}
 
     ./bin/rego -d examples/objects.rego -q data.objects.sites[1].name
-    "smoke1"
+    {"expressions":["smoke1"]}
 
     ./bin/rego -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
-    [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
+    {"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]]}
 
     ./bin/rego -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
-    9.4
+    {"bindings":{"x":5, "y":9.4}}
 
     ./bin/rego -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
-    {"one": 15, "two": 15}
+    {"expressions":[{"one":15, "two":15}]}
 
 You can run the test driver from the same directory:
 

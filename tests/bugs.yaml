@@ -225,3 +225,43 @@ cases:
   query: "[1, 2][1/1] = x"
   want_result:
     - x: 2
+- note: regocpp/bug146
+  modules:
+  - |
+    package compr_context
+
+    import future.keywords.in
+
+    output := a {
+      a := {x: a |
+        some x in [0, 1, 2]
+        a = x * 2
+      }
+    }
+  query: "data.compr_context.output = x"
+  want_result:
+  - x:
+      0: 0
+      1: 2
+      2: 4
+- note: regocpp/bug151
+  modules:
+  - |
+    #
+    package test
+  - |
+    # some comment text
+    package test
+
+    p := 1
+  - |
+    #
+    # comment after empty
+    package test
+
+    q := 2
+  query: "data.test = x"
+  want_result:
+  - x:
+      p: 1
+      q: 2

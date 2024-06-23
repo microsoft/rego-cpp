@@ -70,23 +70,40 @@ namespace
 
   struct Locals
   {
-    std::vector<std::set<Location>> locals;
+    std::vector<std::map<Location, bool>> locals;
 
-    void insert(const Location& loc)
+    void insert(const Location& name, bool add_local)
     {
-      locals.back().insert(loc);
+      locals.back()[name] = add_local;
     }
 
-    void erase(const Location& loc)
+    void erase(const Location& name)
     {
-      locals.back().erase(loc);
+      locals.back().erase(name);
     }
 
-    bool contains(const Location& loc) const
+    bool contains(const Location& name) const
     {
-      return std::any_of(locals.rbegin(), locals.rend(), [loc](auto& set) {
-        return set.count(loc) > 0;
+      return std::any_of(locals.rbegin(), locals.rend(), [name](auto& m) {
+        return ::contains(m, name);
       });
+    }
+
+    void add_missing_locals(
+      Node unifybody,
+      std::vector<StmtInfo>& stmts,
+      std::map<Location, std::size_t>& local_stmts)
+    {
+      for (auto& [loc, add] : locals.back())
+      {
+        if (add)
+        {
+          std::size_t i = unifybody->size();
+          unifybody << (Local << (Var ^ loc) << Undefined);
+          local_stmts[loc] = i;
+          stmts.push_back({i, {}, {}});
+        }
+      }
     }
 
     void push()
@@ -126,11 +143,25 @@ namespace
     return LiteralInit << lhs_vars << rhs_vars << (AssignInfix << lhs << rhs);
   }
 
-  void inits_from(Node node, const Locals& locals, std::set<Location>& inits)
+  void inits_from(
+    Node node,
+    Locals& locals,
+    std::set<Location>& inits,
+    const std::set<Location>& outer_inits)
   {
-    if (node->type() == Var && locals.contains(node->location()))
+    if (node == Var)
     {
-      inits.insert(node->location());
+      if (locals.contains(node->location()))
+      {
+        inits.insert(node->location());
+      }
+
+      if (contains(outer_inits, node->location()))
+      {
+        locals.insert(node->location(), true);
+        inits.insert(node->location());
+      }
+
       return;
     }
 
@@ -166,7 +197,7 @@ namespace
 
     for (Node child : *node)
     {
-      inits_from(child, locals, inits);
+      inits_from(child, locals, inits, outer_inits);
     }
   }
 
@@ -188,10 +219,11 @@ namespace
     }
   }
 
-  StmtSide side_from(Node node, Locals& locals)
+  StmtSide side_from(
+    Node node, Locals& locals, const std::set<Location>& outer_inits)
   {
     StmtSide side;
-    inits_from(node, locals, side.inits);
+    inits_from(node, locals, side.inits, outer_inits);
     vars_from(node, locals, side.vars);
     return side;
   }
@@ -205,7 +237,8 @@ namespace
     });
   }
 
-  void find_init_stmts(Node unifybody, Locals& locals)
+  void find_init_stmts(
+    Node unifybody, Locals& locals, const std::set<Location>& outer_inits)
   {
     logging::Trace() << std::endl
                      << "Finding init statements and re-ordering body";
@@ -222,7 +255,7 @@ namespace
         // this is a local for this context
         // as such it forms a starting point for the graph
         Location loc = (stmt / Var)->location();
-        locals.insert(loc);
+        locals.insert(loc, false);
         local_stmts[loc] = i;
         stmts.push_back({i, {}, {}});
         logging::Trace() << "Local: " << loc.view();
@@ -254,8 +287,8 @@ namespace
         Node lhs = expr->front();
         Node rhs = expr->back();
 
-        StmtSide lhs_side = side_from(lhs, locals);
-        StmtSide rhs_side = side_from(rhs, locals);
+        StmtSide lhs_side = side_from(lhs, locals, outer_inits);
+        StmtSide rhs_side = side_from(rhs, locals, outer_inits);
 
         if (any_compiler_inits(lhs_side))
         {
@@ -273,6 +306,8 @@ namespace
         stmts.push_back({i, {}, rhs});
       }
     }
+
+    locals.add_missing_locals(unifybody, stmts, local_stmts);
 
     for (auto& stmt : stmts)
     {
@@ -406,7 +441,7 @@ namespace
     {
       if (stmt->in({LiteralEnum, LiteralWith, LiteralNot}))
       {
-        find_init_stmts(stmt / UnifyBody, locals);
+        find_init_stmts(stmt / UnifyBody, locals, outer_inits);
       }
     }
 
@@ -424,13 +459,13 @@ namespace
     if (body->type() == UnifyBody)
     {
       Locals locals;
-      find_init_stmts(body, locals);
+      find_init_stmts(body, locals, {});
     }
 
     if (val->type() == UnifyBody)
     {
       Locals locals;
-      find_init_stmts(val, locals);
+      find_init_stmts(val, locals, {});
     }
 
     return 0;
@@ -454,13 +489,30 @@ namespace rego
     init.pre(RuleObj, register_init_stmts);
     init.pre(NestedBody, [](Node nested) {
       Locals locals;
-      find_init_stmts(nested / Val, locals);
+      std::set<Location> init_vars;
+      Node init_parent = nested->parent(LiteralInit);
+      if (init_parent != nullptr)
+      {
+        // if this nested body is part of an init statement, then the
+        // init vars cannot be referenced within the statement.
+        Node lhs = init_parent / Lhs;
+        Node rhs = init_parent / Rhs;
+        for (Node var : *lhs)
+        {
+          init_vars.insert(var->location());
+        }
+        for (Node var : *rhs)
+        {
+          init_vars.insert(var->location());
+        }
+      }
+      find_init_stmts(nested / Val, locals, init_vars);
       return 0;
     });
 
     init.pre(ExprEvery, [](Node exprevery) {
       Locals locals;
-      find_init_stmts(exprevery / UnifyBody, locals);
+      find_init_stmts(exprevery / UnifyBody, locals, {});
       return 0;
     });
 

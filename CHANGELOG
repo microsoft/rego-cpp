@@ -1,5 +1,15 @@
 # Changelog
 
+## 2024-06-23 - Version 0.4.1
+Point release containing doc updates and bug fixes.
+
+- Updated the docs to reflect the new interfaces and outputs
+
+**Bug Fixes**
+- Fixed an issue with actions attached to an `In` statement for some builds/environments
+- Fixed a bug with modules that start with comments
+- Fixed a bug with comprehension contexts when an assigned variable is shadowed in the body of the comprehension
+
 ## 2024-06-14 - Hardening
 Hardening for the 0.4.0 release.
 
