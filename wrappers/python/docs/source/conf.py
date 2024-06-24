@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'regopy'
-copyright = '2023, Microsoft'
+copyright = '2024, Microsoft'
 author = 'Microsoft'
-release = '0.3.11'
+release = '0.4.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -34,3 +34,5 @@ exclude_patterns = []
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+html_logo = "_static/regocpp-logo-72.png"
+html_favicon = "_static/favicon.ico"

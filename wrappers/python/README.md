@@ -25,8 +25,7 @@ within a Python context.
 from regopy import Interpreter
 rego = Interpreter()
 print(rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4"))
-# x = 5
-# y = 9.4
+# {"bindings":{"x":5, "y":9.5}}
 input0 = {
     "a": 10,
     "b": "20",
@@ -81,7 +80,7 @@ rego.add_data(data0)
 rego.add_data(data1)
 rego.add_module("objects", module)
 print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
-# x = [{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]
+# {"bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]}}
 ```
 
 ## Language Support

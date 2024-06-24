@@ -165,6 +165,41 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/python/ 
         run: pytest -vv
 
+  linux-cheriot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: CHERIoT-Platform/cheriot-audit
+          path: cheriot-audit
+
+      - uses: mjp41/workaround8649@c8550b715ccdc17f89c8d5c28d7a48eeff9c94a8
+
+      - name: Get dependencies
+        run: |
+          sudo apt-get install ninja-build
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: CMake config
+        working-directory: ${{github.workspace}}/cheriot-audit
+        run: cmake -B ${{github.workspace}}/cheriot-audit/build -DCMAKE_BUILD_TYPE=Release -G Ninja
+        env:
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
+
+      - name: CMake build
+        working-directory: ${{github.workspace}}/cheriot-audit/build
+        run: NINJA_STATUS="%p [%f:%s/%t] %o/s, %es" && ninja
+
+      - name: CMake test
+        working-directory: ${{github.workspace}}/cheriot-audit/build
+        run: ctest -j4 --output-on-failure
+
   windows:
     runs-on: windows-latest
 

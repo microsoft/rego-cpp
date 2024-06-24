@@ -63,6 +63,11 @@ namespace rego
             // ignore leading whitespace
           },
 
+        R"(#[^\r\n]*\r?\n)" >>
+          [](auto&) {
+            // ignore leading comments
+          },
+
         R"(package)" >>
           [newline_mode](auto& m) {
             m.push(Module);
