@@ -1,5 +1,10 @@
 # Changelog
 
+## 2024-06-29 - Version 0.4.2
+Point release updating the Trieste version.
+
+This change should address build instability due to snmalloc updates.
+
 ## 2024-06-23 - Version 0.4.1
 Point release containing doc updates and bug fixes.
 
