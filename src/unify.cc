@@ -67,7 +67,7 @@ namespace rego
       return name.find("query$") != std::string::npos;
     }
 
-    return in_query(node->parent()->shared_from_this());
+    return in_query(node->parent()->intrusive_ptr_from_this());
   }
 
   bool contains_local(const Node& node)

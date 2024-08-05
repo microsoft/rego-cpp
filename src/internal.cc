@@ -88,7 +88,7 @@ namespace rego
       return false;
     }
 
-    return is_in(node->parent()->shared_from_this(), types);
+    return is_in(node->parent()->intrusive_ptr_from_this(), types);
   }
 
   bool is_constant(const Node& term)

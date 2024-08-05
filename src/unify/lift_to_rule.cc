@@ -151,7 +151,7 @@ namespace
         return (*it)->clone();
       }
 
-      return err(node->shared_from_this(), "Missing version");
+      return err(node->intrusive_ptr_from_this(), "Missing version");
     }
 
     return get_version(node->parent());
