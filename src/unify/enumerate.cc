@@ -61,7 +61,7 @@ namespace
 
   Node next_enum(Node local)
   {
-    Node unifybody = local->parent()->shared_from_this();
+    Node unifybody = local->parent()->intrusive_ptr_from_this();
     auto it = unifybody->find(local) + 1;
     return find_enum(unifybody, it);
   }
@@ -302,7 +302,7 @@ namespace rego
       if (is_in(local, {LiteralEnum}))
       {
         // should this local be defined here?
-        Node unifybody = local->parent()->shared_from_this();
+        Node unifybody = local->parent()->intrusive_ptr_from_this();
         bool requires_move = false;
         while (!should_be_defined_in(local, unifybody))
         {
@@ -316,7 +316,7 @@ namespace rego
             break;
           }
 
-          unifybody = literalenum->parent()->shared_from_this();
+          unifybody = literalenum->parent()->intrusive_ptr_from_this();
         }
 
         if (requires_move)

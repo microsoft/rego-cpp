@@ -21,7 +21,7 @@ namespace
       return Ref << (RefHead << (Var ^ "data")) << refargseq;
     }
 
-    Node ref = build_ref(leaf->parent()->shared_from_this());
+    Node ref = build_ref(leaf->parent()->intrusive_ptr_from_this());
 
     if (leaf->type() == Policy || leaf->type() == DataModule)
     {
