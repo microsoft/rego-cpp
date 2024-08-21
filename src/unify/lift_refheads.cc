@@ -215,7 +215,7 @@ namespace
         return;
       }
 
-      Node module = node->parent()->parent()->intrusive_ptr_from_this();
+      Node module = node->parent()->parent();
       Node prefix_ref = concat_refs(Var ^ "data", (module / Package)->front());
       if (prefix_ref->type() == Error)
       {
@@ -316,8 +316,7 @@ namespace rego
         }) >>
           [refheads](Match& _) {
             ACTION();
-            Node module =
-              _(Rule)->parent()->parent()->intrusive_ptr_from_this();
+            Node module = _(Rule)->parent()->parent();
             Node imports = (module / ImportSeq)->clone();
             Node package_ref = (module / Package)->front();
             Node version = (module / Version)->clone();
@@ -375,7 +374,7 @@ namespace rego
     });
 
     lift_refheads.post(Rule, [refheads](Node node) {
-      Node module = node->parent()->parent()->intrusive_ptr_from_this();
+      Node module = node->parent()->parent();
       Node rulehead = node / RuleHead;
       Node package_ref = (module / Package)->front();
       Node prefix_ref = concat_refs(Var ^ "data", package_ref);
