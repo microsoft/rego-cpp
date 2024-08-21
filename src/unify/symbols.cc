@@ -39,8 +39,7 @@ namespace
     auto it = module->find_first(Version, module->begin());
     if (it == module->end())
     {
-      return err(
-        module->intrusive_ptr_from_this(), "No version found in module");
+      return err(module, "No version found in module");
     }
     return (*it)->clone();
   }

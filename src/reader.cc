@@ -665,17 +665,17 @@ namespace
       }};
 
     pass.pre(Comma, [comma_groups](Node node) {
-      comma_groups->insert(node->parent());
+      comma_groups->insert(node->parent_unsafe());
       return 0;
     });
 
     pass.pre(Colon, [colon_groups](Node node) {
-      colon_groups->insert(node->parent());
+      colon_groups->insert(node->parent_unsafe());
       return 0;
     });
 
     pass.pre(Or, [or_groups](Node node) {
-      auto group = node->parent();
+      auto group = node->parent_unsafe();
       auto pos = group->find(node);
       for (auto it = group->begin(); it != pos; ++it)
       {

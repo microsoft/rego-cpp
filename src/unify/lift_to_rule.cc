@@ -136,7 +136,7 @@ namespace
     }
   }
 
-  Node get_version(NodeDef* node)
+  Node get_version(Node node)
   {
     if (node == Top)
     {
@@ -151,7 +151,7 @@ namespace
         return (*it)->clone();
       }
 
-      return err(node->intrusive_ptr_from_this(), "Missing version");
+      return err(node, "Missing version");
     }
 
     return get_version(node->parent());

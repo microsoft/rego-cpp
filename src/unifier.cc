@@ -411,8 +411,7 @@ namespace rego
         "Recursion detected in rule body: " + std::string(m_rule.view()));
     }
 
-    logging::Debug() << "=====Unification====="
-                     << "exprs: " << m_statements;
+    logging::Debug() << "=====Unification=====" << "exprs: " << m_statements;
 
     {
       logging::LocalIndent indent;
