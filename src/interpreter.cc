@@ -16,8 +16,8 @@ namespace rego
   using duration = std::chrono::high_resolution_clock::duration;
   using timestamp = std::chrono::high_resolution_clock::time_point;
 
-  Interpreter::Interpreter() :
-    m_reader(reader()),
+  Interpreter::Interpreter(bool v1_compatible) :
+    m_reader(reader(v1_compatible)),
     m_debug_path("."),
     m_builtins(BuiltInsDef::create()),
     m_unify(unify(m_builtins)),

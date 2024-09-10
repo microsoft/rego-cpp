@@ -211,7 +211,7 @@ namespace rego
 
         ";" >> [](auto& m) { m.add(NewLine); },
 
-        R"(\r?\n)" >>
+        R"([ \t]*\r?\n)" >>
           [newline_mode](auto& m) {
             switch (*newline_mode)
             {

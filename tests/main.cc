@@ -63,8 +63,7 @@ int main(int argc, char** argv)
     "case,-c,--case", case_paths, "Test case YAML files or directories");
 
   std::filesystem::path debug_path;
-  app.add_option(
-    "-a,--ast", debug_path, "Output the AST (debugging for test case parser)");
+  app.add_option("-a,--ast", debug_path, "Folder to use for AST output");
 
   std::string log_level;
   app
@@ -72,8 +71,8 @@ int main(int argc, char** argv)
       "-l,--log_level",
       log_level,
       "Set Log Level to one of "
-      "Trace, Debug, Info, "
-      "Warning, Output, Error, "
+      "Trace, Debug (includes log of unification),"
+      "Info, Warning, Output, Error, "
       "None")
     ->check(rego::set_log_level_from_string);
 
@@ -89,6 +88,12 @@ int main(int argc, char** argv)
     "-n,--note",
     note_match,
     "Note (or note substring) of specific test to run");
+
+  bool v1_compatible{false};
+  app.add_flag(
+    "-1,--v1-compatible",
+    v1_compatible,
+    "Run tests in Rego v1 compatibility mode (default: false)");
 
   try
   {
@@ -146,7 +151,7 @@ int main(int argc, char** argv)
       try
       {
         auto start = std::chrono::steady_clock::now();
-        auto result = testcase.run(debug_path, wf_checks);
+        auto result = testcase.run(debug_path, wf_checks, v1_compatible);
         auto end = std::chrono::steady_clock::now();
         const std::chrono::duration<double> elapsed = end - start;
 

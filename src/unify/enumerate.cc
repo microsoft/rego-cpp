@@ -31,7 +31,7 @@ namespace
     find_all_refs_in(local->scope(), (local / Var)->location(), refs);
     for (auto& ref : refs)
     {
-      if (ref->parent() == local.get())
+      if (ref->parent_unsafe() == local.get())
       {
         continue;
       }
@@ -61,7 +61,7 @@ namespace
 
   Node next_enum(Node local)
   {
-    Node unifybody = local->parent()->shared_from_this();
+    Node unifybody = local->parent();
     auto it = unifybody->find(local) + 1;
     return find_enum(unifybody, it);
   }
@@ -302,21 +302,21 @@ namespace rego
       if (is_in(local, {LiteralEnum}))
       {
         // should this local be defined here?
-        Node unifybody = local->parent()->shared_from_this();
+        Node unifybody = local->parent();
         bool requires_move = false;
         while (!should_be_defined_in(local, unifybody))
         {
           // we need to keep popping out of nested enums until we find the
           // correct scope
           requires_move = true;
-          NodeDef* literalenum = unifybody->parent();
+          Node literalenum = unifybody->parent();
           if (literalenum->type() != LiteralEnum)
           {
             // we've popped out of the nested enums
             break;
           }
 
-          unifybody = literalenum->parent()->shared_from_this();
+          unifybody = literalenum->parent();
         }
 
         if (requires_move)

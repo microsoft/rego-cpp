@@ -586,9 +586,11 @@ namespace rego_test
   }
 
   Result TestCase::run(
-    const std::filesystem::path& debug_path, bool wf_checks) const
+    const std::filesystem::path& debug_path,
+    bool wf_checks,
+    bool v1_compatible) const
   {
-    rego::Interpreter interpreter;
+    rego::Interpreter interpreter(v1_compatible);
     interpreter.builtins().strict_errors(m_strict_error);
     interpreter.wf_check_enabled(wf_checks)
       .debug_enabled(!debug_path.empty())

@@ -1,5 +1,7 @@
 #include "internal.hh"
 
+#include "rego.hh"
+
 #include <trieste/json.h>
 
 namespace logging = trieste::logging;
@@ -88,7 +90,7 @@ namespace rego
       return false;
     }
 
-    return is_in(node->parent()->shared_from_this(), types);
+    return is_in(node->parent(), types);
   }
 
   bool is_constant(const Node& term)
@@ -209,15 +211,31 @@ namespace rego
     return quoted;
   }
 
+  std::string get_code(const std::string& msg, const std::string& code)
+  {
+    if (code == UnknownError)
+    {
+      if (starts_with(msg, "Recursion"))
+      {
+        return RecursionError;
+      }
+
+      return WellFormedError;
+    }
+
+    return code;
+  }
+
   Node err(NodeRange& r, const std::string& msg, const std::string& code)
   {
-    return Error << (ErrorMsg ^ msg) << (ErrorAst << r) << (ErrorCode ^ code);
+    return Error << (ErrorMsg ^ msg) << (ErrorAst << r)
+                 << (ErrorCode ^ get_code(msg, code));
   }
 
   Node err(Node node, const std::string& msg, const std::string& code)
   {
     return Error << (ErrorMsg ^ msg) << (ErrorAst << node->clone())
-                 << (ErrorCode ^ code);
+                 << (ErrorCode ^ get_code(msg, code));
   }
 
   bool all_alnum(const std::string_view& str)
@@ -412,6 +430,12 @@ namespace rego
   bool is_falsy(const Node& node)
   {
     Node value = node;
+
+    if (value->type() == Error)
+    {
+      return false;
+    }
+
     if (value->type() == Term)
     {
       value = value->front();

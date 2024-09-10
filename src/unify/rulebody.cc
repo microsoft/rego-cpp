@@ -136,7 +136,7 @@ namespace rego
              << (T(Var)[Lhs] * T(Var)[Rhs] * T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
             ACTION();
-            Location value = _.fresh({"value"});
+            Location value = _.fresh({in_query(_(Lhs)) ? "qvalue" : "value"});
             return Seq << (Lift << UnifyBody
                                 << (Local << (Var ^ value) << Undefined))
                        << (UnifyExprEnum << (Var ^ value) << _(Lhs) << _(Rhs)

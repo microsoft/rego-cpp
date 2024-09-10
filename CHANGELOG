@@ -1,5 +1,22 @@
 # Changelog
 
+## 2024-09-10 - Version 0.4.3
+Point release updating to Rego v0.68.0
+
+**New Features**
+- Updated the support version of Rego to v0.68.0
+- Updated to the latest build of Trieste.
+- Added a `v1-compatible` flag to the test driver and interpreter which forces rego-v1 compliance
+- Added code to run both the v0 and v1 OPA test suites
+- Added the new `strings.count` built-in
+- Improved the tool messaging around debug options
+
+**Bug Fixes**
+- Fixed an issue with recursion errors being swallowed by `not`
+- Fixed issues where undefined values were not handled correctly during unification
+- Fixed issue with whitespace after package definitions
+- Fixed issue where internal values were lingering in rule evaluations
+
 ## 2024-06-29 - Version 0.4.2
 Point release updating the Trieste version.
 

@@ -25,7 +25,7 @@ int main(int argc, char** argv)
   app.add_flag("-w,--wf", wf_checks, "Enable well-formedness checks");
 
   std::filesystem::path output;
-  app.add_option("-a,--ast", output, "Output the AST");
+  app.add_option("-a,--ast", output, "Folder to use for AST output");
 
   std::string log_level;
   app
@@ -33,10 +33,14 @@ int main(int argc, char** argv)
       "-l,--log_level",
       log_level,
       "Set Log Level to one of "
-      "Trace, Debug, Info, "
-      "Warning, Output, Error, "
+      "Trace, Debug (includes log of unification),"
+      "Info, Warning, Output, Error, "
       "None")
     ->check(rego::set_log_level_from_string);
+
+  bool v1_compatible{false};
+  app.add_flag(
+    "-1,--v1-compatible", v1_compatible, "Use Rego v1 compatibility mode");
 
   try
   {
@@ -47,7 +51,7 @@ int main(int argc, char** argv)
     return app.exit(e);
   }
 
-  auto interpreter = rego::Interpreter();
+  auto interpreter = rego::Interpreter(v1_compatible);
   interpreter.wf_check_enabled(wf_checks);
   if (!output.empty())
   {
