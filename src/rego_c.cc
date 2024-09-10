@@ -552,7 +552,7 @@ extern "C"
     logging::Debug() << "regoNodeJSONSize";
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     trieste::WFContext context(rego::wf_result);
-    std::string json = rego::to_key(node_ptr->shared_from_this(), true);
+    std::string json = rego::to_key(node_ptr->intrusive_ptr_from_this(), true);
     return static_cast<regoSize>(json.size() + 1);
   }
 
@@ -562,7 +562,7 @@ extern "C"
 
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     trieste::WFContext context(rego::wf_result);
-    std::string json = rego::to_key(node_ptr->shared_from_this(), true);
+    std::string json = rego::to_key(node_ptr->intrusive_ptr_from_this(), true);
     if (size < json.size() + 1)
     {
       return REGO_ERROR_BUFFER_TOO_SMALL;

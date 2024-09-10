@@ -37,7 +37,8 @@ namespace
     Unify,
     IsIn,
     Colon,
-    As};
+    As,
+    Contains};
 
   Nodes comma_separation(Node group)
   {
@@ -216,10 +217,11 @@ namespace
     ;
   // clang-format on
 
-  PassDef keywords()
+  PassDef keywords(bool v1_compatible)
   {
     std::shared_ptr<std::map<std::string, Token>> keywords =
       std::make_shared<std::map<std::string, Token>>();
+
     PassDef pass = {
       "keywords",
       wf_keywords,
@@ -319,6 +321,29 @@ namespace
             return nodes;
           },
       }};
+
+    pass.pre(Module, [v1_compatible, keywords](Node module) {
+      if (v1_compatible)
+      {
+        Nodes nodes;
+        keywords->insert({"if", If});
+        nodes.push_back(Keyword << (Var ^ "if"));
+        keywords->insert({"in", IsIn});
+        nodes.push_back(Keyword << (Var ^ "in"));
+        keywords->insert({"contains", Contains});
+        nodes.push_back(Keyword << (Var ^ "contains"));
+        keywords->insert({"every", Every});
+        nodes.push_back(Keyword << (Var ^ "every"));
+        keywords->insert({"version", Version});
+        nodes.push_back(Version ^ "v1");
+        auto it = module->find_first(Package, module->begin());
+        // we want to insert immediately after the package node
+        ++it;
+        module->insert(it, nodes.begin(), nodes.end());
+      }
+
+      return 0;
+    });
 
     pass.post([keywords](Node) {
       keywords->clear();
@@ -665,17 +690,17 @@ namespace
       }};
 
     pass.pre(Comma, [comma_groups](Node node) {
-      comma_groups->insert(node->parent());
+      comma_groups->insert(node->parent_unsafe());
       return 0;
     });
 
     pass.pre(Colon, [colon_groups](Node node) {
-      colon_groups->insert(node->parent());
+      colon_groups->insert(node->parent_unsafe());
       return 0;
     });
 
     pass.pre(Or, [or_groups](Node node) {
-      auto group = node->parent();
+      auto group = node->parent_unsafe();
       auto pos = group->find(node);
       for (auto it = group->begin(); it != pos; ++it)
       {
@@ -1063,13 +1088,26 @@ namespace
             return Else << _(Expr) << (Query << (Group << query));
           },
 
-        In(Group) * (T(Else) * T(Query)[Query]) >>
+        In(Group) * (T(Else) * ~T(If) * T(Query)[Query]) >>
           [](Match& _) {
             return Else << (Expr << (Term << (Scalar << True))) << _(Query);
           },
 
         In(Group) * (T(Else) * T(Assign, Unify) * T(Expr)[Expr]) >>
           [](Match& _) { return Else << _(Expr) << (Query << Group); },
+
+        In(Group) *
+            (T(If)[If] * ~T(Not)[Not] * T(Expr)[Query] * T(With)[With] *
+             T(Expr)[Lhs] * T(As)[As] * T(Expr)[Rhs]) >>
+          [](Match& _) {
+            Node query = Group << _(Query) << _(With) << _(Lhs) << _(As)
+                               << _(Rhs);
+            if (_(Not) != nullptr)
+            {
+              query = Group << (NotExpr << (Expr << query));
+            }
+            return Seq << _(If) << (Query << query);
+          },
 
         In(Group) * (T(If)[If] * ~T(Not)[Not] * T(Expr, SomeDecl)[Query]) >>
           [](Match& _) {
@@ -1090,7 +1128,7 @@ namespace
                   << (T(Ref)
                       << ((T(RefHead) << T(Var, "input|data")[Var]) *
                           (T(RefArgSeq) << End))))) *
-             (T(InfixOperator) << T(AssignOperator)))(
+             (T(InfixOperator) << (T(AssignOperator) << T(Assign))))(
               [strict](auto&) { return *strict; }) >>
           [](Match& _) {
             std::ostringstream err_buf;
@@ -1620,8 +1658,10 @@ namespace
                        << (Policy << _[Policy]);
           },
 
-        In(Module) * (T(Package)[Package] * T(Import)++[ImportSeq] * End) >>
+        In(Module) *
+            (T(Package)[Package] * T(Import, Version)++[ImportSeq] * End) >>
           [](Match& _) {
+            // empty module
             Node version;
             Node importseq = NodeDef::create(ImportSeq);
             for (auto node : _[ImportSeq])
@@ -1735,16 +1775,21 @@ namespace
 
 namespace rego
 {
-  Reader reader()
+  Reader reader(bool v1_compatible)
   {
     return {
       "rego",
       {
-        prep(),           keywords(),        some_every(),  ref_args(),
-        refs(),           groups(),          terms(),       unary(),
-        arithbin_first(), arithbin_second(), comparison(),  membership(),
-        assign(),         else_not(),        collections(), lines(),
-        rules(),          literals(),        structure(),
+        prep(),           keywords(v1_compatible),
+        some_every(),     ref_args(),
+        refs(),           groups(),
+        terms(),          unary(),
+        arithbin_first(), arithbin_second(),
+        comparison(),     membership(),
+        assign(),         else_not(),
+        collections(),    lines(),
+        rules(),          literals(),
+        structure(),
       },
       parser(),
     };

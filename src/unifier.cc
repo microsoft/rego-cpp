@@ -1,3 +1,4 @@
+#include "internal.hh"
 #include "unify.hh"
 
 namespace rego
@@ -239,15 +240,26 @@ namespace rego
           if (m_negate && (var.is_unify() || var.is_user_var()))
           {
             bool all_false = true;
+            Values errors;
             for (auto& value : values)
             {
-              if (!is_falsy(value->node()))
+              if (value->node()->type() == Error)
+              {
+                errors.push_back(value);
+              }
+              else if (!is_falsy(value->node()))
               {
                 all_false = false;
                 break;
               }
             }
-            if (all_false)
+
+            if (!errors.empty())
+            {
+              var.unify(errors);
+              logging::Debug() << "> result: " << var;
+            }
+            else if (all_false)
             {
               for (auto& value : values)
               {
@@ -1757,21 +1769,29 @@ namespace rego
           rank = index;
           result = value;
         }
-        else if (index < rank)
+        else if (!is_undefined(value))
         {
-          rank = index;
-          result = value;
-        }
-        else if (index == rank)
-        {
-          std::string result_str = to_key(result);
-          std::string value_str = to_key(value);
-          if (result_str != value_str)
+          if (index < rank)
           {
-            return err(
-              rulecomp,
-              "complete rules must not produce multiple outputs",
-              EvalConflictError);
+            rank = index;
+            result = value;
+          }
+          else if (is_undefined(result))
+          {
+            rank = index;
+            result = value;
+          }
+          else if (index == rank)
+          {
+            std::string result_str = to_key(result);
+            std::string value_str = to_key(value);
+            if (result_str != value_str)
+            {
+              return err(
+                rulecomp,
+                "complete rules must not produce multiple outputs",
+                EvalConflictError);
+            }
           }
         }
       }

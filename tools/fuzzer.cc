@@ -32,8 +32,8 @@ int main(int argc, char** argv)
       "-l,--log_level",
       log_level,
       "Set Log Level to one of "
-      "Trace, Debug, Info, "
-      "Warning, Output, Error, "
+      "Trace, Debug (includes log of unification),"
+      "Info, Warning, Output, Error, "
       "None")
     ->check(logging::set_log_level_from_string);
 

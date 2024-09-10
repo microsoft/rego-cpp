@@ -151,10 +151,10 @@ namespace
         return (*it)->clone();
       }
 
-      return err(node->shared_from_this(), "Missing version");
+      return err(node->intrusive_ptr_from_this(), "Missing version");
     }
 
-    return get_version(node->parent());
+    return get_version(node->parent_unsafe());
   }
 }
 
@@ -175,7 +175,7 @@ namespace rego
                  T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
             ACTION();
-            Node version = get_version(_(UnifyBody)->parent());
+            Node version = get_version(_(UnifyBody)->parent_unsafe());
             Node rulebody = _(UnifyBody);
             // in vars
             Locs invars;
@@ -278,7 +278,7 @@ namespace rego
                  (T(NestedBody) << (T(Key)[Key] * T(UnifyBody)[UnifyBody])))) >>
           [](Match& _) {
             ACTION();
-            Node version = get_version(_(Var)->parent());
+            Node version = get_version(_(Var)->parent_unsafe());
             Node rulebody = _(UnifyBody);
             Locs invars;
             find_invars(_(UnifyBody), invars);
@@ -360,7 +360,7 @@ namespace rego
             ((T(ExprEvery) * In(DataModule)++) << T(UnifyBody)[UnifyBody]) >>
           [](Match& _) {
             ACTION();
-            Node version = get_version(_(UnifyBody)->parent());
+            Node version = get_version(_(UnifyBody)->parent_unsafe());
             Node rulebody = _(UnifyBody);
             Locs invars;
             find_invars(_(UnifyBody), invars);

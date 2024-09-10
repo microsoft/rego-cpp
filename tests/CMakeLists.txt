@@ -38,8 +38,6 @@ add_custom_command(TARGET rego_test POST_BUILD
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS
   aggregates
-  all
-  any
   arithmetic
   array
   assignments
@@ -113,9 +111,7 @@ if(REGOCPP_OPA_TESTS)
   sprintf
   strings
   subset
-  toarray
   topdowndynamicdispatch
-  toset
   trim
   trimleft
   trimprefix
@@ -134,10 +130,26 @@ if(REGOCPP_OPA_TESTS)
   withkeyword
   )
 
+  set( OPA_TEST_DIRS_V0
+    any
+    all
+    toarray
+    toset
+  )
+
   set( OPA_TEST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/../opa/test/cases/testdata )
   foreach( TEST_DIR ${OPA_TEST_DIRS})
-    add_test(NAME rego_test_${TEST_DIR}
-             COMMAND rego_test -wf ${OPA_TEST_ROOT}/${TEST_DIR}/
+    add_test(NAME rego_test_${TEST_DIR}_v0
+             COMMAND rego_test -wf ${OPA_TEST_ROOT}/v0/${TEST_DIR}/
+             WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+    add_test(NAME rego_test_${TEST_DIR}_v1
+             COMMAND rego_test -1 -wf ${OPA_TEST_ROOT}/v1/${TEST_DIR}/
              WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
   endforeach()
+
+  foreach( TEST_DIR ${OPA_TEST_DIRS_V0})
+    add_test(NAME rego_test_${TEST_DIR}_v0
+             COMMAND rego_test -wf ${OPA_TEST_ROOT}/v0/${TEST_DIR}/
+             WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+  endforeach()  
 endif()

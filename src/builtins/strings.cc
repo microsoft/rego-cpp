@@ -932,6 +932,41 @@ namespace
 
     return value;
   }
+
+  Node count(const Nodes& args)
+  {
+    Node search =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("strings.count"));
+    if (search->type() == Error)
+    {
+      return search;
+    }
+
+    Node substring =
+      unwrap_arg(args, UnwrapOpt(1).type(JSONString).func("strings.count"));
+    if (substring->type() == Error)
+    {
+      return substring;
+    }
+
+    std::string search_str = get_string(search);
+    std::string substring_str = get_string(substring);
+
+    size_t pos = 0;
+    size_t count = 0;
+    while (pos < search_str.size())
+    {
+      pos = search_str.find(substring_str, pos);
+      if (pos == std::string::npos)
+      {
+        break;
+      }
+      ++count;
+      pos += substring_str.size();
+    }
+
+    return Int ^ std::to_string(count);
+  }
 }
 
 namespace rego
@@ -957,6 +992,7 @@ namespace rego
           Location("strings.any_prefix_match"), 2, any_prefix_match),
         BuiltInDef::create(
           Location("strings.any_suffix_match"), 2, any_suffix_match),
+        BuiltInDef::create(Location("strings.count"), 2, count),
         BuiltInDef::create(Location("strings.replace_n"), 2, replace_n),
         BuiltInDef::create(Location("strings.reverse"), 1, reverse),
         BuiltInDef::create(Location("substring"), 3, substring),

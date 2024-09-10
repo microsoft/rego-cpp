@@ -15,7 +15,7 @@ list( GET REGOCPP_VERSION_LIST 1 REGOCPP_VERSION_MINOR )
 
 list( GET REGOCPP_VERSION_LIST 2 REGOCPP_VERSION_REVISION )
 
-set ( REGOCPP_OPA_VERSION 0.65.0 )
+set ( REGOCPP_OPA_VERSION 0.68.0 )
 
 set( REGOCPP_VERSION ${REGOCPP_VERSION_MAJOR}.${REGOCPP_VERSION_MINOR}.${REGOCPP_VERSION_REVISION} )
 
@@ -93,7 +93,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        7cd90387ac2de6423ed1dc43496273b0a20a03d4
+  GIT_TAG        467157a167d2e929095498089f29fc9419f4ef11
 )
 
 FetchContent_MakeAvailable(cmake_utils)

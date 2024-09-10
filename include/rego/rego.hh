@@ -740,6 +740,7 @@ namespace rego
 
   using BuiltIns = std::shared_ptr<BuiltInsDef>;
 
+  const std::string UnknownError = "unknown_error";
   const std::string EvalTypeError = "eval_type_error";
   const std::string EvalBuiltInError = "eval_builtin_error";
   const std::string RegoTypeError = "rego_type_error";
@@ -748,6 +749,7 @@ namespace rego
   const std::string EvalConflictError = "eval_conflict_error";
   const std::string WellFormedError = "wellformed_error";
   const std::string RuntimeError = "runtime_error";
+  const std::string RecursionError = "rego_recursion_error";
   const std::string DefaultVersion = "v0";
 
   /**
@@ -760,7 +762,7 @@ namespace rego
   Node err(
     NodeRange& r,
     const std::string& msg,
-    const std::string& code = WellFormedError);
+    const std::string& code = UnknownError);
 
   /**
    * Generates an error node.
@@ -770,9 +772,7 @@ namespace rego
    * @param code The error code.
    */
   Node err(
-    Node node,
-    const std::string& msg,
-    const std::string& code = WellFormedError);
+    Node node, const std::string& msg, const std::string& code = UnknownError);
 
   /**
    * Returns a node representing the version of the library.
@@ -845,8 +845,10 @@ namespace rego
   public:
     /**
      * Constructor.
+     *
+     * @param v1_compatible whether the Interpreter should run in rego-v1 mode.
      */
-    Interpreter();
+    Interpreter(bool v1_compatible = false);
 
     /**
      * Adds a module (i.e. virtual document) file to the interpreter.
@@ -1017,7 +1019,7 @@ namespace rego
   /**
    * Parses Rego queries and virtual documents.
    */
-  Reader reader();
+  Reader reader(bool v1_compatible = false);
 
   /**
    * Rewrites a Query AST to an input term.
