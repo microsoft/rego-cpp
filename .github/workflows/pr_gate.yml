@@ -398,8 +398,8 @@ jobs:
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
-          CXX: g++-11
-          CC: gcc-11
+          CXX: g++-12
+          CC: gcc-12
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
