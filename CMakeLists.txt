@@ -117,7 +117,7 @@ if(MSVC)
   set(REGOCPP_USE_MANUAL_TZDATA ON)
 endif()
 
-set(REGOCPP_TZDATA_PATH "${CMAKE_INSTALL_PREFIX}/tzdata" CACHE STRING "Path to the tzdata directory")
+set(REGOCPP_TZDATA_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path to the tzdata directory")
 
 if(REGOCPP_USE_MANUAL_TZDATA)
   set(MANUAL_TZ_DB ON)
@@ -128,6 +128,12 @@ if(REGOCPP_USE_MANUAL_TZDATA)
     # we need to download the TZ database and make it available
     FILE(DOWNLOAD https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz ${TZDATA_GZ_PATH} SHOW_PROGRESS)
     FILE(ARCHIVE_EXTRACT INPUT ${TZDATA_GZ_PATH} DESTINATION ${TZDATA_PATH})
+  endif()
+
+  # Copy the tzdata directory to the specified path.
+  file(COPY ${TZDATA_PATH} DESTINATION ${REGOCPP_TZDATA_PATH})
+  if(MSVC)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION ${REGOCPP_TZDATA_PATH}/tzdata)
   endif()
 else()
   message("Attempting to use system TZ database")
@@ -237,6 +243,7 @@ if(REGOCPP_CLEAN_INSTALL)
 endif()
 
 if(REGOCPP_USE_MANUAL_TZDATA)
+  # If the install depends on this, we want to include it in the install package.
   INSTALL(DIRECTORY ${TZDATA_PATH} DESTINATION .)
   if(MSVC)
     INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION tzdata)
