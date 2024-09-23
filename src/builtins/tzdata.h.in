@@ -1,0 +1,10 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+#ifndef _REGO_BUILTINS_TZDATA_H_
+#define _REGO_BUILTINS_TZDATA_H_
+
+#cmakedefine  REGOCPP_TZDATA_PATH "@REGOCPP_TZDATA_PATH@"
+#cmakedefine  REGOCPP_USE_MANUAL_TZDATA
+
+#endif

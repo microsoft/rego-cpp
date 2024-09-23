@@ -3,6 +3,7 @@
 #include "date/tz.h"
 #include "re2/stringpiece.h"
 #include "rego.hh"
+#include "tzdata.h"
 
 #include <chrono>
 #include <inttypes.h>
@@ -717,14 +718,12 @@ namespace rego
 {
   namespace builtins
   {
-#ifdef MANUAL_TZ_DB
-    std::vector<BuiltIn> time(const std::filesystem::path& tzdata_path)
+    std::vector<BuiltIn> time()
     {
-      date::set_install(tzdata_path.string());
-#else
-    std::vector<BuiltIn> time(const std::filesystem::path&)
-    {
+#ifdef REGOCPP_USE_MANUAL_TZDATA
+      date::set_install(REGOCPP_TZDATA_PATH);
 #endif
+
       return {
         BuiltInDef::create(Location("time.add_date"), 4, add_date),
         BuiltInDef::create(Location("time.clock"), 1, clock_),

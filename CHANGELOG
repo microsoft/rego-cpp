@@ -12,7 +12,7 @@ range of C++ compilers, we had to introduce dependencies to two libraries:
   functionality which will eventually be supported across as part of the STL. In particular, it provides the crucial
   Time Zone lookup functionalities required by the Rego `time` built-ins. The Time Zone lookup requires a valid
   [`tzdata`](https://www.iana.org/time-zones) database from the IANA. This can either be configured to use the local
-  system TZ data (default for Linux variants) or a manual database (default for Windows). If the `MANUAL_TZ_DB` flag
+  system TZ data (default for Linux variants) or a manual database (default for Windows). If the `REGOCPP_USE_MANUAL_TZDATA` flag
   is set, then the project will download the latest database and install it as part of its build process.
 
 **New Features**

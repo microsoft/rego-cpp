@@ -142,7 +142,7 @@ namespace
       }
 
       auto bytes = id.as_bytes();
-      std::uint64_t version = static_cast<std::uint64_t>(bytes[6] >> 4);
+      std::size_t version = static_cast<std::size_t>(bytes[6] >> 4);
       result
         << (ObjectItem << Resolver::term("version")
                        << Resolver::term(BigInt(version)));

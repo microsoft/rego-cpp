@@ -739,9 +739,7 @@ namespace rego
      * rego-cpp supports the following built-ins as standard:
      *
      */
-    BuiltInsDef& register_standard_builtins(
-      const std::filesystem::path& tzdata_path = std::filesystem::path(".") /
-        "tzdata");
+    BuiltInsDef& register_standard_builtins();
 
     /**
      * Creates the standard builtin set.

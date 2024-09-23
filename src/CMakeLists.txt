@@ -1,4 +1,5 @@
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/builtins/tzdata.h.in" "${CMAKE_CURRENT_BINARY_DIR}/tzdata.h" @ONLY)
 
 set( SOURCES
 bigint.cc

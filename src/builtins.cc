@@ -157,8 +157,7 @@ namespace rego
     return *this;
   }
 
-  BuiltInsDef& BuiltInsDef::register_standard_builtins(
-    const std::filesystem::path& tzdata_path)
+  BuiltInsDef& BuiltInsDef::register_standard_builtins()
   {
     register_builtins<std::initializer_list<BuiltIn>>({
       BuiltInDef::create(Location("print"), AnyArity, ::print),
@@ -177,7 +176,7 @@ namespace rego
     register_builtins(builtins::sets());
     register_builtins(builtins::semver());
     register_builtins(builtins::strings());
-    register_builtins(builtins::time(tzdata_path));
+    register_builtins(builtins::time());
     register_builtins(builtins::types());
     register_builtins(builtins::units());
     register_builtins(builtins::uuid());

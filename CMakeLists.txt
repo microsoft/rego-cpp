@@ -69,6 +69,7 @@ option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the inst
 option(REGOCPP_USE_CXX17 "Specifies whether to use C++17" OFF)
 option(REGOCPP_ACTION_METRICS "Specifies whether to metricate Trieste Actions" OFF)
 option(REGOCPP_CLEAN_INSTALL "Whether the install directory should be cleaned before install" OFF)
+option(REGOCPP_USE_MANUAL_TZDATA "Whether to use the manual tzdata" OFF)
 set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 
 if(REGOCPP_USE_CXX17)
@@ -112,23 +113,26 @@ FetchContent_MakeAvailable(cmake_utils)
 FetchContent_MakeAvailable(stduuid)
 
 if(MSVC)
-  set(MANUAL_TZ_DB ON)
-else()
-  set(USE_SYSTEM_TZ_DB ON)
+  message("Must use manual TZ database on Windows")
+  set(REGOCPP_USE_MANUAL_TZDATA ON)
 endif()
 
-if(MANUAL_TZ_DB)
+set(REGOCPP_TZDATA_PATH "${CMAKE_INSTALL_PREFIX}/tzdata" CACHE STRING "Path to the tzdata directory")
+
+if(REGOCPP_USE_MANUAL_TZDATA)
+  set(MANUAL_TZ_DB ON)
   set(USE_SYSTEM_TZ_DB OFF)
-  set(TZDATA_GZ tzdata-latest.tar.gz)
-  if(NOT EXISTS ${TZDATA_GZ})
+  set(TZDATA_GZ_PATH "${CMAKE_CURRENT_BINARY_DIR}/tzdata-latest.tar.gz")
+  set(TZDATA_PATH "${CMAKE_CURRENT_BINARY_DIR}/tzdata")
+  if(NOT EXISTS ${TZDATA_PATH})
     # we need to download the TZ database and make it available
-    FILE(DOWNLOAD https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz ${TZDATA_GZ} SHOW_PROGRESS)
-    FILE(ARCHIVE_EXTRACT INPUT ${TZDATA_GZ} DESTINATION tzdata)
+    FILE(DOWNLOAD https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz ${TZDATA_GZ_PATH} SHOW_PROGRESS)
+    FILE(ARCHIVE_EXTRACT INPUT ${TZDATA_GZ_PATH} DESTINATION ${TZDATA_PATH})
   endif()
-  INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tzdata/ DESTINATION tzdata)
-  if(MSVC)
-    INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION tzdata)
-  endif()
+else()
+  message("Attempting to use system TZ database")
+  set(USE_SYSTEM_TZ_DB ON)
+  set(MANUAL_TZ_DB OFF)
 endif()
 
 set(BUILD_TZ_LIB ON)
@@ -232,6 +236,12 @@ if(REGOCPP_CLEAN_INSTALL)
     ]])
 endif()
 
+if(REGOCPP_USE_MANUAL_TZDATA)
+  INSTALL(DIRECTORY ${TZDATA_PATH} DESTINATION .)
+  if(MSVC)
+    INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION tzdata)
+  endif()
+endif()
 
 set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
@@ -294,6 +304,6 @@ export(PACKAGE ${PROJECT_NAME})
 
 install(DIRECTORY include/ DESTINATION ${INSTALL_INCLUDEDIR})
 install(FILES 
-  ${CMAKE_CURRENT_BINARY_DIR}/src/version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/src/version.h  
   DESTINATION ${INSTALL_INCLUDEDIR}/rego
 )
