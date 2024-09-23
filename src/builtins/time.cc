@@ -269,7 +269,7 @@ namespace
 
   std::string insert_fraction(const std::string& time_s, const TimeInfo& info)
   {
-    const int fraction_len = 10;
+    const int fraction_len = 32;
     char fraction[fraction_len];
     switch (info.resolution)
     {
