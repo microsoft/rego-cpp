@@ -241,6 +241,8 @@ namespace rego
       }
     }
 
+    m_builtins->clear();
+
     result = m_ast >> m_unify;
     if (!result.ok)
     {

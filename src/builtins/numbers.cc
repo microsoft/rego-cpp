@@ -6,7 +6,7 @@ namespace
 {
   using namespace rego;
 
-  Node abs(const Nodes& args)
+  Node abs_(const Nodes& args)
   {
     Node number = unwrap_arg(
       args, UnwrapOpt(0).types({Int, Float}).message("Not a number"));
@@ -35,7 +35,7 @@ namespace
     }
   }
 
-  Node ceil(const Nodes& args)
+  Node ceil_(const Nodes& args)
   {
     Node number = unwrap_arg(
       args, UnwrapOpt(0).types({Int, Float}).message("Not a number"));
@@ -55,7 +55,7 @@ namespace
     }
   }
 
-  Node floor(const Nodes& args)
+  Node floor_(const Nodes& args)
   {
     Node number = unwrap_arg(
       args, UnwrapOpt(0).types({Int, Float}).message("Not a number"));
@@ -75,7 +75,7 @@ namespace
     }
   }
 
-  Node round(const Nodes& args)
+  Node round_(const Nodes& args)
   {
     Node number = unwrap_arg(
       args, UnwrapOpt(0).types({Int, Float}).message("Not a number"));
@@ -241,10 +241,10 @@ namespace rego
     std::vector<BuiltIn> numbers()
     {
       return {
-        BuiltInDef::create(Location("abs"), 1, abs),
-        BuiltInDef::create(Location("ceil"), 1, ceil),
-        BuiltInDef::create(Location("floor"), 1, floor),
-        BuiltInDef::create(Location("round"), 1, round),
+        BuiltInDef::create(Location("abs"), 1, abs_),
+        BuiltInDef::create(Location("ceil"), 1, ceil_),
+        BuiltInDef::create(Location("floor"), 1, floor_),
+        BuiltInDef::create(Location("round"), 1, round_),
         BuiltInDef::create(Location("numbers.range"), 2, numbers_range),
         BuiltInDef::create(
           Location("numbers.range_step"), 3, numbers_range_step),

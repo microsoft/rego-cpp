@@ -5,7 +5,7 @@ namespace
   using namespace rego;
 
   const auto inline LiteralToken = T(Literal) / T(LiteralWith) /
-    T(LiteralEnum) / T(LiteralInit) / T(LiteralNot) / T(Local);
+    T(LiteralEnum) / T(LiteralWalk) / T(LiteralInit) / T(LiteralNot) / T(Local);
 
   void find_all_refs_in(const Node& node, Location loc, Nodes& refs)
   {
@@ -51,7 +51,7 @@ namespace
     for (auto it = start; it != unifybody->end(); ++it)
     {
       Node node = *it;
-      if (node->type() == LiteralEnum)
+      if (node->in({LiteralEnum, LiteralWalk}))
       {
         return node;
       }
@@ -78,11 +78,11 @@ namespace rego
       dir::topdown,
       {
         In(UnifyBody) *
-            ((T(LiteralEnum) << (T(Var)[Item] * T(Expr)[ItemSeq])) *
+            ((T(LiteralEnum, LiteralWalk)[Op]
+              << (T(Var)[Item] * T(Expr)[ItemSeq])) *
              LiteralToken++[Tail] * End) >>
           [](Match& _) {
             ACTION();
-            auto temp = _.fresh({"enum"});
             auto itemseq = _.fresh({"itemseq"});
             // all statements under the LiteralEnum node must be moved to its
             // body, as they depend on the enumerated values.
@@ -91,14 +91,15 @@ namespace rego
             {
               body << (Literal << (Expr << (Term << (Scalar << True))));
             }
+            Token token = _(Op)->type();
             return Seq << (Local << (Var ^ itemseq) << Undefined)
                        << (Literal
                            << (Expr << expr_infix(
                                  Unify,
                                  RefTerm << (Var ^ itemseq),
                                  _(ItemSeq))))
-                       << (LiteralEnum << _(Item)->clone() << (Var ^ itemseq)
-                                       << body);
+                       << (token << _(Item)->clone() << (Var ^ itemseq)
+                                 << body);
           },
       }};
   }
@@ -171,7 +172,6 @@ namespace rego
               return err(idx, "Invalid index for enumeration");
             }
 
-            auto temp = _.fresh({"enum"});
             auto item = _.fresh({"item"});
             return Seq
               << (Local << (Var ^ item) << Undefined)
@@ -240,7 +240,6 @@ namespace rego
               idx = Term << idx;
             }
 
-            auto temp = _.fresh({"enum"});
             auto item = _.fresh({"item"});
             return Seq
               << (Local << (Var ^ item) << Undefined)
@@ -299,7 +298,7 @@ namespace rego
         return 0;
       }
 
-      if (is_in(local, {LiteralEnum}))
+      if (is_in(local, {LiteralEnum, LiteralWalk}))
       {
         // should this local be defined here?
         Node unifybody = local->parent();
@@ -310,7 +309,7 @@ namespace rego
           // correct scope
           requires_move = true;
           Node literalenum = unifybody->parent();
-          if (literalenum->type() != LiteralEnum)
+          if (!literalenum->in({LiteralEnum, LiteralWalk}))
           {
             // we've popped out of the nested enums
             break;

@@ -273,6 +273,13 @@ namespace rego
                             << (ArgSeq << unwrap_node(_(Expr)));
           },
 
+        In(UnifyExpr, ArgSeq) * (T(Walk) << T(Expr)[Expr]) >>
+          [](Match& _) {
+            ACTION();
+            return Function << (JSONString ^ "walk")
+                            << (ArgSeq << unwrap_node(_(Expr)));
+          },
+
         In(UnifyExpr, ArgSeq) *
             (T(Membership)
              << ((T(ExprSeq) << (T(Expr)[Idx] * T(Expr)[Item] * End)) *

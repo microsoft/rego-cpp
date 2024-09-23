@@ -132,15 +132,17 @@ namespace rego
           },
 
         In(UnifyBody) *
-            (T(LiteralEnum)
+            (T(LiteralEnum, LiteralWalk)[Op]
              << (T(Var)[Lhs] * T(Var)[Rhs] * T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
             ACTION();
             Location value = _.fresh({in_query(_(Lhs)) ? "qvalue" : "value"});
+            Token token =
+              _(Op)->type() == LiteralEnum ? UnifyExprEnum : UnifyExprWalk;
             return Seq << (Lift << UnifyBody
                                 << (Local << (Var ^ value) << Undefined))
-                       << (UnifyExprEnum << (Var ^ value) << _(Lhs) << _(Rhs)
-                                         << _(UnifyBody));
+                       << (token << (Var ^ value) << _(Lhs) << _(Rhs)
+                                 << _(UnifyBody));
           },
 
         // LiteralInit nodes are handled separately. They designate what the

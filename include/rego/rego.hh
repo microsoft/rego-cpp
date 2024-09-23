@@ -206,7 +206,7 @@ namespace rego
   using BuiltIn = std::shared_ptr<BuiltInDef>;
 
   /** The function pointer to the behavior of the built-in. */
-  using BuiltInBehavior = Node (*)(const Nodes&);
+  using BuiltInBehavior = std::function<Node(const Nodes&)>;
 
   /**
    * This is a basic, non-optimized implementation of a big integer using
@@ -623,6 +623,18 @@ namespace rego
     BuiltInBehavior behavior;
 
     /**
+     * Constructor.
+     */
+    BuiltInDef(Location name, std::size_t arity, BuiltInBehavior behavior);
+
+    virtual ~BuiltInDef() = default;
+
+    /**
+     * Called to clear any persistent state or caching.
+     */
+    virtual void clear();
+
+    /**
      * Creates a new built-in.
      *
      * BuiltIn is a pointer to a BuiltInDef.
@@ -672,8 +684,12 @@ namespace rego
      * @param version The Rego version.
      * @return The result of the built-in call.
      */
-    Node call(
-      const Location& name, const Location& version, const Nodes& args) const;
+    Node call(const Location& name, const Location& version, const Nodes& args);
+
+    /**
+     * Called to clear any persistent state or caching.
+     */
+    void clear();
 
     /**
      * Registers a built-in.
@@ -723,7 +739,9 @@ namespace rego
      * rego-cpp supports the following built-ins as standard:
      *
      */
-    BuiltInsDef& register_standard_builtins();
+    BuiltInsDef& register_standard_builtins(
+      const std::filesystem::path& tzdata_path = std::filesystem::path(".") /
+        "tzdata");
 
     /**
      * Creates the standard builtin set.

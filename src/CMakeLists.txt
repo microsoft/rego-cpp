@@ -59,6 +59,7 @@ builtins/strings.cc
 builtins/time.cc
 builtins/types.cc
 builtins/units.cc
+builtins/uuid.cc
 # third-party
 builtins/base64/base64.cpp
 )
@@ -71,11 +72,17 @@ if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
   target_compile_options(rego PRIVATE -mllvm -x86-speculative-load-hardening)
 endif()
 
+if (MANUAL_TZ_DB)
+  target_compile_definitions(rego PUBLIC "MANUAL_TZ_DB")
+endif()
+
 target_link_libraries(rego
   PUBLIC
     trieste::trieste
     trieste::json
     trieste::yaml
+    stduuid
+    date-tz
 )
 
 if(MSVC)

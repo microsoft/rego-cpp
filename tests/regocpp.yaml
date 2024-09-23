@@ -1043,11 +1043,21 @@ cases:
         item = [n, l]
         item[0] == 3
     }
-  query: data.enumerate.a = x
+
+    b[[i, x]] {
+        some i, x in numbers
+        x > 2
+    }
+
+    output := [a, b]
+  query: data.enumerate.output = x
   want_result:
     - x:
-      - 3
-      - "3"
+        - [3, "3"]
+        -
+          - [2, 3]
+          - [3, 4]
+          - [4, 5]
 - note: regocpp/refrules
   modules:
   - |
@@ -1130,3 +1140,22 @@ cases:
     - x:
       - true
       - false
+- note: regocpp/uuid
+  modules:
+  - |
+    package test
+    import rego.v1
+
+    a := uuid.rfc4122("x")
+    b := uuid.rfc4122("x")
+    c := uuid.rfc4122("y")
+    d := uuid.parse(a)
+    output if {
+      d.version == 4
+      d.variant == "RFC4122"
+      a == b
+      a != c
+    }
+  query: data.test.output = x
+  want_result:
+    - x: true

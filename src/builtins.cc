@@ -38,6 +38,13 @@ namespace
 
 namespace rego
 {
+  BuiltInDef::BuiltInDef(
+    Location name, std::size_t arity, BuiltInBehavior behavior) :
+    name(name), arity(arity), behavior(behavior)
+  {}
+
+  void BuiltInDef::clear() {}
+
   BuiltIn BuiltInDef::create(
     const Location& name, std::size_t arity, BuiltInBehavior behavior)
   {
@@ -45,6 +52,14 @@ namespace rego
   }
 
   BuiltInsDef::BuiltInsDef() noexcept : m_strict_errors(false) {}
+
+  void BuiltInsDef::clear()
+  {
+    for (auto& builtin : m_builtins)
+    {
+      builtin.second->clear();
+    }
+  }
 
   bool BuiltInsDef::strict_errors() const
   {
@@ -91,7 +106,7 @@ namespace rego
   }
 
   Node BuiltInsDef::call(
-    const Location& name, const Location& version, const Nodes& args) const
+    const Location& name, const Location& version, const Nodes& args)
   {
     if (!is_builtin(name))
     {
@@ -142,7 +157,8 @@ namespace rego
     return *this;
   }
 
-  BuiltInsDef& BuiltInsDef::register_standard_builtins()
+  BuiltInsDef& BuiltInsDef::register_standard_builtins(
+    const std::filesystem::path& tzdata_path)
   {
     register_builtins<std::initializer_list<BuiltIn>>({
       BuiltInDef::create(Location("print"), AnyArity, ::print),
@@ -161,9 +177,10 @@ namespace rego
     register_builtins(builtins::sets());
     register_builtins(builtins::semver());
     register_builtins(builtins::strings());
-    register_builtins(builtins::time());
+    register_builtins(builtins::time(tzdata_path));
     register_builtins(builtins::types());
     register_builtins(builtins::units());
+    register_builtins(builtins::uuid());
 
     return *this;
   }

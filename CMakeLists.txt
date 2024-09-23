@@ -91,12 +91,49 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+  stduuid
+  GIT_REPOSITORY https://github.com/mariusbancila/stduuid.git
+  GIT_TAG 3afe7193facd5d674de709fccc44d5055e144d7a 
+)
+
+FetchContent_Declare(
+  date
+  GIT_REPOSITORY https://github.com/HowardHinnant/date.git
+  GIT_TAG 51ce7e131079c061533d741be5fe7cca57f2faac
+)
+
+FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        467157a167d2e929095498089f29fc9419f4ef11
+  GIT_TAG        70a4d5f79cb574070ff69b2517b422c5126e2024
 )
 
 FetchContent_MakeAvailable(cmake_utils)
+FetchContent_MakeAvailable(stduuid)
+
+if(MSVC)
+  set(MANUAL_TZ_DB ON)
+else()
+  set(USE_SYSTEM_TZ_DB ON)
+endif()
+
+if(MANUAL_TZ_DB)
+  set(USE_SYSTEM_TZ_DB OFF)
+  set(TZDATA_GZ tzdata-latest.tar.gz)
+  if(NOT EXISTS ${TZDATA_GZ})
+    # we need to download the TZ database and make it available
+    FILE(DOWNLOAD https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz ${TZDATA_GZ} SHOW_PROGRESS)
+    FILE(ARCHIVE_EXTRACT INPUT ${TZDATA_GZ} DESTINATION tzdata)
+  endif()
+  INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tzdata/ DESTINATION tzdata)
+  if(MSVC)
+    INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION tzdata)
+  endif()
+endif()
+
+set(BUILD_TZ_LIB ON)
+set(COMPILE_WITH_C_LOCALE ON)
+FetchContent_MakeAvailable_ExcludeFromAll(date)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 
@@ -199,7 +236,7 @@ endif()
 set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
 set(INSTALL_INCLUDEDIR include)
-set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2)
+set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2 stduuid date-tz)
 
 if(TRIESTE_USE_SNMALLOC)
   list(APPEND REGOCPP_INSTALL_TARGETS snmalloc-new-override)

@@ -111,6 +111,7 @@ if(REGOCPP_OPA_TESTS)
   sprintf
   strings
   subset
+  time
   topdowndynamicdispatch
   trim
   trimleft
@@ -125,8 +126,10 @@ if(REGOCPP_OPA_TESTS)
   union
   units
   urlbuiltins
+  uuid
   varreferences
   virtualdocs
+  walkbuiltin
   withkeyword
   )
 

@@ -167,8 +167,8 @@ namespace rego
             // statement in a UnifyBody, we can find them by checking
             // the final statement.
             Node innermost = _(NestedBody) / Val;
-            while (innermost->back()->type() == LiteralEnum ||
-                   innermost->back()->type() == LiteralWith)
+            while (
+              innermost->back()->in({LiteralEnum, LiteralWalk, LiteralWith}))
             {
               innermost = innermost->back() / UnifyBody;
             }
@@ -188,8 +188,8 @@ namespace rego
             Location out = _.fresh({"out"});
             Node innermost = _(NestedBody) / Val;
             // see comment above
-            while (innermost->back()->type() == LiteralEnum ||
-                   innermost->back()->type() == LiteralWith)
+            while (
+              innermost->back()->in({LiteralEnum, LiteralWalk, LiteralWith}))
             {
               innermost = innermost->back() / UnifyBody;
             }

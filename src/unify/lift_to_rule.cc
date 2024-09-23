@@ -170,7 +170,7 @@ namespace rego
       dir::bottomup,
       {
         In(UnifyBody) *
-            ((T(UnifyExprEnum) * In(DataModule)++)
+            ((T(UnifyExprEnum, UnifyExprWalk)[Op] * In(DataModule)++)
              << (T(Var)[Var] * T(Var)[Item] * T(Var)[ItemSeq] *
                  T(UnifyBody)[UnifyBody])) >>
           [](Match& _) {
@@ -246,13 +246,14 @@ namespace rego
                               << (Expr << (Term << rulevalue)));
             }
 
+            Token func = _(Op)->type() == UnifyExprEnum ? Enumerate : Walk;
             Node result = Seq
               << (Lift << DataModule
                        << (RuleFunc << rulename << ruleargs << rulebody
                                     << rulevalue << version << (Int ^ "0")))
               << (UnifyExpr
                   << _(Item)
-                  << (Expr << (Enumerate << (Expr << (RefTerm << _(ItemSeq))))))
+                  << (Expr << (func << (Expr << (RefTerm << _(ItemSeq))))))
               << (UnifyExpr
                   << _(Var)
                   << (Expr << (ExprCall << rulename->clone() << exprseq)));

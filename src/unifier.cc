@@ -756,6 +756,11 @@ namespace rego
         Values arg_values = enumerate(var, args_node->front());
         values.insert(values.end(), arg_values.begin(), arg_values.end());
       }
+      else if (func_name == "walk")
+      {
+        Values arg_values = walk(var, args_node->front());
+        values.insert(values.end(), arg_values.begin(), arg_values.end());
+      }
       else if (func_name == "merge")
       {
         Values partials = resolve_var(args_node->front());
@@ -1294,6 +1299,23 @@ namespace rego
     }
 
     return items;
+  }
+
+  Values UnifierDef::walk(const Location& var, const Node& root_var)
+  {
+    Values values;
+
+    Values root_values = resolve_var(root_var);
+    for (auto& value : root_values)
+    {
+      Nodes path_tuples = Resolver::walk(value->node());
+      for (Node tuple : path_tuples)
+      {
+        values.push_back(ValueDef::create(var, tuple));
+      }
+    }
+
+    return values;
   }
 
   std::string UnifierDef::str() const

@@ -5,6 +5,70 @@
 #include "trieste/yaml.h"
 
 #include <stdexcept>
+#include <thread>
+
+namespace
+{
+  using namespace rego;
+
+  const std::size_t second_ns = 1000000000UL;
+  const std::size_t minute_ns = 60UL * second_ns;
+  const std::size_t hour_ns = 60UL * minute_ns;
+
+  const std::map<std::string, double> duration_units = {
+    {"ns", 1},
+    {"us", 1000},
+    {"µs", 1000},
+    {"ms", 1000000},
+    {"s", double(second_ns)},
+    {"m", double(minute_ns)},
+    {"h", double(hour_ns)}};
+
+  std::chrono::nanoseconds parse_duration(const std::string& duration)
+  {
+    const char* duration_re =
+      R"((-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?)((?:ns|us|µs|ms|s|m|h)))";
+    const RE2 re(duration_re);
+    assert(re.ok());
+
+    std::string number;
+    std::string unit;
+    std::int64_t ns = 0;
+    std::size_t start = 0;
+    while (start < duration.size())
+    {
+      re2::StringPiece input(duration.c_str() + start, duration.size() - start);
+      if (RE2::PartialMatch(input, re, &number, &unit))
+      {
+        double number_d = std::stod(number);
+        double unit_ns = duration_units.at(unit);
+        ns += std::int64_t(number_d * unit_ns);
+        start += number.size() + unit.size();
+      }
+      else
+      {
+        break;
+      }
+    }
+
+    return std::chrono::nanoseconds(ns);
+  }
+
+  Node test_sleep(const Nodes& args)
+  {
+    Node duration =
+      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("test.sleep"));
+    if (duration == Error)
+    {
+      return duration;
+    }
+
+    std::chrono::nanoseconds ns = parse_duration(get_string(duration));
+    std::this_thread::sleep_for(ns);
+
+    return Term << (Scalar << (True ^ "true"));
+  }
+}
 
 namespace rego_test
 {
@@ -592,6 +656,8 @@ namespace rego_test
   {
     rego::Interpreter interpreter(v1_compatible);
     interpreter.builtins().strict_errors(m_strict_error);
+    interpreter.builtins().register_builtin(
+      BuiltInDef::create(Location("test.sleep"), 1, test_sleep));
     interpreter.wf_check_enabled(wf_checks)
       .debug_enabled(!debug_path.empty())
       .debug_path(debug_path);

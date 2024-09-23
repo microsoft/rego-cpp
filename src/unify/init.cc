@@ -260,11 +260,11 @@ namespace
         stmts.push_back({i, {}, {}});
         logging::Trace() << "Local: " << loc.view();
       }
-      else if (stmt->type() == LiteralEnum)
+      else if (stmt->in({LiteralEnum, LiteralWalk}))
       {
-        // a literal enum initializes its item from the item sequence, which
-        // cannot be an init statement. The item variable is only
-        // used inside the enum, so we can safely ignore it.
+        // a literal enum/walk initializes its item from the item sequence,
+        // which cannot be an init statement. The item variable is only used
+        // inside the enum, so we can safely ignore it.
         Location item_loc = (stmt / Item)->location();
         locals.erase(item_loc);
         StmtSide rhs;
@@ -439,7 +439,7 @@ namespace
     // where appropriate, recurse with the updated locals
     for (Node stmt : ordered_stmts)
     {
-      if (stmt->in({LiteralEnum, LiteralWith, LiteralNot}))
+      if (stmt->in({LiteralEnum, LiteralWalk, LiteralWith, LiteralNot}))
       {
         find_init_stmts(stmt / UnifyBody, locals, outer_inits);
       }

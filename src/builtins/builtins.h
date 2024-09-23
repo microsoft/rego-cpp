@@ -18,8 +18,9 @@ namespace rego
     std::vector<BuiltIn> semver();
     std::vector<BuiltIn> sets();
     std::vector<BuiltIn> strings();
-    std::vector<BuiltIn> time();
+    std::vector<BuiltIn> time(const std::filesystem::path& tzdata_dir);
     std::vector<BuiltIn> types();
     std::vector<BuiltIn> units();
+    std::vector<BuiltIn> uuid();
   }
 }

@@ -763,6 +763,26 @@ namespace rego
                        << (Var ^ name);
           },
 
+        In(UnifyBody, LiteralWith) *
+            (T(Literal)
+             << (T(Expr)
+                 << (T(ExprCall)
+                     << ((T(RuleRef)
+                          << (T(Ref)
+                              << ((T(RefHead) << T(Var, "walk")) *
+                                  (T(RefArgSeq) << End)))) *
+                         (T(ExprSeq)
+                          << (T(Expr)[ItemSeq] * T(Expr)[Item] * End)))))) >>
+          [](Match& _) {
+            ACTION();
+            Location item = _.fresh({"item"});
+            return Seq << (Local << (Var ^ item) << Undefined)
+                       << (LiteralWalk << (Var ^ item) << _(ItemSeq))
+                       << (Literal
+                           << (Expr << expr_infix(
+                                 Unify, _(Item), (RefTerm << (Var ^ item)))));
+          },
+
         // errors
 
         In(Policy) * T(Rule)[Rule] >>
