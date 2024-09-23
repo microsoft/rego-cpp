@@ -625,7 +625,7 @@ namespace rego
     /**
      * Constructor.
      */
-    BuiltInDef(Location name, std::size_t arity, BuiltInBehavior behavior);
+    BuiltInDef(Location name_, std::size_t arity_, BuiltInBehavior behavior_);
 
     virtual ~BuiltInDef() = default;
 

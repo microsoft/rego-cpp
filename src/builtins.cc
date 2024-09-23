@@ -39,8 +39,8 @@ namespace
 namespace rego
 {
   BuiltInDef::BuiltInDef(
-    Location name, std::size_t arity, BuiltInBehavior behavior) :
-    name(name), arity(arity), behavior(behavior)
+    Location name_, std::size_t arity_, BuiltInBehavior behavior_) :
+    name(name_), arity(arity_), behavior(behavior_)
   {}
 
   void BuiltInDef::clear() {}
