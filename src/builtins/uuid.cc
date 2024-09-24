@@ -402,9 +402,9 @@ namespace
       }
 
       std::string uuid_str = uuid_to_string(uuid_random(generator));
-      Node uuid = JSONString ^ uuid_str;
-      cache[k_str] = uuid;
-      return uuid;
+      Node uuid_node = JSONString ^ uuid_str;
+      cache[k_str] = uuid_node;
+      return uuid_node;
     }
 
     void clear() override
