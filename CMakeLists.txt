@@ -69,6 +69,7 @@ option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the inst
 option(REGOCPP_USE_CXX17 "Specifies whether to use C++17" OFF)
 option(REGOCPP_ACTION_METRICS "Specifies whether to metricate Trieste Actions" OFF)
 option(REGOCPP_CLEAN_INSTALL "Whether the install directory should be cleaned before install" OFF)
+option(REGOCPP_USE_MANUAL_TZDATA "Whether to use the manual tzdata" OFF)
 set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 
 if(REGOCPP_USE_CXX17)
@@ -91,12 +92,56 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+  date
+  GIT_REPOSITORY https://github.com/HowardHinnant/date.git
+  GIT_TAG 51ce7e131079c061533d741be5fe7cca57f2faac
+)
+
+FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        467157a167d2e929095498089f29fc9419f4ef11
+  GIT_TAG        70a4d5f79cb574070ff69b2517b422c5126e2024
 )
 
 FetchContent_MakeAvailable(cmake_utils)
+
+if(MSVC)
+  message("MSVC: must use manual TZ database")
+  set(REGOCPP_USE_MANUAL_TZDATA ON)
+endif()
+
+set(REGOCPP_TZDATA_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path to the tzdata directory")
+file(TO_CMAKE_PATH ${REGOCPP_TZDATA_PATH} REGOCPP_TZDATA_PATH)
+
+if(REGOCPP_USE_MANUAL_TZDATA)
+  set(MANUAL_TZ_DB ON)
+  set(USE_SYSTEM_TZ_DB OFF)
+  set(TZDATA_GZ_PATH "${CMAKE_CURRENT_BINARY_DIR}/tzdata-latest.tar.gz")
+  set(TZDATA_PATH "${CMAKE_CURRENT_BINARY_DIR}/tzdata")
+  if(NOT EXISTS ${TZDATA_PATH})
+    message("Downloading tzdata to ${TZDATA_GZ_PATH}")
+    # we need to download the TZ database and make it available
+    FILE(DOWNLOAD https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz ${TZDATA_GZ_PATH} SHOW_PROGRESS)
+    message("Extracting ${TZDATA_GZ_PATH} to ${TZDATA_PATH}")
+    FILE(ARCHIVE_EXTRACT INPUT ${TZDATA_GZ_PATH} DESTINATION ${TZDATA_PATH})
+
+    # Copy the tzdata directory to the specified path.
+    message("Copying ${TZDATA_PATH} to ${REGOCPP_TZDATA_PATH}")
+    file(COPY ${TZDATA_PATH} DESTINATION ${REGOCPP_TZDATA_PATH})
+    if(MSVC)
+      message("MSVC: Copying windowsZones.xml to ${REGOCPP_TZDATA_PATH}/tzdata")
+      file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION ${REGOCPP_TZDATA_PATH}/tzdata)
+    endif()
+  endif()
+else()
+  message("Attempting to use system TZ database")
+  set(USE_SYSTEM_TZ_DB ON)
+  set(MANUAL_TZ_DB OFF)
+endif()
+
+set(BUILD_TZ_LIB ON)
+set(COMPILE_WITH_C_LOCALE ON)
+FetchContent_MakeAvailable_ExcludeFromAll(date)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 
@@ -195,11 +240,18 @@ if(REGOCPP_CLEAN_INSTALL)
     ]])
 endif()
 
+if(REGOCPP_USE_MANUAL_TZDATA)
+  # If the install depends on this, we want to include it in the install package.
+  INSTALL(DIRECTORY ${TZDATA_PATH} DESTINATION .)
+  if(MSVC)
+    INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION tzdata)
+  endif()
+endif()
 
 set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
 set(INSTALL_INCLUDEDIR include)
-set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2)
+set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2 date-tz)
 
 if(TRIESTE_USE_SNMALLOC)
   list(APPEND REGOCPP_INSTALL_TARGETS snmalloc-new-override)
@@ -257,6 +309,6 @@ export(PACKAGE ${PROJECT_NAME})
 
 install(DIRECTORY include/ DESTINATION ${INSTALL_INCLUDEDIR})
 install(FILES 
-  ${CMAKE_CURRENT_BINARY_DIR}/src/version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/src/version.h  
   DESTINATION ${INSTALL_INCLUDEDIR}/rego
 )

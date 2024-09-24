@@ -86,8 +86,10 @@ fn main() {
     println!("cargo:rustc-link-lib=static=rego");
     println!("cargo:rustc-link-lib=static=json");
     println!("cargo:rustc-link-lib=static=yaml");
+    println!("cargo:rustc-link-lib=static=date-tz");
     if cfg!(windows) {
         println!("cargo:rustc-link-arg=mincore.lib");
+        println!("cargo:rustc-link-arg=shell32.lib");
     } else if cfg!(target_os = "macos") {
         println!("cargo:rustc-link-lib=c++");
     } else {

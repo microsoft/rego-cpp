@@ -267,7 +267,8 @@ namespace
     return Resolver::scalar(x_str);
   }
 
-  void replace(std::string& x, const std::string& old, const std::string& new_)
+  void do_replace(
+    std::string& x, const std::string& old, const std::string& new_)
   {
     auto pos = x.find(old);
     while (pos != x.npos)
@@ -300,7 +301,7 @@ namespace
     std::string x_str = get_string(x);
     std::string old_str = get_string(old);
     std::string new_str = get_string(new_);
-    replace(x_str, old_str, new_str);
+    do_replace(x_str, old_str, new_str);
 
     return Resolver::scalar(x_str);
   }
@@ -435,7 +436,7 @@ namespace
     return verbs;
   }
 
-  Node sprintf(const Nodes& args)
+  Node sprintf_(const Nodes& args)
   {
     Node format =
       unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("sprintf"));
@@ -705,7 +706,7 @@ namespace
 
       std::string old_str = get_string(old_node);
       std::string new_str = get_string(new_node);
-      replace(value_str, old_str, new_str);
+      do_replace(value_str, old_str, new_str);
     }
 
     return JSONString ^ value_str;
@@ -781,7 +782,7 @@ namespace
     return JSONString ^ output.str();
   }
 
-  std::string trim(
+  std::string do_trim(
     const std::string& value, const std::string& cutset, bool left, bool right)
   {
     runestring value_runes = utf8_to_runestring(json::unescape(value));
@@ -829,7 +830,8 @@ namespace
       return cutset;
     }
 
-    return JSONString ^ trim(get_string(value), get_string(cutset), true, true);
+    return JSONString ^
+      do_trim(get_string(value), get_string(cutset), true, true);
   }
 
   Node trim_left(const Nodes& args)
@@ -848,7 +850,7 @@ namespace
     }
 
     return JSONString ^
-      trim(get_string(value), get_string(cutset), true, false);
+      do_trim(get_string(value), get_string(cutset), true, false);
   }
 
   Node trim_right(const Nodes& args)
@@ -867,7 +869,7 @@ namespace
     }
 
     return JSONString ^
-      trim(get_string(value), get_string(cutset), false, true);
+      do_trim(get_string(value), get_string(cutset), false, true);
   }
 
   Node trim_space(const Nodes& args)
@@ -879,7 +881,7 @@ namespace
       return value;
     }
 
-    return JSONString ^ trim(get_string(value), " \t\n\r\v\f", true, true);
+    return JSONString ^ do_trim(get_string(value), " \t\n\r\v\f", true, true);
   }
 
   Node trim_prefix(const Nodes& args)
@@ -987,7 +989,7 @@ namespace rego
         BuiltInDef::create(Location("upper"), 1, upper),
         BuiltInDef::create(Location("replace"), 3, replace),
         BuiltInDef::create(Location("split"), 2, split),
-        BuiltInDef::create(Location("sprintf"), 2, sprintf),
+        BuiltInDef::create(Location("sprintf"), 2, sprintf_),
         BuiltInDef::create(
           Location("strings.any_prefix_match"), 2, any_prefix_match),
         BuiltInDef::create(

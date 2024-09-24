@@ -38,7 +38,9 @@ namespace rego
   inline const auto LiteralEnum = TokenDef("rego-literalenum");
   inline const auto LiteralInit = TokenDef("rego-literalinit");
   inline const auto LiteralNot = TokenDef("rego-literalnot");
+  inline const auto LiteralWalk = TokenDef("rego-literalwalk");
   inline const auto Enumerate = TokenDef("rego-enumerate");
+  inline const auto Walk = TokenDef("rego-walk");
   inline const auto Merge = TokenDef("rego-merge");
   inline const auto UnifyBody = TokenDef("rego-unifybody");
   inline const auto Arg = TokenDef("rego-arg");
@@ -54,6 +56,7 @@ namespace rego
   inline const auto UnifyExprWith = TokenDef("rego-unifyexprwith");
   inline const auto UnifyExprEnum = TokenDef("rego-unifyexprenum");
   inline const auto UnifyExprCompr = TokenDef("rego-unifyexprcompr");
+  inline const auto UnifyExprWalk = TokenDef("rego-unifyexprwalk");
   inline const auto Compr = TokenDef("rego-compr");
   inline const auto SkipSeq = TokenDef("rego-skipseq");
   inline const auto Skip = TokenDef("rego-skip", flag::lookup);
@@ -142,10 +145,11 @@ namespace rego
     | (RuleFunc <<= Var * RuleArgs * (Body >>= UnifyBody | Empty) * (Val >>= UnifyBody | Term) * Version * (Idx >>= Int))[Var]
     | (RuleSet <<= Var * (Body >>= UnifyBody | Empty) * (Val >>= Expr | Term) * Version)[Var]
     | (RuleObj <<= Var * (Body >>= UnifyBody | Empty) * (Key >>= Expr | Term) * (Val >>= Expr | Term) * (IsVarRef >>= True | False) * Version)[Var]
-    | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum)++[1])
+    | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralWalk)++[1])
     | (Local <<= Var * (Val >>= Undefined))[Var]
     | (Literal <<= Expr | NotExpr | SomeDecl)
     | (LiteralEnum <<= (Item >>= Var) * (ItemSeq >>= Expr))
+    | (LiteralWalk <<= (Item >>= Var) * (ItemSeq >>= Expr))
     | (LiteralWith <<= UnifyBody * WithSeq)
     | (With <<= RuleRef * Expr)
     | (ExprCall <<= RuleRef * ExprSeq)
@@ -195,7 +199,9 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_explicit_enums = 
     wf_pass_constants
-    | (LiteralEnum <<= (Item >>= Var) * (ItemSeq >>= Var) * UnifyBody);
+    | (LiteralEnum <<= (Item >>= Var) * (ItemSeq >>= Var) * UnifyBody)
+    | (LiteralWalk <<= (Item >>= Var) * (ItemSeq >>= Var) * UnifyBody)
+    ;
   // clang-format on
 
   inline const auto wf_pass_locals = wf_pass_explicit_enums;
@@ -254,7 +260,7 @@ namespace rego
     | (BinInfix <<= Expr * (Op >>= And | Or) * Expr)
     | (BoolInfix <<= Expr * (Op >>= Equals | NotEquals | LessThan | LessThanOrEquals | GreaterThan | GreaterThanOrEquals) * Expr)
     | (Expr <<= wf_infix_exprs)
-    | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralNot)++[1])
+    | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralWalk | LiteralNot)++[1])
     | (LiteralNot <<= UnifyBody)
     | (Literal <<= Expr)
     ;
@@ -290,7 +296,7 @@ namespace rego
   // clang-format off
   inline const auto wf_pass_init =
     wf_pass_simple_refs
-    | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralNot | LiteralInit)++[1])
+    | (UnifyBody <<= (Local | Literal | LiteralWith | LiteralEnum | LiteralWalk | LiteralNot | LiteralInit)++[1])
     | (LiteralInit <<= (Lhs >>= VarSeq) * (Rhs >>= VarSeq) * AssignInfix)
     | (VarSeq <<= Var++)
     ;
@@ -308,10 +314,11 @@ namespace rego
     | (Module <<= (Import | RuleComp | RuleFunc | RuleSet | RuleObj | Submodule)++)
     | (UnifyExpr <<= Var * (Val >>= Expr))
     | (Expr <<= wf_rulebody_exprs)
-    | (UnifyBody <<= (Local | UnifyExpr | UnifyExprWith | UnifyExprCompr | UnifyExprEnum | UnifyExprNot)++[1])
+    | (UnifyBody <<= (Local | UnifyExpr | UnifyExprWith | UnifyExprCompr | UnifyExprEnum | UnifyExprWalk | UnifyExprNot)++[1])
     | (UnifyExprWith <<= UnifyBody * WithSeq)
     | (UnifyExprCompr <<= Var * (Val >>= ArrayCompr | SetCompr | ObjectCompr) * NestedBody)
     | (UnifyExprEnum <<= Var * (Item >>= Var) * (ItemSeq >>= Var) * UnifyBody)
+    | (UnifyExprWalk <<= Var * (Item >>= Var) * (ItemSeq >>= Var) * UnifyBody)
     | (UnifyExprNot <<= UnifyBody)
     | (ArrayCompr <<= Var)
     | (SetCompr <<= Var)
@@ -320,8 +327,8 @@ namespace rego
     ;
   // clang-format on
 
-  inline const auto wf_lift_to_rule_exprs =
-    wf_rulebody_exprs | Enumerate | ArrayCompr | SetCompr | ObjectCompr | Merge;
+  inline const auto wf_lift_to_rule_exprs = wf_rulebody_exprs | Enumerate |
+    Walk | ArrayCompr | SetCompr | ObjectCompr | Merge;
 
   // clang-format off
   inline const auto wf_pass_lift_to_rule =
@@ -330,6 +337,7 @@ namespace rego
     | (Expr <<= wf_lift_to_rule_exprs)
     | (Merge <<= Var)
     | (Enumerate <<= Expr)
+    | (Walk <<= Expr)
     ;
   // clang-format on
 
@@ -642,6 +650,7 @@ namespace rego
       const Location& var, const std::string& func_name, const Args& args);
     Values resolve_var(const Node& var, bool exclude_with = false);
     Values enumerate(const Location& var, const Node& container);
+    Values walk(const Location& var, const Node& container);
     Values resolve_skip(const Node& skip);
     Values check_with(const Node& var, bool bypass_recurse_check = false);
     Values apply_access(const Location& var, const Values& args);

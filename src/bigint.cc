@@ -132,6 +132,11 @@ namespace rego
 
   BigInt operator-(const BigInt& lhs, const BigInt& rhs)
   {
+    if (rhs.is_zero())
+    {
+      return lhs;
+    }
+
     bool negate = false;
     if (lhs.is_negative())
     {
@@ -171,11 +176,6 @@ namespace rego
           return (rhs - lhs).negate();
         }
       }
-    }
-
-    if (rhs.is_zero())
-    {
-      return lhs;
     }
 
     std::string difference =

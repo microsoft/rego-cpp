@@ -1,5 +1,28 @@
 # Changelog
 
+## 2024-09-23 - Version 0.4.4
+Point release adding the `uuid`, `time`, and `walk` builtins.
+
+In order to add support for the `time` built-ins that worked cross-platform and with the widest
+range of C++ compilers, we had to introduce a dependency on the [`date`](https://github.com/HowardHinnant/date)
+library. This contains a full implementations of the `std::chrono` functionality which will eventually be
+supported across most c++ compilers as part of the STL. In particular, it provides the crucial Time Zone
+lookup functionalities required by the Rego `time` built-ins. The Time Zone lookup requires a valid
+[`tzdata`](https://www.iana.org/time-zones) database from the IANA. This can either be configured to use the local
+system TZ data (default for Linux variants) or a manual database (default for Windows). If the `REGOCPP_USE_MANUAL_TZDATA` flag
+is set, then the project will download the latest database and install it as part of its build process.
+
+**New Features**
+- Added the `uuid` built-ins
+- Added the `time` built-ins
+- Added the `walk` built-in
+- It is now possible for `BuiltInDef` implementations to cache values or otherwise maintain state. To facilitate this,
+  a new virtual `clear()` method has been added which will be called at the start of each query evaluation.
+
+**Bug Fixes**
+- Fixed a bug with adding zero to negative integers.
+
+
 ## 2024-09-10 - Version 0.4.3
 Point release updating to Rego v0.68.0
 

@@ -1766,4 +1766,64 @@ namespace rego
         existing, ObjectItem << (Term << key) << (Term << value->clone()));
     }
   }
+
+  Nodes Resolver::walk(Node x)
+  {
+    Nodes nodes;
+    std::vector<std::pair<Nodes, Node>> stack;
+    stack.push_back({{}, x});
+    while (!stack.empty())
+    {
+      auto [path_nodes, current] = stack.back();
+      stack.pop_back();
+
+      Node path_array = NodeDef::create(Array);
+      for (auto& node : path_nodes)
+      {
+        path_array->push_back(to_term(node->clone()));
+      }
+
+      nodes.push_back(
+        Array << (Term << path_array) << to_term(current->clone()));
+
+      auto maybe_node =
+        unwrap(current, {Array, Set, DynamicSet, Object, DynamicObject});
+      if (!maybe_node.success)
+      {
+        continue;
+      }
+
+      current = maybe_node.node;
+      if (current == Array)
+      {
+        for (size_t i = 0; i < current->size(); i++)
+        {
+          Node index = term(BigInt(i));
+          Nodes path(path_nodes);
+          path.push_back(index);
+          stack.push_back({path, current->at(i)});
+        }
+      }
+      else if (current->in({Set, DynamicSet}))
+      {
+        for (auto child : *current)
+        {
+          Nodes path(path_nodes);
+          path.push_back(child);
+          stack.push_back({path, child});
+        }
+      }
+      else if (current->in({Object, DynamicObject}))
+      {
+        for (auto child : *current)
+        {
+          Nodes path(path_nodes);
+          path.push_back(child / Key);
+          stack.push_back({path, child / Val});
+        }
+      }
+    }
+
+    return nodes;
+  }
 }

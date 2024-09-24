@@ -128,7 +128,7 @@ fn main() {
 
 ## Language Support
 
-At present we support v0.65.0 of Rego as defined by OPA, with the following grammar:
+We support v0.68.0 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
 module          = package { import } policy
@@ -202,8 +202,7 @@ LF     Line Feed
 
 ### Builtins
 
-At the moment only support a few builtins, but are actively working on adding
-all the standard builtins. The following builtins are currently supported:
+At the moment support the following builtins are available:
 
 - `aggregates`
 - `arrays`
@@ -217,12 +216,13 @@ all the standard builtins. The following builtins are currently supported:
 - `semver`
 - `sets`
 - `strings`
+- `time`
 - `types`
 - `units`
+- `uuid`
 - miscellaneous
     * `opa.runtime`
     * `print`
-    * `time.now_ns`
 
 ### Compatibility with the OPA Rego Go implementation
 
@@ -245,5 +245,3 @@ At present, we are **NOT** passing the following test suites in full:
 - `net*`
 - `planner-ir`
 - `providers-aws`
-- `time`
-- `walkbuiltin`

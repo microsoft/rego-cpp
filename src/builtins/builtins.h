@@ -21,5 +21,6 @@ namespace rego
     std::vector<BuiltIn> time();
     std::vector<BuiltIn> types();
     std::vector<BuiltIn> units();
+    std::vector<BuiltIn> uuid();
   }
 }

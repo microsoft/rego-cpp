@@ -103,6 +103,7 @@ namespace rego
     static Node reduce_termset(const Node& termset);
     static void insert_into_object(
       Node& object, const std::string& path, const Node& value);
+    static Nodes walk(Node x);
   };
 
   inline const auto NewLine = TokenDef("rego-newline");

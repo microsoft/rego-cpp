@@ -380,7 +380,7 @@ namespace
     return result.ok ? True ^ "true" : False ^ "false";
   }
 
-  void urlquery_encode(std::ostringstream& encoded, Node x)
+  void do_urlquery_encode(std::ostringstream& encoded, Node x)
   {
     std::string x_json = get_string(x);
     std::string x_raw = json::unescape(strip_quotes(x_json));
@@ -407,7 +407,7 @@ namespace
     }
 
     std::ostringstream encoded;
-    urlquery_encode(encoded, x);
+    do_urlquery_encode(encoded, x);
 
     return JSONString ^ ('"' + json::escape(encoded.str()) + '"');
   }
@@ -430,7 +430,7 @@ namespace
       }
 
       std::ostringstream key_buf;
-      urlquery_encode(key_buf, maybe_key.node);
+      do_urlquery_encode(key_buf, maybe_key.node);
       std::string key_str = key_buf.str();
 
       auto maybe_value = unwrap(object->at(i) / Val, {JSONString, Array, Set});
@@ -450,7 +450,7 @@ namespace
       if (maybe_value.node == JSONString)
       {
         encoded << key_str << '=';
-        urlquery_encode(encoded, maybe_value.node);
+        do_urlquery_encode(encoded, maybe_value.node);
       }
       else if (maybe_value.node == Array || maybe_value.node == Set)
       {
@@ -469,7 +469,7 @@ namespace
             encoded << '&';
           }
           encoded << key_str << '=';
-          urlquery_encode(encoded, maybe_value.node);
+          do_urlquery_encode(encoded, maybe_value.node);
         }
       }
     }
@@ -477,7 +477,7 @@ namespace
     return JSONString ^ ('"' + json::escape(encoded.str()) + '"');
   }
 
-  std::optional<std::string> urlquery_decode(const std::string& encoded)
+  std::optional<std::string> maybe_urlquery_decode(const std::string& encoded)
   {
     std::ostringstream decoded;
     for (auto it = encoded.begin(); it != encoded.end(); ++it)
@@ -519,7 +519,7 @@ namespace
 
     std::string x_json = get_string(x);
     std::string x_raw = json::unescape(strip_quotes(x_json));
-    auto maybe_result = urlquery_decode(x_raw);
+    auto maybe_result = maybe_urlquery_decode(x_raw);
     if (maybe_result.has_value())
     {
       return JSONString ^ ('"' + json::escape(maybe_result.value()) + '"');
@@ -545,7 +545,7 @@ namespace
     {
       std::string item_value = x_raw.substr(start, end - start);
       size_t equal = item_value.find('=');
-      auto maybe_key = urlquery_decode(item_value.substr(0, equal));
+      auto maybe_key = maybe_urlquery_decode(item_value.substr(0, equal));
       if (!maybe_key.has_value())
       {
         return err(x, "invalid URL query string", EvalBuiltInError);
@@ -559,7 +559,7 @@ namespace
 
       if (equal != std::string::npos)
       {
-        auto maybe_value = urlquery_decode(item_value.substr(equal + 1));
+        auto maybe_value = maybe_urlquery_decode(item_value.substr(equal + 1));
 
         if (!maybe_value.has_value())
         {

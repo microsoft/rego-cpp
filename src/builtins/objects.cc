@@ -150,7 +150,7 @@ namespace
     return value;
   }
 
-  Node remove(const Nodes& args)
+  Node remove_(const Nodes& args)
   {
     Node object =
       unwrap_arg(args, UnwrapOpt(0).func("object.remove").type(Object));
@@ -442,7 +442,7 @@ namespace rego
         BuiltInDef::create(Location("object.filter"), 2, filter),
         BuiltInDef::create(Location("object.get"), 3, get),
         BuiltInDef::create(Location("object.keys"), 1, keys),
-        BuiltInDef::create(Location("object.remove"), 2, remove),
+        BuiltInDef::create(Location("object.remove"), 2, remove_),
         BuiltInDef::create(Location("object.subset"), 2, subset),
         BuiltInDef::create(Location("object.union"), 2, union_),
         BuiltInDef::create(Location("object.union_n"), 1, union_n)};

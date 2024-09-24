@@ -209,7 +209,7 @@ jobs:
       
       - name: CMake config
         run: |
-          cmake -B ${{github.workspace}}/build --preset release-opa
+          cmake -B ${{github.workspace}}/build --preset release-opa -DREGOCPP_TZDATA_PATH=${{github.workspace}}/build
       
       - name: CMake build
         working-directory: ${{github.workspace}}/build
