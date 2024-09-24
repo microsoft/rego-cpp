@@ -1,7 +1,5 @@
 #include "builtins.h"
 
-#include <uuid.h>
-
 namespace
 {
   using namespace rego;
@@ -11,34 +9,229 @@ namespace
   const std::int64_t epoch = unix_19700101 - lillian_15821015;
   const std::int64_t g1582 = epoch * 86400;
   const std::int64_t g1582ns100 = g1582 * 10000000;
+  using uuid = std::array<std::uint8_t, 16>;
 
-  BigInt get_time(const uuids::uuid& id)
+  enum class uuid_variant
   {
-    auto bytes = id.as_bytes();
-    std::int64_t time_low = (std::int64_t(bytes[0]) << 24) |
-      (int(bytes[1]) << 16) | (int(bytes[2]) << 8) | int(bytes[3]);
-    std::int64_t time_mid = (int(bytes[4]) << 8) | int(bytes[5]);
-    std::int64_t time_hi = ((int(bytes[6]) << 8) | int(bytes[7])) & 0x0FFF;
+    ncs,
+    rfc,
+    microsoft,
+    reserved
+  };
+
+  uuid_variant uuid_variant(const uuid& id)
+  {
+    if ((id[8] & 0x80) == 0x00)
+      return uuid_variant::ncs;
+
+    if ((id[8] & 0xC0) == 0x80)
+      return uuid_variant::rfc;
+
+    if ((id[8] & 0xE0) == 0xC0)
+      return uuid_variant::microsoft;
+
+    return uuid_variant::reserved;
+  }
+
+  bool is_hex(char c)
+  {
+    switch (c)
+    {
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+      case 'a':
+      case 'A':
+      case 'b':
+      case 'B':
+      case 'c':
+      case 'C':
+      case 'd':
+      case 'D':
+      case 'e':
+      case 'E':
+      case 'f':
+      case 'F':
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  std::uint8_t hex_to_byte(char c)
+  {
+    switch (c)
+    {
+      case '0':
+        return 0;
+
+      case '1':
+        return 1;
+
+      case '2':
+        return 2;
+
+      case '3':
+        return 3;
+
+      case '4':
+        return 4;
+
+      case '5':
+        return 5;
+
+      case '6':
+        return 6;
+
+      case '7':
+        return 7;
+
+      case '8':
+        return 8;
+
+      case '9':
+        return 9;
+
+      case 'a':
+      case 'A':
+        return 10;
+
+      case 'b':
+      case 'B':
+        return 11;
+
+      case 'c':
+      case 'C':
+        return 12;
+
+      case 'd':
+      case 'D':
+        return 13;
+
+      case 'e':
+      case 'E':
+        return 14;
+
+      case 'f':
+      case 'F':
+        return 15;
+    }
+
+    throw std::runtime_error("invalid hex character: " + std::to_string(c));
+  }
+
+  std::optional<uuid> uuid_from_string(const std::string& str)
+  {
+    bool firstDigit = true;
+    size_t hasBraces = 0;
+    size_t index = 0;
+
+    uuid id{{0}};
+
+    if (str.empty())
+      return {};
+
+    if (str.front() == '{')
+      hasBraces = 1;
+    if (hasBraces && str.back() != '}')
+      return {};
+
+    for (size_t i = hasBraces; i < str.size() - hasBraces; ++i)
+    {
+      if (str[i] == '-')
+        continue;
+
+      if (index >= 16 || !is_hex(str[i]))
+      {
+        return {};
+      }
+
+      if (firstDigit)
+      {
+        id[index] = hex_to_byte(str[i]) << 4;
+        firstDigit = false;
+      }
+      else
+      {
+        id[index] = static_cast<uint8_t>(id[index] | hex_to_byte(str[i]));
+        index++;
+        firstDigit = true;
+      }
+    }
+
+    if (index < 16)
+    {
+      return {};
+    }
+
+    return id;
+  }
+
+  std::string uuid_to_string(const uuid& id)
+  {
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (int i = 0; i < 16; i++)
+    {
+      ss << std::setw(2) << int(id[i]);
+      if (i == 3 || i == 5 || i == 7 || i == 9)
+      {
+        ss << '-';
+      }
+    }
+    return ss.str();
+  }
+
+  uuid uuid_random(std::mt19937& generator)
+  {
+    std::uniform_int_distribution<uint32_t> distribution;
+    uuid id;
+    for (int i = 0; i < 16; i += 4)
+      *reinterpret_cast<uint32_t*>(id.data() + i) = distribution(generator);
+
+    // variant must be 10xxxxxx
+    id[8] &= 0xBF;
+    id[8] |= 0x80;
+
+    // version must be 0100xxxx
+    id[6] &= 0x4F;
+    id[6] |= 0x40;
+
+    return id;
+  }
+
+  BigInt get_time(const uuid& id)
+  {
+    std::int64_t time_low = (std::int64_t(id[0]) << 24) | (int(id[1]) << 16) |
+      (int(id[2]) << 8) | int(id[3]);
+    std::int64_t time_mid = (int(id[4]) << 8) | int(id[5]);
+    std::int64_t time_hi = ((int(id[6]) << 8) | int(id[7])) & 0x0FFF;
     std::int64_t time = (time_hi << 48) | (time_mid << 32) | time_low;
     std::int64_t time_ns100 = time - g1582ns100;
     return time_ns100 * 100;
   }
 
-  BigInt get_clock_sequence(const uuids::uuid& id)
+  BigInt get_clock_sequence(const uuid& id)
   {
-    auto bytes = id.as_bytes();
-    std::int64_t clock_seq = (int(bytes[8]) << 8) | int(bytes[9]);
+    std::int64_t clock_seq = (int(id[8]) << 8) | int(id[9]);
     return clock_seq & 0x3FFF;
   }
 
-  std::string get_node_id(const uuids::uuid& id)
+  std::string get_node_id(const uuid& id)
   {
-    auto bytes = id.as_bytes();
     std::stringstream ss;
     ss << std::hex << std::setfill('0');
     for (int i = 10; i < 16; i++)
     {
-      ss << std::setw(2) << int(bytes[i]);
+      ss << std::setw(2) << int(id[i]);
       if (i < 15)
       {
         ss << '-';
@@ -47,10 +240,9 @@ namespace
     return ss.str();
   }
 
-  std::string get_mac_vars(const uuids::uuid& id)
+  std::string get_mac_vars(const uuid& id)
   {
-    auto bytes = id.as_bytes();
-    switch (int(bytes[10]) & 0b11)
+    switch (int(id[10]) & 0b11)
     {
       case 0xb11:
         return "local:multicast";
@@ -66,17 +258,15 @@ namespace
     }
   }
 
-  BigInt get_id(const uuids::uuid& id)
+  BigInt get_id(const uuid& id)
   {
-    auto bytes = id.as_bytes();
-    return (std::int64_t(bytes[0]) << 24) | (int(bytes[1]) << 16) |
-      (int(bytes[2]) << 8) | int(bytes[3]);
+    return (std::int64_t(id[0]) << 24) | (int(id[1]) << 16) |
+      (int(id[2]) << 8) | int(id[3]);
   }
 
-  std::string get_domain(const uuids::uuid& id)
+  std::string get_domain(const uuid& id)
   {
-    auto bytes = id.as_bytes();
-    auto d = int(bytes[9]);
+    auto d = int(id[9]);
     switch (d)
     {
       case 0:
@@ -95,54 +285,53 @@ namespace
 
   Node parse(const Nodes& args)
   {
-    Node uuid =
+    Node uuid_node =
       unwrap_arg(args, UnwrapOpt(0).func("uuid.parse").type(JSONString));
-    if (uuid->type() == Error)
+    if (uuid_node->type() == Error)
     {
-      return uuid;
+      return uuid_node;
     }
 
-    std::string uuid_str = get_string(uuid);
+    std::string uuid_str = get_string(uuid_node);
     if (starts_with(uuid_str, "urn:uuid:"))
     {
       uuid_str = uuid_str.substr(9);
     }
 
-    std::optional<uuids::uuid> maybe_id = uuids::uuid::from_string(uuid_str);
+    std::optional<uuid> maybe_id = uuid_from_string(uuid_str);
 
     if (maybe_id.has_value())
     {
-      uuids::uuid id = maybe_id.value();
+      uuid id = maybe_id.value();
       Node result = NodeDef::create(Object);
-      switch (id.variant())
+      switch (uuid_variant(id))
       {
-        case uuids::uuid_variant::ncs:
+        case uuid_variant::ncs:
           result
             << (ObjectItem << Resolver::term("variant")
                            << Resolver::term("ncs"));
           break;
-        case uuids::uuid_variant::rfc:
+        case uuid_variant::rfc:
           result
             << (ObjectItem << Resolver::term("variant")
                            << Resolver::term("RFC4122"));
           break;
-        case uuids::uuid_variant::microsoft:
+        case uuid_variant::microsoft:
           result
             << (ObjectItem << Resolver::term("variant")
                            << Resolver::term("microsoft"));
           break;
-        case uuids::uuid_variant::reserved:
+        case uuid_variant::reserved:
           result
             << (ObjectItem << Resolver::term("variant")
                            << Resolver::term("reserved"));
           break;
 
         default:
-          return err(uuid, "unknown uuid variant");
+          return err(uuid_node, "unknown uuid variant");
       }
 
-      auto bytes = id.as_bytes();
-      std::size_t version = static_cast<std::size_t>(bytes[6] >> 4);
+      std::size_t version = static_cast<std::size_t>(id[6] >> 4);
       result
         << (ObjectItem << Resolver::term("version")
                        << Resolver::term(BigInt(version)));
@@ -176,7 +365,7 @@ namespace
     }
     else
     {
-      return err(uuid, "invalid uuid");
+      return err(uuid_node, "invalid uuid");
     }
   }
 
@@ -212,8 +401,7 @@ namespace
         return cache[k_str]->clone();
       }
 
-      uuids::uuid_random_generator gen(generator);
-      std::string uuid_str = uuids::to_string(gen());
+      std::string uuid_str = uuid_to_string(uuid_random(generator));
       Node uuid = JSONString ^ uuid_str;
       cache[k_str] = uuid;
       return uuid;

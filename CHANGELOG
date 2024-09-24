@@ -4,16 +4,13 @@
 Point release adding the `uuid`, `time`, and `walk` builtins.
 
 In order to add support for the `uuid` and `time` built-ins that worked cross-platform and with the widest
-range of C++ compilers, we had to introduce dependencies to two libraries:
-
-- [`stduuid`](https://github.com/mariusbancila/stduuid). This library reflects the likely form of the eventual
-  STL implementation of UUIDs
-- [`date`](https://github.com/HowardHinnant/date). This library contains full implementations of the `std::chrono`
-  functionality which will eventually be supported across as part of the STL. In particular, it provides the crucial
-  Time Zone lookup functionalities required by the Rego `time` built-ins. The Time Zone lookup requires a valid
-  [`tzdata`](https://www.iana.org/time-zones) database from the IANA. This can either be configured to use the local
-  system TZ data (default for Linux variants) or a manual database (default for Windows). If the `REGOCPP_USE_MANUAL_TZDATA` flag
-  is set, then the project will download the latest database and install it as part of its build process.
+range of C++ compilers, we had to introduce dependencies to the [`date`](https://github.com/HowardHinnant/date)
+library. This contains a full implementations of the `std::chrono` functionality which will eventually be
+supported across most c++ compilers as part of the STL. In particular, it provides the crucial Time Zone
+lookup functionalities required by the Rego `time` built-ins. The Time Zone lookup requires a valid
+[`tzdata`](https://www.iana.org/time-zones) database from the IANA. This can either be configured to use the local
+system TZ data (default for Linux variants) or a manual database (default for Windows). If the `REGOCPP_USE_MANUAL_TZDATA` flag
+is set, then the project will download the latest database and install it as part of its build process.
 
 **New Features**
 - Added the `uuid` built-ins

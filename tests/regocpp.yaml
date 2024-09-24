@@ -1159,3 +1159,4 @@ cases:
   query: data.test.output = x
   want_result:
     - x: true
+  strict_error: true

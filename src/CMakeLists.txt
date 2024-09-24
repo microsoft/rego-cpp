@@ -82,7 +82,6 @@ target_link_libraries(rego
     trieste::trieste
     trieste::json
     trieste::yaml
-    stduuid
     date-tz
 )
 

@@ -74,10 +74,8 @@ set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by 
 
 if(REGOCPP_USE_CXX17)
   set(CMAKE_CXX_STANDARD 17)
-  set(UUID_USING_CXX20_SPAN OFF)
 else()
   set(CMAKE_CXX_STANDARD 20)
-  set(UUID_USING_CXX20_SPAN ON)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -94,12 +92,6 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-  stduuid
-  GIT_REPOSITORY https://github.com/mariusbancila/stduuid.git
-  GIT_TAG 3afe7193facd5d674de709fccc44d5055e144d7a 
-)
-
-FetchContent_Declare(
   date
   GIT_REPOSITORY https://github.com/HowardHinnant/date.git
   GIT_TAG 51ce7e131079c061533d741be5fe7cca57f2faac
@@ -112,7 +104,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(cmake_utils)
-FetchContent_MakeAvailable(stduuid)
 
 if(MSVC)
   message("MSVC: must use manual TZ database")
@@ -260,7 +251,7 @@ endif()
 set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
 set(INSTALL_INCLUDEDIR include)
-set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2 stduuid date-tz)
+set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2 date-tz)
 
 if(TRIESTE_USE_SNMALLOC)
   list(APPEND REGOCPP_INSTALL_TARGETS snmalloc-new-override)
