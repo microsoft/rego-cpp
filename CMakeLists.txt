@@ -113,11 +113,12 @@ FetchContent_MakeAvailable(cmake_utils)
 FetchContent_MakeAvailable(stduuid)
 
 if(MSVC)
-  message("Must use manual TZ database on Windows")
+  message("MSVC: must use manual TZ database")
   set(REGOCPP_USE_MANUAL_TZDATA ON)
 endif()
 
 set(REGOCPP_TZDATA_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path to the tzdata directory")
+file(TO_CMAKE_PATH ${REGOCPP_TZDATA_PATH} REGOCPP_TZDATA_PATH)
 
 if(REGOCPP_USE_MANUAL_TZDATA)
   set(MANUAL_TZ_DB ON)
@@ -125,15 +126,19 @@ if(REGOCPP_USE_MANUAL_TZDATA)
   set(TZDATA_GZ_PATH "${CMAKE_CURRENT_BINARY_DIR}/tzdata-latest.tar.gz")
   set(TZDATA_PATH "${CMAKE_CURRENT_BINARY_DIR}/tzdata")
   if(NOT EXISTS ${TZDATA_PATH})
+    message("Downloading tzdata to ${TZDATA_GZ_PATH}")
     # we need to download the TZ database and make it available
     FILE(DOWNLOAD https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz ${TZDATA_GZ_PATH} SHOW_PROGRESS)
+    message("Extracting ${TZDATA_GZ_PATH} to ${TZDATA_PATH}")
     FILE(ARCHIVE_EXTRACT INPUT ${TZDATA_GZ_PATH} DESTINATION ${TZDATA_PATH})
-  endif()
 
-  # Copy the tzdata directory to the specified path.
-  file(COPY ${TZDATA_PATH} DESTINATION ${REGOCPP_TZDATA_PATH})
-  if(MSVC)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION ${REGOCPP_TZDATA_PATH}/tzdata)
+    # Copy the tzdata directory to the specified path.
+    message("Copying ${TZDATA_PATH} to ${REGOCPP_TZDATA_PATH}")
+    file(COPY ${TZDATA_PATH} DESTINATION ${REGOCPP_TZDATA_PATH})
+    if(MSVC)
+      message("MSVC: Copying windowsZones.xml to ${REGOCPP_TZDATA_PATH}/tzdata")
+      file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION ${REGOCPP_TZDATA_PATH}/tzdata)
+    endif()
   endif()
 else()
   message("Attempting to use system TZ database")
