@@ -21,6 +21,11 @@ else ()
   set(REGOCPP_TAG "main")
 endif()
 
+if (DEFINED ENV{REGOCPP_USE_CXX17})
+  set(REGOCPP_USE_CXX17 ON)
+else ()
+  set(REGOCPP_USE_CXX17 OFF)
+
 FetchContent_Declare(
   regocpp
   GIT_REPOSITORY ${REGOCPP_REPO}
@@ -35,7 +40,6 @@ FetchContent_Declare(
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 set(SNMALLOC_ENABLE_DYNAMIC_LOADING ON)
-set(REGOCPP_USE_CXX17 ON)
 
 FetchContent_MakeAvailable(regocpp)
 FetchContent_MakeAvailable(pybind11)
@@ -48,3 +52,4 @@ set_property(TARGET yaml PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET json PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET snmalloc-new-override PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET re2 PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET date-tz PROPERTY POSITION_INDEPENDENT_CODE ON)
