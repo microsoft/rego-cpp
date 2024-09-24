@@ -3,8 +3,8 @@
 ## 2024-09-23 - Version 0.4.4
 Point release adding the `uuid`, `time`, and `walk` builtins.
 
-In order to add support for the `uuid` and `time` built-ins that worked cross-platform and with the widest
-range of C++ compilers, we had to introduce dependencies to the [`date`](https://github.com/HowardHinnant/date)
+In order to add support for the `time` built-ins that worked cross-platform and with the widest
+range of C++ compilers, we had to introduce a dependency on the [`date`](https://github.com/HowardHinnant/date)
 library. This contains a full implementations of the `std::chrono` functionality which will eventually be
 supported across most c++ compilers as part of the STL. In particular, it provides the crucial Time Zone
 lookup functionalities required by the Rego `time` built-ins. The Time Zone lookup requires a valid
