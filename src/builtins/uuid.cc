@@ -137,12 +137,13 @@ namespace
     uuid id{{0}};
 
     if (str.empty())
-      return {};
+      return std::nullopt;
 
     if (str.front() == '{')
       hasBraces = 1;
+
     if (hasBraces && str.back() != '}')
-      return {};
+      return std::nullopt;
 
     for (size_t i = hasBraces; i < str.size() - hasBraces; ++i)
     {
@@ -151,7 +152,7 @@ namespace
 
       if (index >= 16 || !is_hex(str[i]))
       {
-        return {};
+        return std::nullopt;
       }
 
       if (firstDigit)
@@ -169,7 +170,7 @@ namespace
 
     if (index < 16)
     {
-      return {};
+      return std::nullopt;
     }
 
     return id;
