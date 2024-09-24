@@ -25,6 +25,7 @@ if (DEFINED ENV{REGOCPP_USE_CXX17})
   set(REGOCPP_USE_CXX17 ON)
 else ()
   set(REGOCPP_USE_CXX17 OFF)
+endif()
 
 FetchContent_Declare(
   regocpp
