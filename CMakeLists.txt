@@ -74,8 +74,10 @@ set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by 
 
 if(REGOCPP_USE_CXX17)
   set(CMAKE_CXX_STANDARD 17)
+  set(UUID_USING_CXX20_SPAN OFF)
 else()
   set(CMAKE_CXX_STANDARD 20)
+  set(UUID_USING_CXX20_SPAN ON)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
