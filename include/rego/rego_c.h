@@ -116,16 +116,16 @@ extern "C"
    *
    * @return A pointer to the new interpreter.
    */
-  regoInterpreter* regoNew();
+  regoInterpreter* regoNew(void);
 
   /**
    * Allocates and initializes a new V1 Rego interpreter.
    *
    * The caller is responsible for freeing the interpreter with regoFree.
    *
-   * @return A pointer to the new interpreter.
+   * @return A pointer to the new V1 interpreter.
    */
-  regoInterpreter* regoNewV1();
+  regoInterpreter* regoNewV1(void);
 
   /**
    * Frees a Rego interpreter.

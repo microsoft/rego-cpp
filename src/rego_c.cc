@@ -82,7 +82,7 @@ extern "C"
       rego::set_tzdata_path(path);
       return REGO_OK;
     }
-    catch (const std::exception& e)
+    catch (const std::exception&)
     {
       return REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED;
     }
