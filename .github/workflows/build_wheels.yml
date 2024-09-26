@@ -28,7 +28,7 @@ jobs:
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
   build_mac_wheels:
@@ -47,11 +47,6 @@ jobs:
           python-version: "3.10 - 3.12"
           update-environment: false
       
-      - name: Install pipx
-        run: |
-          brew install pipx
-          pipx ensurepath
-
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
@@ -66,13 +61,13 @@ jobs:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: arm64
           CIBW_ENVIRONMENT_MACOS : >
-            MACOSX_DEPLOYMENT_TARGET=10.15
+            MACOSX_DEPLOYMENT_TARGET=11.0
             REGOCPP_REPO=https://github.com/${{github.repository}}
             REGOCPP_TAG=${{github.sha}}
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
   build_manylinux_wheels:
@@ -100,7 +95,7 @@ jobs:
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
 
@@ -128,6 +123,6 @@ jobs:
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
