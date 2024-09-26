@@ -1,6 +1,7 @@
 """Module providing an interface to the rego-cpp Node object."""
 
 from enum import IntEnum
+import json
 from typing import Union
 
 from ._regopy import (
@@ -113,7 +114,22 @@ class Node:
         else:
             self._kind = NodeKind(regoNodeType(self._impl))
 
-        self._children = [Node(regoNodeGet(self._impl, i)) for i in range(len(self))]
+        size = regoNodeSize(self._impl)
+        if self._kind == NodeKind.Object:
+            self._children = {}
+            for i in range(size):
+                child = Node(regoNodeGet(self._impl, i))
+                assert child._kind == NodeKind.ObjectItem
+                key = regoNodeJSON(child.at(0)._impl)
+                self._children[key] = child.at(1)
+        elif self._kind == NodeKind.Set:
+            self._children = {}
+            for i in range(size):
+                child = Node(regoNodeGet(self._impl, i))
+                key = regoNodeJSON(child._impl)
+                self._children[key] = child
+        else:
+            self._children = [None] * size
 
     @property
     def kind(self) -> NodeKind:
@@ -181,14 +197,17 @@ class Node:
 
     def __len__(self) -> int:
         """Returns the number of child nodes."""
-        return regoNodeSize(self._impl)
+        if self._kind == NodeKind.Term:
+            return len(self.at(0))
+
+        return len(self._children)
 
     def index(self, index: int) -> "Node":
         """Returns the node at an index of an array.
-        
+
         Returns:
             Node: The child node.
-        
+
         Raises:
             IndexError: If the index is out of bounds.
             TypeError: If the node is not an array.
@@ -211,7 +230,7 @@ class Node:
 
         Returns:
             Node: The child node.
-        
+
         Raises:
             KeyError: If the key is not found.
             TypeError: If the node does not support lookup
@@ -219,25 +238,20 @@ class Node:
         if self._kind == NodeKind.Term:
             return self.at(0).lookup(key)
 
+        key = json.dumps(key)
         if self._kind == NodeKind.Object:
-            for child in self._children:
-                assert child.kind == NodeKind.ObjectItem
-                child_key = child.at(0).value
-                if child_key == key:
-                    return child.at(1)
+            if key in self._children:
+                return self._children[key]
 
-                if child_key.startswith('"') and child_key.endswith('"'):
-                    child_key = child_key[1:-1]
-
-                if child_key == key:
-                    return child.at(1)
+            key = '"' + key + '"'
+            if key in self._children:
+                return self._children[key]
 
             raise KeyError(f"Key {key} not found")
 
         if self._kind == NodeKind.Set:
-            for child in self._children:
-                if child.value == key:
-                    return child
+            if key in self._children:
+                return self._children[key]
 
             return None
 
@@ -245,6 +259,9 @@ class Node:
 
     def at(self, index: int) -> "Node":
         """Returns the child node at the given index."""
+        if self._children[index] is None:
+            self._children[index] = Node(regoNodeGet(self._impl, index))
+
         return self._children[index]
 
     def __iter__(self):
@@ -265,13 +282,15 @@ class Node:
             RegoError: If the key is out of bounds.
             TypeError: If the key is not an integer or a string.
         """
-        if isinstance(key, int):
-            return self.index(key)
+        kind = self._kind
+        if kind == NodeKind.Term:
+            kind = self.at(0)._kind
 
-        if isinstance(key, str):
+        if kind in [NodeKind.Set, NodeKind.Object]:
             return self.lookup(key)
 
-        raise TypeError("key must be an integer or a string")
+        if isinstance(key, int):
+            return self.index(key)
 
     def json(self) -> str:
         """Returns the node as a JSON string."""

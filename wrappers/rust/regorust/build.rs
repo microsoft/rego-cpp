@@ -53,6 +53,7 @@ fn main() {
                 .as_str(),
             "-DCMAKE_INSTALL_PREFIX=rust",
             "-DREGOCPP_COPY_EXAMPLES=ON",
+            "-DREGOCPP_USE_MANUAL_TZDATA=ON"
         ])
         .current_dir(&regocpp_path)
         .status()

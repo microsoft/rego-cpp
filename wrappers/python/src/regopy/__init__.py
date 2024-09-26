@@ -1,6 +1,7 @@
 """regopy - Python wrapper for rego-cpp."""
 
 from enum import IntEnum
+import os
 
 from ._regopy import (
     REGO_LOG_LEVEL_DEBUG,
@@ -16,7 +17,8 @@ from ._regopy import (
     REGOCPP_PLATFORM,
     REGOCPP_VERSION,
     regoSetLogLevel,
-    regoSetLogLevelFromString
+    regoSetLogLevelFromString,
+    regoSetTZDataPath,
 )
 from .interpreter import Interpreter, RegoError
 from .node import Node, NodeKind
@@ -30,6 +32,17 @@ __all__ = [
     "Node", "NodeKind",
     "regoNew", "regoFree",
 ]
+
+regoSetTZDataPath(os.path.join(os.path.basename(__file__), "tzdata"))
+
+
+def set_tzdata_path(path: str):
+    """Sets the path to the tzdata directory.
+
+    Args:
+        path (str): The path to the tzdata directory.
+    """
+    regoSetTZDataPath(path)
 
 
 class LogLevel(IntEnum):

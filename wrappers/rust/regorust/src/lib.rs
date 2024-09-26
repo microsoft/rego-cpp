@@ -2,11 +2,19 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+extern crate flate2;
+extern crate reqwest;
+extern crate tar;
+
+use flate2::read::GzDecoder;
 use std::ffi::{CStr, CString};
 use std::fmt;
+use std::fs::File;
+use std::io;
 use std::ops::Index;
 use std::path::Path;
 use std::str;
+use tar::Archive;
 
 /// Returns the build information as a string.
 ///
@@ -21,6 +29,14 @@ pub fn build_info() -> String {
         str::from_utf8(REGOCPP_BUILD_TOOLCHAIN).expect("cannot convert build toolchain to string"),
         str::from_utf8(REGOCPP_PLATFORM).expect("cannot convert platform to string"),
     )
+}
+
+fn remove_quotes(s: String) -> String {
+    if s.starts_with('"') && s.ends_with('"') {
+        s[1..s.len() - 1].to_string()
+    } else {
+        s
+    }
 }
 
 /// Interface for the Rego interpreter.
@@ -362,10 +378,111 @@ pub fn set_log_level(level: LogLevel) -> Result<(), &'static str> {
     }
 }
 
+fn download_tzdata(path: &str) -> Result<(), &'static str> {
+    let url = "https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz";
+    let gz_path = "tzdata-latest.tar.gz";
+
+    let client = reqwest::blocking::Client::new();
+    let mut resp = client
+        .get(url)
+        .header(reqwest::header::USER_AGENT, "Rust Maven 1.42")
+        .send()
+        .expect("request failed");
+
+    let mut out = File::create(gz_path).expect("failed to create file");
+    io::copy(&mut resp, &mut out).expect("failed to copy content");
+
+    let tar_gz = File::open(gz_path).expect("unable to open file");
+    let tar = GzDecoder::new(tar_gz);
+    let mut archive = Archive::new(tar);
+    archive
+        .unpack(path)
+        .expect("failed to unpack tzdata archive");
+
+    Ok(())
+}
+
+/// Sets the path to the TZData directory.
+///
+/// Some of the `time` built-ins require access to the IANA tzdata database
+/// in order to resolve timezone names. If the TZ data path is not set, these
+/// built-ins will not function properly. This function allows you to point the
+/// Rego interpreter to the location of the TZ data. Optionally, you can request
+/// that the latest TZ data be downloaded to the path you specify.
+///
+/// # Example
+/// ```
+/// use regorust::*;
+/// let path = "./tzdata";
+/// set_tzdata_path(path, true).expect("cannot set TZData path");
+/// let rego = Interpreter::new();
+/// match rego.query(r#"x=time.clock([1727267567139080131, "America/Los_Angeles"])"#) {
+///   Ok(result) => {
+///     let x = result.binding("x").expect("cannot get x");
+///     println!("x = {}", x.json().unwrap());
+///     if let NodeValue::Int(hour) = x
+///         .index(0)
+///         .unwrap()
+///         .value()
+///         .unwrap()
+///     {
+///       println!("hour = {}", hour);
+///       # assert_eq!(hour, 5);
+///     }
+///
+///     if let NodeValue::Int(minute) = x
+///         .index(1)
+///         .unwrap()
+///         .value()
+///         .unwrap()
+///     {
+///       println!("minute = {}", minute);
+///       # assert_eq!(minute, 32);
+///     }
+///
+///     if let NodeValue::Int(second) = x
+///         .index(2)
+///         .unwrap()
+///         .value()
+///         .unwrap()
+///     {
+///       println!("second = {}", second);
+///       # assert_eq!(second, 47);
+///     }
+///   }
+///   Err(e) => {
+///     panic!("error: {}", e);
+///   }
+/// }
+/// ```
+pub fn set_tzdata_path(path: &str, download: bool) -> Result<(), &'static str> {
+    if download {
+        download_tzdata(path)?;
+    }
+
+    let path_cstr = CString::new(path).unwrap();
+    let path_ptr = path_cstr.as_ptr();
+    let result: regoEnum = unsafe { regoSetTZDataPath(path_ptr) };
+    match result {
+        REGO_OK => Ok(()),
+        REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED => {
+            Err("Error setting TZData path: Manual TZData not supported")
+        }
+        _ => Err("Unknown error"),
+    }
+}
+
 impl Interpreter {
     /// Creates a new Rego interpreter.
     pub fn new() -> Self {
-        let interpreter_ptr = unsafe { regoNew() };
+        let interpreter_ptr = unsafe { regoNew(0) };
+        Self {
+            c_ptr: interpreter_ptr,
+        }
+    }
+
+    pub fn new_v1() -> Self {
+        let interpreter_ptr = unsafe { regoNew(1) };
         Self {
             c_ptr: interpreter_ptr,
         }
@@ -1004,7 +1121,7 @@ impl Node {
             NodeKind::String => self
                 .scalar_value()
                 .ok()
-                .map(|s| NodeValue::String(s[1..s.len() - 1].to_string())),
+                .map(|s| NodeValue::String(remove_quotes(s))),
             _ => None,
         }
     }
@@ -1464,6 +1581,27 @@ mod tests {
                     .expect("cannot get x value")
                 {
                     assert_eq!(a, 70);
+                }
+            }
+            Err(e) => {
+                panic!("error: {}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn doublequotes() {
+        let rego = Interpreter::new();
+        match rego.query(r#"x := {"bar": sprintf("%s", ["foo"])}"#) {
+            Ok(value) => {
+                let x = value.binding("x").expect("cannot get x");
+                if let NodeValue::String(bar) = x
+                    .lookup("bar")
+                    .expect("bar key missing")
+                    .value()
+                    .expect("bar value missing")
+                {
+                    assert_eq!(bar, "foo");
                 }
             }
             Err(e) => {

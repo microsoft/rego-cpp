@@ -104,9 +104,9 @@ class Interpreter:
         {"bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]}}
     """
 
-    def __init__(self):
+    def __init__(self, v1_compatible=False):
         """Initializer."""
-        self._impl = regoNew()
+        self._impl = regoNew(v1_compatible)
 
     def __del__(self):
         """Destructor."""

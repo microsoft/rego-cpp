@@ -560,6 +560,19 @@ namespace rego
    */
   Node set(const Nodes& set_members);
 
+  /**
+   * Sets the location where rego-cpp will look for timezone database
+   * information.
+   *
+   * The timezone database will be interpreted as one obtained from the IANA
+   * (https://www.iana.org/time-zones) which has been downloaded and unpacked
+   * into at the path provided. If the library was built without manual tzdata
+   * support, this function will throw an exception.
+   *
+   * @param path The path to the timezone database.
+   */
+  void set_tzdata_path(const std::filesystem::path& path);
+
   /** This constant indicates that a built-in can receive any number of
    * arguments. */
   const std::size_t AnyArity = std::numeric_limits<std::size_t>::max();

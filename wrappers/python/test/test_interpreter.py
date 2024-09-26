@@ -120,3 +120,27 @@ def test_multiple_inputs():
     output = rego.query("x = data.multi.a")
     assert output is not None
     assert output.binding("x").value == 70
+
+
+def test_tzdata():
+    rego = Interpreter()
+    output = rego.query("""x=time.clock([1727267567139080131, "America/Los_Angeles"])""")
+    assert output is not None
+    clock = output.binding("x")
+    assert len(clock) == 3
+    assert clock[0].value == 5
+    assert clock[1].value == 32
+    assert clock[2].value == 47
+
+
+def test_set():
+    rego = Interpreter()
+    output = rego.query("""a = {1, "2", false, 4.3}""")
+    assert output is not None
+    a = output.binding("a")
+    assert len(a) == 4
+    assert a[1].value == 1
+    assert a["2"].value == '"2"'
+    assert not a[False].value
+    assert a[4.3].value == 4.3
+    assert a[6] is None

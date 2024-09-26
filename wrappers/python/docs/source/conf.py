@@ -9,7 +9,7 @@
 project = 'regopy'
 copyright = '2024, Microsoft'
 author = 'Microsoft'
-release = '0.4.4'
+release = '0.4.5'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

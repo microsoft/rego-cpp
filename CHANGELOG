@@ -1,5 +1,22 @@
 # Changelog
 
+## 2024-09-26 - Version 0.4.5
+Point release addressing some issues in the Python and Rust wrappers.
+
+**New Features**
+- The Python wrapper now packages the tzdata database inside the wheel to ensure consistent performance across platforms.
+- The Rust wrapper now has the ability to download a fresh copy of the tzdata database if needed
+- Added a `regoSetTZDataPath` method to the C API and exposed it for the Python and Rust wrappers.
+- The `regoNew` C API method now supports the `v1_compatible` flag for interpreter creation
+- The library embeds the `windowsZones.xml` mapping file so it can provide it where needed
+- The Python wrapper provides a more natural interface for sets and objects
+- The CMake system will now look for a `REGOCPP_TZDATA_PATH` environment variable to use for setting the default path
+
+**Bug Fix**
+- Fixed a bug where builtins would not be available if an interpreter was re-used
+- Fixed a bug with the Rust wrapper where it was aggressively trimming strings
+
+
 ## 2024-09-23 - Version 0.4.4
 Point release adding the `uuid`, `time`, and `walk` builtins.
 

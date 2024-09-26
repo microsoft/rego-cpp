@@ -12,9 +12,10 @@ from ._regopy import (
 )
 from .node import Node
 
+
 class Result:
     """A result from a Rego output.
-    
+
     Each result contains a list of terms, and set of bindings.
 
     Examples:
@@ -34,7 +35,7 @@ class Result:
     def __init__(self, obj: dict):
         self.expressions = obj.get("expressions", [])
         self.bindings = obj.get("bindings", {})
-    
+
     def __str__(self) -> str:
         return json.dumps({"expressions": self.expressions, "bindings": self.bindings})
 
@@ -75,7 +76,11 @@ class Output:
         """
         self._impl = impl
         if regoOutputOk(impl):
-            output = json.loads(regoOutputString(impl))
+            if regoOutputString(impl) == "undefined":
+                output = {}
+            else:
+                output = json.loads(regoOutputString(impl))
+
             if isinstance(output, list):
                 self.results = [Result(obj) for obj in output]
             else:

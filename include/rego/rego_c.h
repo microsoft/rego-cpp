@@ -20,6 +20,7 @@ typedef unsigned int regoSize;
 #define REGO_ERROR 1
 #define REGO_ERROR_BUFFER_TOO_SMALL 2
 #define REGO_ERROR_INVALID_LOG_LEVEL 3
+#define REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED 4
 
 // term node types
 #define REGO_NODE_BINDING 1000
@@ -94,13 +95,29 @@ extern "C"
   regoEnum regoSetLogLevelFromString(const char* level);
 
   /**
+   * Sets the location where rego-cpp will look for timezone database
+   * information.
+   *
+   * The timezone database will be interpreted as one obtained from the IANA
+   * (https://www.iana.org/time-zones) which has been downloaded and unpacked
+   * into at the path provided. If the library was built without manual tzdata
+   * support, this function will return an error code.
+   *
+   * @param path The path to the timezone database.
+   * @return REGO_OK if successful, REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED
+   * otherwise.
+   */
+  regoEnum regoSetTZDataPath(const char* path);
+
+  /**
    * Allocates and initializes a new Rego interpreter.
    *
    * The caller is responsible for freeing the interpreter with regoFree.
    *
+   * @param v1_compatible Whether the interpreter should be v1 compatible.
    * @return A pointer to the new interpreter.
    */
-  regoInterpreter* regoNew(void);
+  regoInterpreter* regoNew(regoBoolean v1_compatible);
 
   /**
    * Frees a Rego interpreter.

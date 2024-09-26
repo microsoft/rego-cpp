@@ -36,6 +36,7 @@ FetchContent_Declare(
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 set(SNMALLOC_ENABLE_DYNAMIC_LOADING ON)
 set(REGOCPP_USE_CXX17 ON)
+set(REGOCPP_USE_MANUAL_TZDATA ON)
 
 FetchContent_MakeAvailable(regocpp)
 FetchContent_MakeAvailable(pybind11)

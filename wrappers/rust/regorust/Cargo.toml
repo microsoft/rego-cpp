@@ -1,6 +1,6 @@
 [package]
 name = "regorust"
-version = "0.4.4"
+version = "0.4.5"
 edition = "2021"
 description = "Rust bindings for the rego-cpp Rego compiler and interpreter"
 license = "MIT"
@@ -9,6 +9,9 @@ homepage = "https://microsoft.github.io/rego-cpp/"
 repository = "https://github.com/microsoft/rego-cpp"
 
 [dependencies]
+reqwest = { version = "0.12.7", features = ["blocking", "json"] } # HTTP client
+flate2 = { version = "1.0.33"} # Compression library
+tar = "0.4.42" # Tar archive library
 
 [build-dependencies]
 bindgen = "0.65.1"
