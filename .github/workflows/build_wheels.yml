@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: windows
+          name: ${{ matrix.python }}-windows
           path: ./wheelhouse/*.whl
   build_mac_wheels:
     name: Build wheels on mac
@@ -70,7 +70,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mac
+          name: ${{ matrix.python }}-mac
           path: ./wheelhouse/*.whl
   build_manylinux_wheels:
     name: Build wheels on manylinux
@@ -99,7 +99,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: manylinux
+          name: ${{ matrix.python }}-manylinux
           path: ./wheelhouse/*.whl
 
   build_musllinux_wheels:
@@ -128,5 +128,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: musllinux
+          name: ${{ matrix.python }}-musllinux
           path: ./wheelhouse/*.whl
