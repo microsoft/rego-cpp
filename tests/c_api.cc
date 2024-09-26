@@ -63,7 +63,7 @@ int main()
   int rc = REGO_OK;
   regoOutput* output = NULL;
   regoNode* node = NULL;
-  regoInterpreter* rego = regoNew();
+  regoInterpreter* rego = regoNew(false);
   regoSize size = 0;
   char* buf = NULL;
 

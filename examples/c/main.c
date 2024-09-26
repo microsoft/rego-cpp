@@ -252,7 +252,7 @@ int main(int argc, char** argv)
     }
   }
 
-  rego = regoNew();
+  rego = regoNew(false);
 
   for (data_index = 0; data_index < config.data_files_count; data_index++)
   {
