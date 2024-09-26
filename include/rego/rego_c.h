@@ -114,10 +114,18 @@ extern "C"
    *
    * The caller is responsible for freeing the interpreter with regoFree.
    *
-   * @param v1_compatible Whether the interpreter should be v1 compatible.
    * @return A pointer to the new interpreter.
    */
-  regoInterpreter* regoNew(regoBoolean v1_compatible);
+  regoInterpreter* regoNew();
+
+  /**
+   * Allocates and initializes a new V1 Rego interpreter.
+   *
+   * The caller is responsible for freeing the interpreter with regoFree.
+   *
+   * @return A pointer to the new interpreter.
+   */
+  regoInterpreter* regoNewV1();
 
   /**
    * Frees a Rego interpreter.

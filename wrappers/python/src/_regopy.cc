@@ -92,11 +92,9 @@ PYBIND11_MODULE(_regopy, m)
     "level"_a);
   m.def(
     "regoSetTZDataPath", &regoSetTZDataPath, "Sets the TZData path.", "path"_a);
+  m.def("regoNew", &regoNew, "Returns a pointer to a new rego instance.");
   m.def(
-    "regoNew",
-    &regoNew,
-    "Returns a pointer to a new rego instance.",
-    "v1_compatible"_a);
+    "regoNewV1", &regoNewV1, "Returns a pointer to a new V1 rego instance.");
   m.def("regoFree", &regoFree, "Deletes a rego instance.");
   m.def(
     "regoAddModuleFile",

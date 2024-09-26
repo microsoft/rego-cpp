@@ -88,11 +88,17 @@ extern "C"
     }
   }
 
-  regoInterpreter* regoNew(regoBoolean v1_compatible)
+  regoInterpreter* regoNew()
   {
-    auto ptr =
-      reinterpret_cast<regoInterpreter*>(new rego::Interpreter(v1_compatible));
+    auto ptr = reinterpret_cast<regoInterpreter*>(new rego::Interpreter(false));
     logging::Debug() << "regoNew: " << ptr;
+    return ptr;
+  }
+
+  regoInterpreter* regoNewV1()
+  {
+    auto ptr = reinterpret_cast<regoInterpreter*>(new rego::Interpreter(true));
+    logging::Debug() << "regoNewV1: " << ptr;
     return ptr;
   }
 

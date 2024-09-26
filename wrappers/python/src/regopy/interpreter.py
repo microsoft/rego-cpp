@@ -13,6 +13,7 @@ from ._regopy import (
     regoGetStrictBuiltInErrors,
     regoGetWellFormedChecksEnabled,
     regoNew,
+    regoNewV1,
     regoQuery,
     regoSetDebugEnabled,
     regoSetDebugPath,
@@ -106,7 +107,7 @@ class Interpreter:
 
     def __init__(self, v1_compatible=False):
         """Initializer."""
-        self._impl = regoNew(v1_compatible)
+        self._impl = regoNewV1() if v1_compatible else regoNew()
 
     def __del__(self):
         """Destructor."""

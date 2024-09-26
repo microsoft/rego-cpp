@@ -475,14 +475,14 @@ pub fn set_tzdata_path(path: &str, download: bool) -> Result<(), &'static str> {
 impl Interpreter {
     /// Creates a new Rego interpreter.
     pub fn new() -> Self {
-        let interpreter_ptr = unsafe { regoNew(0) };
+        let interpreter_ptr = unsafe { regoNew() };
         Self {
             c_ptr: interpreter_ptr,
         }
     }
 
     pub fn new_v1() -> Self {
-        let interpreter_ptr = unsafe { regoNew(1) };
+        let interpreter_ptr = unsafe { regoNewV1() };
         Self {
             c_ptr: interpreter_ptr,
         }

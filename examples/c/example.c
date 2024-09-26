@@ -7,7 +7,7 @@ int main(void)
   regoEnum err;
   int rc = EXIT_SUCCESS;
   regoOutput* output = NULL;
-  regoInterpreter* rego = regoNew(false);
+  regoInterpreter* rego = regoNew();
 
   err = regoAddModuleFile(rego, "examples/objects.rego");
   if (err != REGO_OK)
