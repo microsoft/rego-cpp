@@ -20,9 +20,6 @@ environment.
 
 ### Linux
 
-> **Note**
-> At the moment, you must use `clang++` to build the project on Linux.
-
 Create a build directory and initialize the cmake project:
 
     mkdir build
@@ -47,34 +44,39 @@ You can then build and run the tests using:
     cmake --build . --config Release --target INSTALL
     ctest -C Release
 
-### Using the Interpreter
+### Using the `rego` CLI
 
-The interpreter will be located at `build/dist/bin/rego`. Here are
+The interpreter tool will be located at `build/dist/bin/rego`. Here are
 some example commands using the provided example files and run from the suggested
 `dist` install directory:
 
     ./bin/rego -d examples/scalars.rego -q data.scalars.greeting
-    "Hello"
+    {"expressions":["Hello"]}
 
     ./bin/rego -d examples/objects.rego -q data.objects.sites[1].name
-    "smoke1"
+    {"expressions":["smoke1"]}
 
     ./bin/rego -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
-    [{"bar": "Foo", "baz": 5, "be": true, "bop": 23.4}, "20", {"name": "smoke1"}]
+    {"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]]}
 
     ./bin/rego -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
-    9.4
+    {"bindings":{"x":5, "y":9.4}}
 
     ./bin/rego -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
-    {"one": 15, "two": 15}
+    {"expressions":[{"one":15, "two":15}]}
 
 You can run the test driver from the same directory:
 
     ./bin/rego_test tests/regocpp.yaml
 
+### Using the `rego` Library
+
+See the [examples](examples/README.md) directory for examples of how to use the
+library from different langauages.
+
 ## Language Support
 
-At present we support v0.55.0 of Rego as defined by OPA, with the following grammar:
+We support v0.68.0 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
 module          = package { import } policy
@@ -106,7 +108,7 @@ set-compr       = "{" term "|" query "}"
 object-compr    = "{" object-item "|" query "}"
 infix-operator  = assign-operator | bool-operator | arith-operator | bin-operator
 bool-operator   = "==" | "!=" | "<" | ">" | ">=" | "<="
-arith-operator  = "+" | "-" | "*" | "/"
+arith-operator  = "+" | "-" | "*" | "/" | "%"
 bin-operator    = "&" | "|"
 assign-operator = ":=" | "="
 ref             = ( var | array | object | set | array-compr | object-compr | set-compr | expr-call ) { ref-arg }
@@ -124,6 +126,9 @@ set             = empty-set | non-empty-set
 non-empty-set   = "{" term { "," term } "}"
 empty-set       = "set(" ")"
 ```
+
+> [!NOTE]
+> This grammar corresponds to Rego with `rego.v1` enabled (See [OPA v1.0](https://www.openpolicyagent.org/docs/latest/opa-1) for more info).
 
 Definitions:
 ```
@@ -145,28 +150,27 @@ LF     Line Feed
 
 ### Builtins
 
-At the moment only support a few builtins, but are actively working on adding
-all the standard builtins. The following builtins are currently supported:
+At the moment support the following builtins are available:
 
 - `aggregates`
 - `arrays`
 - `bits`
 - `casts`
+- `encoding`
+- `graphs`
 - `numbers`
 - `objects`
 - `regex`
 - `semver`
 - `sets`
 - `strings`
+- `time`
 - `types`
 - `units`
+- `uuid`
 - miscellaneous
-    * `base64_encode`
-    * `base64_decode`
-    * `json.marshal`
     * `opa.runtime`
     * `print`
-    * `time.now_ns`
 
 ### Compatibility with the OPA Rego Go implementation
 
@@ -180,19 +184,15 @@ To build with the OPA tests available for testing, use one of the following pres
 - `release-opa`
 
 At present, we are **NOT** passing the following test suites in full:
-- `base64*`
 - `crypto*`
 - `glob*`
 - `graphql`
 - `invalidkeyerror`
-- `json*`
+- `json*` (except `jsonbuiltins`)
 - `jwt*`
 - `net*`
 - `planner-ir`
 - `providers-aws`
-- `reachable`
-- `urlbuiltins`
-- `walkbuiltin`
 
 ## Contributing
 
