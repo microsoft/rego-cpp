@@ -4,8 +4,10 @@
 #include "re2/stringpiece.h"
 #include "rego.hh"
 #include "tzdata.h"
+#include "windows_zones.h"
 
 #include <chrono>
+#include <fstream>
 #include <inttypes.h>
 
 namespace
@@ -738,5 +740,34 @@ namespace rego
           Location("time.parse_rfc3339_ns"), 1, parse_rfc3339_ns),
         BuiltInDef::create(Location("time.weekday"), 1, ::weekday)};
     }
+  }
+
+  void set_tzdata_path(const std::filesystem::path& path)
+  {
+#ifdef REGOCPP_USE_MANUAL_TZDATA
+    date::set_install(path.string());
+    auto wz_path = path / "windowsZones.xml";
+    if (!std::filesystem::exists(wz_path))
+    {
+      std::ofstream file(wz_path);
+      if (file.is_open())
+      {
+        for (auto& line : WINDOWS_ZONES_SRC)
+        {
+          file << line << std::endl;
+        }
+        file.close();
+      }
+      else
+      {
+        throw std::runtime_error(
+          "Failed to create required windowsZones.xml at tzdata path");
+      }
+    }
+#else
+    throw std::runtime_error(
+      "Cannot set tzdata path to " + path.string() +
+      " because REGOCPP_USE_MANUAL_TZDATA was not defined");
+#endif
   }
 }

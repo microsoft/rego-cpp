@@ -65,6 +65,7 @@ class CMakeBuild(build_ext):
         cfg = "Debug" if self.debug else "Release"
         extdir = os.path.abspath(os.path.dirname(
             self.get_ext_fullpath(ext.name)))
+
         cmake_args = ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
                       "-DCMAKE_BUILD_TYPE=" + cfg,
                       "-DPYTHON_EXECUTABLE=" + sys.executable]
@@ -83,8 +84,11 @@ class CMakeBuild(build_ext):
             else:
                 cmake_args += ["-A", "Win32"]
 
+        env = os.environ.copy()
+        env["REGOCPP_TZDATA_PATH"] = extdir
+
         subprocess.check_call(["cmake", ext.source_dir] +
-                              cmake_args, cwd=self.build_temp)
+                              cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(["cmake", "--build", "."] +
                               build_args, cwd=self.build_temp)
 
@@ -100,6 +104,7 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages("src"),
     package_dir={"": "src"},
+    include_package_data=True,
     python_requires=">=3.6, <4",
     ext_modules=[CMakeExtension("regopy._regopy")],
     classifiers=[

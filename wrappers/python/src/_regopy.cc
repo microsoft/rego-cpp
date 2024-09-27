@@ -4,7 +4,8 @@
 
 using namespace pybind11::literals;
 
-namespace {
+namespace
+{
   std::string get_value(regoNode* node)
   {
     regoSize size = regoNodeValueSize(node);
@@ -35,6 +36,10 @@ PYBIND11_MODULE(_regopy, m)
   // error codes
   m.attr("REGO_OK") = REGO_OK;
   m.attr("REGO_ERROR") = REGO_ERROR;
+  m.attr("REGO_ERROR_BUFFER_TOO_SMALL") = REGO_ERROR_BUFFER_TOO_SMALL;
+  m.attr("REGO_ERROR_INVALID_LOG_LEVEL") = REGO_ERROR_INVALID_LOG_LEVEL;
+  m.attr("REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED") =
+    REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED;
 
   // term node types
   m.attr("REGO_NODE_BINDING") = REGO_NODE_BINDING;
@@ -85,7 +90,11 @@ PYBIND11_MODULE(_regopy, m)
     &regoSetLogLevelFromString,
     "Sets the level of logging.",
     "level"_a);
+  m.def(
+    "regoSetTZDataPath", &regoSetTZDataPath, "Sets the TZData path.", "path"_a);
   m.def("regoNew", &regoNew, "Returns a pointer to a new rego instance.");
+  m.def(
+    "regoNewV1", &regoNewV1, "Returns a pointer to a new V1 rego instance.");
   m.def("regoFree", &regoFree, "Deletes a rego instance.");
   m.def(
     "regoAddModuleFile",
@@ -233,10 +242,7 @@ PYBIND11_MODULE(_regopy, m)
     "Returns a human-readable node type name.",
     "node"_a);
   m.def(
-    "regoNodeValue",
-    &get_value,
-    "Gets the node value as a string.",
-    "node"_a);
+    "regoNodeValue", &get_value, "Gets the node value as a string.", "node"_a);
   m.def("regoNodeSize", &regoNodeSize, "Returns the node size.", "node"_a);
   m.def(
     "regoNodeGet",

@@ -75,10 +75,30 @@ extern "C"
     return REGO_ERROR_INVALID_LOG_LEVEL;
   }
 
+  regoEnum regoSetTZDataPath(const char* path)
+  {
+    try
+    {
+      rego::set_tzdata_path(path);
+      return REGO_OK;
+    }
+    catch (const std::exception&)
+    {
+      return REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED;
+    }
+  }
+
   regoInterpreter* regoNew()
   {
-    auto ptr = reinterpret_cast<regoInterpreter*>(new rego::Interpreter());
+    auto ptr = reinterpret_cast<regoInterpreter*>(new rego::Interpreter(false));
     logging::Debug() << "regoNew: " << ptr;
+    return ptr;
+  }
+
+  regoInterpreter* regoNewV1()
+  {
+    auto ptr = reinterpret_cast<regoInterpreter*>(new rego::Interpreter(true));
+    logging::Debug() << "regoNewV1: " << ptr;
     return ptr;
   }
 

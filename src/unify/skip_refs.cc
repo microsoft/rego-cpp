@@ -165,11 +165,10 @@ namespace rego
       return 0;
     });
 
-    auto added_builtins = std::make_shared<std::set<std::string>>();
-
-    skip_refs.post(Rego, [skips, builtins, added_builtins](Node node) {
+    skip_refs.post(Rego, [skips, builtins](Node node) {
       std::set<std::string> used_builtins;
       find_used_builtins(node, builtins, used_builtins);
+      auto added_builtins = std::make_shared<std::set<std::string>>();
       Node skipseq = node / SkipSeq;
       int changes = 0;
       for (auto& builtin : used_builtins)

@@ -13,6 +13,7 @@ from ._regopy import (
     regoGetStrictBuiltInErrors,
     regoGetWellFormedChecksEnabled,
     regoNew,
+    regoNewV1,
     regoQuery,
     regoSetDebugEnabled,
     regoSetDebugPath,
@@ -104,9 +105,9 @@ class Interpreter:
         {"bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]}}
     """
 
-    def __init__(self):
+    def __init__(self, v1_compatible=False):
         """Initializer."""
-        self._impl = regoNew()
+        self._impl = regoNewV1() if v1_compatible else regoNew()
 
     def __del__(self):
         """Destructor."""

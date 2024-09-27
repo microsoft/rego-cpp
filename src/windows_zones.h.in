@@ -1,0 +1,17 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+#ifndef _REGOCPP_WINDOWS_ZONES_H_
+#define _REGOCPP_WINDOWS_ZONES_H_
+
+#include <string>
+#include <vector>
+
+namespace rego
+{
+const std::vector<std::string> WINDOWS_ZONES_SRC = {
+    R"xml(@REGOCPP_WINDOWS_ZONES_SRC@)xml"
+};
+} // namespace rego
+
+#endif
