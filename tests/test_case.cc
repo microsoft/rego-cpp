@@ -633,6 +633,17 @@ namespace rego_test
       // new release to see if they have been fixed, as they are essentially
       // being skipped at present.
 
+#if __cpp_lib_chrono < 201907L
+      if (test_case.note().starts_with("time/"))
+      {
+        // The time builtins are depend on std::chrono::zoned_time and
+        // std::chrono::parse, which are only available in C++20 and on
+        // some platforms. Without these functions, the time builtins are
+        // fairly limited and so these test cases are skipped.
+        test_case.broken(true);
+      }
+#endif
+
       if (test_case.note() == "reachable_paths/cycle_1022_3")
       {
         // the test is wrong, the actual result is correct

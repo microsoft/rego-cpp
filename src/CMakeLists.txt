@@ -1,6 +1,4 @@
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/builtins/tzdata.h.in" "${CMAKE_CURRENT_BINARY_DIR}/tzdata.h" @ONLY)
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windows_zones.h.in" "${CMAKE_CURRENT_BINARY_DIR}/windows_zones.h" @ONLY)
 
 set( SOURCES
 bigint.cc
@@ -83,12 +81,15 @@ target_link_libraries(rego
     trieste::trieste
     trieste::json
     trieste::yaml
-    date-tz
 )
 
 if(MSVC)
   target_compile_options(rego PUBLIC "/Zc:__cplusplus")
-  target_compile_definitions(rego PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
+  target_compile_definitions(rego PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING" "DATE_BUILD_LIB")
+endif()
+
+if(Threads_FOUND)
+  target_link_libraries(rego PUBLIC Threads::Threads)
 endif()
 
 if (REGOCPP_SANITIZE)
@@ -96,12 +97,7 @@ if (REGOCPP_SANITIZE)
   target_link_libraries(rego PUBLIC -fsanitize=${REGOCPP_SANITIZE})
 endif()
 
-if(REGOCPP_USE_CXX17)
-  target_compile_features(rego PUBLIC cxx_std_17)
-  target_compile_definitions(rego PUBLIC REGOCPP_USE_CXX17)
-else()
-  target_compile_features(rego PUBLIC cxx_std_20)
-endif()
+target_compile_features(rego PUBLIC cxx_std_20)
 
 if(REGOCPP_ACTION_METRICS)
   target_compile_definitions(rego PUBLIC REGOCPP_ACTION_METRICS)
@@ -116,3 +112,44 @@ target_include_directories( rego
     ${CMAKE_CURRENT_SOURCE_DIR}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/rego>
 )
+
+if ( REGOCPP_BUILD_SHARED )
+  add_library(rego_shared SHARED ${SOURCES})
+  set_property(TARGET rego PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_property(TARGET yaml PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_property(TARGET json PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_property(TARGET snmalloc-new-override PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_property(TARGET re2 PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+  if (MANUAL_TZ_DB)
+    target_compile_definitions(rego_shared PUBLIC "MANUAL_TZ_DB")
+  endif()
+
+  target_link_libraries(rego_shared
+    PUBLIC
+      trieste::trieste
+      trieste::json
+      trieste::yaml
+  )
+
+  if(MSVC)
+    target_compile_options(rego_shared PUBLIC "/Zc:__cplusplus")
+    target_compile_definitions(rego_shared PUBLIC "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING" "REGO_SHARED" "DATE_BUILD_LIB")
+  endif()
+
+  if(Threads_FOUND)
+    target_link_libraries(rego_shared PUBLIC Threads::Threads)
+  endif()
+
+  target_compile_features(rego_shared PUBLIC cxx_std_20)
+
+  target_include_directories( rego_shared
+    PUBLIC
+      $<INSTALL_INTERFACE:include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/rego>
+  )
+endif()

@@ -127,5 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-tzdata
+
+# misc
 debug
+rego-cpp
+rego_shared.dll
+librego_shared.*

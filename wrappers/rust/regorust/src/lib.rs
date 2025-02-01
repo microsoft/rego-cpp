@@ -2,19 +2,11 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-extern crate flate2;
-extern crate reqwest;
-extern crate tar;
-
-use flate2::read::GzDecoder;
 use std::ffi::{CStr, CString};
 use std::fmt;
-use std::fs::File;
-use std::io;
 use std::ops::Index;
 use std::path::Path;
 use std::str;
-use tar::Archive;
 
 /// Returns the build information as a string.
 ///
@@ -378,99 +370,6 @@ pub fn set_log_level(level: LogLevel) -> Result<(), &'static str> {
     }
 }
 
-fn download_tzdata(path: &str) -> Result<(), &'static str> {
-    let url = "https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz";
-    let gz_path = "tzdata-latest.tar.gz";
-
-    let client = reqwest::blocking::Client::new();
-    let mut resp = client
-        .get(url)
-        .header(reqwest::header::USER_AGENT, "Rust Maven 1.42")
-        .send()
-        .expect("request failed");
-
-    let mut out = File::create(gz_path).expect("failed to create file");
-    io::copy(&mut resp, &mut out).expect("failed to copy content");
-
-    let tar_gz = File::open(gz_path).expect("unable to open file");
-    let tar = GzDecoder::new(tar_gz);
-    let mut archive = Archive::new(tar);
-    archive
-        .unpack(path)
-        .expect("failed to unpack tzdata archive");
-
-    Ok(())
-}
-
-/// Sets the path to the TZData directory.
-///
-/// Some of the `time` built-ins require access to the IANA tzdata database
-/// in order to resolve timezone names. If the TZ data path is not set, these
-/// built-ins will not function properly. This function allows you to point the
-/// Rego interpreter to the location of the TZ data. Optionally, you can request
-/// that the latest TZ data be downloaded to the path you specify.
-///
-/// # Example
-/// ```
-/// use regorust::*;
-/// let path = "./tzdata";
-/// set_tzdata_path(path, true).expect("cannot set TZData path");
-/// let rego = Interpreter::new();
-/// match rego.query(r#"x=time.clock([1727267567139080131, "America/Los_Angeles"])"#) {
-///   Ok(result) => {
-///     let x = result.binding("x").expect("cannot get x");
-///     println!("x = {}", x.json().unwrap());
-///     if let NodeValue::Int(hour) = x
-///         .index(0)
-///         .unwrap()
-///         .value()
-///         .unwrap()
-///     {
-///       println!("hour = {}", hour);
-///       # assert_eq!(hour, 5);
-///     }
-///
-///     if let NodeValue::Int(minute) = x
-///         .index(1)
-///         .unwrap()
-///         .value()
-///         .unwrap()
-///     {
-///       println!("minute = {}", minute);
-///       # assert_eq!(minute, 32);
-///     }
-///
-///     if let NodeValue::Int(second) = x
-///         .index(2)
-///         .unwrap()
-///         .value()
-///         .unwrap()
-///     {
-///       println!("second = {}", second);
-///       # assert_eq!(second, 47);
-///     }
-///   }
-///   Err(e) => {
-///     panic!("error: {}", e);
-///   }
-/// }
-/// ```
-pub fn set_tzdata_path(path: &str, download: bool) -> Result<(), &'static str> {
-    if download {
-        download_tzdata(path)?;
-    }
-
-    let path_cstr = CString::new(path).unwrap();
-    let path_ptr = path_cstr.as_ptr();
-    let result: regoEnum = unsafe { regoSetTZDataPath(path_ptr) };
-    match result {
-        REGO_OK => Ok(()),
-        REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED => {
-            Err("Error setting TZData path: Manual TZData not supported")
-        }
-        _ => Err("Unknown error"),
-    }
-}
 
 impl Interpreter {
     /// Creates a new Rego interpreter.
@@ -781,6 +680,22 @@ impl Interpreter {
         c_enabled == 1
     }
 
+    /// Returns whether the interpreter has a built-in with the given name.
+    /// 
+    /// # Example
+    /// ```
+    /// # use regorust::*;
+    /// let rego = Interpreter::new();
+    /// println!("{}", rego.is_built_in("json.unmarshal"));
+    /// # assert!(rego.is_built_in("json.unmarshal"));
+    /// ```
+    pub fn is_built_in(&self, name: &str) -> bool {
+        let name_cstr = CString::new(name).unwrap();
+        let name_ptr = name_cstr.as_ptr();
+        let c_is_built_in = unsafe { regoIsBuiltIn(self.c_ptr, name_ptr)};
+        c_is_built_in == 1
+    }
+
     /// This method performs a query against the current set of base and virtual documents.
     ///
     /// While the Rego interpreter can be used to perform simple queries, in most cases
@@ -887,14 +802,19 @@ impl Output {
     ///
     /// If the result of [`Self::ok()`] is false, the result will be an string
     /// containing error information.
-    pub fn to_str(&self) -> Result<&str, &str> {
-        let c_str = unsafe { regoOutputString(self.c_ptr) };
-        let result: &CStr = unsafe { CStr::from_ptr(c_str) };
-        let output_str = result.to_str().unwrap().trim_end();
-        if self.ok() {
-            Ok(output_str)
+    pub fn to_str(&self) -> Result<String, &str> {
+        let size = unsafe { regoOutputJSONSize(self.c_ptr) };
+
+        let buf = vec![32 as u8; (size as usize) - 1];
+        let input_cstr = CString::new(buf).unwrap();
+        let input_ptr = CString::into_raw(input_cstr);
+        let err: regoEnum = unsafe { regoOutputJSON(self.c_ptr, input_ptr, size) };
+        if err != REGO_OK {
+            return Err("Error obtaining output string");
         } else {
-            Err(output_str)
+            let output_cstr = unsafe { CString::from_raw(input_ptr) };
+            let output = output_cstr.into_string().unwrap();
+            return Ok(output);
         }
     }
 
@@ -1268,6 +1188,20 @@ impl Node {
 
                 Ok(&self.children[index])
             }
+            NodeKind::Terms => {
+                if index >= self.size() {
+                    return Err("Index out of bounds");
+                }
+
+                Ok(&self.children[index])
+            }
+            NodeKind::Results => {
+                if index >= self.size() {
+                    return Err("Index out of bounds");
+                }
+
+                Ok(&self.children[index])
+            }
             _ => Err("Must be an array"),
         }
     }
@@ -1606,6 +1540,19 @@ mod tests {
             }
             Err(e) => {
                 panic!("error: {}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn badmodule() {
+        let rego = Interpreter::new();
+        match rego.add_module("bad", "package bad\nx <> 10") {
+            Ok(_) => {
+                panic!("should not be able to add bad module");
+            }
+            Err(e) => {
+                println!("error: {}", e);
             }
         }
     }

@@ -231,6 +231,8 @@ namespace rego
     bool is_zero() const;
     BigInt increment() const;
     BigInt decrement() const;
+    BigInt abs() const;
+    BigInt negate() const;
 
     static bool is_int(const Location& loc);
 
@@ -248,8 +250,6 @@ namespace rego
     friend bool operator!=(const BigInt& lhs, const BigInt& rhs);
 
     friend std::ostream& operator<<(std::ostream& os, const BigInt& value);
-
-    BigInt negate() const;
 
   private:
     struct DivideResult
@@ -561,15 +561,9 @@ namespace rego
   Node set(const Nodes& set_members);
 
   /**
-   * Sets the location where rego-cpp will look for timezone database
-   * information.
-   *
-   * The timezone database will be interpreted as one obtained from the IANA
-   * (https://www.iana.org/time-zones) which has been downloaded and unpacked
-   * into at the path provided. If the library was built without manual tzdata
-   * support, this function will throw an exception.
-   *
-   * @param path The path to the timezone database.
+   * Deprecated. This method no longer has any effect.
+   * @deprecated
+   * @param path Ignored
    */
   void set_tzdata_path(const std::filesystem::path& path);
 

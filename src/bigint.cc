@@ -36,6 +36,16 @@ namespace rego
     return BigInt("-" + std::string(m_loc.view()));
   }
 
+  BigInt BigInt::abs() const
+  {
+    if (is_negative())
+    {
+      return negate();
+    }
+
+    return *this;
+  }
+
   BigInt operator+(const BigInt& lhs, const BigInt& rhs)
   {
     bool negate = false;

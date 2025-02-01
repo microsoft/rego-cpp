@@ -4,7 +4,6 @@ import multiprocessing
 import os
 import platform
 import subprocess
-import sys
 
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
@@ -29,8 +28,7 @@ REQUIRES_DEV = [
 with open("README.md", "r") as file:
     LONG_DESCRIPTION = file.read()
 
-with open("../../VERSION", "r") as file:
-    VERSION = file.read()
+VERSION = "0.4.6"
 
 
 class CMakeExtension(Extension):
@@ -66,31 +64,46 @@ class CMakeBuild(build_ext):
         extdir = os.path.abspath(os.path.dirname(
             self.get_ext_fullpath(ext.name)))
 
-        cmake_args = ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
-                      "-DCMAKE_BUILD_TYPE=" + cfg,
-                      "-DPYTHON_EXECUTABLE=" + sys.executable]
+        src_path = os.path.abspath("rego-cpp")
+        if not os.path.exists("rego-cpp"):
+            repo = os.environ.get(
+                "REGOCPP_REPO", "https://github.com/microsoft/rego-cpp.git")
+            tag = os.environ.get("REGOCPP_TAG", "main")
 
-        build_args = ["--config", cfg, "--target", "_regopy"]
+            subprocess.check_call(["git", "clone", repo, src_path])
+            subprocess.check_call(["git", "checkout", tag], cwd=src_path)
+
+        cmake_args = [f"-S {src_path}",
+                      f"-B {self.build_temp}",
+                      f"-DCMAKE_INSTALL_PREFIX={extdir}",
+                      "-DREGOCPP_BUILD_SHARED=ON",
+                      f"-DCMAKE_BUILD_TYPE={cfg}",
+                      "-DSNMALLOC_ENABLE_DYNAMIC_LOADING=ON"]
+
+        build_args = ["--build", self.build_temp,
+                      "--config", cfg,
+                      "--target", "rego_shared",
+                      "--verbose"]
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
         num_workers = multiprocessing.cpu_count()
         build_args += ["--parallel", str(num_workers)]
 
-        if platform.system() == "Windows":
-            cmake_args += ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format(cfg.upper(), extdir)]
-            if platform.architecture()[0] == "64bit":
-                cmake_args += ["-A", "x64"]
-            else:
-                cmake_args += ["-A", "Win32"]
+        subprocess.check_call(["cmake"] + cmake_args)
+        subprocess.check_call(["cmake"] + build_args)
 
-        env = os.environ.copy()
-        env["REGOCPP_TZDATA_PATH"] = extdir
+        output_dir = os.path.join(self.build_temp, "src")
+        if os.path.exists(os.path.join(output_dir, "Release")):
+            output_dir = os.path.join(output_dir, "Release")
 
-        subprocess.check_call(["cmake", ext.source_dir] +
-                              cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(["cmake", "--build", "."] +
-                              build_args, cwd=self.build_temp)
+        os.makedirs(extdir, exist_ok=True)
+        for name in os.listdir(output_dir):
+            if name.endswith(".dll") or name.endswith(".so") or name.endswith(".dylib"):
+                ext_path = os.path.join(output_dir, name)
+                self.copy_file(ext_path, extdir)
+
+        self.copy_file(ext_path, extdir)
 
 
 setup(
@@ -106,7 +119,8 @@ setup(
     package_dir={"": "src"},
     include_package_data=True,
     python_requires=">=3.6, <4",
-    ext_modules=[CMakeExtension("regopy._regopy")],
+    ext_modules=[CMakeExtension("regopy.rego_shared")],
+    package_data={"regopy": ["*.dll", "*.so", "*.dylib"]},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License"
