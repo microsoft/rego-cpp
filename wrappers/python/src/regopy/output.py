@@ -2,15 +2,15 @@
 
 import json
 from typing import Union
-from ._regopy import (
-    regoFreeOutput,
-    regoOutputNode,
-    regoOutputOk,
-    regoOutputString,
-    regoOutputExpressionsAtIndex,
-    regoOutputBindingAtIndex,
-)
 from .node import Node
+from .rego_shared import (
+    rego_output_ok,
+    rego_output_string,
+    rego_output_node,
+    rego_output_expressions_at_index,
+    rego_output_binding_at_index,
+    rego_free_output
+)
 
 
 class Result:
@@ -32,6 +32,7 @@ class Result:
         >>> print(result[0])
         10
     """
+
     def __init__(self, obj: dict):
         self.expressions = obj.get("expressions", [])
         self.bindings = obj.get("bindings", {})
@@ -75,11 +76,11 @@ class Output:
         As such, this initializer should not be called directly.
         """
         self._impl = impl
-        if regoOutputOk(impl):
-            if regoOutputString(impl) == "undefined":
+        if rego_output_ok(impl):
+            if rego_output_string(impl) == "undefined":
                 output = {}
             else:
-                output = json.loads(regoOutputString(impl))
+                output = json.loads(rego_output_string(impl))
 
             if isinstance(output, list):
                 self.results = [Result(obj) for obj in output]
@@ -90,7 +91,7 @@ class Output:
 
     def __del__(self):
         """Destructor."""
-        regoFreeOutput(self._impl)
+        rego_free_output(self._impl)
 
     def __str__(self) -> str:
         """Returns the output as a human readable string.
@@ -101,11 +102,11 @@ class Output:
         Returns:
             str: A string representation of the output.
         """
-        return regoOutputString(self._impl)
+        return rego_output_string(self._impl)
 
     def __repr__(self) -> str:
         """Returns a string representation of the output."""
-        return "Output({}@{})".format(regoOutputString(self._impl), self._impl)
+        return "Output({}@{})".format(rego_output_string(self._impl), self._impl)
 
     def __len__(self) -> int:
         """Returns the number of results in the output."""
@@ -117,22 +118,22 @@ class Output:
 
     def node(self) -> Node:
         """Returns the root node of the output."""
-        return Node(regoOutputNode(self._impl))
-       
+        return Node(rego_output_node(self._impl))
+
     def expressions(self, index=0) -> Node:
         """Returns the output terms at the given index.
 
         Args:
             index (int, optional): The index of the term to return.
-        
+
         Returns:
             Node: A node contains a list of node objects
         """
-        return Node(regoOutputExpressionsAtIndex(self._impl, index))
+        return Node(rego_output_expressions_at_index(self._impl, index))
 
     def binding(self, name: str, index=0) -> Node:
         """Attempts to return the binding for the given variable name.
-    
+
         Args:
             name (str): The name of the variable to return.
             index (int, optional): The index of the binding to return.
@@ -143,7 +144,7 @@ class Output:
         Raises:
             ValueError: If the variable is not bound.
         """
-        impl = regoOutputBindingAtIndex(self._impl, index, name)
+        impl = rego_output_binding_at_index(self._impl, index, name)
         if impl:
             return Node(impl)
 
@@ -158,4 +159,4 @@ class Output:
         gives a quick way, without inspecting the result node, of finding whether
         it is ok.
         """
-        regoOutputOk(self._impl)
+        rego_output_ok(self._impl)

@@ -1,14 +1,14 @@
 #include "builtins.h"
-#include "date/date.h"
-#include "date/tz.h"
 #include "re2/stringpiece.h"
 #include "rego.hh"
-#include "tzdata.h"
-#include "windows_zones.h"
 
 #include <chrono>
+
+#if __cpp_lib_chrono >= 201907L
+#include <format>
 #include <fstream>
 #include <inttypes.h>
+#endif
 
 namespace
 {
@@ -18,6 +18,95 @@ namespace
   const std::size_t second_ns = 1000000000UL;
   const std::size_t minute_ns = 60UL * second_ns;
   const std::size_t hour_ns = 60UL * minute_ns;
+
+  struct NowNS : public BuiltInDef
+  {
+    Node cached;
+
+    NowNS() :
+      BuiltInDef(
+        Location("time.now_ns"), 0, [this](const Nodes&) { return call(); })
+    {}
+
+    Node call()
+    {
+      if (cached != nullptr)
+      {
+        return cached->clone();
+      }
+
+      auto now = high_resolution_clock::now().time_since_epoch();
+      auto now_ns = duration_cast<nanoseconds>(now).count();
+      cached = Int ^ std::to_string(now_ns);
+      return cached;
+    }
+
+    void clear() override
+    {
+      cached = nullptr;
+    }
+  };
+
+  const std::map<std::string, double> duration_units = {
+    {"ns", 1},
+    {"us", 1000},
+    {"µs", 1000},
+    {"ms", 1000000},
+    {"s", double(second_ns)},
+    {"m", double(minute_ns)},
+    {"h", double(hour_ns)}};
+
+  nanoseconds do_parse_duration(const std::string& duration)
+  {
+    const char* duration_re =
+      R"((-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?)((?:ns|us|µs|ms|s|m|h)))";
+    const RE2 re(duration_re);
+    assert(re.ok());
+
+    std::string number;
+    std::string unit;
+    std::int64_t ns = 0;
+    std::size_t start = 0;
+    while (start < duration.size())
+    {
+      re2::StringPiece input(duration.c_str() + start, duration.size() - start);
+      if (RE2::PartialMatch(input, re, &number, &unit))
+      {
+        double number_d = std::stod(number);
+        double unit_ns = duration_units.at(unit);
+        ns += std::int64_t(number_d * unit_ns);
+        start += number.size() + unit.size();
+      }
+      else
+      {
+        break;
+      }
+    }
+
+    return nanoseconds(ns);
+  }
+
+  Node parse_duration_ns(const Nodes& args)
+  {
+    Node duration = unwrap_arg(
+      args, UnwrapOpt(0).type(JSONString).func("time.parse_duration_ns"));
+    if (duration->type() == Error)
+    {
+      return duration;
+    }
+
+    std::int64_t ns = do_parse_duration(get_string(duration)).count();
+
+    if (ns != 0)
+    {
+      return Int ^ std::to_string(ns);
+    }
+
+    return Undefined;
+  }
+
+#if __cpp_lib_chrono >= 201907L
+  const std::size_t milli_ns = 1000000UL;
   const std::size_t day_ns = 24UL * hour_ns;
 
   const std::map<std::string, std::string> predefined_layouts = {
@@ -94,6 +183,60 @@ namespace
     Node error;
   };
 
+  Node add_date(const Nodes& args)
+  {
+    Node ns_node =
+      unwrap_arg(args, UnwrapOpt(0).type(Int).func("time.add_date"));
+    if (ns_node->type() == Error)
+    {
+      return ns_node;
+    }
+
+    Node years_node =
+      unwrap_arg(args, UnwrapOpt(1).type(Int).func("time.add_date"));
+    if (years_node->type() == Error)
+    {
+      return years_node;
+    }
+
+    Node months_node =
+      unwrap_arg(args, UnwrapOpt(2).type(Int).func("time.add_date"));
+
+    if (months_node->type() == Error)
+    {
+      return months_node;
+    }
+
+    Node days_node =
+      unwrap_arg(args, UnwrapOpt(3).type(Int).func("time.add_date"));
+    if (days_node->type() == Error)
+    {
+      return days_node;
+    }
+
+    nanoseconds ns(get_int(ns_node).to_int());
+    days days_since_epoch = floor<days>(ns);
+    year_month_day ymd{sys_days(days_since_epoch)};
+    years add_y = years(static_cast<int>(get_int(years_node).to_int()));
+    months add_m = months(static_cast<int>(get_int(months_node).to_size()));
+    ymd += add_y;
+    ymd += add_m;
+    std::int64_t days = sys_days(ymd).time_since_epoch().count();
+    days += get_int(days_node).to_int();
+
+    ns -= days_since_epoch;
+    BigInt time = days * BigInt(day_ns) + ns.count();
+
+    if (
+      time < std::numeric_limits<std::int64_t>::min() ||
+      time > std::numeric_limits<std::int64_t>::max())
+    {
+      return err(ns_node, "time outside of valid range", EvalBuiltInError);
+    }
+
+    return Resolver::term(time);
+  }
+
   std::optional<nanoseconds> get_timestamp(Node x)
   {
     BigInt x_int = get_int(x);
@@ -121,7 +264,7 @@ namespace
     while (i < go_format.size())
     {
       bool found = false;
-      size_t max_len = std::min<size_t>(10, go_format.size() - i);
+      size_t max_len = std::min<size_t>(12, go_format.size() - i);
       for (size_t len = max_len; len > 0; --len)
       {
         auto query = go_format.substr(i, len);
@@ -257,16 +400,15 @@ namespace
   Node time_string(const TimeInfo& info)
   {
     time_point<system_clock, nanoseconds> tp(info.ns);
-    auto time_s = date::format("%FT%TZ", tp);
+    std::string time_s = std::format("{0:%FT%TZ}", tp);
     return JSONString ^ time_s;
   }
 
   Node timezone_string(const TimeInfo& info)
   {
-    auto zone = date::locate_zone(info.time_zone);
-    date::zoned_time<nanoseconds> zt_ns(
-      zone, date::sys_time<nanoseconds>(info.ns));
-    auto time_s = date::format("%FT%T%Ez", zt_ns);
+    auto zone = locate_zone(info.time_zone);
+    zoned_time<nanoseconds> zt_ns(zone, sys_time<nanoseconds>(info.ns));
+    auto time_s = std::format("{0:%FT%T%Ez}", zt_ns);
     return JSONString ^ time_s;
   }
 
@@ -314,7 +456,8 @@ namespace
   Node timeformat_string(const TimeInfo& info)
   {
     time_point<system_clock, nanoseconds> tp(info.ns);
-    auto time_s = date::format(info.format, tp);
+    std::string fmt = std::format("{{0:{0}}}", info.format);
+    auto time_s = std::vformat(fmt, std::make_format_args(tp));
     if (info.resolution != Resolution::Seconds)
     {
       time_s = insert_fraction(time_s, info);
@@ -325,10 +468,11 @@ namespace
 
   Node timezoneformat_string(const TimeInfo& info)
   {
-    auto zone = date::locate_zone(info.time_zone);
+    auto zone = locate_zone(info.time_zone);
     seconds s(floor<seconds>(info.ns));
-    date::zoned_time<seconds> zt(zone, date::sys_time<seconds>(s));
-    auto time_s = date::format(info.format, zt);
+    zoned_time<seconds> zt(zone, sys_time<seconds>(s));
+    std::string fmt = std::format("{{0:{0}}}", info.format);
+    auto time_s = std::vformat(fmt, std::make_format_args(zt));
 
     if (info.resolution != Resolution::Seconds)
     {
@@ -355,58 +499,6 @@ namespace
     }
   }
 
-  Node add_date(const Nodes& args)
-  {
-    Node ns_node =
-      unwrap_arg(args, UnwrapOpt(0).type(Int).func("time.add_date"));
-    if (ns_node->type() == Error)
-    {
-      return ns_node;
-    }
-
-    Node years_node =
-      unwrap_arg(args, UnwrapOpt(1).type(Int).func("time.add_date"));
-    if (years_node->type() == Error)
-    {
-      return years_node;
-    }
-
-    Node months_node =
-      unwrap_arg(args, UnwrapOpt(2).type(Int).func("time.add_date"));
-
-    if (months_node->type() == Error)
-    {
-      return months_node;
-    }
-
-    Node days_node =
-      unwrap_arg(args, UnwrapOpt(3).type(Int).func("time.add_date"));
-    if (days_node->type() == Error)
-    {
-      return days_node;
-    }
-
-    nanoseconds ns(get_int(ns_node).to_int());
-    date::days days_since_epoch = floor<date::days>(ns);
-    date::year_month_day ymd{date::sys_days(days_since_epoch)};
-    ymd += date::years(static_cast<int>(get_int(years_node).to_int()));
-    ymd += date::months(static_cast<unsigned>(get_int(months_node).to_size()));
-    std::int64_t days = date::sys_days(ymd).time_since_epoch().count();
-    days += get_int(days_node).to_int();
-
-    ns -= days_since_epoch;
-    BigInt time = days * BigInt(day_ns) + ns.count();
-
-    if (
-      time < std::numeric_limits<std::int64_t>::min() ||
-      time > std::numeric_limits<std::int64_t>::max())
-    {
-      return err(ns_node, "time outside of valid range", EvalBuiltInError);
-    }
-
-    return Resolver::term(time);
-  }
-
   Node clock_(const Nodes& args)
   {
     TimeInfo info = process_arg(args, "time.clock", 0);
@@ -415,21 +507,20 @@ namespace
       return info.error;
     }
 
-    date::hh_mm_ss<nanoseconds> time;
+    hh_mm_ss<nanoseconds> time;
     if (info.mode == InfoMode::Time)
     {
-      auto tp = date::sys_time<nanoseconds>(info.ns);
-      auto dp = floor<date::days>(tp);
-      time = date::hh_mm_ss<nanoseconds>(tp - dp);
+      auto tp = sys_time<nanoseconds>(info.ns);
+      auto dp = floor<days>(tp);
+      time = hh_mm_ss<nanoseconds>(tp - dp);
     }
     else
     {
-      auto zone = date::locate_zone(info.time_zone);
-      date::zoned_time<nanoseconds> zt_ns(
-        zone, date::sys_time<nanoseconds>(info.ns));
+      auto zone = locate_zone(info.time_zone);
+      zoned_time<nanoseconds> zt_ns(zone, sys_time<nanoseconds>(info.ns));
       auto tp = zt_ns.get_local_time();
-      auto dp = floor<date::days>(tp);
-      time = date::hh_mm_ss<nanoseconds>(tp - dp);
+      auto dp = floor<days>(tp);
+      time = hh_mm_ss<nanoseconds>(tp - dp);
     }
 
     std::int64_t hours_int = time.hours().count();
@@ -448,19 +539,18 @@ namespace
       return info.error;
     }
 
-    date::year_month_day ymd;
+    year_month_day ymd;
     if (info.mode == InfoMode::Time)
     {
       time_point<system_clock, nanoseconds> tp(info.ns);
-      ymd = {date::floor<date::days>(tp)};
+      ymd = {floor<days>(tp)};
     }
     else
     {
-      auto zone = date::locate_zone(info.time_zone);
-      date::zoned_time<nanoseconds> zt_ns(
-        zone, date::sys_time<nanoseconds>(info.ns));
-      auto ld = date::floor<date::days>(zt_ns.get_local_time());
-      ymd = date::year_month_day(ld);
+      auto zone = locate_zone(info.time_zone);
+      zoned_time<nanoseconds> zt_ns(zone, sys_time<nanoseconds>(info.ns));
+      auto ld = floor<days>(zt_ns.get_local_time());
+      ymd = year_month_day(ld);
     }
 
     std::int64_t year = int(ymd.year());
@@ -485,39 +575,37 @@ namespace
       return info2.error;
     }
 
-    date::sys_time<nanoseconds> tp1;
-    date::sys_time<nanoseconds> tp2;
+    sys_time<nanoseconds> tp1;
+    sys_time<nanoseconds> tp2;
 
     if (info1.mode == InfoMode::Time)
     {
-      tp1 = date::sys_time<nanoseconds>(info1.ns);
+      tp1 = sys_time<nanoseconds>(info1.ns);
     }
     else
     {
-      auto zone = date::locate_zone(info1.time_zone);
-      date::zoned_time<nanoseconds> zt_ns(
-        zone, date::sys_time<nanoseconds>(info1.ns));
+      auto zone = locate_zone(info1.time_zone);
+      zoned_time<nanoseconds> zt_ns(zone, sys_time<nanoseconds>(info1.ns));
       tp1 = zt_ns.get_sys_time();
     }
 
     if (info2.mode == InfoMode::Time)
     {
-      tp2 = date::sys_time<nanoseconds>(info2.ns);
+      tp2 = sys_time<nanoseconds>(info2.ns);
     }
     else
     {
-      auto zone = date::locate_zone(info2.time_zone);
-      date::zoned_time<nanoseconds> zt_ns(
-        zone, date::sys_time<nanoseconds>(info2.ns));
+      auto zone = locate_zone(info2.time_zone);
+      zoned_time<nanoseconds> zt_ns(zone, sys_time<nanoseconds>(info2.ns));
       tp2 = zt_ns.get_sys_time();
     }
 
     seconds diff_s = duration_cast<seconds>(tp1 > tp2 ? tp1 - tp2 : tp2 - tp1);
-    date::years diff_years = floor<date::years>(diff_s);
+    years diff_years = floor<years>(diff_s);
     diff_s -= seconds(diff_years.count() * 365 * 24 * 60 * 60);
-    date::months diff_months = floor<date::months>(diff_s);
+    months diff_months = floor<months>(diff_s);
     diff_s -= diff_months;
-    date::days diff_days = floor<date::days>(diff_s);
+    days diff_days = floor<days>(diff_s);
     diff_s -= diff_days;
     hours diff_hours = floor<hours>(diff_s);
     diff_s -= diff_hours;
@@ -549,90 +637,64 @@ namespace
     return info_string(info);
   }
 
-  const std::map<std::string, double> duration_units = {
-    {"ns", 1},
-    {"us", 1000},
-    {"µs", 1000},
-    {"ms", 1000000},
-    {"s", double(second_ns)},
-    {"m", double(minute_ns)},
-    {"h", double(hour_ns)}};
-
-  nanoseconds do_parse_duration(const std::string& duration)
-  {
-    const char* duration_re =
-      R"((-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?)((?:ns|us|µs|ms|s|m|h)))";
-    const RE2 re(duration_re);
-    assert(re.ok());
-
-    std::string number;
-    std::string unit;
-    std::int64_t ns = 0;
-    std::size_t start = 0;
-    while (start < duration.size())
-    {
-      re2::StringPiece input(duration.c_str() + start, duration.size() - start);
-      if (RE2::PartialMatch(input, re, &number, &unit))
-      {
-        double number_d = std::stod(number);
-        double unit_ns = duration_units.at(unit);
-        ns += std::int64_t(number_d * unit_ns);
-        start += number.size() + unit.size();
-      }
-      else
-      {
-        break;
-      }
-    }
-
-    return nanoseconds(ns);
-  }
-
-  Node parse_duration_ns(const Nodes& args)
-  {
-    Node duration = unwrap_arg(
-      args, UnwrapOpt(0).type(JSONString).func("time.parse_duration_ns"));
-    if (duration->type() == Error)
-    {
-      return duration;
-    }
-
-    std::int64_t ns = do_parse_duration(get_string(duration)).count();
-
-    if (ns != 0)
-    {
-      return Int ^ std::to_string(ns);
-    }
-
-    return Undefined;
-  }
-
   Node do_parse(const std::string& layout, const Node& value)
   {
     std::string value_str = get_string(value);
-    auto [format, _] = get_format(layout);
-    std::istringstream is(value_str);
-    date::fields<nanoseconds> info;
-    minutes offset(0);
-    is >> date::parse(format, info, offset);
-
-    std::int64_t tod_ns = 0;
-    if (info.has_tod)
+    auto [format, res] = get_format(layout);
+    std::string parse_fmt = format;
+    auto start = parse_fmt.find("%S");
+    if (start != std::string::npos)
     {
-      tod_ns = info.tod.to_duration().count();
+      switch (res.first)
+      {
+        case Resolution::Nano:
+        case Resolution::NanoZero:
+          parse_fmt.replace(start, 2, "%12S");
+          break;
+
+        case Resolution::Micro:
+        case Resolution::MicroZero:
+          parse_fmt.replace(start, 2, "%9S");
+          break;
+
+        case Resolution::Milli:
+        case Resolution::MilliZero:
+          parse_fmt.replace(start, 2, "%6S");
+          break;
+
+        default:
+          break;
+      }
     }
 
-    std::int64_t offset_ns = offset.count() * minute_ns;
+    std::istringstream is(value_str);
+    sys_time<nanoseconds> time_ns;
+    is >> parse(parse_fmt, time_ns);
 
-    std::int64_t days = date::local_days(info.ymd).time_since_epoch().count();
-    BigInt ns = (days * BigInt(day_ns)) - offset_ns + tod_ns;
-
-    if (
-      ns < std::numeric_limits<std::int64_t>::min() ||
-      ns > std::numeric_limits<std::int64_t>::max())
+    if (is.fail())
     {
+      return err(value, "Unable to parse time", EvalBuiltInError);
+    }
+
+    BigInt ns = time_ns.time_since_epoch().count();
+
+    // BEGIN workaround
+    // Integer overflow bug in std::chrono::parse()
+    sys_time<milliseconds> time_ms;
+    is = std::istringstream(value_str);
+    is >> parse(format, time_ms);
+    BigInt test_ns =
+      BigInt(time_ms.time_since_epoch().count()) * BigInt(milli_ns);
+    BigInt diff = (ns - test_ns).abs();
+
+    if (diff > day_ns * 365)
+    {
+      logging::Error() << diff.loc().view()
+                       << " ns is greater than a year, likely an "
+                          "integer overflow bug in std::chrono::parse()";
       return err(value, "time outside of valid range", EvalBuiltInError);
     }
+    // END workaround
 
     return Resolver::term(ns);
   }
@@ -666,7 +728,7 @@ namespace
       return value;
     }
 
-    return do_parse("RFC3339", value);
+    return do_parse("RFC3339Nano", value);
   }
 
   Node weekday(const Nodes& args)
@@ -686,34 +748,7 @@ namespace
 
     return info_string(info);
   }
-
-  struct NowNS : public BuiltInDef
-  {
-    Node cached;
-
-    NowNS() :
-      BuiltInDef(
-        Location("time.now_ns"), 0, [this](const Nodes&) { return call(); })
-    {}
-
-    Node call()
-    {
-      if (cached != nullptr)
-      {
-        return cached->clone();
-      }
-
-      auto now = high_resolution_clock::now().time_since_epoch();
-      auto now_ns = duration_cast<nanoseconds>(now).count();
-      cached = Int ^ std::to_string(now_ns);
-      return cached;
-    }
-
-    void clear() override
-    {
-      cached = nullptr;
-    }
-  };
+#endif
 }
 
 namespace rego
@@ -722,52 +757,28 @@ namespace rego
   {
     std::vector<BuiltIn> time()
     {
-#ifdef REGOCPP_USE_MANUAL_TZDATA
-      date::set_install(REGOCPP_TZDATA_PATH);
-#endif
-
       return {
-        BuiltInDef::create(Location("time.add_date"), 4, add_date),
-        BuiltInDef::create(Location("time.clock"), 1, clock_),
-        BuiltInDef::create(Location("time.date"), 1, date_),
-        BuiltInDef::create(Location("time.diff"), 2, diff),
-        BuiltInDef::create(Location("time.format"), 1, format),
         std::make_shared<NowNS>(),
         BuiltInDef::create(
           Location("time.parse_duration_ns"), 1, parse_duration_ns),
+#if __cpp_lib_chrono >= 201907L
+        BuiltInDef::create(Location("time.add_date"), 4, add_date),
+        BuiltInDef::create(Location("time.format"), 1, format),
+        BuiltInDef::create(Location("time.diff"), 2, diff),
         BuiltInDef::create(Location("time.parse_ns"), 2, parse_ns),
         BuiltInDef::create(
           Location("time.parse_rfc3339_ns"), 1, parse_rfc3339_ns),
-        BuiltInDef::create(Location("time.weekday"), 1, ::weekday)};
+        BuiltInDef::create(Location("time.weekday"), 1, ::weekday),
+        BuiltInDef::create(Location("time.clock"), 1, clock_),
+        BuiltInDef::create(Location("time.date"), 1, date_),
+#endif
+      };
     }
   }
 
-  void set_tzdata_path(const std::filesystem::path& path)
+  void set_tzdata_path(const std::filesystem::path&)
   {
-#ifdef REGOCPP_USE_MANUAL_TZDATA
-    date::set_install(path.string());
-    auto wz_path = path / "windowsZones.xml";
-    if (!std::filesystem::exists(wz_path))
-    {
-      std::ofstream file(wz_path);
-      if (file.is_open())
-      {
-        for (auto& line : WINDOWS_ZONES_SRC)
-        {
-          file << line << std::endl;
-        }
-        file.close();
-      }
-      else
-      {
-        throw std::runtime_error(
-          "Failed to create required windowsZones.xml at tzdata path");
-      }
-    }
-#else
-    throw std::runtime_error(
-      "Cannot set tzdata path to " + path.string() +
-      " because REGOCPP_USE_MANUAL_TZDATA was not defined");
-#endif
+    logging::Warn()
+      << "set_tzdata_path is deprecated. This function does nothing.";
   }
 }

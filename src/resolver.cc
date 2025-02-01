@@ -483,7 +483,7 @@ namespace rego
           Node value = container->at(i);
           if (value->type() == Expr)
           {
-            throw new std::runtime_error("Not implemented");
+            throw std::runtime_error("Not implemented");
           }
 
           return Nodes({value});

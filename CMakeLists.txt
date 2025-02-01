@@ -63,24 +63,21 @@ set(REGOCPP_BUILD_TOOLCHAIN "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSI
 option(REGOCPP_BUILD_TOOLS "Specifies whether to build the command line tools" OFF)
 option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
 option(REGOCPP_BUILD_DOCS "Specifies whether to build the documentation" OFF)
+option(REGOCPP_BUILD_SHARED "Whether to build the rego_shared library" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
 option(REGOCPP_SPECULATIVE_LOAD_HARDENING "Specifies whether to enable speculative load hardening, only supported with Clang" OFF)
 option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
-option(REGOCPP_USE_CXX17 "Specifies whether to use C++17" OFF)
 option(REGOCPP_ACTION_METRICS "Specifies whether to metricate Trieste Actions" OFF)
 option(REGOCPP_CLEAN_INSTALL "Whether the install directory should be cleaned before install" OFF)
-option(REGOCPP_USE_MANUAL_TZDATA "Whether to use the manual tzdata" OFF)
 set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 
-if(REGOCPP_USE_CXX17)
-  set(CMAKE_CXX_STANDARD 17)
-else()
-  set(CMAKE_CXX_STANDARD 20)
-endif()
 
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # -------------------- Find packages --------------------------
+
+find_package(Threads)
 
 # Used to provide
 # FetchContent_MakeAvailable_ExcludeFromAll
@@ -92,12 +89,6 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-  date
-  GIT_REPOSITORY https://github.com/HowardHinnant/date.git
-  GIT_TAG 51ce7e131079c061533d741be5fe7cca57f2faac
-)
-
-FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
   GIT_TAG        70a4d5f79cb574070ff69b2517b422c5126e2024
@@ -105,69 +96,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(cmake_utils)
 
-if(MSVC)
-  message("MSVC: must use manual TZ database")
-  set(REGOCPP_USE_MANUAL_TZDATA ON)
-endif()
-
-if(DEFINED ENV{REGOCPP_TZDATA_PATH})
-  set(REGOCPP_TZDATA_PATH $ENV{REGOCPP_TZDATA_PATH} CACHE STRING "Path to the tzdata directory")
-  message("REGOCPP_TZDATA_PATH set to ${REGOCPP_TZDATA_PATH}")
-else()
-  set(REGOCPP_TZDATA_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Path to the tzdata directory")
-  message("REGOCPP_TZDATA_PATH not set, using ${REGOCPP_TZDATA_PATH}")
-endif()
-
-file(TO_CMAKE_PATH ${REGOCPP_TZDATA_PATH} REGOCPP_TZDATA_PATH)
-
-set(REGOCPP_WINDOWS_ZONES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml")
-
-if(REGOCPP_USE_MANUAL_TZDATA)
-  set(MANUAL_TZ_DB ON)
-  set(USE_SYSTEM_TZ_DB OFF)
-  set(TZDATA_GZ_PATH "${CMAKE_CURRENT_BINARY_DIR}/tzdata-latest.tar.gz")
-  set(TZDATA_PATH "${CMAKE_CURRENT_BINARY_DIR}/tzdata")
-  if(NOT EXISTS ${TZDATA_PATH})
-    message("Downloading tzdata to ${TZDATA_GZ_PATH}")
-    # we need to download the TZ database and make it available
-    FILE(DOWNLOAD https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz ${TZDATA_GZ_PATH} SHOW_PROGRESS)
-    message("Extracting ${TZDATA_GZ_PATH} to ${TZDATA_PATH}")
-    FILE(ARCHIVE_EXTRACT INPUT ${TZDATA_GZ_PATH} DESTINATION ${TZDATA_PATH})
-  endif()
-
-  if(NOT EXISTS ${REGOCPP_TZDATA_PATH}/tzdata)
-    # Copy the tzdata directory to the specified path.
-    message("Copying ${TZDATA_PATH} to ${REGOCPP_TZDATA_PATH}")
-    file(COPY ${TZDATA_PATH} DESTINATION ${REGOCPP_TZDATA_PATH})
-  endif()
-
-  if(MSVC)
-    if(NOT EXISTS ${REGOCPP_TZDATA_PATH}/tzdata/windowsZones.xml)
-      message("MSVC: Copying windowsZones.xml to ${REGOCPP_TZDATA_PATH}/tzdata")
-      file(COPY ${REGOCPP_WINDOWS_ZONES_PATH} DESTINATION ${REGOCPP_TZDATA_PATH}/tzdata)
-    endif()
-  endif()
-else()
-  message("Attempting to use system TZ database")
-  set(USE_SYSTEM_TZ_DB ON)
-  set(MANUAL_TZ_DB OFF)
-endif()
-
-file( READ ${REGOCPP_WINDOWS_ZONES_PATH} REGOCPP_WINDOWS_ZONES_RAW )
-string(LENGTH "${REGOCPP_WINDOWS_ZONES_RAW}" REGOCPP_WINDOWS_ZONES_RAW_LENGTH)
-math(EXPR REGOCPP_WINDOWS_ZONES_RAW_LENGTH "${REGOCPP_WINDOWS_ZONES_RAW_LENGTH} - 1")
-foreach(iter RANGE 0 ${REGOCPP_WINDOWS_ZONES_RAW_LENGTH} 2048)
-  string(SUBSTRING "${REGOCPP_WINDOWS_ZONES_RAW}" ${iter} 2048 line)
-  string(APPEND REGOCPP_WINDOWS_ZONES_SRC "${line})xml\",\n\tR\"xml(")
-endforeach()
-
-set(BUILD_TZ_LIB ON)
-set(COMPILE_WITH_C_LOCALE ON)
-FetchContent_MakeAvailable_ExcludeFromAll(date)
-
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
 
-set(TRIESTE_USE_CXX17 ${REGOCPP_USE_CXX17})
 set(TRIESTE_BUILD_SAMPLES OFF)
 set(TRIESTE_BUILD_PARSERS ON)
 
@@ -190,7 +120,7 @@ if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_SAVED}")
 endif()
 
-find_program(CLANG_FORMAT NAMES clang-format-10 clang-format-14 )
+find_program(CLANG_FORMAT NAMES clang-format-10 clang-format-14 clang-format-18 )
 
 string(COMPARE EQUAL ${CLANG_FORMAT} "CLANG_FORMAT-NOTFOUND" CLANG_FORMAT_NOT_FOUND)
 if(CLANG_FORMAT_NOT_FOUND)
@@ -262,18 +192,14 @@ if(REGOCPP_CLEAN_INSTALL)
     ]])
 endif()
 
-if(REGOCPP_USE_MANUAL_TZDATA)
-  # If the install depends on this, we want to include it in the install package.
-  INSTALL(DIRECTORY ${TZDATA_PATH} DESTINATION .)
-  if(MSVC)
-    INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/templates/tzdata/windowsZones.xml DESTINATION tzdata)
-  endif()
-endif()
-
 set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
 set(INSTALL_INCLUDEDIR include)
-set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2 date-tz)
+set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2)
+
+if(REGOCPP_BUILD_SHARED)
+  list(APPEND REGOCPP_INSTALL_TARGETS rego_shared)
+endif()
 
 if(TRIESTE_USE_SNMALLOC)
   list(APPEND REGOCPP_INSTALL_TARGETS snmalloc-new-override)

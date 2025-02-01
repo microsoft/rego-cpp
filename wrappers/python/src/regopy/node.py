@@ -1,71 +1,17 @@
 """Module providing an interface to the rego-cpp Node object."""
 
-from enum import IntEnum
 import json
 from typing import Union
 
-from ._regopy import (
-    REGO_NODE_ARRAY,
-    REGO_NODE_BINDING,
-    REGO_NODE_ERROR,
-    REGO_NODE_ERROR_AST,
-    REGO_NODE_ERROR_CODE,
-    REGO_NODE_ERROR_MESSAGE,
-    REGO_NODE_ERROR_SEQ,
-    REGO_NODE_FALSE,
-    REGO_NODE_FLOAT,
-    REGO_NODE_INT,
-    REGO_NODE_INTERNAL,
-    REGO_NODE_NULL,
-    REGO_NODE_OBJECT,
-    REGO_NODE_OBJECT_ITEM,
-    REGO_NODE_SCALAR,
-    REGO_NODE_SET,
-    REGO_NODE_STRING,
-    REGO_NODE_TERM,
-    REGO_NODE_TRUE,
-    REGO_NODE_UNDEFINED,
-    REGO_NODE_VAR,
-    REGO_NODE_TERMS,
-    REGO_NODE_BINDINGS,
-    REGO_NODE_RESULTS,
-    REGO_NODE_RESULT,
-    regoNodeGet,
-    regoNodeJSON,
-    regoNodeSize,
-    regoNodeType,
-    regoNodeTypeName,
-    regoNodeValue,
+from .rego_shared import (
+    NodeKind,
+    rego_node_type,
+    rego_node_type_name,
+    rego_node_value,
+    rego_node_size,
+    rego_node_get,
+    rego_node_json
 )
-
-
-class NodeKind(IntEnum):
-    """Enumeration of node types."""
-
-    Binding = REGO_NODE_BINDING
-    Var = REGO_NODE_VAR
-    Term = REGO_NODE_TERM
-    Scalar = REGO_NODE_SCALAR
-    Array = REGO_NODE_ARRAY
-    Set = REGO_NODE_SET
-    Object = REGO_NODE_OBJECT
-    ObjectItem = REGO_NODE_OBJECT_ITEM
-    Int = REGO_NODE_INT
-    Float = REGO_NODE_FLOAT
-    String = REGO_NODE_STRING
-    Boolean = REGO_NODE_TRUE
-    Null = REGO_NODE_NULL
-    Undefined = REGO_NODE_UNDEFINED
-    Terms = REGO_NODE_TERMS
-    Bindings = REGO_NODE_BINDINGS
-    Results = REGO_NODE_RESULTS
-    Result = REGO_NODE_RESULT
-    Error = REGO_NODE_ERROR
-    ErrorMessage = REGO_NODE_ERROR_MESSAGE
-    ErrorAst = REGO_NODE_ERROR_AST
-    ErrorCode = REGO_NODE_ERROR_CODE
-    ErrorSeq = REGO_NODE_ERROR_SEQ
-    Internal = REGO_NODE_INTERNAL
 
 
 class Node:
@@ -108,25 +54,21 @@ class Node:
     def __init__(self, impl):
         """Creates a new node."""
         self._impl = impl
-        kind = regoNodeType(self._impl)
-        if kind in (REGO_NODE_TRUE, REGO_NODE_FALSE):
-            self._kind = NodeKind.Boolean
-        else:
-            self._kind = NodeKind(regoNodeType(self._impl))
+        self._kind = rego_node_type(self._impl)
 
-        size = regoNodeSize(self._impl)
+        size = rego_node_size(self._impl)
         if self._kind == NodeKind.Object:
             self._children = {}
             for i in range(size):
-                child = Node(regoNodeGet(self._impl, i))
+                child = Node(rego_node_get(self._impl, i))
                 assert child._kind == NodeKind.ObjectItem
-                key = regoNodeJSON(child.at(0)._impl)
+                key = rego_node_json(child.at(0)._impl)
                 self._children[key] = child.at(1)
         elif self._kind == NodeKind.Set:
             self._children = {}
             for i in range(size):
-                child = Node(regoNodeGet(self._impl, i))
-                key = regoNodeJSON(child._impl)
+                child = Node(rego_node_get(self._impl, i))
+                key = rego_node_json(child._impl)
                 self._children[key] = child
         else:
             self._children = [None] * size
@@ -139,7 +81,7 @@ class Node:
     @property
     def kind_name(self) -> str:
         """Returns a human-readable string representation of the node kind."""
-        return regoNodeTypeName(self._impl)
+        return rego_node_type_name(self._impl)
 
     @property
     def value(self) -> Union[str, int, float, bool, None]:
@@ -179,7 +121,7 @@ class Node:
         if hasattr(self, "_value"):
             return self._value
 
-        value = regoNodeValue(self._impl)
+        value = rego_node_value(self._impl)
         if self._kind == NodeKind.Int:
             self._value = int(value)
         elif self._kind == NodeKind.Float:
@@ -260,7 +202,7 @@ class Node:
     def at(self, index: int) -> "Node":
         """Returns the child node at the given index."""
         if self._children[index] is None:
-            self._children[index] = Node(regoNodeGet(self._impl, index))
+            self._children[index] = Node(rego_node_get(self._impl, index))
 
         return self._children[index]
 
@@ -294,7 +236,7 @@ class Node:
 
     def json(self) -> str:
         """Returns the node as a JSON string."""
-        return regoNodeJSON(self._impl)
+        return rego_node_json(self._impl)
 
     def __str__(self) -> str:
         """Returns the node as a JSON string."""
