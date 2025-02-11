@@ -44,7 +44,7 @@ f := e["dev"])");
         "bop": 4.23
     }
 })");
-  rego.set_input_json(R"({
+  rego.set_input_term(R"({
     "a": 10,
     "b": "20",
     "c": 30.0,
