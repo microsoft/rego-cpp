@@ -510,7 +510,7 @@ extern "C"
   // clang-format off
 
   /**
-   * Returns an enumeration value indicating the nodes type.
+   * Returns an enumeration value indicating the node's type.
    *
    * This type will be one of the following values:
    *
