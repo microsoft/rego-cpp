@@ -17,11 +17,7 @@ namespace
 
     if (number->type() == Int)
     {
-      BigInt value = get_int(number);
-      if (value.is_negative())
-      {
-        value = value.negate();
-      }
+      BigInt value = get_int(number).abs();
       return Int ^ value.loc();
     }
     else

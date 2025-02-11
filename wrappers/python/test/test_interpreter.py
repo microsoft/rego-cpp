@@ -1,6 +1,7 @@
 """Tests for the Python wrapper of the Rego interpreter."""
 
-from regopy import Interpreter
+import pytest
+from regopy import Interpreter, RegoError
 
 
 def test_query_math():
@@ -122,15 +123,18 @@ def test_multiple_inputs():
     assert output.binding("x").value == 70
 
 
-def test_tzdata():
+def test_time():
     rego = Interpreter()
-    output = rego.query("""x=time.clock([1727267567139080131, "America/Los_Angeles"])""")
-    assert output is not None
-    clock = output.binding("x")
-    assert len(clock) == 3
-    assert clock[0].value == 5
-    assert clock[1].value == 32
-    assert clock[2].value == 47
+    if rego.is_builtin("time.clock"):
+        output = rego.query("""x=time.clock([1727267567139080131, "America/Los_Angeles"])""")
+        assert output is not None
+        clock = output.binding("x")
+        assert len(clock) == 3
+        assert clock[0].value == 5
+        assert clock[1].value == 32
+        assert clock[2].value == 47
+    else:
+        pytest.skip("test_time skipped: time.clock not available")
 
 
 def test_set():
@@ -144,3 +148,13 @@ def test_set():
     assert not a[False].value
     assert a[4.3].value == 4.3
     assert a[6] is None
+
+
+def test_bad_module():
+    rego = Interpreter()
+    try:
+        rego.add_module("bad", "package bad\n\nx <> 1")
+    except RegoError:
+        pass
+    else:
+        raise AssertionError("Expected RegoError")

@@ -53,7 +53,6 @@ fn main() {
                 .as_str(),
             "-DCMAKE_INSTALL_PREFIX=rust",
             "-DREGOCPP_COPY_EXAMPLES=ON",
-            "-DREGOCPP_USE_MANUAL_TZDATA=ON"
         ])
         .current_dir(&regocpp_path)
         .status()
@@ -82,12 +81,11 @@ fn main() {
     let header_path_str = header_path.to_str().unwrap();
 
     println!("cargo:rustc-link-search={}", libdir_path.to_str().unwrap());
-    println!("cargo:rustc-link-lib=static=re2");
-    println!("cargo:rustc-link-lib=static=snmalloc-new-override");
+    println!("cargo:rustc-link-lib=static:+whole-archive=re2");
+    println!("cargo:rustc-link-lib=static:+whole-archive=snmalloc-new-override");
+    println!("cargo:rustc-link-lib=static:+whole-archive=json");
+    println!("cargo:rustc-link-lib=static:+whole-archive=yaml");
     println!("cargo:rustc-link-lib=static=rego");
-    println!("cargo:rustc-link-lib=static=json");
-    println!("cargo:rustc-link-lib=static=yaml");
-    println!("cargo:rustc-link-lib=static=date-tz");
     if cfg!(windows) {
         println!("cargo:rustc-link-arg=mincore.lib");
         println!("cargo:rustc-link-arg=shell32.lib");

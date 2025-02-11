@@ -1,5 +1,22 @@
 # Changelog
 
+## 2024-12-10 - Version 0.4.6
+Point release adding a dotnet wrapper.
+
+**New Features**
+- dotnet wrapper
+- The C API has changed slightly (added a `regoOutputJSON` method, as well as `regoVersion` and `regoBuildInfo` methods)
+- Python and Rust wrapper implementations have been changed to use the new `regoOutputJSON` method, which should aid
+  in stability on some platforms
+- The Python wrapper no longer reads its version from the repository, allowing it to be built independently
+- The Python wrapper will not use a manual tzdata install by default, but will use the system tzdata if available
+- Added a `rego_shared` target which builds rego-cpp as a shared library
+
+**Bug Fixes**
+- The Python wrapper has been broken since 0.4.0 on Windows due to a bug with DLL calling conventions.
+  The whole wrapper has been rearchitected to use `ctypes` and the same rego-shared library as the dotnet wrapper
+
+
 ## 2024-09-26 - Version 0.4.5
 Point release addressing some issues in the Python and Rust wrappers.
 

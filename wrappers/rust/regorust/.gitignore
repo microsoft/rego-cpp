@@ -16,6 +16,3 @@ Cargo.lock
 # Rego
 rego-cpp
 rego
-
-# tzdata
-tzdata*

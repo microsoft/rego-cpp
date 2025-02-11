@@ -1,0 +1,85 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows> 
+    <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX> 
+    <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux> 
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Matthew Johnson</Authors>
+    <Company>Microsoft</Company>
+    <Version>0.4.6</Version>
+    <Copyright>Copyright (c) 2024 Microsoft. All rights reserved.</Copyright>
+    <Description>
+      This client library provides in-process Rego query support for .NET applications.
+      For this release see notes - https://github.com/microsoft/rego-cpp/blob/main/README.md and https://github.com/microsoft/rego-cpp/blob/main/CHANGELOG
+      For general information on rego-cpp - https://microsoft.github.io/rego-cpp/
+    </Description>
+    <RepositoryUrl>https://github.com/microsoft/rego-cpp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PlatformArch Condition="'$(IsWindows)'=='true'">win-x64</PlatformArch>
+    <PlatformArch Condition="'$(IsLinux)'=='true'">linux-x64</PlatformArch>
+    <PlatformArch Condition="'$(IsOSX)'=='true'">osx-x64</PlatformArch>
+    <PackageId>Rego-$(PlatformArch)</PackageId>
+    <PackageTags>Rego;Microsoft;Policy;OPA</PackageTags>
+    <PackageIcon>rego_icon.png</PackageIcon>
+    <PackageProjectUrl>https://microsoft.github.io/rego-cpp</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <REGOCPP_REPO Condition=" '$(REGOCPP_REPO)' == '' ">https://github.com/microsoft/rego-cpp.git</REGOCPP_REPO>
+    <REGOCPP_TAG Condition=" '$(REGOCPP_TAG)' == '' ">main</REGOCPP_TAG>
+    <RegoCPPBuildDir>rego-cpp/build</RegoCPPBuildDir>
+    <RegoCPPInstallDir>rego-cpp/build/install</RegoCPPInstallDir>    
+    <DefaultItemExcludes>$(DefaultItemExcludes);rego-cpp/**;</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsLinux)'=='true'">
+    <RegoCPPLibraryName>librego_shared.so</RegoCPPLibraryName>
+    <RegoCPPLibraryPath>$(RegoCPPBuildDir)/src/$(RegoCPPLibraryName)</RegoCPPLibraryPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsWindows)'=='true'">
+    <RegoCPPLibraryName>rego_shared.dll</RegoCPPLibraryName>
+    <RegoCPPLibraryPath>$(RegoCPPBuildDir)/src/Release/$(RegoCPPLibraryName)</RegoCPPLibraryPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsOSX)'=='true'">
+    <RegoCPPLibraryName>librego_shared.dylib</RegoCPPLibraryName>
+    <RegoCPPLibraryPath>$(RegoCPPBuildDir)/src/$(RegoCPPLibraryName)</RegoCPPLibraryPath>
+  </PropertyGroup>
+
+  <Target Name="Clone" BeforeTargets="PrepareForBuild">
+    <Exec Condition="!Exists('rego-cpp')" Command="git clone $(REGOCPP_REPO)" />
+    <Exec Condition="Exists('rego-cpp')" Command="git checkout $(REGOCPP_TAG)" WorkingDirectory="rego-cpp" />
+  </Target>
+
+  <Target Name="CMakeConfig" DependsOnTargets="Clone" BeforeTargets="PrepareForBuild">
+    <Exec Condition="!Exists('$(RegoCPPLibraryPath)')" Command="cmake -S rego-cpp -B $(RegoCPPBuildDir) -DCMAKE_INSTALL_PREFIX=$(RegoCPPInstallDir) -DREGOCPP_BUILD_SHARED=ON -DCMAKE_BUILD_TYPE=Release -DSNMALLOC_ENABLE_DYNAMIC_LOADING=ON" />
+  </Target>
+
+  <Target Name="CMakeBuild" DependsOnTargets="CMakeConfig" BeforeTargets="PrepareForBuild">
+    <Exec Condition="!Exists('$(RegoCPPLibraryPath)')" Command="cmake --build $(RegoCPPBuildDir) --config Release --target rego_shared" />
+  </Target>
+
+  <ItemGroup>
+    <None Include="$(RegoCPPLibraryPath)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>%(Filename)%(Extension)</TargetPath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(RegoCPPLibraryPath)" Pack="true" PackagePath="runtimes/$(PlatformArch)/native" />
+    <None Include="images/rego_icon.png" Pack="true" PackagePath="\"/>
+    <None Include="README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+</Project>

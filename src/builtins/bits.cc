@@ -137,8 +137,10 @@ namespace
 
     Node y = unwrap_arg(
       args, UnwrapOpt(1).types({Int}).func("bits.xor").specify_number(true));
-    if (x->type() == Error)
-    {}
+    if (y->type() == Error)
+    {
+      return y;
+    }
 
     std::int64_t x_int = get_int(x).to_int();
     std::int64_t y_int = get_int(y).to_int();

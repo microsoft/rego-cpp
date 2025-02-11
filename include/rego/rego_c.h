@@ -60,6 +60,16 @@ typedef unsigned int regoSize;
 #define REGO_LOG_LEVEL_DEBUG 5
 #define REGO_LOG_LEVEL_TRACE 6
 
+#define REGO_BUILD_INFO \
+  (REGOCPP_VERSION " (" REGOCPP_BUILD_NAME ", " REGOCPP_BUILD_DATE \
+                   ") " REGOCPP_BUILD_TOOLCHAIN " on " REGOCPP_PLATFORM)
+
+#if defined(REGO_SHARED) && defined(WIN32)
+#define REGO_API(x) __declspec(dllexport) x __cdecl
+#else
+#define REGO_API(x) x
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -67,6 +77,19 @@ extern "C"
   ////////////////////////////////////////
   // ----- Interpreter functions ------ //
   ////////////////////////////////////////
+
+  /**
+   * Returns a string of the form
+   * "VERSION (BUILD_NAME, BUILD_DATE) BUILD_TOOLCHAIN on PLATFORM"
+   * @return The build info string.
+   */
+  REGO_API(const char*) regoBuildInfo(void);
+
+  /**
+   * Returns the version of the Rego library.
+   * @return The version string.
+   */
+  REGO_API(const char*) regoVersion(void);
 
   /**
    * Sets the level of logging.
@@ -80,7 +103,7 @@ extern "C"
    *              REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
    * @return REGO_OK if successful, REGO_ERROR_INVALID_LOG_LEVEL otherwise.
    */
-  regoEnum regoSetLogLevel(regoEnum level);
+  REGO_API(regoEnum) regoSetLogLevel(regoEnum level);
 
   /**
    * Sets the level of logging.
@@ -92,22 +115,16 @@ extern "C"
    *              "Warn", "Info", "Debug", "Trace".
    * @return REGO_OK if successful, REGO_ERROR_INVALID_LOG_LEVEL otherwise.
    */
-  regoEnum regoSetLogLevelFromString(const char* level);
+  REGO_API(regoEnum) regoSetLogLevelFromString(const char* level);
 
   /**
-   * Sets the location where rego-cpp will look for timezone database
-   * information.
+   * Deprecated. This function no longer has any effect.
    *
-   * The timezone database will be interpreted as one obtained from the IANA
-   * (https://www.iana.org/time-zones) which has been downloaded and unpacked
-   * into at the path provided. If the library was built without manual tzdata
-   * support, this function will return an error code.
-   *
-   * @param path The path to the timezone database.
-   * @return REGO_OK if successful, REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED
-   * otherwise.
+   * @deprecated
+   * @param path Ignored
+   * @return REGO_OK.
    */
-  regoEnum regoSetTZDataPath(const char* path);
+  REGO_API(regoEnum) regoSetTZDataPath(const char* path);
 
   /**
    * Allocates and initializes a new Rego interpreter.
@@ -116,7 +133,7 @@ extern "C"
    *
    * @return A pointer to the new interpreter.
    */
-  regoInterpreter* regoNew(void);
+  REGO_API(regoInterpreter*) regoNew(void);
 
   /**
    * Allocates and initializes a new V1 Rego interpreter.
@@ -125,7 +142,7 @@ extern "C"
    *
    * @return A pointer to the new V1 interpreter.
    */
-  regoInterpreter* regoNewV1(void);
+  REGO_API(regoInterpreter*) regoNewV1(void);
 
   /**
    * Frees a Rego interpreter.
@@ -134,7 +151,7 @@ extern "C"
    *
    * @param rego The interpreter to free.
    */
-  void regoFree(regoInterpreter* rego);
+  REGO_API(void) regoFree(regoInterpreter* rego);
 
   /**
    * Adds a module (e.g. virtual document) from the file at the
@@ -147,7 +164,7 @@ extern "C"
    * @param path The path to the policy file.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
-  regoEnum regoAddModuleFile(regoInterpreter* rego, const char* path);
+  REGO_API(regoEnum) regoAddModuleFile(regoInterpreter* rego, const char* path);
 
   /**
    * Adds a module (e.g. virtual document) from the specified string.
@@ -160,8 +177,8 @@ extern "C"
    * @param contents The contents of the module.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
-  regoEnum regoAddModule(
-    regoInterpreter* rego, const char* name, const char* contents);
+  REGO_API(regoEnum)
+  regoAddModule(regoInterpreter* rego, const char* name, const char* contents);
 
   /**
    * Adds a base document from the file at the specified path.
@@ -176,7 +193,8 @@ extern "C"
    * @param path The path to the JSON file.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
-  regoEnum regoAddDataJSONFile(regoInterpreter* rego, const char* path);
+  REGO_API(regoEnum)
+  regoAddDataJSONFile(regoInterpreter* rego, const char* path);
 
   /**
    * Adds a base document from the specified string.
@@ -191,7 +209,8 @@ extern "C"
    * @param contents The contents of the JSON object.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
-  regoEnum regoAddDataJSON(regoInterpreter* rego, const char* contents);
+  REGO_API(regoEnum)
+  regoAddDataJSON(regoInterpreter* rego, const char* contents);
 
   /**
    * Sets the current input document from the file at the specified path.
@@ -206,7 +225,8 @@ extern "C"
    * @param path The path to the JSON file.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
-  regoEnum regoSetInputJSONFile(regoInterpreter* rego, const char* path);
+  REGO_API(regoEnum)
+  regoSetInputJSONFile(regoInterpreter* rego, const char* path);
 
   /**
    * Sets the current input document from the specified string.
@@ -224,7 +244,8 @@ extern "C"
    * @param contents The contents of the JSON value.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
-  regoEnum regoSetInputJSON(regoInterpreter* rego, const char* contents);
+  REGO_API(regoEnum)
+  regoSetInputJSON(regoInterpreter* rego, const char* contents);
 
   /**
    * Sets the current input document from the specified string.
@@ -239,7 +260,8 @@ extern "C"
    * @param contents The contents of the Rego data term.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
-  regoEnum regoSetInputTerm(regoInterpreter* rego, const char* contents);
+  REGO_API(regoEnum)
+  regoSetInputTerm(regoInterpreter* rego, const char* contents);
 
   /**
    * Sets the debug mode of the interpreter.
@@ -253,7 +275,8 @@ extern "C"
    * @param rego The interpreter.
    * @param enabled Whether debug mode should be enabled.
    */
-  void regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled);
+  REGO_API(void)
+  regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled);
 
   /**
    * Gets the debug mode of the interpreter.
@@ -261,7 +284,7 @@ extern "C"
    * @param rego The interpreter.
    * @return Whether debug mode is enabled.
    */
-  regoBoolean regoGetDebugEnabled(regoInterpreter* rego);
+  REGO_API(regoBoolean) regoGetDebugEnabled(regoInterpreter* rego);
 
   /**
    * Sets the path to the debug directory.
@@ -277,7 +300,7 @@ extern "C"
    * @param path The path to the debug directory.
    * @return REGO_OK if successful, REGO_ERROR otherwise.
    */
-  regoEnum regoSetDebugPath(regoInterpreter* rego, const char* path);
+  REGO_API(regoEnum) regoSetDebugPath(regoInterpreter* rego, const char* path);
 
   /**
    * Sets whether to perform well-formed checks after each compiler pass.
@@ -289,8 +312,8 @@ extern "C"
    * @param rego The interpreter.
    * @param enabled Whether well-formed checks should be enabled.
    */
-  void regoSetWellFormedChecksEnabled(
-    regoInterpreter* rego, regoBoolean enabled);
+  REGO_API(void)
+  regoSetWellFormedChecksEnabled(regoInterpreter* rego, regoBoolean enabled);
 
   /**
    * Gets whether well-formed checks are enabled.
@@ -298,7 +321,7 @@ extern "C"
    * @param rego The interpreter.
    * @return Whether well-formed checks are enabled.
    */
-  regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego);
+  REGO_API(regoBoolean) regoGetWellFormedChecksEnabled(regoInterpreter* rego);
 
   /**
    * Performs a query against the current base and virtual documents.
@@ -311,7 +334,8 @@ extern "C"
    * @param query_expr The query expression.
    * @return The output of the query.
    */
-  regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr);
+  REGO_API(regoOutput*)
+  regoQuery(regoInterpreter* rego, const char* query_expr);
 
   /**
    * Sets whether the built-ins should throw errors.
@@ -323,7 +347,8 @@ extern "C"
    * @param rego The interpreter.
    * @param enabled Whether strict built-in errors should be enabled.
    */
-  void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled);
+  REGO_API(void)
+  regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled);
 
   /**
    * Gets whether strict built-in errors are enabled.
@@ -331,7 +356,17 @@ extern "C"
    * @param rego The interpreter.
    * @return Whether strict built-in errors are enabled.
    */
-  regoBoolean regoGetStrictBuiltInErrors(regoInterpreter* rego);
+  REGO_API(regoBoolean) regoGetStrictBuiltInErrors(regoInterpreter* rego);
+
+  /**
+   * Returns whether the specified name corresponds to an available built-in in
+   * the interpreter.
+   *
+   * @param rego The interpreter.
+   * @param name The name of the built-in.
+   * @return Whether the built-in exists.
+   */
+  REGO_API(regoBoolean) regoIsBuiltIn(regoInterpreter* rego, const char* name);
 
   /**
    * Returns the most recently thrown error.
@@ -342,7 +377,7 @@ extern "C"
    * @param rego The interpreter.
    * @return The error message.
    */
-  const char* regoGetError(regoInterpreter* rego);
+  REGO_API(const char*) regoGetError(regoInterpreter* rego);
 
   ////////////////////////////////////////
   // -------- Output functions -------- //
@@ -358,7 +393,7 @@ extern "C"
    * @param output The output.
    * @return Whether the output is ok.
    */
-  regoBoolean regoOutputOk(regoOutput* output);
+  REGO_API(regoBoolean) regoOutputOk(regoOutput* output);
 
   /**
    * Returns the number of results in the output.
@@ -366,7 +401,7 @@ extern "C"
    * Each query can potentially generate multiple results. This function
    * returns the number of results in the output.
    */
-  regoSize regoOutputSize(regoOutput* output);
+  REGO_API(regoSize) regoOutputSize(regoOutput* output);
 
   /**
    * Returns a node containing a list of terms resulting from the query at
@@ -376,7 +411,8 @@ extern "C"
    * @param index The result index.
    * @return The output node.
    */
-  regoNode* regoOutputExpressionsAtIndex(regoOutput* output, regoSize index);
+  REGO_API(regoNode*)
+  regoOutputExpressionsAtIndex(regoOutput* output, regoSize index);
 
   /**
    * Returns a node containing a list of terms resulting from the query
@@ -385,7 +421,7 @@ extern "C"
    * @param output The output.
    * @return The output node.
    */
-  regoNode* regoOutputExpressions(regoOutput* output);
+  REGO_API(regoNode*) regoOutputExpressions(regoOutput* output);
 
   /**
    * Returns the node containing the output of the query.
@@ -396,7 +432,7 @@ extern "C"
    * @param output The output.
    * @return The output node.
    */
-  regoNode* regoOutputNode(regoOutput* output);
+  REGO_API(regoNode*) regoOutputNode(regoOutput* output);
 
   /**
    * Returns the bound value for a given variable name.
@@ -408,7 +444,8 @@ extern "C"
    * @param name The variable name.
    * @return The bound value (or NULL if the variable was not bound)
    */
-  regoNode* regoOutputBindingAtIndex(
+  REGO_API(regoNode*)
+  regoOutputBindingAtIndex(
     regoOutput* output, regoSize index, const char* name);
 
   /**
@@ -420,15 +457,42 @@ extern "C"
    * @param name The variable name.
    * @return The bound value (or NULL if the variable was not bound)
    */
-  regoNode* regoOutputBinding(regoOutput* output, const char* name);
+  REGO_API(regoNode*) regoOutputBinding(regoOutput* output, const char* name);
+
+  /**
+   * Returns the number of bytes needed to store a 0-terminated string
+   * representing the output as a human-readable string.
+   *
+   * The value returned by this function can be used to allocate a buffer to
+   * pass to regoOutputJSON.
+   *
+   * @param output The output.
+   * @return The number of bytes needed to store the output string.
+   */
+  REGO_API(regoSize) regoOutputJSONSize(regoOutput* output);
+
+  /**
+   * Populate a buffer with the output represented as a human-readable string.
+   *
+   * The buffer must be large enough to hold the value. The size of the buffer
+   * can be determined by calling regoOutputJSONSize.
+   *
+   * @param output The output.
+   * @param buffer The buffer to populate.
+   * @param size The size of the buffer.
+   * @return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.
+   */
+  REGO_API(regoEnum)
+  regoOutputJSON(regoOutput* output, char* buffer, regoSize size);
 
   /**
    * Returns the output represented as a human-readable string.
    *
+   * @deprecated This method is unstable. Use regoOutputJSON instead.
    * @param output The output.
    * @return The output string.
    */
-  const char* regoOutputString(regoOutput* output);
+  REGO_API(const char*) regoOutputString(regoOutput* output);
 
   /**
    * Frees a Rego output.
@@ -437,7 +501,7 @@ extern "C"
    *
    * @param output The output to free.
    */
-  void regoFreeOutput(regoOutput* output);
+  REGO_API(void) regoFreeOutput(regoOutput* output);
 
   ////////////////////////////////////////
   // --------- Node functions --------- //
@@ -477,7 +541,7 @@ extern "C"
    *
    * @return The node type.
    */
-  regoEnum regoNodeType(regoNode* node);
+  REGO_API(regoEnum) regoNodeType(regoNode* node);
 
   // clang-format on
 
@@ -490,7 +554,7 @@ extern "C"
    * @param node The node.
    * @return The node type name.
    */
-  const char* regoNodeTypeName(regoNode* node);
+  REGO_API(const char*) regoNodeTypeName(regoNode* node);
 
   /**
    * Returns the number of bytes needed to store a 0-terminated string
@@ -502,7 +566,7 @@ extern "C"
    * @param node The node.
    * @return The number of bytes needed to store the text value.
    */
-  regoSize regoNodeValueSize(regoNode* node);
+  REGO_API(regoSize) regoNodeValueSize(regoNode* node);
 
   /**
    * Populate a buffer with the node value.
@@ -515,7 +579,7 @@ extern "C"
    * @param size The size of the buffer.
    * @return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.
    */
-  regoEnum regoNodeValue(regoNode* node, char* buffer, regoSize size);
+  REGO_API(regoEnum) regoNodeValue(regoNode* node, char* buffer, regoSize size);
 
   /**
    * Returns the number of children of the node.
@@ -523,7 +587,7 @@ extern "C"
    * @param node The node.
    * @return The number of children.
    */
-  regoSize regoNodeSize(regoNode* node);
+  REGO_API(regoSize) regoNodeSize(regoNode* node);
 
   /**
    * Returns the child node at the specified index.
@@ -532,7 +596,7 @@ extern "C"
    * @param index The index of the child.
    * @return The child node.
    */
-  regoNode* regoNodeGet(regoNode* node, regoSize index);
+  REGO_API(regoNode*) regoNodeGet(regoNode* node, regoSize index);
 
   /**
    * Returns the number of bytes needed to store a 0-terminated string
@@ -544,7 +608,7 @@ extern "C"
    * @param node The node.
    * @return The number of bytes needed to store the JSON representation.
    */
-  regoSize regoNodeJSONSize(regoNode* node);
+  REGO_API(regoSize) regoNodeJSONSize(regoNode* node);
 
   /**
    * Populate a buffer with the JSON representation of the node.
@@ -557,7 +621,7 @@ extern "C"
    * @param size The size of the buffer.
    * @return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.
    */
-  regoEnum regoNodeJSON(regoNode* node, char* buffer, regoSize size);
+  REGO_API(regoEnum) regoNodeJSON(regoNode* node, char* buffer, regoSize size);
 
 #ifdef __cplusplus
 }

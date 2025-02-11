@@ -4,6 +4,21 @@
 
 namespace logging = trieste::logging;
 
+namespace
+{
+  regoEnum ok_or_error(const rego::Node& result)
+  {
+    if (result == nullptr)
+    {
+      return REGO_OK;
+    }
+
+    std::ostringstream output_buf;
+    output_buf << result;
+    throw std::runtime_error(output_buf.str());
+  }
+}
+
 namespace rego
 {
   void setError(regoInterpreter* rego, const std::string& error)
@@ -23,6 +38,16 @@ extern "C"
   const char* regoGetError(regoInterpreter* rego)
   {
     return reinterpret_cast<rego::Interpreter*>(rego)->m_c_error.c_str();
+  }
+
+  const char* regoBuildInfo(void)
+  {
+    return REGO_BUILD_INFO;
+  }
+
+  const char* regoVersion(void)
+  {
+    return REGOCPP_VERSION;
   }
 
   regoEnum regoSetLogLevel(regoEnum level)
@@ -75,17 +100,9 @@ extern "C"
     return REGO_ERROR_INVALID_LOG_LEVEL;
   }
 
-  regoEnum regoSetTZDataPath(const char* path)
+  regoEnum regoSetTZDataPath(const char*)
   {
-    try
-    {
-      rego::set_tzdata_path(path);
-      return REGO_OK;
-    }
-    catch (const std::exception&)
-    {
-      return REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED;
-    }
+    return REGO_OK;
   }
 
   regoInterpreter* regoNew()
@@ -106,19 +123,6 @@ extern "C"
   {
     logging::Debug() << "regoFree: " << rego;
     delete reinterpret_cast<rego::Interpreter*>(rego);
-  }
-
-  regoEnum ok_or_error(const rego::Node& result)
-  {
-    if (result == nullptr)
-    {
-      return REGO_OK;
-    }
-
-    std::ostringstream output_buf;
-    output_buf << result;
-    rego::setError(nullptr, output_buf.str());
-    return REGO_ERROR;
   }
 
   regoEnum regoAddModuleFile(regoInterpreter* rego, const char* path)
@@ -296,6 +300,13 @@ extern "C"
       .strict_errors();
   }
 
+  regoBoolean regoIsBuiltIn(regoInterpreter* rego, const char* name)
+  {
+    logging::Debug() << "regoIsBuiltIn: " << name;
+    return reinterpret_cast<rego::Interpreter*>(rego)->builtins().is_builtin(
+      rego::Location(name));
+  }
+
   // Output functions
   regoBoolean regoOutputOk(regoOutput* output)
   {
@@ -378,8 +389,32 @@ extern "C"
     return regoOutputBindingAtIndex(output, 0, name);
   }
 
+  regoSize regoOutputJSONSize(regoOutput* output)
+  {
+    logging::Debug() << "regoOutputJSONSize";
+    return static_cast<regoSize>(
+      reinterpret_cast<rego::regoOutput*>(output)->value.size() + 1);
+  }
+
+  regoEnum regoOutputJSON(regoOutput* output, char* buffer, regoSize size)
+  {
+    logging::Debug() << "regoOutputJSON: " << buffer << "[" << size << "]";
+    auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
+    auto& value = output_ptr->value;
+    if (size < value.size() + 1)
+    {
+      return REGO_ERROR_BUFFER_TOO_SMALL;
+    }
+
+    value.copy(buffer, value.size());
+    buffer[value.size()] = '\0';
+    return REGO_OK;
+  }
+
   const char* regoOutputString(regoOutput* output)
   {
+    logging::Warn()
+      << "regoOutputString is deprecated. Please use regoOutputJSON instead.";
     logging::Debug() << "regoOutputString";
     return reinterpret_cast<rego::regoOutput*>(output)->value.c_str();
   }
@@ -543,7 +578,7 @@ extern "C"
       return REGO_ERROR_BUFFER_TOO_SMALL;
     }
 
-    view.copy(buffer, size);
+    view.copy(buffer, view.size());
     buffer[view.size()] = '\0';
     return REGO_OK;
   }
@@ -588,7 +623,7 @@ extern "C"
       return REGO_ERROR_BUFFER_TOO_SMALL;
     }
 
-    json.copy(buffer, size);
+    json.copy(buffer, json.size());
     buffer[json.size()] = '\0';
     return REGO_OK;
   }
