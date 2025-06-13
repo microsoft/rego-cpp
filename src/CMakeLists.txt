@@ -68,10 +68,6 @@ add_library(rego STATIC ${SOURCES})
 
 add_library(regocpp::rego ALIAS rego)
 
-if (REGOCPP_SPECULATIVE_LOAD_HARDENING)
-  target_compile_options(rego PRIVATE -mllvm -x86-speculative-load-hardening)
-endif()
-
 if (MANUAL_TZ_DB)
   target_compile_definitions(rego PUBLIC "MANUAL_TZ_DB")
 endif()
