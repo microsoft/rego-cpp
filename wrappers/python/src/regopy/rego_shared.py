@@ -129,7 +129,6 @@ rego_new = rego.regoNew
 
 
 rego.regoNewV1.restype = ctypes.c_void_p
-rego.regoNewV1.argtypes = [ctypes.c_char_p]
 rego_new_v1 = rego.regoNewV1
 
 
