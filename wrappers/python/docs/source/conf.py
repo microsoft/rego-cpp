@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'regopy'
-copyright = '2024, Microsoft'
+copyright = 'Microsoft'
 author = 'Microsoft'
-release = '0.4.6'
+release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

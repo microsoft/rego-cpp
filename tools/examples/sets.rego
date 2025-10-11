@@ -8,7 +8,7 @@ d := 3
 e := "one"
 f := "one"
 g := "two"
-h := "three" {
+h := "three" if {
 	d > c
 	c > b
 	b >= a
@@ -26,7 +26,7 @@ array_set := {[a, b], [b, a], [a, c], [a, d], [b, c], [b, d], [c, d]}
 
 empty_set := set()
 
-m {
+m if {
 	data.sets.int_set[1]
 	string_set["one"]
 	data.sets.obj_set[{"foo": 1}]

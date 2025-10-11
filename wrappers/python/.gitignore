@@ -133,3 +133,5 @@ debug
 rego-cpp
 rego_shared.dll
 librego_shared.*
+bundle
+bundle_bin.rbb

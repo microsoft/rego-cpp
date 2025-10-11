@@ -1,5 +1,6 @@
 namespace Rego.Tests;
 
+using System.ComponentModel.DataAnnotations;
 using Rego;
 
 [Collection("RegoTests")]
@@ -24,12 +25,13 @@ public class InterpreterTest
         Assert.True(output.Ok);
         Assert.Equal(1, output.Count);
         var x = output.Binding("x");
-        Assert.Equal(5, x.Value);
+        Assert.Equal(5L, x.Value);
         var y = output.Binding("y");
         Assert.InRange((double)y.Value, 9.39, 9.41);
         var expressions = output.Expressions();
-        Assert.Single(expressions);
-        Assert.Equal(10, expressions[0].Value);
+        Assert.Equal(3, expressions.Count);
+        var last = expressions[2];
+        Assert.Equal(10L, last.Value);
     }
 
     [Fact]
@@ -87,13 +89,13 @@ public class InterpreterTest
         Assert.True(output.Ok);
         var x = output.Binding("x");
         var data_one = x[0];
-        Assert.Equal("\"Foo\"", data_one["bar"].Value);
+        Assert.Equal("Foo", data_one["bar"].Value);
         Assert.True((bool)data_one["be"].Value);
-        Assert.Equal(5, data_one["baz"].Value);
+        Assert.Equal(5L, data_one["baz"].Value);
         Assert.InRange((double)data_one["bop"].Value, 23.39, 23.41);
-        Assert.Equal("\"20\"", x[1].Value);
+        Assert.Equal("20", x[1].Value);
         var data_objects_sites_1 = x[2];
-        Assert.Equal("\"smoke1\"", data_objects_sites_1["name"].Value);
+        Assert.Equal("smoke1", data_objects_sites_1["name"].Value);
     }
 
     [Fact]
@@ -131,16 +133,16 @@ public class InterpreterTest
         rego.SetInput(input0);
         var output = rego.Query("x = data.multi.a");
         Assert.True(output.Ok);
-        Assert.Equal("{\"bindings\":{\"x\":1}}", output.ToString());
+        Assert.Equal("{\"expressions\":[true], \"bindings\":{\"x\":1}}", output.ToString());
         Assert.Equal(1.0, output.Binding("x").Value);
         rego.SetInput(input1);
         output = rego.Query("x = data.multi.a");
         Assert.True(output.Ok);
-        Assert.Equal(41, output.Binding("x").Value);
+        Assert.Equal(41L, output.Binding("x").Value);
         rego.SetInput(input2);
         Assert.True(output.Ok);
         output = rego.Query("x = data.multi.a");
-        Assert.Equal(70, output.Binding("x").Value);
+        Assert.Equal(70L, output.Binding("x").Value);
     }
 
     [Fact]
@@ -149,13 +151,13 @@ public class InterpreterTest
         var rego = new Interpreter();
         var output = rego.Query("x=time.clock([1727267567139080131, \"America/Los_Angeles\"])");
         Assert.True(output.Ok);
-        if(rego.IsBuiltIn("time.clock"))
+        if (rego.IsAvailableBuiltIn("time.clock"))
         {
             var clock = output.Binding("x");
             Assert.Equal(3, clock.Count);
-            Assert.Equal(5, clock[0].Value);
-            Assert.Equal(32, clock[1].Value);
-            Assert.Equal(47, clock[2].Value);
+            Assert.Equal(5L, clock[0].Value);
+            Assert.Equal(32L, clock[1].Value);
+            Assert.Equal(47L, clock[2].Value);
         }
         else
         {
@@ -171,8 +173,8 @@ public class InterpreterTest
         Assert.True(output.Ok);
         var a = output.Binding("a");
         Assert.Equal(4, a.Count);
-        Assert.Equal(1, a[1].Value);
-        Assert.Equal("\"2\"", a["2"].Value);
+        Assert.Equal(1L, a[1].Value);
+        Assert.Equal("2", a["2"].Value);
         Assert.False((bool)a[false].Value);
         Assert.Equal(4.3, a[4.3].Value);
         Assert.False(a.TryGetValue(6, out Node? _));
@@ -183,5 +185,57 @@ public class InterpreterTest
     {
         Interpreter rego = new();
         Assert.Throws<RegoException>(() => rego.AddModule("bad", "\n\nx <> 1"));
+    }
+
+    [Fact]
+    public void Interpreter_build()
+    {
+        var input = Input.Create(new Dictionary<string, int>
+        {
+            {"x", 104 },
+            {"y", 119 }
+        });
+        var data = """
+    {
+       "a": 7,
+       "b": 13
+    }
+    """;
+        var module = """
+    package test
+
+    foo := data.a * input.x + data.b * input.y
+    bar := data.b * input.x + data.a * input.y
+    """;
+
+        var bundle_dir = "bundle";
+        var bundle_file = "bundle.rbb";
+
+        Interpreter rego_build = new();
+        rego_build.AddDataJson(data);
+        rego_build.AddModule("test.rego", module);
+        var bundle = rego_build.Build("x=data.test.foo + data.test.bar", ["test/foo", "test/bar"]);
+        Assert.True(bundle.Ok);
+
+        rego_build.SaveBundle(bundle_file, bundle, BundleFormat.Binary);
+        rego_build.SaveBundle(bundle_dir, bundle, BundleFormat.JSON);
+
+        Assert.True(File.Exists(Path.Join(bundle_dir, "plan.json")));
+        Assert.True(File.Exists(Path.Join(bundle_dir, "data.json")));
+        Assert.True(File.Exists(Path.Join(bundle_dir, "test.rego")));
+
+        Interpreter rego_run = new();
+        bundle = rego_run.LoadBundle(bundle_dir, BundleFormat.JSON);
+
+        rego_run.SetInput(input);
+        var output = rego_run.QueryBundle(bundle);
+        Assert.Equal(4460L, output.Binding("x").Value);
+
+        output = rego_run.QueryBundle(bundle, "test/foo");
+        Assert.Equal(2275L, output.Expressions()[0].Value);
+
+        bundle = rego_run.LoadBundle(bundle_file, BundleFormat.Binary);
+        var output_bin = rego_run.QueryBundle(bundle, "test/foo");
+        Assert.Equal(output.ToString(), output_bin.ToString());
     }
 }

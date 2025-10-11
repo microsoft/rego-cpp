@@ -3,74 +3,48 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.h.in" "${CMAKE_CURRENT_BINAR
 set( SOURCES
 bigint.cc
 interpreter.cc
+bundle.cc
+virtual_machine.cc
 rego.cc
 parse.cc
-args.cc
-unifier.cc
-value.cc
-value_map.cc
 resolver.cc
-variable.cc
 builtins.cc
 internal.cc
 rego_c.cc
 encoding.cc
 json.cc
 yaml.cc
-reader.cc
-unify.cc
-unify/strings.cc
-unify/merge_data.cc
-unify/varrefheads.cc
-unify/lift_refheads.cc
-unify/symbols.cc
-unify/replace_argvals.cc
-unify/lift_query.cc
-unify/expand_imports.cc
-unify/constants.cc
-unify/enumerate.cc
-unify/locals.cc
-unify/compr.cc
-unify/absolute_refs.cc
-unify/merge_modules.cc
-unify/skips.cc
-unify/infix.cc
-unify/assign.cc
-unify/skip_refs.cc
-unify/simple_refs.cc
-unify/init.cc
-unify/rulebody.cc
-unify/lift_to_rule.cc
-unify/functions.cc
-unify/unify.cc
-unify/result.cc
+file_to_rego.cc
+rego_to_bundle.cc
+bundle_binary.cc
+bundle_json.cc
+opblock.cc
+dependency_graph.cc
+internal.cc
 builtins/aggregates.cc
 builtins/arrays.cc
+builtins/base64/base64.cpp
 builtins/bits.cc
-builtins/casts.cc
+builtins/comparison.cc
+builtins/conversions.cc
 builtins/encoding.cc
 builtins/graph.cc
+builtins/internal.cc
 builtins/numbers.cc
 builtins/objects.cc
 builtins/regex.cc
-builtins/semver.cc
 builtins/sets.cc
+builtins/semver.cc
 builtins/strings.cc
 builtins/time.cc
 builtins/types.cc
 builtins/units.cc
 builtins/uuid.cc
-# third-party
-builtins/base64/base64.cpp
 )
 
 add_library(rego STATIC ${SOURCES})
 
 add_library(regocpp::rego ALIAS rego)
-
-if (MANUAL_TZ_DB)
-  target_compile_definitions(rego PUBLIC "MANUAL_TZ_DB")
-endif()
 
 target_link_libraries(rego
   PUBLIC
@@ -116,10 +90,6 @@ if ( REGOCPP_BUILD_SHARED )
   set_property(TARGET json PROPERTY POSITION_INDEPENDENT_CODE ON)
   set_property(TARGET snmalloc-new-override PROPERTY POSITION_INDEPENDENT_CODE ON)
   set_property(TARGET re2 PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-  if (MANUAL_TZ_DB)
-    target_compile_definitions(rego_shared PUBLIC "MANUAL_TZ_DB")
-  endif()
 
   target_link_libraries(rego_shared
     PUBLIC

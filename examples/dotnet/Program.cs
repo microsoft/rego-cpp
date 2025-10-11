@@ -1,6 +1,31 @@
-﻿using Rego;
+﻿using System.Collections;
+using Rego;
 
-var rego = new Interpreter();
+//////////////////////
+///// Query only /////
+//////////////////////
+
+Console.WriteLine("Query Only");
+
+// You can run simple queries without any input or data.
+Interpreter rego = new();
+var output = rego.Query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5");
+Console.WriteLine(output);
+// {"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}
+
+// You can access bound results using the Binding method
+Console.WriteLine("x = {0}", output.Binding("x"));
+
+// You can also access expressions by index
+Console.WriteLine(output.Expressions()[2]);
+
+Console.WriteLine();
+
+////////////////////////
+//// Input and Data ////
+////////////////////////
+
+Console.WriteLine("Input and Data");
 
 // If you provide an object, it will be converted to JSON before
 // being added to the state.
@@ -50,7 +75,7 @@ var objectsSource = """
     }
     f := e["dev"]
     """;
-rego.AddModule("objects", objectsSource);
+rego.AddModule("objects.rego", objectsSource);
 
 // inputs can be either JSON or Rego, and provided
 // as objects (which will be converted to JSON) or as
@@ -65,4 +90,59 @@ rego.SetInputTerm("""
     """);
 
 Console.WriteLine(rego.Query("[data.one, input.b, data.objects.sites[1]] = x"));
-// Result: {"bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]}}
+// {"bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]}}
+
+///////////////////
+///// Bundles  ////
+///////////////////
+
+Console.WriteLine();
+Console.WriteLine("Bundles");
+
+// If you want to run the same set of queries against a policy with different
+// inputs, you can create a bundle and use that to save the cost of compilation.
+
+Interpreter rego_build = new();
+
+rego_build.AddDataJson("""
+{"a": 7,
+"b": 13}
+""");
+
+rego_build.AddModule("example.rego", """
+    package example
+
+    foo := data.a * input.x + data.b * input.y
+    bar := data.b * input.x + data.a * input.y
+""");
+
+// We can specify both a default query, and specific entry points into the policy
+// that should be made available to use later.
+var bundle = rego_build.Build("x=data.example.foo + data.example.bar", ["example/foo", "example/bar"]);
+
+// we can now save the bundle to the disk
+rego_build.SaveBundle("bundle", bundle);
+
+// and load it again
+Interpreter rego_run = new();
+rego_run.LoadBundle("bundle");
+
+// the most efficient way to provide input to a policy is by constructing it
+// manually, without the need for parsing JSON or Rego.
+
+var input = Input.Create(new Dictionary<string, int>
+        {
+            {"x", 104 },
+            {"y", 119 }
+        });
+
+rego_run.SetInput(input);
+
+// We can query the bundle, which will use the entrypoint of the default query
+// provided at build
+Console.WriteLine("query: {0}",rego_run.QueryBundle(bundle));
+// Query: {"expressions":[true], "bindings":{"x":4460}}
+
+// or we can query specific entrypoints
+Console.WriteLine("example/foo: {0}", rego_run.QueryBundle(bundle, "example/foo"));
+// example/foo: {"expressions":[2275]}

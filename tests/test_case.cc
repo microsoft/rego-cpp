@@ -4,12 +4,14 @@
 #include "trieste/wf.h"
 #include "trieste/yaml.h"
 
+#include <filesystem>
 #include <stdexcept>
 #include <thread>
 
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   const std::size_t second_ns = 1000000000UL;
   const std::size_t minute_ns = 60UL * second_ns;
@@ -68,6 +70,14 @@ namespace
 
     return Term << (Scalar << (True ^ "true"));
   }
+
+  Node test_sleep_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "duration")
+                             << (bi::Description ^ "time in nanoseconds")
+                             << (bi::Type << bi::Number)))
+             << (bi::Result << (bi::Name ^ "void") << bi::Description
+                            << (bi::Type << bi::Boolean));
 }
 
 namespace rego_test
@@ -108,12 +118,12 @@ namespace rego_test
   {
     if (node == json::Object)
     {
-      return json_object_to_rego(node);
+      return Term << json_object_to_rego(node);
     }
 
     if (node == json::Array)
     {
-      return json_array_to_rego(node);
+      return Term << json_array_to_rego(node);
     }
 
     if (node == json::Number)
@@ -223,7 +233,7 @@ namespace rego_test
     {
       assert(defs[0] == json::Member);
       Node val = defs[0] / json::Value;
-      return Top << val;
+      return val;
     }
 
     return std::nullopt;
@@ -351,8 +361,15 @@ namespace rego_test
 
     if (node == Array)
     {
-      for (auto& object : *node)
+      for (auto& term : *node)
       {
+        auto maybe_object = unwrap(term, Object);
+        if (!maybe_object.success)
+        {
+          return {};
+        }
+
+        Node object = maybe_object.node;
         assert(object == Object);
         BindingMap binding_map;
         for (auto& item : *object)
@@ -461,7 +478,7 @@ namespace rego_test
     {
       if (actual_bindings.find(key) == actual_bindings.end())
       {
-        os << "Wanted binding: " << key << std::endl;
+        os << "Wanted binding: '" << key << "'" << std::endl;
         pass = false;
       }
     }
@@ -474,7 +491,7 @@ namespace rego_test
         {
           os << "  ";
         }
-        os << "Actual binding: " << key << std::endl;
+        os << "Actual binding: '" << key << "'" << std::endl;
         pass = false;
       }
     }
@@ -574,15 +591,15 @@ namespace rego_test
       }
 
       auto data = maybe_get_object(test_case_obj, "data");
-      if (data.has_value() && (*data)->front() == json::Object)
+      if (data.has_value() && data.value()->type() == json::Object)
       {
-        test_case = test_case.data(*data);
+        test_case = test_case.data(data.value());
       }
 
       auto input = maybe_get_object(test_case_obj, "input");
       if (input.has_value())
       {
-        test_case = test_case.input(*input);
+        test_case = test_case.input(input.value());
       }
 
       test_case.filename(filename)
@@ -663,54 +680,108 @@ namespace rego_test
   Result TestCase::run(
     const std::filesystem::path& debug_path,
     bool wf_checks,
-    bool v1_compatible) const
+    RoundTrip roundtrip,
+    LogLevel log_level) const
   {
-    rego::Interpreter interpreter(v1_compatible);
-    interpreter.builtins().strict_errors(m_strict_error);
-    interpreter.builtins().register_builtin(
-      BuiltInDef::create(Location("test.sleep"), 1, test_sleep));
+    rego::Interpreter interpreter;
+    interpreter.builtins()->strict_errors(m_strict_error);
+    interpreter.builtins()->register_builtin(builtins::BuiltInDef::create(
+      Location("test.sleep"), test_sleep_decl, test_sleep));
     interpreter.wf_check_enabled(wf_checks)
       .debug_enabled(!debug_path.empty())
-      .debug_path(debug_path);
+      .debug_path(debug_path)
+      .log_level(log_level);
 
+    std::ostringstream error;
     Node actual;
     for (std::size_t i = 0; i < m_modules.size(); ++i)
     {
-      std::string name = "module" + std::to_string(i);
+      std::string name = "module" + std::to_string(i) + ".rego";
       actual = interpreter.add_module(name, m_modules[i]);
       if (actual != nullptr)
       {
-        break;
+        error << actual;
+        return {false, error.str()};
       }
     }
 
     if (m_data != nullptr)
     {
-      interpreter.add_data(m_data);
+      actual = interpreter.add_data(m_data);
+      if (actual != nullptr)
+      {
+        error << actual;
+        return {false, error.str()};
+      }
     }
 
-    if (actual == nullptr && m_input_term.size() > 0)
+    actual = interpreter.set_query(m_query);
+    if (actual != nullptr)
     {
-      interpreter.set_input_term(m_input_term);
+      error << actual;
+      return {false, error.str()};
+    }
+
+    Node bundle_node = interpreter.build();
+    if (bundle_node == ErrorSeq)
+    {
+      error << "Error when bundling: " << bundle_node;
+      return {false, error.str()};
+    }
+
+    Bundle bundle = BundleDef::from_node(bundle_node);
+
+    if (roundtrip == RoundTrip::JSON)
+    {
+      std::filesystem::path temp_dir =
+        std::filesystem::temp_directory_path() / "bundle";
+      actual = interpreter.save_bundle(temp_dir, bundle_node);
+      if (actual != nullptr)
+      {
+        error << "Error saving bundle: " << actual;
+        return {false, error.str()};
+      }
+
+      bundle_node = interpreter.load_bundle(temp_dir);
+      if (bundle_node == nullptr || bundle_node == ErrorSeq)
+      {
+        error << "Error loading bundle: " << bundle_node;
+        return {false, error.str()};
+      }
+
+      std::filesystem::remove_all(temp_dir);
+    }
+    else if (roundtrip == RoundTrip::Binary)
+    {
+      std::filesystem::path temp_path =
+        std::filesystem::temp_directory_path() / "test.rbb";
+      bundle->save(temp_path);
+      bundle = BundleDef::load(temp_path);
+      std::filesystem::remove(temp_path);
+    }
+
+    if (m_input_term.size() > 0)
+    {
+      actual = interpreter.set_input_term(m_input_term);
     }
     else if (m_input != nullptr)
     {
-      interpreter.set_input(m_input);
+      actual = interpreter.set_input(m_input);
     }
 
-    bool pass = true;
-    std::ostringstream error;
-
-    if (actual == nullptr)
+    if (actual != nullptr)
     {
-      try
-      {
-        actual = interpreter.raw_query(m_query);
-      }
-      catch (const std::exception& e)
-      {
-        return {false, e.what()};
-      }
+      error << actual;
+      return {false, error.str()};
+    }
+
+    try
+    {
+      actual = interpreter.query_bundle(bundle);
+    }
+    catch (const std::exception& e)
+    {
+      return {false, e.what()};
     }
 
     if (m_broken)
@@ -725,15 +796,14 @@ namespace rego_test
         error << "expected one error, actual: " << actual << std::endl;
         return {false, error.str()};
       }
-      else if (actual->size() == 0)
+
+      if (actual->size() == 0)
       {
         error << actual << std::endl;
         return {false, error.str()};
       }
-      else
-      {
-        actual = actual->front();
-      }
+
+      actual = actual->front();
     }
 
     WFContext context(rego::wf_result);
@@ -742,102 +812,84 @@ namespace rego_test
     {
       if (actual->type() != Error)
       {
-        pass = false;
         error << "wanted an error, actual: " << actual << std::endl;
+        return {false, error.str()};
       }
-      else
+      std::string actual_error =
+        std::string((actual / ErrorMsg)->location().view());
+      std::string actual_code =
+        std::string((actual / ErrorCode)->location().view());
+      bool pass_error = compare(actual_error, m_want_error, error);
+      bool pass_code = true;
+      if (m_want_error_code.length() == 0)
       {
-        std::string actual_error =
-          std::string((actual / ErrorMsg)->location().view());
-        std::string actual_code =
-          std::string((actual / ErrorCode)->location().view());
-        bool pass_error = compare(actual_error, m_want_error, error);
-        bool pass_code = true;
-        if (m_want_error_code.length() > 0)
-        {
-          pass_code = compare(actual_code, m_want_error_code, error);
-        }
-        pass = pass_error && pass_code;
+        return {pass_error, error.str()};
       }
+
+      pass_code = compare(actual_code, m_want_error_code, error);
+      return {pass_error && pass_code, error.str()};
     }
-    else if (m_want_error_code.length() > 0)
+
+    if (m_want_error_code.length() > 0)
     {
       if (actual != Error)
       {
-        pass = false;
         error << "wanted an error code, actual: " << actual << std::endl;
+        return {false, error.str()};
       }
-      else
-      {
-        std::string actual_code =
-          std::string((actual / ErrorCode)->location().view());
-        pass = compare(actual_code, m_want_error_code, error);
-      }
+
+      std::string actual_code =
+        std::string((actual / ErrorCode)->location().view());
+      return {compare(actual_code, m_want_error_code, error), error.str()};
     }
-    else if (m_want_result)
+
+    if (m_want_result)
     {
       if (actual != Undefined)
       {
         if (actual == Error)
         {
-          pass = false;
           error << "wanted a result, received: " << std::endl;
           error << "  error: " << (actual / ErrorMsg)->location().view()
                 << std::endl;
           error << "  code: " << (actual / ErrorCode)->location().view()
                 << std::endl;
+          return {false, error.str()};
         }
-        else
-        {
-          trieste::logging::Trace() << "====================" << std::endl
-                                    << "actual: " << actual << std::endl
-                                    << "---------" << std::endl
-                                    << "wanted: " << m_want_result << std::endl
-                                    << "====================" << std::endl;
+        trieste::logging::Trace() << "====================" << std::endl
+                                  << "actual: " << actual << std::endl
+                                  << "---------" << std::endl
+                                  << "wanted: " << m_want_result << std::endl
+                                  << "====================" << std::endl;
 
-          pass = compare(actual, m_want_result, error);
-        }
+        return {compare(actual, m_want_result, error), error.str()};
       }
-      else
+
+      if (m_want_result->size() == 0)
       {
-        if (m_want_result->size() == 0)
-        {
-          pass = true;
-        }
-        else
-        {
-          pass = false;
-          error << "wanted a result, but was undefined";
-        }
+        return {true, ""};
       }
+
+      return {false, "wanted a result, but was undefined"};
     }
-    else if (m_want_defined)
+
+    if (m_want_defined)
     {
       if (actual != Undefined)
       {
-        pass = true;
+        return {true, ""};
       }
-      else
-      {
-        pass = false;
-        error << "wanted a defined result, but was undefined";
-      }
-    }
-    else
-    {
-      if (actual == Undefined)
-      {
-        pass = true;
-      }
-      else
-      {
-        logging::Error() << actual << std::endl;
-        pass = false;
-        error << "wanted an undefined result, but was defined";
-      }
+
+      return {false, "wanted a defined result, but was undefined"};
     }
 
-    return {pass, error.str()};
+    if (actual == Undefined)
+    {
+      return {true, ""};
+    }
+
+    logging::Error() << actual << std::endl;
+    return {false, "wanted an undefined result, but was defined"};
   }
 
   const std::filesystem::path& TestCase::filename() const
@@ -950,7 +1002,18 @@ namespace rego_test
 
   TestCase& TestCase::want_result(const Node& want_result)
   {
-    m_want_result = want_result;
+    if (want_result == nullptr)
+    {
+      m_want_result = nullptr;
+      return *this;
+    }
+
+    auto maybe_array = unwrap(want_result, Array);
+    if (!maybe_array.success)
+    {
+      throw std::invalid_argument("want_result must be an array");
+    }
+    m_want_result = maybe_array.node;
     return *this;
   }
 

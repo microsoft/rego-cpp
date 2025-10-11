@@ -2,6 +2,7 @@
 
 #include "rego.hh"
 
+#include <initializer_list>
 #include <trieste/json.h>
 
 namespace logging = trieste::logging;
@@ -65,6 +66,30 @@ namespace
 {
   using namespace rego;
 
+  bool is_undefined(const Node& node)
+  {
+    Nodes frontier({node});
+    while (!frontier.empty())
+    {
+      Node current = frontier.back();
+      frontier.pop_back();
+
+      if (node->type() == DataModule)
+      {
+        return false;
+      }
+
+      if (node->type() == Undefined)
+      {
+        return true;
+      }
+
+      frontier.insert(frontier.end(), current->begin(), current->end());
+    }
+
+    return false;
+  }
+
   BigInt get_int(const Node& node)
   {
     return BigInt(node->location());
@@ -74,119 +99,65 @@ namespace
   {
     return std::stod(to_key(node));
   }
+
+  bool refarg_is_varref(const Node& refarg)
+  {
+    if (refarg != RefArgBrack)
+    {
+      return false;
+    }
+
+    const Node& expr = refarg->front();
+    if (expr != Expr)
+    {
+      return false;
+    }
+
+    const Node& term = expr->front();
+    if (term != Term)
+    {
+      return false;
+    }
+
+    return term->front() == Var || term->front() == Ref;
+  }
 }
 
 namespace rego
 {
-  bool is_in(const Node& node, const std::set<Token>& types)
-  {
-    if (contains(types, node->type()))
-    {
-      return true;
-    }
-
-    if (node->type() == Top)
-    {
-      return false;
-    }
-
-    return is_in(node->parent(), types);
-  }
-
   bool is_constant(const Node& term)
   {
-    if (term->type() == NumTerm)
+    Nodes frontier({term});
+    while (!frontier.empty())
     {
-      return true;
-    }
+      Node node = frontier.back();
+      frontier.pop_back();
 
-    if (term->type() == RefTerm)
-    {
+      if (node == Expr)
+      {
+        node = node->front();
+      }
+
+      if (node == Term)
+      {
+        node = node->front();
+      }
+
+      if (node == Scalar)
+      {
+        continue;
+      }
+
+      if (node->in({Array, Object, ObjectItem, Set}))
+      {
+        frontier.insert(frontier.end(), node->begin(), node->end());
+        continue;
+      }
+
       return false;
     }
 
-    Node node = term;
-    if (node->type() == Expr)
-    {
-      node = node->front();
-    }
-
-    if (node->type() == Term)
-    {
-      node = node->front();
-    }
-
-    if (node->type() == Scalar)
-    {
-      return true;
-    }
-
-    if (node->type() == Array || node->type() == Set)
-    {
-      for (auto& child : *node)
-      {
-        if (!is_constant(child->front()))
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    if (node->type() == Object)
-    {
-      for (auto& item : *node)
-      {
-        Node key = item / Key;
-        if (!is_constant(key->front()))
-        {
-          return false;
-        }
-
-        Node val = item / Val;
-        if (!is_constant(val->front()))
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    return false;
-  }
-
-  std::ostream& operator<<(std::ostream& os, const std::set<Location>& locs)
-  {
-    os << "{";
-    join(
-      os,
-      locs.begin(),
-      locs.end(),
-      ", ",
-      [](std::ostream& stream, const Location& loc) {
-        stream << loc.view();
-        return true;
-      });
-    os << "}";
-    return os;
-  }
-
-  std::ostream& operator<<(std::ostream& os, const std::vector<Location>& locs)
-  {
-    os << "[";
-    join(
-      os,
-      locs.begin(),
-      locs.end(),
-      ", ",
-      [](std::ostream& stream, const Location& loc) {
-        stream << loc.view();
-        return true;
-      });
-    os << "]";
-    return os;
+    return true;
   }
 
   std::string strip_quotes(const std::string_view& str)
@@ -215,7 +186,7 @@ namespace rego
   {
     if (code == UnknownError)
     {
-      if (starts_with(msg, "Recursion"))
+      if (msg.starts_with("Recursion"))
       {
         return RecursionError;
       }
@@ -236,99 +207,6 @@ namespace rego
   {
     return Error << (ErrorMsg ^ msg) << (ErrorAst << node->clone())
                  << (ErrorCode ^ get_code(msg, code));
-  }
-
-  bool all_alnum(const std::string_view& str)
-  {
-    for (char c : str)
-    {
-      if (!std::isalnum(c))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  Node concat_refs(const Node& lhs, const Node& rhs)
-  {
-    Node ref;
-
-    if (lhs->type() == Var)
-    {
-      ref = Ref << (RefHead << lhs->clone()) << RefArgSeq;
-    }
-    else if (lhs->type() == Ref)
-    {
-      ref = lhs->clone();
-    }
-    else
-    {
-      return err(lhs, "invalid reference");
-    }
-
-    Node refhead = (rhs / RefHead)->front();
-    Node refargseq = rhs / RefArgSeq;
-    if (refhead->type() != Var)
-    {
-      return err(rhs, "cannot concatenate non-var refhead refs");
-    }
-
-    (ref / RefArgSeq) << (RefArgDot << refhead->clone());
-    for (auto& arg : *refargseq)
-    {
-      (ref / RefArgSeq) << arg->clone();
-    }
-
-    return ref;
-  }
-
-  std::string flatten_ref(const Node& ref)
-  {
-    std::ostringstream buf;
-    buf << (ref / RefHead)->front()->location().view();
-    for (auto& arg : *(ref / RefArgSeq))
-    {
-      if (arg->type() == RefArgDot)
-      {
-        buf << "." << arg->front()->location().view();
-      }
-      else
-      {
-        Node index = arg->front();
-        if (index == Expr)
-        {
-          index = index->front();
-        }
-
-        if (index == Term)
-        {
-          index = index->front();
-        }
-
-        if (index->type() == Scalar)
-        {
-          index = index->front();
-        }
-
-        Location key = index->location();
-        if (index->type() == JSONString)
-        {
-          key.pos += 1;
-          key.len -= 2;
-        }
-
-        if (all_alnum(key.view()))
-        {
-          buf << "." << key.view();
-        }
-        else
-        {
-          buf << "[" << index->location().view() << "]";
-        }
-      }
-    }
-    return buf.str();
   }
 
   Node version()
@@ -416,7 +294,7 @@ namespace rego
   std::optional<Node> try_get_item(
     const Node& node, const std::string_view& key)
   {
-    assert(node == Object || node == DynamicObject);
+    assert(node == Object);
 
     auto defs = Resolver::object_lookdown(node, key);
     if (defs.empty())
@@ -489,18 +367,8 @@ namespace rego
       return "boolean";
     }
 
-    if (type == DynamicObject)
-    {
-      return "object";
-    }
-
-    if (type == DynamicSet)
-    {
-      return "set";
-    }
-
     std::string name(type.str());
-    if (starts_with(name, "rego-"))
+    if (name.starts_with("rego-"))
     {
       name = name.substr(5);
     }
@@ -532,16 +400,7 @@ namespace rego
   Node UnwrapOpt::unwrap(const Nodes& args) const
   {
     Node node = args[m_index];
-    std::set<Token> types(m_types.begin(), m_types.end());
-    if (contains(types, Object))
-    {
-      types.insert(DynamicObject);
-    }
-    if (contains(types, Set))
-    {
-      types.insert(DynamicSet);
-    }
-    auto result = rego::unwrap(node, types);
+    auto result = rego::unwrap(node, m_types);
     if (result.success)
     {
       return result.node;
@@ -623,10 +482,10 @@ namespace rego
     return {value, false};
   }
 
-  UnwrapResult unwrap(const Node& node, const std::set<Token>& types)
+  UnwrapResult unwrap(const Node& node, const std::vector<Token>& types)
   {
     Node value = node;
-    if (contains(types, value->type()))
+    if (std::find(types.begin(), types.end(), value->type()) != types.end())
     {
       return {value, true};
     }
@@ -636,7 +495,7 @@ namespace rego
       value = value->front();
     }
 
-    if (contains(types, value->type()))
+    if (std::find(types.begin(), types.end(), value->type()) != types.end())
     {
       return {value, true};
     }
@@ -646,7 +505,7 @@ namespace rego
       value = value->front();
     }
 
-    if (contains(types, value->type()))
+    if (std::find(types.begin(), types.end(), value->type()) != types.end())
     {
       return {value, true};
     }
@@ -654,7 +513,7 @@ namespace rego
     return {value, false};
   }
 
-  bool is_instance(const Node& value, const std::set<Token>& types)
+  bool is_instance(const Node& value, const std::vector<Token>& types)
   {
     return unwrap(value, types).success;
   }
@@ -750,19 +609,6 @@ namespace rego
     return *this;
   }
 
-  bool is_ref_to_type(const Node& var, const std::set<Token>& types)
-  {
-    Nodes defs = var->lookup();
-    if (defs.size() > 0)
-    {
-      return contains(types, defs[0]->type());
-    }
-    else
-    {
-      return false;
-    }
-  }
-
   Node scalar(BigInt value)
   {
     return Resolver::scalar(value);
@@ -799,19 +645,37 @@ namespace rego
                       << Resolver::to_term(val_term);
   }
 
-  Node object(const Nodes& object_items)
+  Node object(const std::initializer_list<Node>& object_items)
   {
-    return Object << object_items;
+    Node result = NodeDef::create(Object);
+    for (auto& node : object_items)
+    {
+      result << node;
+    }
+
+    return result;
   }
 
-  Node array(const Nodes& array_members)
+  Node array(const std::initializer_list<Node>& array_members)
   {
-    return Array << array_members;
+    Node result = NodeDef::create(Array);
+    for (auto& node : array_members)
+    {
+      result << Resolver::to_term(node);
+    }
+
+    return result;
   }
 
-  Node set(const Nodes& set_members)
+  Node set(const std::initializer_list<Node>& set_members)
   {
-    return Set << set_members;
+    Node result = NodeDef::create(Set);
+    for (auto& node : set_members)
+    {
+      result << Resolver::to_term(node);
+    }
+
+    return result;
   }
 
   ActionMetrics::ActionMetrics(const char* file, std::size_t line) :
@@ -820,7 +684,7 @@ namespace rego
 
   ActionMetrics::~ActionMetrics()
   {
-    if (!contains(ActionMetrics::s_action_info, m_key))
+    if (!ActionMetrics::s_action_info.contains(m_key))
     {
       ActionMetrics::s_action_info.insert(
         {m_key, {0, ActionMetrics::duration::zero()}});
@@ -853,5 +717,562 @@ namespace rego
     }
 
     return line < other.line;
+  }
+
+  bool is_truthy(const Node& node)
+  {
+    assert(node->type() == Term);
+
+    Node value = node->front();
+    if (value->type() == Scalar)
+    {
+      value = value->front();
+      return value->type() != False;
+    }
+
+    if (
+      value->type() == Object || value->type() == Array || value->type() == Set)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool refargs_contain_varref(const Node& node)
+  {
+    Node refargseq = node;
+    if (node == Ref)
+    {
+      refargseq = node / RefArgSeq;
+    }
+
+    bool exists =
+      std::find_if(refargseq->begin(), refargseq->end(), refarg_is_varref) !=
+      refargseq->end();
+    return exists;
+  }
+
+  Node to_constant_term(Node expr)
+  {
+    Node term = expr->front();
+    if (term != Term)
+    {
+      return nullptr;
+    }
+
+    Node value = term->front();
+    if (value->in({ArrayCompr, ObjectCompr, SetCompr, Ref, Var}))
+    {
+      return nullptr;
+    }
+
+    if (value == Scalar)
+    {
+      return Term << value->clone();
+    }
+
+    if (value == Array)
+    {
+      Node array = NodeDef::create(Array);
+      for (Node expr : *value)
+      {
+        Node term = to_constant_term(expr);
+        if (term == nullptr)
+        {
+          return nullptr;
+        }
+
+        array << term;
+      }
+
+      return Term << array;
+    }
+
+    if (value == Object)
+    {
+      Node object = NodeDef::create(Object);
+      for (Node item : *value)
+      {
+        Node key = to_constant_term(item / Key);
+        if (key == nullptr)
+        {
+          return nullptr;
+        }
+
+        Node value = to_constant_term(item / Val);
+        if (value == nullptr)
+        {
+          return nullptr;
+        }
+
+        object << (ObjectItem << key << value);
+      }
+
+      return Term << object;
+    }
+
+    if (value == Set)
+    {
+      Node set = NodeDef::create(Array);
+      for (Node expr : *value)
+      {
+        Node term = to_constant_term(expr);
+        if (term == nullptr)
+        {
+          return nullptr;
+        }
+
+        set << term;
+      }
+
+      return Term << set;
+    }
+
+    throw std::runtime_error("Invalid term");
+  }
+
+  Node get_inner(Node block)
+  {
+    if (block->empty())
+    {
+      return block;
+    }
+
+    Node inner = block;
+    while (!inner->empty() && inner->back()->in({ScanStmt, WithStmt}))
+    {
+      Node stmt = inner->back();
+      if (stmt == ScanStmt)
+      {
+        inner = stmt / Block;
+        continue;
+      }
+
+      // this gets called with two different WF definitions
+      // during which the structure of WithStmt may have changed
+      Node back = stmt->back();
+      if (back == Block)
+      {
+        inner = back;
+        continue;
+      }
+
+      if (back == ScanStmt)
+      {
+        inner = back / Block;
+        continue;
+      }
+
+      if (back != WithStmt)
+      {
+        break;
+      }
+
+      while (back == WithStmt)
+      {
+        back = back / Expr;
+      }
+
+      if (back == ScanStmt)
+      {
+        inner = back / Block;
+        continue;
+      }
+
+      break;
+    }
+
+    return inner;
+  }
+
+  void add_literal_to_block(Node block, Node literal)
+  {
+    assert(block == Block);
+    assert(literal == Literal);
+    Node expr = literal / Expr;
+    if (expr == OpBlock)
+    {
+      block << *(expr / Block);
+      get_inner(block)
+        << (NotEqualStmt << (expr / Operand)->clone()
+                         << (Operand << (Boolean ^ "false")));
+    }
+    else if (expr == AssignBlock)
+    {
+      block << *(expr / Block);
+    }
+    else
+    {
+      block << *literal;
+    }
+  }
+
+  Node to_absolute_path(Node ref)
+  {
+    Node head;
+    if (ref == Var)
+    {
+      head = ref;
+    }
+    else
+    {
+      head = (ref / RefHead)->front();
+    }
+
+    if (head == ArgVal)
+    {
+      return nullptr;
+    }
+
+    if (head->location().view() == "data")
+    {
+      return ref;
+    }
+
+    Nodes results = head->lookup();
+    if (results.empty())
+    {
+      return ref;
+    }
+
+    Node current = results.front();
+    assert(current->in({VirtualDocument, Rule, Local}));
+
+    if (current == Local)
+    {
+      return nullptr;
+    }
+
+    Nodes idents;
+    while (current)
+    {
+      idents.push_back(current / Ident);
+      current = current->parent(VirtualDocument);
+    }
+
+    head = RefHead << (Var ^ idents.back());
+    Node args = NodeDef::create(RefArgSeq);
+    idents.pop_back();
+    while (!idents.empty())
+    {
+      args << (RefArgDot << (Var ^ idents.back()));
+      idents.pop_back();
+    }
+
+    if (ref == Ref)
+    {
+      args << *(ref / RefArgSeq);
+    }
+
+    return Ref << head << args;
+  }
+
+  Node base_block(Node base_term, const Location& value_name)
+  {
+    Nodes idents;
+    Node current = base_term;
+    while (current)
+    {
+      Node item = current->parent({BaseObjectItem, BaseDocument});
+      idents.push_back(item / Ident);
+      current = item->parent(BaseObject);
+    }
+
+    Location base_name(idents.back()->location());
+    idents.pop_back();
+
+    if (idents.empty())
+    {
+      // looking up the root data document
+      return Block
+        << (AssignVarStmt << (Operand << (LocalRef ^ base_name))
+                          << (LocalRef ^ value_name));
+    }
+
+    Node block = NodeDef::create(Block);
+    while (!idents.empty())
+    {
+      Location dot_name =
+        idents.size() > 1 ? base_term->fresh({"dot"}) : value_name;
+      block
+        << (DotStmt << (Operand << (LocalRef ^ base_name))
+                    << (Operand << (IRString ^ idents.back()))
+                    << (LocalRef ^ dot_name));
+      base_name = dot_name;
+      idents.pop_back();
+    }
+
+    return block;
+  }
+
+  bool is_ruletype(Node rule, Token type)
+  {
+    return (rule / RuleHead)->front() == type;
+  }
+
+  bool is_ruletype(Node rule, const std::initializer_list<Token>& types)
+  {
+    return (rule / RuleHead)->front()->in(types);
+  }
+
+  Node rule_stmt(Node rule, const Location& value_name)
+  {
+    Nodes idents;
+    Node current = rule;
+    while (current)
+    {
+      idents.push_back(current / Ident);
+      current = current->parent(VirtualDocument);
+    }
+
+    Node head = RefHead << (Var ^ idents.back());
+    idents.pop_back();
+    Node argseq = NodeDef::create(RefArgSeq);
+    while (!idents.empty())
+    {
+      argseq << (RefArgDot << (Var ^ idents.back()));
+      idents.pop_back();
+    }
+
+    return CallStmt << (Ref << head << argseq)
+                    << (OperandSeq << (Operand << (LocalRef ^ "input"))
+                                   << (Operand << (LocalRef ^ "data")))
+                    << (LocalRef ^ value_name);
+  }
+
+  Node rule_dynamic_block(Node ref, const Location& value_name)
+  {
+    Node func_ops = NodeDef::create(OperandSeq);
+    Node head = (ref / RefHead)->front();
+    if (head->location().view() != "data")
+    {
+      Nodes results = head->lookup();
+      assert(results.size() == 1 && results.front() == VirtualDocument);
+      Node current = results.front();
+      std::vector<Location> idents;
+      while (current != nullptr)
+      {
+        idents.push_back((current / Ident)->location());
+        current = current->parent(VirtualDocument);
+      }
+
+      assert(idents.back().view() == "data");
+      while (!idents.empty())
+      {
+        func_ops << (Operand << (IRString ^ idents.back()));
+        idents.pop_back();
+      }
+    }
+    else
+    {
+      func_ops << (Operand << (IRString ^ "data"));
+    }
+
+    Node block = NodeDef::create(Block);
+    for (Node arg : *(ref / RefArgSeq))
+    {
+      if (arg == RefArgDot)
+      {
+        func_ops << (Operand << (IRString ^ arg->front()));
+        continue;
+      }
+
+      assert(arg == RefArgBrack && arg->front() == OpBlock);
+      Node opblock = arg->front();
+      block << *(opblock / Block);
+      func_ops << (opblock / Operand)->clone();
+    }
+
+    return block
+      << (CallDynamicStmt << func_ops
+                          << (OperandSeq << (Operand << (LocalRef ^ "input"))
+                                         << (Operand << (LocalRef ^ "data")))
+                          << (LocalRef ^ value_name));
+  }
+
+  struct DocumentPath
+  {
+    std::string path;
+    std::vector<Location> parts;
+
+    bool operator<(const DocumentPath& other) const
+    {
+      return path < other.path;
+    }
+
+    const Location& back() const
+    {
+      return parts.back();
+    }
+
+    size_t size() const
+    {
+      return parts.size();
+    }
+
+    const Location& operator[](size_t i) const
+    {
+      return parts[i];
+    }
+
+    static DocumentPath from_doc(Node doc)
+    {
+      Location ident = (doc / Ident)->location();
+      std::string path(ident.view());
+      return {path, {ident}};
+    }
+
+    bool match(Node refargseq, size_t start)
+    {
+      assert(refargseq != nullptr);
+      for (size_t i = 1, j = start; i < parts.size() && j < refargseq->size();
+           ++i, ++j)
+      {
+        if (refargseq->at(j) == RefArgBrack)
+        {
+          continue;
+        }
+
+        if (parts[i] != refargseq->at(j)->front()->location())
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+  };
+
+  static DocumentPath operator/(const DocumentPath& lhs, const Location& rhs)
+  {
+    std::vector<Location> parts(lhs.parts.begin(), lhs.parts.end());
+    parts.push_back(rhs);
+    std::ostringstream path_buf;
+    path_buf << lhs.path << '/' << rhs.view();
+    return {path_buf.str(), parts};
+  }
+
+  typedef std::pair<DocumentPath, Node> DocumentNode;
+
+  Node document_stmt(
+    Node document, const Location& doc_name, Node refargseq, size_t start)
+  {
+    std::map<Location, Location> items;
+    Node blockseq = NodeDef::create(BlockSeq);
+
+    std::map<DocumentPath, Nodes> rules_to_add;
+
+    // first we walk the document and find all rules, with the paths
+    // through the virtual document to each rule.
+    std::vector<DocumentNode> frontier;
+    frontier.push_back({DocumentPath::from_doc(document), document});
+    while (!frontier.empty())
+    {
+      auto [path, vdoc] = frontier.back();
+      frontier.pop_back();
+
+      if (path.back().view().starts_with("querymodule$"))
+      {
+        // the query module is never included in these constructions
+        continue;
+      }
+
+      if (refargseq && !path.match(refargseq, start))
+      {
+        continue;
+      }
+
+      Node rules = vdoc / RuleSeq;
+      Nodes docrules;
+      if (!rules->empty())
+      {
+        docrules.insert(docrules.end(), rules->begin(), rules->end());
+      }
+
+      rules_to_add[path] = docrules;
+
+      Node children = vdoc / DocumentSeq;
+      for (Node child : *children)
+      {
+        frontier.push_back({path / (child / Ident)->location(), child});
+      }
+    }
+
+    if (rules_to_add.empty())
+    {
+      // no rules to add
+      return BlockStmt << blockseq;
+    }
+
+    // for each rule, add the rule to the document tree
+    for (const auto& [path, rules] : rules_to_add)
+    {
+      // first we need to find the node in the tree at which to add
+      // these rules.
+      std::vector<Location> name_stack({doc_name});
+      for (size_t i = 1; i < path.size(); ++i)
+      {
+        // we either need to find the existing child document as it
+        // was created by a previous ruleset in the list, or create
+        // a new one when needed.
+        Location child_name = document->fresh({"vdoc"});
+        blockseq << (Block
+                     << (DotStmt << (Operand << (LocalRef ^ name_stack.back()))
+                                 << (Operand << (IRString ^ path[i]))
+                                 << (LocalRef ^ child_name)))
+                 << (Block << (IsUndefinedStmt << (LocalRef ^ child_name))
+                           << (MakeObjectStmt << (LocalRef ^ child_name)));
+        name_stack.push_back(child_name);
+      }
+
+      // add the rules. Each rule cannot overwrite a value in the document
+      // tree, that is, it must be the only thing that writes to this path.
+      for (Node rule : rules)
+      {
+        if (is_ruletype(rule, RuleHeadFunc))
+        {
+          continue;
+        }
+
+        Location rule_ident = (rule / Ident)->location();
+
+        if (refargseq && !(path / rule_ident).match(refargseq, start))
+        {
+          continue;
+        }
+
+        Location value_name = document->fresh({"value"});
+        blockseq << (Block << rule_stmt(rule, value_name))
+                 << (Block << (IsDefinedStmt << (LocalRef ^ value_name))
+                           << (ObjectInsertOnceStmt
+                               << (Operand << (IRString ^ rule_ident))
+                               << (Operand << (LocalRef ^ value_name))
+                               << (LocalRef ^ name_stack.back())));
+      }
+
+      if (name_stack.size() == 1)
+      {
+        // nothing to cleanup
+        continue;
+      }
+
+      // as we go back up the tree, we need to replace the documents
+      // at each level with the updated version from below.
+      Node cleanup_block = NodeDef::create(Block);
+      for (int i = static_cast<int>(path.size()) - 1; i > 0; --i)
+      {
+        Location child_name = name_stack.back();
+        name_stack.pop_back();
+        cleanup_block
+          << (ObjectInsertStmt << (Operand << (IRString ^ path[i]))
+                               << (Operand << (LocalRef ^ child_name))
+                               << (LocalRef ^ name_stack.back()));
+      }
+
+      blockseq << cleanup_block;
+    }
+
+    return BlockStmt << blockseq;
   }
 }

@@ -2,7 +2,7 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::fmt;
 use std::ops::Index;
 use std::path::Path;
@@ -325,6 +325,244 @@ pub struct Node {
     pub kind: NodeKind,
 }
 
+/// Format types for serializing bundles.
+///
+/// JSON bundles are written as a directory
+/// with a `plan.json` containing the compiled virtual documents and execution plans,
+/// a `data.json` containing the base documents merged into a single JSON hierarchy, and
+/// the module source files.
+///
+/// Binary bundles are a single file containing all the same information in a compact,
+/// portable format, described in this specification (TODO link).
+#[derive(Clone, Debug, Default)]
+pub enum BundleFormat {
+    #[default]
+    JSON,
+    Binary,
+}
+
+/// Representation of a compiled Rego bundle. This can be produced by the
+/// [`Interpreter::build()`] method as an alternative to immediate evaluation.
+#[derive(Debug)]
+pub struct Bundle {
+    c_ptr: *mut regoBundle,
+}
+
+impl Bundle {
+    fn new(c_ptr: *mut regoBundle) -> Self {
+        Self { c_ptr }
+    }
+
+    pub fn ok(&self) -> bool {
+        let c_ok = unsafe { regoBundleOk(self.c_ptr) };
+        c_ok == 1
+    }
+
+    pub fn to_node(&self) -> Result<Node, Node> {
+        let node_ptr = unsafe { regoBundleNode(self.c_ptr) };
+        let output = Node::new(node_ptr);
+        if self.ok() {
+            Ok(output)
+        } else {
+            Err(output)
+        }
+    }
+}
+
+impl Drop for Bundle {
+    fn drop(&mut self) {
+        unsafe {
+            regoFreeBundle(self.c_ptr);
+        }
+    }
+}
+
+impl PartialEq for Bundle {
+    fn eq(&self, other: &Self) -> bool {
+        return self.c_ptr == other.c_ptr;
+    }
+}
+
+/// The Input interface allows the creation of inputs to a policy without
+/// requiring serialization to JSON. The interface is that of a stack,
+/// in which values are pushed and then various operations are used to turn
+/// terminal types into more complex ones like objects and arrays. When used,
+/// the Input will provide the top of the stack to any downstream consumer (such as
+/// [`Interpreter::set_input()`]).
+///
+/// # Examples
+///
+/// ## Object
+/// ```
+/// # use regorust::*;
+/// let input = Input::new().str("a").int(10).objectitem()
+///     .str("b").str("20").objectitem()
+///     .str("c").float(30.0).objectitem()
+///     .str("d").bool(true).objectitem()
+///     .object(4).validate()
+///     .expect("Unable to create input");
+/// let rego = Interpreter::new();
+/// rego.set_input(&input).expect("Unable to set input");
+/// let result = rego.query("x=input.a").expect("Failed query");  
+/// let x = result.binding("x").expect("cannot get x");
+/// println!("x = {}", x.json().unwrap());
+/// # assert_eq!(x.json().expect("cannot convert x to JSON"), "10");
+/// ```
+///
+/// ## Array
+/// ```
+/// # use regorust::*;
+/// let input = Input::new().int(1).int(2).int(3).int(4).array(4)
+///     .validate().expect("Unable to create input");
+/// let rego = Interpreter::new();
+/// rego.set_input(&input).expect("Unable to set input");
+/// let result = rego.query("x=input").expect("Failed query");
+/// let x = result.binding("x").expect("cannot get x");
+/// println!("x = {}", x.json().unwrap());
+/// # assert_eq!(x.json().expect("cannot convert x to JSON"), "[1,2,3,4]");
+/// ```
+#[derive(Debug)]
+pub struct Input {
+    c_ptr: *mut regoInput,
+}
+
+impl Input {
+    pub fn new() -> Self {
+        let input_ptr = unsafe { regoNewInput() };
+        Self { c_ptr: input_ptr }
+    }
+
+    /// Push an integer onto the stack.
+    pub fn int(self, value: i64) -> Self {
+        unsafe { regoInputInt(self.c_ptr, value) };
+        self
+    }
+
+    /// Push a float onto the stack.
+    pub fn float(self, value: f64) -> Self {
+        unsafe { regoInputFloat(self.c_ptr, value) };
+        self
+    }
+
+    /// Push a string onto the stack.
+    pub fn str(self, value: &str) -> Self {
+        let value_cstr = CString::new(value).unwrap();
+        let value_ptr = value_cstr.as_ptr();
+        unsafe { regoInputString(self.c_ptr, value_ptr) };
+        self
+    }
+
+    /// Push a boolean onto the stack.
+    pub fn bool(self, value: bool) -> Self {
+        unsafe { regoInputBoolean(self.c_ptr, if value { 1 } else { 0 }) };
+        self
+    }
+
+    /// Push a null onto the stack.
+    pub fn null(self) -> Self {
+        unsafe { regoInputNull(self.c_ptr) };
+        self
+    }
+
+    /// Take the top two values on the stack and turn them into an object item.
+    /// The penultimate value on the stack will be used as
+    /// the key, and the top of the stack will be the value for that key.
+    /// Objects are constructed from object items.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use regorust::*;
+    /// let input = Input::new().str("a").int(10).objectitem().object(1)
+    ///     .validate().expect("Unable to create input");
+    ///
+    /// let rego = Interpreter::new();
+    /// rego.set_input(&input).expect("Unable to set input");
+    /// let result = rego.query("x=input").expect("Failed query");
+    /// let x = result.binding("x").expect("cannot get x");
+    /// println!("x = {}", x.json().unwrap());
+    /// # assert_eq!(x.json().expect("cannot convert x to JSON"), r#"{"a":10}"#);
+    /// ```
+    pub fn objectitem(self) -> Self {
+        unsafe { regoInputObjectItem(self.c_ptr) };
+        self
+    }
+
+    /// Take the top `size` values on the stack and turn them into an object.
+    /// Note that all of these values must be object items in order for this to be valid.
+    pub fn object(self, size: regoSize) -> Self {
+        unsafe { regoInputObject(self.c_ptr, size) };
+        self
+    }
+
+    /// Take the top `size` values on the stack and turn them into an array.
+    /// Stack order will be used.
+    ///
+    /// # Example
+    /// ```
+    /// # use regorust::*;
+    /// let input = Input::new().int(1).int(2).int(3).int(4).array(4)
+    ///     .validate().expect("Unable to create input");
+    /// let rego = Interpreter::new();
+    /// rego.set_input(&input).expect("Unable to set input");
+    /// let result = rego.query("x=input").expect("Failed query");
+    /// let x = result.binding("x").expect("cannot get x");
+    /// println!("x = {}", x.json().unwrap());
+    /// # assert_eq!(x.json().expect("cannot convert x to JSON"), "[1,2,3,4]");
+    /// ```
+    pub fn array(self, size: regoSize) -> Self {
+        unsafe { regoInputArray(self.c_ptr, size) };
+        self
+    }
+
+    /// Take the top `size` values on the stack and turn them into a set.
+    /// Identical items will be de-duplicated.
+    ///
+    /// # Example
+    /// ```
+    /// # use regorust::*;
+    /// let input = Input::new().int(1).int(2).int(2).int(3).set(4)
+    ///     .validate().expect("Unable to create input");
+    /// let rego = Interpreter::new();
+    /// rego.set_input(&input).expect("Unable to set input");
+    /// let result = rego.query("x=input").expect("Failed query");
+    /// let x = result.binding("x").expect("cannot get x");
+    /// println!("x = {}", x.json().unwrap());
+    /// # assert_eq!(x.json().expect("cannot convert x to JSON"), "[1,2,3]");
+    /// ```
+    pub fn set(self, size: regoSize) -> Self {
+        unsafe { regoInputSet(self.c_ptr, size) };
+        self
+    }
+
+    pub fn validate(self) -> Result<Self, &'static str> {
+        let status = unsafe { regoInputValidate(self.c_ptr) };
+        match status {
+            REGO_OK => Ok(self),
+            REGO_ERROR_INPUT_NULL => Err("Input pointer is null"),
+            REGO_ERROR_INPUT_MISSING_ARGUMENTS => {
+                Err("Not enough arguments for object item (push a key and a value)")
+            }
+            REGO_ERROR_INPUT_OBJECT_ITEM => Err("Objects must be built from object items"),
+            _ => Err("Unknown error"),
+        }
+    }
+}
+
+impl Drop for Input {
+    fn drop(&mut self) {
+        unsafe {
+            regoFreeInput(self.c_ptr);
+        }
+    }
+}
+
+impl PartialEq for Input {
+    fn eq(&self, other: &Self) -> bool {
+        return self.c_ptr == other.c_ptr;
+    }
+}
+
 /// Represents the value of a Rego Node.
 ///
 /// The value of a node is only valid for certain kinds of nodes,
@@ -351,25 +589,18 @@ pub enum LogLevel {
     Trace,
 }
 
-/// Sets the level of logging produced by the library.
-pub fn set_log_level(level: LogLevel) -> Result<(), &'static str> {
-    let result: regoEnum = match level {
-        LogLevel::None => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_NONE) },
-        LogLevel::Debug => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_DEBUG) },
-        LogLevel::Info => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_INFO) },
-        LogLevel::Warn => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_WARN) },
-        LogLevel::Error => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_ERROR) },
-        LogLevel::Output => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_OUTPUT) },
-        LogLevel::Trace => unsafe { regoSetLogLevel(REGO_LOG_LEVEL_TRACE) },
-    };
-
-    match result {
-        REGO_OK => Ok(()),
-        REGO_LOG_LEVEL_ERROR => Err("Invalid log level"),
-        _ => Err("Unknown error"),
+pub fn log_level_from_string(level: &str) -> Result<LogLevel, &'static str> {
+    match level.to_lowercase().as_str() {
+        "none" => Ok(LogLevel::None),
+        "debug" => Ok(LogLevel::Debug),
+        "info" => Ok(LogLevel::Info),
+        "warn" => Ok(LogLevel::Warn),
+        "error" => Ok(LogLevel::Error),
+        "output" => Ok(LogLevel::Output),
+        "trace" => Ok(LogLevel::Trace),
+        _ => Err("Invalid log level"),
     }
 }
-
 
 impl Interpreter {
     /// Creates a new Rego interpreter.
@@ -380,18 +611,56 @@ impl Interpreter {
         }
     }
 
-    pub fn new_v1() -> Self {
-        let interpreter_ptr = unsafe { regoNewV1() };
-        Self {
-            c_ptr: interpreter_ptr,
+    /// Returns the error message for the last operation.
+    fn get_error(&self) -> String {
+        let size = unsafe { regoErrorSize(self.c_ptr) };
+
+        let buf = vec![32 as u8; (size as usize) - 1];
+        let input_cstr = CString::new(buf).unwrap();
+        let input_ptr = CString::into_raw(input_cstr);
+        let err: regoEnum = unsafe { regoError(self.c_ptr, input_ptr, size) };
+        if err != REGO_OK {
+            return "Unknown error: unable to obtain error message".to_string();
+        } else {
+            let output_cstr: CString = unsafe { CString::from_raw(input_ptr) };
+            output_cstr.into_string().unwrap()
         }
     }
 
-    /// Returns the error message for the last operation.
-    fn get_error(&self) -> &str {
-        let c_str = unsafe { regoGetError(self.c_ptr) };
-        let result: &CStr = unsafe { CStr::from_ptr(c_str) };
-        result.to_str().unwrap()
+    /// Sets the level of logging produced by the library.
+    pub fn set_log_level(&self, log_level: LogLevel) -> Result<(), &'static str> {
+        let level = match log_level {
+            LogLevel::None => REGO_LOG_LEVEL_NONE,
+            LogLevel::Debug => REGO_LOG_LEVEL_DEBUG,
+            LogLevel::Info => REGO_LOG_LEVEL_INFO,
+            LogLevel::Warn => REGO_LOG_LEVEL_WARN,
+            LogLevel::Error => REGO_LOG_LEVEL_ERROR,
+            LogLevel::Output => REGO_LOG_LEVEL_OUTPUT,
+            LogLevel::Trace => REGO_LOG_LEVEL_TRACE,
+        };
+        let result: regoEnum = unsafe { regoSetLogLevel(self.c_ptr, level) };
+
+        match result {
+            REGO_OK => Ok(()),
+            REGO_LOG_LEVEL_ERROR => Err("Invalid log level"),
+            _ => Err("Unknown error"),
+        }
+    }
+
+    /// Sets the level of logging produced by the library.
+    pub fn get_log_level(&self) -> Result<LogLevel, &'static str> {
+        let result: regoEnum = unsafe { regoGetLogLevel(self.c_ptr) };
+
+        match result {
+            REGO_LOG_LEVEL_NONE => Ok(LogLevel::None),
+            REGO_LOG_LEVEL_DEBUG => Ok(LogLevel::Debug),
+            REGO_LOG_LEVEL_INFO => Ok(LogLevel::Info),
+            REGO_LOG_LEVEL_WARN => Ok(LogLevel::Warn),
+            REGO_LOG_LEVEL_ERROR => Ok(LogLevel::Error),
+            REGO_LOG_LEVEL_OUTPUT => Ok(LogLevel::Output),
+            REGO_LOG_LEVEL_TRACE => Ok(LogLevel::Trace),
+            _ => Err("Unknown error"),
+        }
     }
 
     /// Adds a Rego module from a file.
@@ -409,12 +678,12 @@ impl Interpreter {
     /// allowed := true
     /// location := null
     /// ```
-    pub fn add_module_file(&self, path: &Path) -> Result<(), &str> {
+    pub fn add_module_file(&self, path: &Path) -> Result<(), String> {
         let path_str = path.to_str().unwrap();
         let path_cstr = CString::new(path_str).unwrap();
         let path_ptr = path_cstr.as_ptr();
         let result = unsafe { regoAddModuleFile(self.c_ptr, path_ptr) };
-        if result == 0 {
+        if result == REGO_OK {
             Ok(())
         } else {
             Err(self.get_error())
@@ -441,13 +710,13 @@ impl Interpreter {
     /// println!("{}", result.to_str().unwrap());
     /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":["Hello"]}"#);
     /// ```
-    pub fn add_module(&self, name: &str, source: &str) -> Result<(), &str> {
+    pub fn add_module(&self, name: &str, source: &str) -> Result<(), String> {
         let name_cstr = CString::new(name).unwrap();
         let name_ptr = name_cstr.as_ptr();
         let source_cstr = CString::new(source).unwrap();
         let source_ptr = source_cstr.as_ptr();
         let result = unsafe { regoAddModule(self.c_ptr, name_ptr, source_ptr) };
-        if result == 0 {
+        if result == REGO_OK {
             Ok(())
         } else {
             Err(self.get_error())
@@ -476,12 +745,12 @@ impl Interpreter {
     ///    }
     /// }
     /// ```
-    pub fn add_data_json_file(&self, path: &Path) -> Result<(), &str> {
+    pub fn add_data_json_file(&self, path: &Path) -> Result<(), String> {
         let path_str = path.to_str().unwrap();
         let path_cstr = CString::new(path_str).unwrap();
         let path_ptr = path_cstr.as_ptr();
         let result = unsafe { regoAddDataJSONFile(self.c_ptr, path_ptr) };
-        if result == 0 {
+        if result == REGO_OK {
             Ok(())
         } else {
             Err(self.get_error())
@@ -517,11 +786,11 @@ impl Interpreter {
     /// println!("{}", result.to_str().unwrap());
     /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":["Foo"]}"#);
     /// ```
-    pub fn add_data_json(&self, data: &str) -> Result<(), &str> {
+    pub fn add_data_json(&self, data: &str) -> Result<(), String> {
         let data_cstr = CString::new(data).unwrap();
         let data_ptr = data_cstr.as_ptr();
         let result = unsafe { regoAddDataJSON(self.c_ptr, data_ptr) };
-        if result == 0 {
+        if result == REGO_OK {
             Ok(())
         } else {
             Err(self.get_error())
@@ -549,12 +818,12 @@ impl Interpreter {
     /// ```json
     /// {"a": 1, "b": 2}
     /// ```
-    pub fn set_input_json_file(&self, path: &Path) -> Result<(), &str> {
+    pub fn set_input_json_file(&self, path: &Path) -> Result<(), String> {
         let path_str = path.to_str().unwrap();
         let path_cstr = CString::new(path_str).unwrap();
         let path_ptr = path_cstr.as_ptr();
         let result = unsafe { regoSetInputJSONFile(self.c_ptr, path_ptr) };
-        if result == 0 {
+        if result == REGO_OK {
             Ok(())
         } else {
             Err(self.get_error())
@@ -600,11 +869,23 @@ impl Interpreter {
     /// println!("{}", result.to_str().unwrap());
     /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":[10]}"#);
     /// ```
-    pub fn set_input_json(&self, input: &str) -> Result<(), &str> {
+    pub fn set_input_json(&self, input: &str) -> Result<(), String> {
         let input_cstr = CString::new(input).unwrap();
         let input_ptr = input_cstr.as_ptr();
-        let result = unsafe { regoSetInputJSON(self.c_ptr, input_ptr) };
-        if result == 0 {
+        let result = unsafe { regoSetInputTerm(self.c_ptr, input_ptr) };
+        if result == REGO_OK {
+            Ok(())
+        } else {
+            Err(self.get_error())
+        }
+    }
+
+    /// Sets the input for the current policy directly.
+    ///
+    /// See [`Input`] for more information.
+    pub fn set_input(&self, input: &Input) -> Result<(), String> {
+        let result = unsafe { regoSetInput(self.c_ptr, input.c_ptr) };
+        if result == REGO_OK {
             Ok(())
         } else {
             Err(self.get_error())
@@ -633,12 +914,12 @@ impl Interpreter {
     /// Sets the path to the directory where the Rego interpreter will write debug AST files.
     ///
     /// This is only useful when debug mode is enabled.
-    pub fn set_debug_path(&self, path: &Path) -> Result<(), &str> {
+    pub fn set_debug_path(&self, path: &Path) -> Result<(), String> {
         let path_str = path.to_str().unwrap();
         let path_cstr = CString::new(path_str).unwrap();
         let path_ptr = path_cstr.as_ptr();
         let result = unsafe { regoSetDebugPath(self.c_ptr, path_ptr) };
-        if result == 0 {
+        if result == REGO_OK {
             Ok(())
         } else {
             Err(self.get_error())
@@ -681,7 +962,7 @@ impl Interpreter {
     }
 
     /// Returns whether the interpreter has a built-in with the given name.
-    /// 
+    ///
     /// # Example
     /// ```
     /// # use regorust::*;
@@ -692,7 +973,7 @@ impl Interpreter {
     pub fn is_built_in(&self, name: &str) -> bool {
         let name_cstr = CString::new(name).unwrap();
         let name_ptr = name_cstr.as_ptr();
-        let c_is_built_in = unsafe { regoIsBuiltIn(self.c_ptr, name_ptr)};
+        let c_is_built_in = unsafe { regoIsAvailableBuiltIn(self.c_ptr, name_ptr) };
         c_is_built_in == 1
     }
 
@@ -747,10 +1028,199 @@ impl Interpreter {
     /// println!("{}", result.to_str().unwrap());
     /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":[70]}"#);
     /// ```
-    pub fn query(&self, query: &str) -> Result<Output, &str> {
+    pub fn query(&self, query: &str) -> Result<Output, String> {
         let query_cstr = CString::new(query).unwrap();
         let query_ptr = query_cstr.as_ptr();
         let output_ptr = unsafe { regoQuery(self.c_ptr, query_ptr) };
+        if output_ptr == std::ptr::null_mut() {
+            Err(self.get_error())
+        } else {
+            Ok(Output::new(output_ptr))
+        }
+    }
+
+    /// Build a bundle from the current base and virtual documents, along
+    /// with `query` and the provided `entrypoints`. There must be at least
+    /// one entrypoint or a query in order for the build to be successful.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use regorust::*;
+    /// let input0 = r#"{
+    ///     "x": 104,
+    ///     "y": 119
+    /// }"#;
+    /// let data = r#"{
+    ///     "a": 7,
+    ///     "b": 13
+    /// }"#;
+    /// let module = r#"
+    ///  package example
+    ///
+    ///  foo := data.a * input.x + data.b * input.y
+    ///  bar := data.b * input.x + data.a * input.y
+    /// "#;
+    /// let rego_build = Interpreter::new();
+    /// rego_build.add_data_json(data);
+    /// rego_build.add_module("example.rego", module);
+    /// let bundle = rego_build.build(&Some("x=data.example.foo + data.example.bar"),
+    ///                               &["example/foo", "example/bar"]).expect("Unable to build bundle");
+    /// let rego_run = Interpreter::new();
+    /// rego_run.set_input_json(input0);
+    /// let result = rego_run.query_bundle(&bundle).expect("Failed bundle query");
+    /// let x = result.binding("x").unwrap();
+    /// println!("x = {}", x.json().unwrap());
+    /// # assert_eq!(x.json().expect("cannot convert x to JSON"), "4460");
+    ///
+    /// let result = rego_run.query_bundle_entrypoint(&bundle, "example/foo").expect("Failed bundle entrypoint query");
+    /// println!("{}", result.to_str().unwrap());
+    /// # assert_eq!(result.to_str().unwrap(), r#"{"expressions":[2275]}"#);
+    /// ```
+    pub fn build<T: AsRef<str>>(
+        &self,
+        query: &Option<T>,
+        entrypoints: &[T],
+    ) -> Result<Bundle, String> {
+        match query {
+            Some(value) => {
+                let query_cstr = CString::new(value.as_ref()).unwrap();
+                let query_ptr = query_cstr.as_ptr();
+                let result = unsafe { regoSetQuery(self.c_ptr, query_ptr) };
+                if result != REGO_OK {
+                    return Err(self.get_error());
+                }
+            }
+            None => (),
+        }
+
+        for e in entrypoints {
+            let e_cstr = CString::new(e.as_ref()).unwrap();
+            let e_ptr = e_cstr.as_ptr();
+            let result = unsafe { regoAddEntrypoint(self.c_ptr, e_ptr) };
+            if result != REGO_OK {
+                return Err(self.get_error());
+            }
+        }
+
+        if entrypoints.is_empty() && query.is_none() {
+            return Err("Must provide at least one entrypoint or a query".to_string());
+        }
+
+        let bundle_ptr = unsafe { regoBuild(self.c_ptr) };
+        if bundle_ptr == std::ptr::null_mut() {
+            Err(self.get_error())
+        } else {
+            Ok(Bundle::new(bundle_ptr))
+        }
+    }
+
+    /// Loads a bundle from the disk.
+    pub fn load_bundle(&self, path: &Path, format: BundleFormat) -> Result<Bundle, String> {
+        let path_str = path.to_str().unwrap();
+        let path_cstr = CString::new(path_str).unwrap();
+        let path_ptr = path_cstr.as_ptr();
+        let bundle_ptr = match format {
+            BundleFormat::JSON => unsafe { regoBundleLoad(self.c_ptr, path_ptr) },
+            BundleFormat::Binary => unsafe { regoBundleLoadBinary(self.c_ptr, path_ptr) },
+        };
+
+        if bundle_ptr == std::ptr::null_mut() {
+            Err(self.get_error())
+        } else {
+            Ok(Bundle::new(bundle_ptr))
+        }
+    }
+
+    /// Saves a bundle to the disk.
+    ///
+    /// There are two modes for bundle serialization. The JSON serialization scheme creates
+    /// a directory at the specified path and then writes at least two files: `plan.json`
+    /// (which contains the compiled virtual documents and plans for execution) and
+    /// `data.json` (which contains the base documents merged into a single JSON hierarchy).
+    /// Module source files will also be copied into the directory.
+    ///
+    /// The second mode is binary serialization. This uses the Rego Binary Bundle format
+    /// (TODO URL) to create a single file which contains all the bundle information.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use regorust::*;
+    /// # use std::env;
+    /// let rego_build = Interpreter::new();
+    /// let bundle = rego_build.build(&Some("a=1"), &[]).expect("Failed to build bundle");
+    /// let mut bundle_dir = env::temp_dir();
+    /// bundle_dir.push("bundle");
+    /// let mut bundle_file = env::temp_dir();
+    /// bundle_file.push("bundle.rbb");
+    /// rego_build.save_bundle(&bundle_dir, &bundle, BundleFormat::JSON).expect("Unable to save bundle");
+    /// rego_build.save_bundle(&bundle_file, &bundle, BundleFormat::Binary).expect("Unable to save binary bundle");
+    ///
+    /// let rego_run = Interpreter::new();
+    /// let bundle = rego_run.load_bundle(&bundle_dir, BundleFormat::JSON).expect("Unable to load bundle from disk");
+    /// let result = rego_run.query_bundle(&bundle).expect("Failed bundle query");
+    /// let a = result.binding("a").unwrap();
+    /// println!("a = {}", a.json().unwrap());
+    /// # assert_eq!(a.json().expect("cannot convert a to JSON"), "1");
+    ///
+    /// let bundle = rego_run.load_bundle(&bundle_file, BundleFormat::Binary).expect("Unable to load bundle from disk");
+    /// let result = rego_run.query_bundle(&bundle).expect("Failed bundle query");
+    /// let a = result.binding("a").unwrap();
+    /// println!("a = {}", a.json().unwrap());
+    /// # assert_eq!(a.json().expect("cannot convert a to JSON"), "1");
+    /// ```
+    pub fn save_bundle(
+        &self,
+        path: &Path,
+        bundle: &Bundle,
+        format: BundleFormat,
+    ) -> Result<(), String> {
+        let path_str = path.to_str().unwrap();
+        let path_cstr = CString::new(path_str).unwrap();
+        let path_ptr = path_cstr.as_ptr();
+        let result = match format {
+            BundleFormat::JSON => unsafe { regoBundleSave(self.c_ptr, path_ptr, bundle.c_ptr) },
+            BundleFormat::Binary => unsafe {
+                regoBundleSaveBinary(self.c_ptr, path_ptr, bundle.c_ptr)
+            },
+        };
+
+        if result == REGO_OK {
+            Ok(())
+        } else {
+            Err(self.get_error())
+        }
+    }
+
+    /// Performs a query using the compiled policy in the bundle.
+    ///
+    /// This method requires that the entrypoint specified by `entrypoint`
+    /// was provided to [`Interpreter::build()`]. Otherwise, it will fail.
+    pub fn query_bundle_entrypoint(
+        &self,
+        bundle: &Bundle,
+        entrypoint: &str,
+    ) -> Result<Output, String> {
+        let entrypoint_cstr = CString::new(entrypoint).unwrap();
+        let entrypoint_ptr = entrypoint_cstr.as_ptr();
+        let output_ptr =
+            unsafe { regoBundleQueryEntrypoint(self.c_ptr, bundle.c_ptr, entrypoint_ptr) };
+
+        if output_ptr == std::ptr::null_mut() {
+            Err(self.get_error())
+        } else {
+            Ok(Output::new(output_ptr))
+        }
+    }
+
+    /// Performs a query using the compiled policy in the bundle.
+    ///
+    /// This method requires that a query was provided to [`Interpreter::build()`].
+    /// Otherwise, it will fail.
+    pub fn query_bundle(&self, bundle: &Bundle) -> Result<Output, String> {
+        let output_ptr = unsafe { regoBundleQuery(self.c_ptr, bundle.c_ptr) };
+
         if output_ptr == std::ptr::null_mut() {
             Err(self.get_error())
         } else {
@@ -802,7 +1272,7 @@ impl Output {
     ///
     /// If the result of [`Self::ok()`] is false, the result will be an string
     /// containing error information.
-    pub fn to_str(&self) -> Result<String, &str> {
+    pub fn to_str(&self) -> Result<String, String> {
         let size = unsafe { regoOutputJSONSize(self.c_ptr) };
 
         let buf = vec![32 as u8; (size as usize) - 1];
@@ -810,7 +1280,7 @@ impl Output {
         let input_ptr = CString::into_raw(input_cstr);
         let err: regoEnum = unsafe { regoOutputJSON(self.c_ptr, input_ptr, size) };
         if err != REGO_OK {
-            return Err("Error obtaining output string");
+            return Err("Error obtaining output string".to_string());
         } else {
             let output_cstr = unsafe { CString::from_raw(input_ptr) };
             let output = output_cstr.into_string().unwrap();
@@ -954,10 +1424,19 @@ impl Node {
     }
 
     /// Returns a human-readable string representation of the node kind.
-    pub fn kind_name(&self) -> &str {
-        let c_str = unsafe { regoNodeTypeName(self.c_ptr) };
-        let result: &CStr = unsafe { CStr::from_ptr(c_str) };
-        result.to_str().unwrap()
+    pub fn kind_name(&self) -> Result<String, &str> {
+        let size = unsafe { regoNodeTypeNameSize(self.c_ptr) };
+
+        let buf = vec![32 as u8; (size as usize) - 1];
+        let input_cstr = CString::new(buf).unwrap();
+        let input_ptr = CString::into_raw(input_cstr);
+        let err: regoEnum = unsafe { regoNodeTypeName(self.c_ptr, input_ptr, size) };
+        if err != REGO_OK {
+            return Err("Error getting node kind name");
+        } else {
+            let output_cstr: CString = unsafe { CString::from_raw(input_ptr) };
+            Ok(output_cstr.into_string().unwrap())
+        }
     }
 
     fn scalar_value(&self) -> Result<String, &str> {
@@ -1139,12 +1618,13 @@ impl Node {
     /// # use regorust::*;
     /// # let rego = Interpreter::new();
     /// let output = rego.query(r#"x={"a": 1}; y={["foo", false], 5}; z=[1, "bar"]"#).unwrap();
+    /// println!("{}", output.to_str().unwrap());
     /// let x = output.binding("x").unwrap();
     /// println!(r#"x["a"] = {}"#, x.lookup("a").unwrap().json().unwrap());
     /// # assert_eq!(x.lookup("a").unwrap().json().unwrap(), "1");
     /// let y = output.binding("y").unwrap();
-    /// println!(r#"y[["foo", false]] = {}"#, y.lookup(r#"["foo", false]"#).unwrap().json().unwrap());
-    /// # assert_eq!(y.lookup(r#"["foo", false]"#).unwrap().json().unwrap(), r#"["foo", false]"#);
+    /// println!(r#"y[["foo", false]] = {}"#, y.lookup(r#"["foo",false]"#).unwrap().json().unwrap());
+    /// # assert_eq!(y.lookup(r#"["foo",false]"#).unwrap().json().unwrap(), r#"["foo",false]"#);
     /// let z = output.binding("z").unwrap();
     /// match z.lookup("bar") {
     ///   Ok(_) => panic!("bar should not be found"),
@@ -1253,6 +1733,8 @@ mod tests {
     #[test]
     fn query_math() {
         let rego = Interpreter::new();
+        rego.set_log_level(LogLevel::Info)
+            .expect("cannot set log level");
         match rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4") {
             Ok(result) => {
                 let x = result.binding("x").expect("cannot get x");
@@ -1555,5 +2037,117 @@ mod tests {
                 println!("error: {}", e);
             }
         }
+    }
+
+    #[test]
+    fn build() {
+        let input0 = Input::new()
+            .str("x")
+            .int(104)
+            .objectitem()
+            .str("y")
+            .int(119)
+            .objectitem()
+            .object(2)
+            .validate()
+            .expect("Unable to construct input");
+        let data = r#"{
+            "a": 7,
+            "b": 13
+        }"#;
+        let module = r#"
+            package test
+
+            foo := data.a * input.x + data.b * input.y
+            bar := data.b * input.x + data.a * input.y        
+        "#;
+
+        let mut bundle_dir = std::env::temp_dir();
+        bundle_dir.push("bundle");
+        let mut bundle_file = std::env::temp_dir();
+        bundle_file.push("bundle.rbb");
+
+        let rego_build = Interpreter::new();
+        rego_build.add_data_json(data).expect("Unable to add data");
+        rego_build
+            .add_module("test.rego", module)
+            .expect("Unable to add module");
+        let bundle = rego_build
+            .build(
+                &Some("x=data.test.foo + data.test.bar"),
+                &["test/foo", "test/bar"],
+            )
+            .expect("Failed to build bundle");
+
+        rego_build
+            .save_bundle(bundle_dir.as_path(), &bundle, BundleFormat::JSON)
+            .expect("Failed to save bundle as JSON");
+        rego_build
+            .save_bundle(bundle_file.as_path(), &bundle, BundleFormat::Binary)
+            .expect("Failed to save bundle as Binary");
+
+        bundle_dir.push("plan.json");
+        bundle_dir.try_exists().expect("plan.json is missing");
+        bundle_dir.pop();
+        bundle_dir.push("data.json");
+        bundle_dir.try_exists().expect("data.json is missing");
+        bundle_dir.pop();
+        bundle_dir.push("test.rego");
+        bundle_dir.try_exists().expect("test.rego is missing");
+        bundle_dir.pop();
+
+        let rego_run = Interpreter::new();
+        let bundle = rego_run
+            .load_bundle(bundle_dir.as_path(), BundleFormat::JSON)
+            .expect("Unable to load JSON bundle");
+        rego_run.set_input(&input0).expect("Unable to set input");
+        match rego_run.query_bundle(&bundle) {
+            Ok(output) => {
+                if let NodeValue::Int(a) = output
+                    .binding("x")
+                    .expect("cannot get x")
+                    .value()
+                    .expect("cannot get x value")
+                {
+                    assert_eq!(a, 4460);
+                }
+            }
+            Err(e) => {
+                panic!("error: {}", e);
+            }
+        };
+
+        match rego_run.query_bundle_entrypoint(&bundle, "test/foo") {
+            Ok(output) => {
+                let expressions = output.expressions().expect("Unable to get expressions");
+                if let NodeValue::Int(a) =
+                    expressions[0].value().expect("cannot get expression value")
+                {
+                    assert_eq!(a, 2275);
+                }
+            }
+            Err(e) => {
+                panic!("error: {}", e);
+            }
+        };
+
+        let bundle_bin = rego_run
+            .load_bundle(bundle_file.as_path(), BundleFormat::Binary)
+            .expect("Unable to load binary bundle");
+        match rego_run.query_bundle(&bundle_bin) {
+            Ok(output) => {
+                if let NodeValue::Int(a) = output
+                    .binding("x")
+                    .expect("cannot get x")
+                    .value()
+                    .expect("cannot get x value")
+                {
+                    assert_eq!(a, 4460);
+                }
+            }
+            Err(e) => {
+                panic!("error: {}", e);
+            }
+        };
     }
 }

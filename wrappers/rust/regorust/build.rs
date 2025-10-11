@@ -82,16 +82,17 @@ fn main() {
 
     println!("cargo:rustc-link-search={}", libdir_path.to_str().unwrap());
     println!("cargo:rustc-link-lib=static:+whole-archive=re2");
-    println!("cargo:rustc-link-lib=static:+whole-archive=snmalloc-new-override");
     println!("cargo:rustc-link-lib=static:+whole-archive=json");
     println!("cargo:rustc-link-lib=static:+whole-archive=yaml");
     println!("cargo:rustc-link-lib=static=rego");
     if cfg!(windows) {
+        println!("cargo:rustc-link-lib=static:+whole-archive=snmalloc-new-override");
         println!("cargo:rustc-link-arg=mincore.lib");
         println!("cargo:rustc-link-arg=shell32.lib");
     } else if cfg!(target_os = "macos") {
         println!("cargo:rustc-link-lib=c++");
     } else {
+        println!("cargo:rustc-link-lib=static:+whole-archive=snmalloc-new-override");
         println!("cargo:rustc-link-lib=stdc++");
     }
     println!("cargo:rerun-if-changed={}", header_path_str);

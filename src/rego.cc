@@ -1,54 +1,44 @@
-#include "unify.hh"
+#include "internal.hh"
 
 namespace logging = trieste::logging;
 
 namespace rego
 {
-  std::string set_log_level_from_string(const std::string& level)
-  {
-    return logging::set_log_level_from_string(level);
-  }
-
-  void set_log_level(LogLevel level)
-  {
-    // Set trieste LogLevel
-    switch (level)
-    {
-      case LogLevel::None:
-        logging::set_level<logging::None>();
-        break;
-      case LogLevel::Error:
-        logging::set_level<logging::Error>();
-        break;
-      case LogLevel::Output:
-        logging::set_level<logging::Output>();
-        break;
-      case LogLevel::Warn:
-        logging::set_level<logging::Warn>();
-        break;
-      case LogLevel::Info:
-        logging::set_level<logging::Info>();
-        break;
-      case LogLevel::Debug:
-        logging::set_level<logging::Debug>();
-        break;
-      case LogLevel::Trace:
-        logging::set_level<logging::Trace>();
-        break;
-      default:
-        throw std::runtime_error("Unknown log level");
-    }
-  }
-
   std::vector<Pass> passes(BuiltIns builtins)
   {
-    auto reader_passes = reader().passes();
-    auto unify_passes = unify(builtins).passes();
+    auto reader_passes = file_to_rego().passes();
+    auto bundle_passes = rego_to_bundle(builtins).passes();
     std::vector<Pass> all_passes;
     all_passes.insert(
       all_passes.end(), reader_passes.begin(), reader_passes.end());
     all_passes.insert(
-      all_passes.end(), unify_passes.begin(), unify_passes.end());
+      all_passes.end(), bundle_passes.begin(), bundle_passes.end());
     return all_passes;
+  }
+
+  LogLevel log_level_from_string(const std::string& s)
+  {
+    std::string name;
+    name.resize(s.size());
+    std::transform(s.begin(), s.end(), name.begin(), ::tolower);
+    if (name == "none")
+      return LogLevel::None;
+    if (name == "error")
+      return LogLevel::Error;
+    if (name == "output")
+      return LogLevel::Output;
+    if (name == "warn")
+      return LogLevel::Warn;
+    if (name == "info")
+      return LogLevel::Info;
+    if (name == "debug")
+      return LogLevel::Debug;
+    if (name == "trace")
+      return LogLevel::Trace;
+
+    std::stringstream ss;
+    ss << "Unknown log level: " << s
+       << " should be on of None, Error, Output, Warn, Info, Debug, Trace";
+    throw std::runtime_error(ss.str());
   }
 }

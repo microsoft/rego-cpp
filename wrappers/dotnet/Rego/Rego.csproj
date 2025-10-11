@@ -1,16 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsWindows Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindows> 
-    <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX> 
-    <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux> 
+    <IsWindows Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</IsWindows> 
+    <IsOSX Condition="$([MSBuild]::IsOSPlatform('OSX'))">true</IsOSX> 
+    <IsLinux Condition="$([MSBuild]::IsOSPlatform('Linux'))">true</IsLinux> 
+    <IsARM64 Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">true</IsARM64>
   </PropertyGroup>
 
   <PropertyGroup>
     <Authors>Matthew Johnson</Authors>
     <Company>Microsoft</Company>
-    <Version>0.4.6</Version>
-    <Copyright>Copyright (c) 2024 Microsoft. All rights reserved.</Copyright>
+    <Version>1.0.0</Version>
+    <Copyright>Copyright (c) Microsoft. All rights reserved.</Copyright>
     <Description>
       This client library provides in-process Rego query support for .NET applications.
       For this release see notes - https://github.com/microsoft/rego-cpp/blob/main/README.md and https://github.com/microsoft/rego-cpp/blob/main/CHANGELOG
@@ -20,7 +21,8 @@
     <RepositoryType>git</RepositoryType>
     <PlatformArch Condition="'$(IsWindows)'=='true'">win-x64</PlatformArch>
     <PlatformArch Condition="'$(IsLinux)'=='true'">linux-x64</PlatformArch>
-    <PlatformArch Condition="'$(IsOSX)'=='true'">osx-x64</PlatformArch>
+    <PlatformArch Condition="'$(IsOSX)'=='true' and '$(IsArm64)'=='true'">osx-arm64</PlatformArch>
+    <PlatformArch Condition="'$(IsOSX)'=='true' and '$(IsArm64)'=='false'">osx-x64</PlatformArch>
     <PackageId>Rego-$(PlatformArch)</PackageId>
     <PackageTags>Rego;Microsoft;Policy;OPA</PackageTags>
     <PackageIcon>rego_icon.png</PackageIcon>
@@ -78,7 +80,7 @@
 
   <ItemGroup>
     <None Include="$(RegoCPPLibraryPath)" Pack="true" PackagePath="runtimes/$(PlatformArch)/native" />
-    <None Include="images/rego_icon.png" Pack="true" PackagePath="\"/>
+    <None Include="../images/rego_icon.png" Pack="true" PackagePath="\"/>
     <None Include="README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 

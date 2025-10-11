@@ -1,17 +1,23 @@
 """Tests for the Python wrapper of the Rego interpreter."""
 
+import os
+from pathlib import Path
+
 import pytest
-from regopy import Interpreter, RegoError
+from regopy import Interpreter, RegoError, BundleFormat, set_default_log_level
 
 
 def test_query_math():
     rego = Interpreter()
     output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5")
     assert output is not None
-    assert str(output) == '{"expressions":[10], "bindings":{"x":5, "y":9.4}}'
-    assert output.binding("x").json() == "5"
-    assert output.binding("y").json() == "9.4"
-    assert output.expressions()[0].json() == "10"
+    assert str(output) == '{"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}'
+    assert len(output) == 1
+    result = output[0]
+    assert result.bindings["x"] == 5
+    assert result.bindings["y"] == 9.4
+    print(result.expressions)
+    assert result.expressions[-1] == 10
 
 
 def test_input_data():
@@ -73,13 +79,13 @@ def test_input_data():
     assert output is not None
     x = output.binding("x")
     data_one = x[0]
-    assert data_one["bar"].value == '"Foo"'
+    assert data_one["bar"].value == "Foo"
     assert data_one["be"].value is True
     assert data_one["baz"].value == 5
     assert data_one["bop"].value == 23.4
-    assert x[1].value == '"20"'
+    assert x[1].value == "20"
     data_objects_sites_1 = x[2]
-    assert data_objects_sites_1["name"].value == '"smoke1"'
+    assert data_objects_sites_1["name"].value == "smoke1"
 
 
 def test_multiple_inputs():
@@ -111,7 +117,7 @@ def test_multiple_inputs():
     rego.add_module("multi", module)
     rego.set_input(input0)
     output = rego.query("x = data.multi.a")
-    assert str(output) == """{"bindings":{"x":1}}"""
+    assert str(output) == '{"expressions":[true], "bindings":{"x":1}}'
     assert output.binding("x").value == 1
     rego.set_input(input1)
     output = rego.query("x = data.multi.a")
@@ -144,7 +150,7 @@ def test_set():
     a = output.binding("a")
     assert len(a) == 4
     assert a[1].value == 1
-    assert a["2"].value == '"2"'
+    assert a["2"].value == "2"
     assert not a[False].value
     assert a[4.3].value == 4.3
     assert a[6] is None
@@ -158,3 +164,53 @@ def test_bad_module():
         pass
     else:
         raise AssertionError("Expected RegoError")
+
+
+def test_build():
+    input0 = {
+        "x": 104,
+        "y": 119
+    }
+    data = {
+        "a": 7,
+        "b": 13
+    }
+    module = """
+        package example
+
+        foo := data.a * input.x + data.b * input.y
+        bar := data.b * input.x + data.a * input.y
+    """
+
+    d = Path("bundle")
+    f = Path("bundle_bin.rbb")
+
+    set_default_log_level("Debug")
+
+    rego_build = Interpreter()
+    rego_build.add_data(data)
+    rego_build.add_module("test.rego", module)
+    bundle = rego_build.build("x=data.example.foo + data.example.bar", ["example/foo", "example/bar"])
+    assert bundle.ok()
+
+    rego_build.save_bundle(str(d), bundle)
+    rego_build.save_bundle(str(f), bundle, BundleFormat.Binary)
+
+    assert os.path.exists(d / "plan.json")
+    assert os.path.exists(d / "data.json")
+    assert os.path.exists(d / "test.rego")
+
+    rego_run = Interpreter()
+    bundle = rego_run.load_bundle(str(d))
+    assert bundle.ok()
+
+    rego_run.set_input(input0)
+    output = rego_run.query_bundle(bundle)
+    assert output.binding("x").value == 4460
+
+    output = rego_run.query_bundle_entrypoint(bundle, "example/foo")
+    assert output.expressions()[0].value == 2275
+
+    bundle_bin = rego_run.load_bundle(str(f), BundleFormat.Binary)
+    output_bin = rego_run.query_bundle_entrypoint(bundle_bin, "example/foo")
+    assert str(output) == str(output_bin)

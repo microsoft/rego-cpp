@@ -128,10 +128,10 @@ fn main() {
 
 ## Language Support
 
-We support v0.68.0 of Rego as defined by OPA, with the following grammar:
+We support v1.8.0 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
-module          = package { import } policy
+mmodule          = package { import } policy
 package         = "package" ref
 import          = "import" ref [ "as" var ]
 policy          = { rule }

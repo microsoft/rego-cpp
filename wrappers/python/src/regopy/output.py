@@ -24,12 +24,12 @@ class Result:
         >>> output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5")
         >>> result = output[0]
         >>> print(result)
-        {"expressions": [10], "bindings": {"x": 5, "y": 9.4}}
+        {"expressions": [true, true, 10], "bindings": {"x": 5, "y": 9.4}}
 
         >>> print(result["x"])
         5
 
-        >>> print(result[0])
+        >>> print(result[2])
         10
     """
 
@@ -62,7 +62,7 @@ class Output:
         >>> rego = Interpreter()
         >>> output = rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5")
         >>> print(output)
-        {"expressions":[10], "bindings":{"x":5, "y":9.4}}
+        {"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}
 
         >>> x = output.binding("x")
         >>> print(x.json())
@@ -159,4 +159,4 @@ class Output:
         gives a quick way, without inspecting the result node, of finding whether
         it is ok.
         """
-        rego_output_ok(self._impl)
+        return rego_output_ok(self._impl)

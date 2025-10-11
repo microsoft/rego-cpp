@@ -1,4 +1,5 @@
 #include "builtins.h"
+#include "rego.hh"
 #include "trieste/json.h"
 
 #include <regex>
@@ -6,6 +7,7 @@
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   Node error(
     const Node& pattern_node,
@@ -145,6 +147,18 @@ namespace
     }
   }
 
+  Node match_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "pattern")
+                               << (bi::Description ^ "regular expression")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg
+                       << (bi::Name ^ "value")
+                       << (bi::Description ^ "value to match against `pattern`")
+                       << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^ "true of `value` matches `pattern`")
+                   << (bi::Type << bi::Boolean));
+
   Node is_valid(const Nodes& args)
   {
     Node pattern_node =
@@ -166,6 +180,17 @@ namespace
       return Resolver::scalar(false);
     }
   }
+
+  Node is_valid_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "pattern")
+                             << (bi::Description ^ "regular expression")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "result")
+                 << (bi::Description ^
+                     "`true` if `pattern` is a valid regular expression")
+                 << (bi::Type << bi::Boolean));
 
   Node replace(const Nodes& args)
   {
@@ -207,6 +232,21 @@ namespace
       return error(pattern_node, e.code());
     }
   }
+
+  Node replace_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "s")
+                               << (bi::Description ^ "string being processed")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg
+                       << (bi::Name ^ "pattern")
+                       << (bi::Description ^ "regex pattern to be applied")
+                       << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "value")
+                               << (bi::Description ^ "regex value")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^ "string with replaced substrings")
+                   << (bi::Type << bi::String));
 
   Node find_n(const Nodes& args)
   {
@@ -261,6 +301,25 @@ namespace
 
     return array;
   }
+
+  Node find_n_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "pattern")
+                             << (bi::Description ^ "regular expression")
+                             << (bi::Type << bi::String))
+                 << (bi::Arg << (bi::Name ^ "value")
+                             << (bi::Description ^ "string to match")
+                             << (bi::Type << bi::String))
+                 << (bi::Arg
+                     << (bi::Name ^ "number")
+                     << (bi::Description ^
+                         "number of matches to return; `-1` means all matches")
+                     << (bi::Type << bi::Number)))
+             << (bi::Result
+                 << (bi::Name ^ "output")
+                 << (bi::Description ^ "collected matches")
+                 << (bi::Type
+                     << (bi::DynamicArray << (bi::Type << bi::String))));
 
   Node find_all_string_submatch_n(const Nodes& args)
   {
@@ -324,6 +383,27 @@ namespace
     return array;
   }
 
+  Node find_all_string_submatch_n_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "pattern")
+                             << (bi::Description ^ "regular expression")
+                             << (bi::Type << bi::String))
+                 << (bi::Arg << (bi::Name ^ "value")
+                             << (bi::Description ^ "string to match")
+                             << (bi::Type << bi::String))
+                 << (bi::Arg
+                     << (bi::Name ^ "number")
+                     << (bi::Description ^
+                         "number of matches to return; `-1` means all matches")
+                     << (bi::Type << bi::Number)))
+             << (bi::Result << (bi::Name ^ "output")
+                            << (bi::Description ^ "array of all matches")
+                            << (bi::Type
+                                << (bi::DynamicArray
+                                    << (bi::Type
+                                        << (bi::DynamicArray
+                                            << (bi::Type << bi::String))))));
+
   Node split(const Nodes& args)
   {
     Node pattern_node =
@@ -370,6 +450,19 @@ namespace
 
     return array;
   }
+
+  Node split_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "pattern")
+                               << (bi::Description ^ "regular expression")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "value")
+                               << (bi::Description ^ "string to match")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "the parts obtained by splitting `value`")
+                   << (bi::Type
+                       << (bi::DynamicArray << (bi::Type << bi::String))));
 
   enum class SectionType
   {
@@ -493,6 +586,30 @@ namespace
       return error(template_node, e.code());
     }
   }
+
+  Node template_match_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg
+            << (bi::Name ^ "template")
+            << (bi::Description ^
+                "template expression containing `0..n` regular expressions")
+            << (bi::Type << bi::String))
+        << (bi::Arg << (bi::Name ^ "value")
+                    << (bi::Description ^ "string to match")
+                    << (bi::Type << bi::String))
+        << (bi::Arg
+            << (bi::Name ^ "delimiter_start")
+            << (bi::Description ^
+                "start delimiter of the regular expression in `template`")
+            << (bi::Type << bi::String))
+        << (bi::Arg << (bi::Name ^ "delimiter_end")
+                    << (bi::Description ^
+                        "end delimiter of the regular expression in `template`")
+                    << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^
+                       "true of `value` matches the `template`")
+                   << (bi::Type << bi::Boolean));
 }
 
 namespace rego
@@ -502,17 +619,19 @@ namespace rego
     std::vector<BuiltIn> regex()
     {
       return {
-        BuiltInDef::create(Location("re_match"), 2, match),
         BuiltInDef::create(
           Location("regex.find_all_string_submatch_n"),
-          3,
+          find_all_string_submatch_n_decl,
           find_all_string_submatch_n),
-        BuiltInDef::create(Location("regex.find_n"), 3, find_n),
-        BuiltInDef::create(Location("regex.is_valid"), 1, is_valid),
-        BuiltInDef::create(Location("regex.match"), 2, match),
-        BuiltInDef::create(Location("regex.replace"), 3, replace),
-        BuiltInDef::create(Location("regex.split"), 2, split),
-        BuiltInDef::create(Location("regex.template_match"), 4, template_match),
+        BuiltInDef::create(Location("regex.find_n"), find_n_decl, find_n),
+        BuiltInDef::create(Location("regex.is_valid"), is_valid_decl, is_valid),
+        BuiltInDef::create(Location("regex.match"), match_decl, match),
+        BuiltInDef::create(Location("regex.replace"), replace_decl, replace),
+        BuiltInDef::create(Location("regex.split"), split_decl, split),
+        BuiltInDef::create(
+          Location("regex.template_match"),
+          template_match_decl,
+          template_match),
       };
     }
   }

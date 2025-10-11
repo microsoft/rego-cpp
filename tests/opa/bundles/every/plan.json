@@ -1,0 +1,3474 @@
+{
+    "static": {
+        "strings": [
+            {
+                "value": "result"
+            },
+            {
+                "value": "sites"
+            },
+            {
+                "value": "name"
+            },
+            {
+                "value": "dev"
+            },
+            {
+                "value": "servers"
+            },
+            {
+                "value": "-dev"
+            },
+            {
+                "value": "1"
+            },
+            {
+                "value": "2"
+            },
+            {
+                "value": "3"
+            },
+            {
+                "value": "foo"
+            },
+            {
+                "value": "bar"
+            },
+            {
+                "value": "fox"
+            },
+            {
+                "value": "baz"
+            },
+            {
+                "value": "f"
+            },
+            {
+                "value": "b"
+            },
+            {
+                "value": "4"
+            },
+            {
+                "value": "8"
+            }
+        ],
+        "builtin_funcs": [
+            {
+                "name": "endswith",
+                "decl": {
+                    "args": [
+                        {
+                            "description": "search string",
+                            "name": "search",
+                            "type": "string"
+                        },
+                        {
+                            "description": "base string",
+                            "name": "base",
+                            "type": "string"
+                        }
+                    ],
+                    "result": {
+                        "description": "result of the suffix check",
+                        "name": "result",
+                        "type": "boolean"
+                    },
+                    "type": "function"
+                }
+            },
+            {
+                "name": "gt",
+                "decl": {
+                    "args": [
+                        {
+                            "name": "x",
+                            "type": "any"
+                        },
+                        {
+                            "name": "y",
+                            "type": "any"
+                        }
+                    ],
+                    "result": {
+                        "description": "true if `x` is greater than `y`; false otherwise",
+                        "name": "result",
+                        "type": "boolean"
+                    },
+                    "type": "function"
+                }
+            },
+            {
+                "name": "minus",
+                "decl": {
+                    "args": [
+                        {
+                            "name": "x",
+                            "of": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "of": {
+                                        "type": "any"
+                                    },
+                                    "type": "set"
+                                }
+                            ],
+                            "type": "any"
+                        },
+                        {
+                            "name": "y",
+                            "of": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "of": {
+                                        "type": "any"
+                                    },
+                                    "type": "set"
+                                }
+                            ],
+                            "type": "any"
+                        }
+                    ],
+                    "result": {
+                        "description": "the difference of `x` and `y`",
+                        "name": "z",
+                        "of": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "of": {
+                                    "type": "any"
+                                },
+                                "type": "set"
+                            }
+                        ],
+                        "type": "any"
+                    },
+                    "type": "function"
+                }
+            },
+            {
+                "name": "neq",
+                "decl": {
+                    "args": [
+                        {
+                            "name": "x",
+                            "type": "any"
+                        },
+                        {
+                            "name": "y",
+                            "type": "any"
+                        }
+                    ],
+                    "result": {
+                        "description": "true if `x` is not equal to `y`; false otherwise",
+                        "name": "result",
+                        "type": "boolean"
+                    },
+                    "type": "function"
+                }
+            },
+            {
+                "name": "startswith",
+                "decl": {
+                    "args": [
+                        {
+                            "description": "search string",
+                            "name": "search",
+                            "type": "string"
+                        },
+                        {
+                            "description": "base string",
+                            "name": "base",
+                            "type": "string"
+                        }
+                    ],
+                    "result": {
+                        "description": "result of the prefix check",
+                        "name": "result",
+                        "type": "boolean"
+                    },
+                    "type": "function"
+                }
+            }
+        ],
+        "files": [
+            {
+                "value": "every.rego"
+            }
+        ]
+    },
+    "plans": {
+        "plans": [
+            {
+                "name": "test_every/output",
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.output",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 2,
+                                    "file": 0,
+                                    "col": 0,
+                                    "row": 0
+                                }
+                            },
+                            {
+                                "type": "AssignVarStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 2
+                                    },
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 0,
+                                    "row": 0
+                                }
+                            },
+                            {
+                                "type": "MakeObjectStmt",
+                                "stmt": {
+                                    "target": 4,
+                                    "file": 0,
+                                    "col": 0,
+                                    "row": 0
+                                }
+                            },
+                            {
+                                "type": "ObjectInsertStmt",
+                                "stmt": {
+                                    "key": {
+                                        "type": "string_index",
+                                        "value": 0
+                                    },
+                                    "value": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "object": 4,
+                                    "file": 0,
+                                    "col": 0,
+                                    "row": 0
+                                }
+                            },
+                            {
+                                "type": "ResultSetAddStmt",
+                                "stmt": {
+                                    "value": 4,
+                                    "file": 0,
+                                    "col": 0,
+                                    "row": 0
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "funcs": {
+        "funcs": [
+            {
+                "name": "g0.data.test_every.names_with_dev",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 5
+                                }
+                            },
+                            {
+                                "type": "DotStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 1
+                                    },
+                                    "key": {
+                                        "type": "string_index",
+                                        "value": 1
+                                    },
+                                    "target": 4,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 6
+                                }
+                            },
+                            {
+                                "type": "ScanStmt",
+                                "stmt": {
+                                    "source": 4,
+                                    "key": 5,
+                                    "value": 6,
+                                    "block": {
+                                        "stmts": [
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 5
+                                                    },
+                                                    "target": 7,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 6
+                                                }
+                                            },
+                                            {
+                                                "type": "BlockStmt",
+                                                "stmt": {
+                                                    "blocks": [
+                                                        {
+                                                            "stmts": [
+                                                                {
+                                                                    "type": "BlockStmt",
+                                                                    "stmt": {
+                                                                        "blocks": [
+                                                                            {
+                                                                                "stmts": [
+                                                                                    {
+                                                                                        "type": "BreakStmt",
+                                                                                        "stmt": {
+                                                                                            "index": 1,
+                                                                                            "file": 0,
+                                                                                            "col": 5,
+                                                                                            "row": 6
+                                                                                        }
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        ],
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 6
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "BreakStmt",
+                                                                    "stmt": {
+                                                                        "index": 1,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 6
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 6
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 6
+                                                    },
+                                                    "target": 10,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 6
+                                                }
+                                            },
+                                            {
+                                                "type": "DotStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 10
+                                                    },
+                                                    "key": {
+                                                        "type": "string_index",
+                                                        "value": 2
+                                                    },
+                                                    "target": 11,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 7
+                                                }
+                                            },
+                                            {
+                                                "type": "EqualStmt",
+                                                "stmt": {
+                                                    "a": {
+                                                        "type": "local",
+                                                        "value": 11
+                                                    },
+                                                    "b": {
+                                                        "type": "string_index",
+                                                        "value": 3
+                                                    },
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 7
+                                                }
+                                            },
+                                            {
+                                                "type": "DotStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 10
+                                                    },
+                                                    "key": {
+                                                        "type": "string_index",
+                                                        "value": 4
+                                                    },
+                                                    "target": 12,
+                                                    "file": 0,
+                                                    "col": 21,
+                                                    "row": 9
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 12
+                                                    },
+                                                    "target": 13,
+                                                    "file": 0,
+                                                    "col": 21,
+                                                    "row": 9
+                                                }
+                                            },
+                                            {
+                                                "type": "ResetLocalStmt",
+                                                "stmt": {
+                                                    "target": 14,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 9
+                                                }
+                                            },
+                                            {
+                                                "type": "BlockStmt",
+                                                "stmt": {
+                                                    "blocks": [
+                                                        {
+                                                            "stmts": [
+                                                                {
+                                                                    "type": "BlockStmt",
+                                                                    "stmt": {
+                                                                        "blocks": [
+                                                                            {
+                                                                                "stmts": [
+                                                                                    {
+                                                                                        "type": "IsArrayStmt",
+                                                                                        "stmt": {
+                                                                                            "source": {
+                                                                                                "type": "local",
+                                                                                                "value": 13
+                                                                                            },
+                                                                                            "file": 0,
+                                                                                            "col": 5,
+                                                                                            "row": 9
+                                                                                        }
+                                                                                    },
+                                                                                    {
+                                                                                        "type": "BreakStmt",
+                                                                                        "stmt": {
+                                                                                            "index": 1,
+                                                                                            "file": 0,
+                                                                                            "col": 5,
+                                                                                            "row": 9
+                                                                                        }
+                                                                                    }
+                                                                                ]
+                                                                            },
+                                                                            {
+                                                                                "stmts": [
+                                                                                    {
+                                                                                        "type": "IsObjectStmt",
+                                                                                        "stmt": {
+                                                                                            "source": {
+                                                                                                "type": "local",
+                                                                                                "value": 13
+                                                                                            },
+                                                                                            "file": 0,
+                                                                                            "col": 5,
+                                                                                            "row": 9
+                                                                                        }
+                                                                                    },
+                                                                                    {
+                                                                                        "type": "BreakStmt",
+                                                                                        "stmt": {
+                                                                                            "index": 1,
+                                                                                            "file": 0,
+                                                                                            "col": 5,
+                                                                                            "row": 9
+                                                                                        }
+                                                                                    }
+                                                                                ]
+                                                                            },
+                                                                            {
+                                                                                "stmts": [
+                                                                                    {
+                                                                                        "type": "IsSetStmt",
+                                                                                        "stmt": {
+                                                                                            "source": {
+                                                                                                "type": "local",
+                                                                                                "value": 13
+                                                                                            },
+                                                                                            "file": 0,
+                                                                                            "col": 5,
+                                                                                            "row": 9
+                                                                                        }
+                                                                                    },
+                                                                                    {
+                                                                                        "type": "BreakStmt",
+                                                                                        "stmt": {
+                                                                                            "index": 1,
+                                                                                            "file": 0,
+                                                                                            "col": 5,
+                                                                                            "row": 9
+                                                                                        }
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        ],
+                                                                        "file": 0,
+                                                                        "col": 0,
+                                                                        "row": 0
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "BreakStmt",
+                                                                    "stmt": {
+                                                                        "index": 1,
+                                                                        "file": 0,
+                                                                        "col": 0,
+                                                                        "row": 0
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 9
+                                                }
+                                            },
+                                            {
+                                                "type": "ScanStmt",
+                                                "stmt": {
+                                                    "source": 13,
+                                                    "key": 16,
+                                                    "value": 17,
+                                                    "block": {
+                                                        "stmts": [
+                                                            {
+                                                                "type": "AssignVarStmt",
+                                                                "stmt": {
+                                                                    "source": {
+                                                                        "type": "local",
+                                                                        "value": 16
+                                                                    },
+                                                                    "target": 18,
+                                                                    "file": 0,
+                                                                    "col": 5,
+                                                                    "row": 9
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "ResetLocalStmt",
+                                                                "stmt": {
+                                                                    "target": 15,
+                                                                    "file": 0,
+                                                                    "col": 5,
+                                                                    "row": 9
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "BlockStmt",
+                                                                "stmt": {
+                                                                    "blocks": [
+                                                                        {
+                                                                            "stmts": [
+                                                                                {
+                                                                                    "type": "AssignVarStmt",
+                                                                                    "stmt": {
+                                                                                        "source": {
+                                                                                            "type": "local",
+                                                                                            "value": 17
+                                                                                        },
+                                                                                        "target": 19,
+                                                                                        "file": 0,
+                                                                                        "col": 5,
+                                                                                        "row": 9
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "type": "DotStmt",
+                                                                                    "stmt": {
+                                                                                        "source": {
+                                                                                            "type": "local",
+                                                                                            "value": 19
+                                                                                        },
+                                                                                        "key": {
+                                                                                            "type": "string_index",
+                                                                                            "value": 2
+                                                                                        },
+                                                                                        "target": 20,
+                                                                                        "file": 0,
+                                                                                        "col": 18,
+                                                                                        "row": 10
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "type": "AssignVarStmt",
+                                                                                    "stmt": {
+                                                                                        "source": {
+                                                                                            "type": "local",
+                                                                                            "value": 20
+                                                                                        },
+                                                                                        "target": 21,
+                                                                                        "file": 0,
+                                                                                        "col": 18,
+                                                                                        "row": 10
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "type": "CallStmt",
+                                                                                    "stmt": {
+                                                                                        "func": "endswith",
+                                                                                        "args": [
+                                                                                            {
+                                                                                                "type": "local",
+                                                                                                "value": 21
+                                                                                            },
+                                                                                            {
+                                                                                                "type": "string_index",
+                                                                                                "value": 5
+                                                                                            }
+                                                                                        ],
+                                                                                        "result": 22,
+                                                                                        "file": 0,
+                                                                                        "col": 9,
+                                                                                        "row": 10
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "type": "NotEqualStmt",
+                                                                                    "stmt": {
+                                                                                        "a": {
+                                                                                            "type": "local",
+                                                                                            "value": 22
+                                                                                        },
+                                                                                        "b": {
+                                                                                            "type": "bool",
+                                                                                            "value": false
+                                                                                        },
+                                                                                        "file": 0,
+                                                                                        "col": 9,
+                                                                                        "row": 10
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    "type": "AssignVarStmt",
+                                                                                    "stmt": {
+                                                                                        "source": {
+                                                                                            "type": "bool",
+                                                                                            "value": true
+                                                                                        },
+                                                                                        "target": 15,
+                                                                                        "file": 0,
+                                                                                        "col": 5,
+                                                                                        "row": 9
+                                                                                    }
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    ],
+                                                                    "file": 0,
+                                                                    "col": 5,
+                                                                    "row": 9
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "IsUndefinedStmt",
+                                                                "stmt": {
+                                                                    "source": 15,
+                                                                    "file": 0,
+                                                                    "col": 5,
+                                                                    "row": 9
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "AssignVarStmt",
+                                                                "stmt": {
+                                                                    "source": {
+                                                                        "type": "bool",
+                                                                        "value": true
+                                                                    },
+                                                                    "target": 14,
+                                                                    "file": 0,
+                                                                    "col": 5,
+                                                                    "row": 9
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 9
+                                                }
+                                            },
+                                            {
+                                                "type": "IsUndefinedStmt",
+                                                "stmt": {
+                                                    "source": 14,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 9
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarOnceStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "bool",
+                                                        "value": true
+                                                    },
+                                                    "target": 3,
+                                                    "file": 0,
+                                                    "col": 1,
+                                                    "row": 5
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 6
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 5
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 5
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 5
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "names_with_dev"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.array_domain",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 14
+                                }
+                            },
+                            {
+                                "type": "MakeArrayStmt",
+                                "stmt": {
+                                    "capacity": 3,
+                                    "target": 4,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 6,
+                                    "target": 5,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "ArrayAppendStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 5
+                                    },
+                                    "array": 4,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 7,
+                                    "target": 6,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "ArrayAppendStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 6
+                                    },
+                                    "array": 4,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 8,
+                                    "target": 7,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "ArrayAppendStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 7
+                                    },
+                                    "array": 4,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "AssignVarStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 4
+                                    },
+                                    "target": 8,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 9,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "BlockStmt",
+                                "stmt": {
+                                    "blocks": [
+                                        {
+                                            "stmts": [
+                                                {
+                                                    "type": "BlockStmt",
+                                                    "stmt": {
+                                                        "blocks": [
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsArrayStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 8
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 15
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 15
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsObjectStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 8
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 15
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 15
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsSetStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 8
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 15
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 15
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "file": 0,
+                                                        "col": 0,
+                                                        "row": 0
+                                                    }
+                                                },
+                                                {
+                                                    "type": "BreakStmt",
+                                                    "stmt": {
+                                                        "index": 1,
+                                                        "file": 0,
+                                                        "col": 0,
+                                                        "row": 0
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "ScanStmt",
+                                "stmt": {
+                                    "source": 8,
+                                    "key": 11,
+                                    "value": 12,
+                                    "block": {
+                                        "stmts": [
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 11
+                                                    },
+                                                    "target": 13,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 15
+                                                }
+                                            },
+                                            {
+                                                "type": "ResetLocalStmt",
+                                                "stmt": {
+                                                    "target": 10,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 15
+                                                }
+                                            },
+                                            {
+                                                "type": "BlockStmt",
+                                                "stmt": {
+                                                    "blocks": [
+                                                        {
+                                                            "stmts": [
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "local",
+                                                                            "value": 12
+                                                                        },
+                                                                        "target": 14,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 15
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "CallStmt",
+                                                                    "stmt": {
+                                                                        "func": "minus",
+                                                                        "args": [
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 14
+                                                                            },
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 13
+                                                                            }
+                                                                        ],
+                                                                        "result": 15,
+                                                                        "file": 0,
+                                                                        "col": 31,
+                                                                        "row": 15
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "local",
+                                                                            "value": 15
+                                                                        },
+                                                                        "target": 16,
+                                                                        "file": 0,
+                                                                        "col": 31,
+                                                                        "row": 15
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "MakeNumberRefStmt",
+                                                                    "stmt": {
+                                                                        "Index": 6,
+                                                                        "target": 17,
+                                                                        "file": 0,
+                                                                        "col": 31,
+                                                                        "row": 15
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "EqualStmt",
+                                                                    "stmt": {
+                                                                        "a": {
+                                                                            "type": "local",
+                                                                            "value": 16
+                                                                        },
+                                                                        "b": {
+                                                                            "type": "local",
+                                                                            "value": 17
+                                                                        },
+                                                                        "file": 0,
+                                                                        "col": 31,
+                                                                        "row": 15
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "bool",
+                                                                            "value": true
+                                                                        },
+                                                                        "target": 10,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 15
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 15
+                                                }
+                                            },
+                                            {
+                                                "type": "IsUndefinedStmt",
+                                                "stmt": {
+                                                    "source": 10,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 15
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "bool",
+                                                        "value": true
+                                                    },
+                                                    "target": 9,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 15
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "IsUndefinedStmt",
+                                "stmt": {
+                                    "source": 9,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 15
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "bool",
+                                        "value": true
+                                    },
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 14
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 14
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 14
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 14
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "array_domain"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.object_domain",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 18
+                                }
+                            },
+                            {
+                                "type": "MakeObjectStmt",
+                                "stmt": {
+                                    "target": 4,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 19
+                                }
+                            },
+                            {
+                                "type": "ObjectInsertStmt",
+                                "stmt": {
+                                    "key": {
+                                        "type": "string_index",
+                                        "value": 9
+                                    },
+                                    "value": {
+                                        "type": "string_index",
+                                        "value": 10
+                                    },
+                                    "object": 4,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 19
+                                }
+                            },
+                            {
+                                "type": "ObjectInsertStmt",
+                                "stmt": {
+                                    "key": {
+                                        "type": "string_index",
+                                        "value": 11
+                                    },
+                                    "value": {
+                                        "type": "string_index",
+                                        "value": 12
+                                    },
+                                    "object": 4,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 19
+                                }
+                            },
+                            {
+                                "type": "AssignVarStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 4
+                                    },
+                                    "target": 5,
+                                    "file": 0,
+                                    "col": 19,
+                                    "row": 19
+                                }
+                            },
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 6,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 19
+                                }
+                            },
+                            {
+                                "type": "BlockStmt",
+                                "stmt": {
+                                    "blocks": [
+                                        {
+                                            "stmts": [
+                                                {
+                                                    "type": "BlockStmt",
+                                                    "stmt": {
+                                                        "blocks": [
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsArrayStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 5
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 19
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 19
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsObjectStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 5
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 19
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 19
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsSetStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 5
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 19
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 19
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "file": 0,
+                                                        "col": 0,
+                                                        "row": 0
+                                                    }
+                                                },
+                                                {
+                                                    "type": "BreakStmt",
+                                                    "stmt": {
+                                                        "index": 1,
+                                                        "file": 0,
+                                                        "col": 0,
+                                                        "row": 0
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 19
+                                }
+                            },
+                            {
+                                "type": "ScanStmt",
+                                "stmt": {
+                                    "source": 5,
+                                    "key": 8,
+                                    "value": 9,
+                                    "block": {
+                                        "stmts": [
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 8
+                                                    },
+                                                    "target": 10,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 19
+                                                }
+                                            },
+                                            {
+                                                "type": "ResetLocalStmt",
+                                                "stmt": {
+                                                    "target": 7,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 19
+                                                }
+                                            },
+                                            {
+                                                "type": "BlockStmt",
+                                                "stmt": {
+                                                    "blocks": [
+                                                        {
+                                                            "stmts": [
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "local",
+                                                                            "value": 9
+                                                                        },
+                                                                        "target": 11,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 19
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "CallStmt",
+                                                                    "stmt": {
+                                                                        "func": "startswith",
+                                                                        "args": [
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 10
+                                                                            },
+                                                                            {
+                                                                                "type": "string_index",
+                                                                                "value": 13
+                                                                            }
+                                                                        ],
+                                                                        "result": 12,
+                                                                        "file": 0,
+                                                                        "col": 9,
+                                                                        "row": 20
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "NotEqualStmt",
+                                                                    "stmt": {
+                                                                        "a": {
+                                                                            "type": "local",
+                                                                            "value": 12
+                                                                        },
+                                                                        "b": {
+                                                                            "type": "bool",
+                                                                            "value": false
+                                                                        },
+                                                                        "file": 0,
+                                                                        "col": 9,
+                                                                        "row": 20
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "CallStmt",
+                                                                    "stmt": {
+                                                                        "func": "startswith",
+                                                                        "args": [
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 11
+                                                                            },
+                                                                            {
+                                                                                "type": "string_index",
+                                                                                "value": 14
+                                                                            }
+                                                                        ],
+                                                                        "result": 13,
+                                                                        "file": 0,
+                                                                        "col": 9,
+                                                                        "row": 21
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "NotEqualStmt",
+                                                                    "stmt": {
+                                                                        "a": {
+                                                                            "type": "local",
+                                                                            "value": 13
+                                                                        },
+                                                                        "b": {
+                                                                            "type": "bool",
+                                                                            "value": false
+                                                                        },
+                                                                        "file": 0,
+                                                                        "col": 9,
+                                                                        "row": 21
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "bool",
+                                                                            "value": true
+                                                                        },
+                                                                        "target": 7,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 19
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 19
+                                                }
+                                            },
+                                            {
+                                                "type": "IsUndefinedStmt",
+                                                "stmt": {
+                                                    "source": 7,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 19
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "bool",
+                                                        "value": true
+                                                    },
+                                                    "target": 6,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 19
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 19
+                                }
+                            },
+                            {
+                                "type": "IsUndefinedStmt",
+                                "stmt": {
+                                    "source": 6,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 19
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "bool",
+                                        "value": true
+                                    },
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 18
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 18
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 18
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 18
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "object_domain"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.set_domain",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 25
+                                }
+                            },
+                            {
+                                "type": "MakeSetStmt",
+                                "stmt": {
+                                    "target": 4,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 6,
+                                    "target": 5,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "SetAddStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 5
+                                    },
+                                    "set": 4,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 7,
+                                    "target": 6,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "SetAddStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 6
+                                    },
+                                    "set": 4,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 8,
+                                    "target": 7,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "SetAddStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 7
+                                    },
+                                    "set": 4,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "AssignVarStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 4
+                                    },
+                                    "target": 8,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 9,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "BlockStmt",
+                                "stmt": {
+                                    "blocks": [
+                                        {
+                                            "stmts": [
+                                                {
+                                                    "type": "BlockStmt",
+                                                    "stmt": {
+                                                        "blocks": [
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsArrayStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 8
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 26
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 26
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsObjectStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 8
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 26
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 26
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsSetStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 8
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 26
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 26
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "file": 0,
+                                                        "col": 0,
+                                                        "row": 0
+                                                    }
+                                                },
+                                                {
+                                                    "type": "BreakStmt",
+                                                    "stmt": {
+                                                        "index": 1,
+                                                        "file": 0,
+                                                        "col": 0,
+                                                        "row": 0
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "ScanStmt",
+                                "stmt": {
+                                    "source": 8,
+                                    "key": 11,
+                                    "value": 12,
+                                    "block": {
+                                        "stmts": [
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 11
+                                                    },
+                                                    "target": 13,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 26
+                                                }
+                                            },
+                                            {
+                                                "type": "ResetLocalStmt",
+                                                "stmt": {
+                                                    "target": 10,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 26
+                                                }
+                                            },
+                                            {
+                                                "type": "BlockStmt",
+                                                "stmt": {
+                                                    "blocks": [
+                                                        {
+                                                            "stmts": [
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "local",
+                                                                            "value": 12
+                                                                        },
+                                                                        "target": 14,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 26
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "MakeNumberRefStmt",
+                                                                    "stmt": {
+                                                                        "Index": 15,
+                                                                        "target": 15,
+                                                                        "file": 0,
+                                                                        "col": 28,
+                                                                        "row": 26
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "CallStmt",
+                                                                    "stmt": {
+                                                                        "func": "neq",
+                                                                        "args": [
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 14
+                                                                            },
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 15
+                                                                            }
+                                                                        ],
+                                                                        "result": 16,
+                                                                        "file": 0,
+                                                                        "col": 28,
+                                                                        "row": 26
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "NotEqualStmt",
+                                                                    "stmt": {
+                                                                        "a": {
+                                                                            "type": "local",
+                                                                            "value": 16
+                                                                        },
+                                                                        "b": {
+                                                                            "type": "bool",
+                                                                            "value": false
+                                                                        },
+                                                                        "file": 0,
+                                                                        "col": 28,
+                                                                        "row": 26
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "bool",
+                                                                            "value": true
+                                                                        },
+                                                                        "target": 10,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 26
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 26
+                                                }
+                                            },
+                                            {
+                                                "type": "IsUndefinedStmt",
+                                                "stmt": {
+                                                    "source": 10,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 26
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "bool",
+                                                        "value": true
+                                                    },
+                                                    "target": 9,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 26
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "IsUndefinedStmt",
+                                "stmt": {
+                                    "source": 9,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 26
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "bool",
+                                        "value": true
+                                    },
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 25
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 25
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 25
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 25
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "set_domain"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.xs",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "MakeArrayStmt",
+                                "stmt": {
+                                    "capacity": 4,
+                                    "target": 4,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 7,
+                                    "target": 5,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "ArrayAppendStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 5
+                                    },
+                                    "array": 4,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 7,
+                                    "target": 6,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "ArrayAppendStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 6
+                                    },
+                                    "array": 4,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 15,
+                                    "target": 7,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "ArrayAppendStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 7
+                                    },
+                                    "array": 4,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 16,
+                                    "target": 8,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "ArrayAppendStmt",
+                                "stmt": {
+                                    "value": {
+                                        "type": "local",
+                                        "value": 8
+                                    },
+                                    "array": 4,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 4
+                                    },
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 29
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "xs"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.larger_than_one",
+                "params": [
+                    0,
+                    1,
+                    3
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 4,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 30
+                                }
+                            },
+                            {
+                                "type": "AssignVarStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 5,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 30
+                                }
+                            },
+                            {
+                                "type": "MakeNumberRefStmt",
+                                "stmt": {
+                                    "Index": 6,
+                                    "target": 6,
+                                    "file": 0,
+                                    "col": 23,
+                                    "row": 30
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "gt",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 5
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 6
+                                        }
+                                    ],
+                                    "result": 7,
+                                    "file": 0,
+                                    "col": 23,
+                                    "row": 30
+                                }
+                            },
+                            {
+                                "type": "AssignVarStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 7
+                                    },
+                                    "target": 8,
+                                    "file": 0,
+                                    "col": 23,
+                                    "row": 30
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 8
+                                    },
+                                    "target": 4,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 30
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 4,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 30
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 4
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 30
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 30
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "larger_than_one"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.rule_every",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 32
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.xs",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 4,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 33
+                                }
+                            },
+                            {
+                                "type": "AssignVarStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 4
+                                    },
+                                    "target": 5,
+                                    "file": 0,
+                                    "col": 16,
+                                    "row": 33
+                                }
+                            },
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 6,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 33
+                                }
+                            },
+                            {
+                                "type": "BlockStmt",
+                                "stmt": {
+                                    "blocks": [
+                                        {
+                                            "stmts": [
+                                                {
+                                                    "type": "BlockStmt",
+                                                    "stmt": {
+                                                        "blocks": [
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsArrayStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 5
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 33
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 33
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsObjectStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 5
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 33
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 33
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "stmts": [
+                                                                    {
+                                                                        "type": "IsSetStmt",
+                                                                        "stmt": {
+                                                                            "source": {
+                                                                                "type": "local",
+                                                                                "value": 5
+                                                                            },
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 33
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "type": "BreakStmt",
+                                                                        "stmt": {
+                                                                            "index": 1,
+                                                                            "file": 0,
+                                                                            "col": 5,
+                                                                            "row": 33
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "file": 0,
+                                                        "col": 0,
+                                                        "row": 0
+                                                    }
+                                                },
+                                                {
+                                                    "type": "BreakStmt",
+                                                    "stmt": {
+                                                        "index": 1,
+                                                        "file": 0,
+                                                        "col": 0,
+                                                        "row": 0
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 33
+                                }
+                            },
+                            {
+                                "type": "ScanStmt",
+                                "stmt": {
+                                    "source": 5,
+                                    "key": 8,
+                                    "value": 9,
+                                    "block": {
+                                        "stmts": [
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 8
+                                                    },
+                                                    "target": 10,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 33
+                                                }
+                                            },
+                                            {
+                                                "type": "ResetLocalStmt",
+                                                "stmt": {
+                                                    "target": 7,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 33
+                                                }
+                                            },
+                                            {
+                                                "type": "BlockStmt",
+                                                "stmt": {
+                                                    "blocks": [
+                                                        {
+                                                            "stmts": [
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "local",
+                                                                            "value": 9
+                                                                        },
+                                                                        "target": 11,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 33
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "CallStmt",
+                                                                    "stmt": {
+                                                                        "func": "g0.data.test_every.larger_than_one",
+                                                                        "args": [
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 0
+                                                                            },
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 1
+                                                                            },
+                                                                            {
+                                                                                "type": "local",
+                                                                                "value": 11
+                                                                            }
+                                                                        ],
+                                                                        "result": 12,
+                                                                        "file": 0,
+                                                                        "col": 21,
+                                                                        "row": 33
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "NotEqualStmt",
+                                                                    "stmt": {
+                                                                        "a": {
+                                                                            "type": "local",
+                                                                            "value": 12
+                                                                        },
+                                                                        "b": {
+                                                                            "type": "bool",
+                                                                            "value": false
+                                                                        },
+                                                                        "file": 0,
+                                                                        "col": 21,
+                                                                        "row": 33
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "type": "AssignVarStmt",
+                                                                    "stmt": {
+                                                                        "source": {
+                                                                            "type": "bool",
+                                                                            "value": true
+                                                                        },
+                                                                        "target": 7,
+                                                                        "file": 0,
+                                                                        "col": 5,
+                                                                        "row": 33
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 33
+                                                }
+                                            },
+                                            {
+                                                "type": "IsUndefinedStmt",
+                                                "stmt": {
+                                                    "source": 7,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 33
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "bool",
+                                                        "value": true
+                                                    },
+                                                    "target": 6,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 33
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 33
+                                }
+                            },
+                            {
+                                "type": "IsUndefinedStmt",
+                                "stmt": {
+                                    "source": 6,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 33
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "bool",
+                                        "value": true
+                                    },
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 32
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 32
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 32
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 32
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "rule_every"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.lte_one",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 38
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.xs",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 4,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 39
+                                }
+                            },
+                            {
+                                "type": "ScanStmt",
+                                "stmt": {
+                                    "source": 4,
+                                    "key": 5,
+                                    "value": 6,
+                                    "block": {
+                                        "stmts": [
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 5
+                                                    },
+                                                    "target": 7,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 39
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "local",
+                                                        "value": 6
+                                                    },
+                                                    "target": 8,
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 39
+                                                }
+                                            },
+                                            {
+                                                "type": "NotStmt",
+                                                "stmt": {
+                                                    "block": {
+                                                        "stmts": [
+                                                            {
+                                                                "type": "CallStmt",
+                                                                "stmt": {
+                                                                    "func": "g0.data.test_every.larger_than_one",
+                                                                    "args": [
+                                                                        {
+                                                                            "type": "local",
+                                                                            "value": 0
+                                                                        },
+                                                                        {
+                                                                            "type": "local",
+                                                                            "value": 1
+                                                                        },
+                                                                        {
+                                                                            "type": "local",
+                                                                            "value": 8
+                                                                        }
+                                                                    ],
+                                                                    "result": 9,
+                                                                    "file": 0,
+                                                                    "col": 5,
+                                                                    "row": 40
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "NotEqualStmt",
+                                                                "stmt": {
+                                                                    "a": {
+                                                                        "type": "local",
+                                                                        "value": 9
+                                                                    },
+                                                                    "b": {
+                                                                        "type": "bool",
+                                                                        "value": false
+                                                                    },
+                                                                    "file": 0,
+                                                                    "col": 5,
+                                                                    "row": 40
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    "file": 0,
+                                                    "col": 5,
+                                                    "row": 40
+                                                }
+                                            },
+                                            {
+                                                "type": "AssignVarOnceStmt",
+                                                "stmt": {
+                                                    "source": {
+                                                        "type": "bool",
+                                                        "value": true
+                                                    },
+                                                    "target": 3,
+                                                    "file": 0,
+                                                    "col": 1,
+                                                    "row": 38
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 39
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 38
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 38
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 38
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "lte_one"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.not_less_or_equal_one",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 36
+                                }
+                            },
+                            {
+                                "type": "NotStmt",
+                                "stmt": {
+                                    "block": {
+                                        "stmts": [
+                                            {
+                                                "type": "CallStmt",
+                                                "stmt": {
+                                                    "func": "g0.data.test_every.lte_one",
+                                                    "args": [
+                                                        {
+                                                            "type": "local",
+                                                            "value": 0
+                                                        },
+                                                        {
+                                                            "type": "local",
+                                                            "value": 1
+                                                        }
+                                                    ],
+                                                    "result": 4,
+                                                    "file": 0,
+                                                    "col": 26,
+                                                    "row": 36
+                                                }
+                                            },
+                                            {
+                                                "type": "NotEqualStmt",
+                                                "stmt": {
+                                                    "a": {
+                                                        "type": "local",
+                                                        "value": 4
+                                                    },
+                                                    "b": {
+                                                        "type": "bool",
+                                                        "value": false
+                                                    },
+                                                    "file": 0,
+                                                    "col": 26,
+                                                    "row": 36
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "file": 0,
+                                    "col": 26,
+                                    "row": 36
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "bool",
+                                        "value": true
+                                    },
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 36
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 36
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 36
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 36
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "not_less_or_equal_one"
+                ]
+            },
+            {
+                "name": "g0.data.test_every.output",
+                "params": [
+                    0,
+                    1
+                ],
+                "return": 2,
+                "blocks": [
+                    {
+                        "stmts": [
+                            {
+                                "type": "ResetLocalStmt",
+                                "stmt": {
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 43
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.names_with_dev",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 4,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 44
+                                }
+                            },
+                            {
+                                "type": "NotEqualStmt",
+                                "stmt": {
+                                    "a": {
+                                        "type": "local",
+                                        "value": 4
+                                    },
+                                    "b": {
+                                        "type": "bool",
+                                        "value": false
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 44
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.array_domain",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 5,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 45
+                                }
+                            },
+                            {
+                                "type": "NotEqualStmt",
+                                "stmt": {
+                                    "a": {
+                                        "type": "local",
+                                        "value": 5
+                                    },
+                                    "b": {
+                                        "type": "bool",
+                                        "value": false
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 45
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.object_domain",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 6,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 46
+                                }
+                            },
+                            {
+                                "type": "NotEqualStmt",
+                                "stmt": {
+                                    "a": {
+                                        "type": "local",
+                                        "value": 6
+                                    },
+                                    "b": {
+                                        "type": "bool",
+                                        "value": false
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 46
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.set_domain",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 7,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 47
+                                }
+                            },
+                            {
+                                "type": "NotEqualStmt",
+                                "stmt": {
+                                    "a": {
+                                        "type": "local",
+                                        "value": 7
+                                    },
+                                    "b": {
+                                        "type": "bool",
+                                        "value": false
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 47
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.rule_every",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 8,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 48
+                                }
+                            },
+                            {
+                                "type": "NotEqualStmt",
+                                "stmt": {
+                                    "a": {
+                                        "type": "local",
+                                        "value": 8
+                                    },
+                                    "b": {
+                                        "type": "bool",
+                                        "value": false
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 48
+                                }
+                            },
+                            {
+                                "type": "CallStmt",
+                                "stmt": {
+                                    "func": "g0.data.test_every.not_less_or_equal_one",
+                                    "args": [
+                                        {
+                                            "type": "local",
+                                            "value": 0
+                                        },
+                                        {
+                                            "type": "local",
+                                            "value": 1
+                                        }
+                                    ],
+                                    "result": 9,
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 49
+                                }
+                            },
+                            {
+                                "type": "NotEqualStmt",
+                                "stmt": {
+                                    "a": {
+                                        "type": "local",
+                                        "value": 9
+                                    },
+                                    "b": {
+                                        "type": "bool",
+                                        "value": false
+                                    },
+                                    "file": 0,
+                                    "col": 5,
+                                    "row": 49
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "bool",
+                                        "value": true
+                                    },
+                                    "target": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 43
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "IsDefinedStmt",
+                                "stmt": {
+                                    "source": 3,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 43
+                                }
+                            },
+                            {
+                                "type": "AssignVarOnceStmt",
+                                "stmt": {
+                                    "source": {
+                                        "type": "local",
+                                        "value": 3
+                                    },
+                                    "target": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 43
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "stmts": [
+                            {
+                                "type": "ReturnLocalStmt",
+                                "stmt": {
+                                    "source": 2,
+                                    "file": 0,
+                                    "col": 1,
+                                    "row": 43
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "path": [
+                    "g0",
+                    "test_every",
+                    "output"
+                ]
+            }
+        ]
+    }
+}

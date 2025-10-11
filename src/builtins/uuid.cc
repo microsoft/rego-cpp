@@ -1,8 +1,10 @@
 #include "builtins.h"
+#include "trieste/xoroshiro.h"
 
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   const std::int64_t lillian_15821015 = 2299160;
   const std::int64_t unix_19700101 = 2440587;
@@ -191,7 +193,7 @@ namespace
     return ss.str();
   }
 
-  uuid uuid_random(std::mt19937& generator)
+  uuid uuid_random(xoroshiro::p128r32& generator)
   {
     std::uniform_int_distribution<uint32_t> distribution;
     uuid id;
@@ -294,7 +296,7 @@ namespace
     }
 
     std::string uuid_str = get_string(uuid_node);
-    if (starts_with(uuid_str, "urn:uuid:"))
+    if (uuid_str.starts_with("urn:uuid:"))
     {
       uuid_str = uuid_str.substr(9);
     }
@@ -370,22 +372,44 @@ namespace
     }
   }
 
-  struct UUIDRFC4122 : public BuiltInDef
+  Node parse_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "uuid")
+                             << (bi::Description ^ "UUID string to parse")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "result")
+                 << (bi::Description ^
+                     "Properties of UUID if valid (version, variant, etc). "
+                     "Undefined otherwise.")
+                 << (bi::Type
+                     << (bi::DynamicObject << (bi::Type << bi::String)
+                                           << (bi::Type << bi::Any))));
+
+  Node rfc4122_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "uuid")
+                             << (bi::Description ^ "UUID string to parse")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "result")
+                 << (bi::Description ^
+                     "a version 4 UUID; for any given `k`, the output will be "
+                     "consistent throughout a query evaluation")
+                 << (bi::Type << bi::String));
+
+  struct UUIDRFC4122 : public bi::BuiltInDef
   {
-    std::random_device rd;
-    std::mt19937 generator;
+    xoroshiro::p128r32 generator;
     std::map<std::string, Node> cache;
 
     UUIDRFC4122() :
-      BuiltInDef(Location("uuid.rfc4122"), 1, [this](const Nodes& args) {
-        return call(args);
-      })
-    {
-      auto seed_data = std::array<int, std::mt19937::state_size>{};
-      std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
-      std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
-      generator = std::mt19937(seq);
-    }
+      BuiltInDef(
+        Location("uuid.rfc4122"),
+        rfc4122_decl,
+        [this](const Nodes& args) { return call(args); },
+        true)
+    {}
 
     Node call(const Nodes& args)
     {
@@ -397,7 +421,7 @@ namespace
       }
 
       std::string k_str = get_string(k);
-      if (contains(cache, k_str))
+      if (cache.contains(k_str))
       {
         return cache[k_str]->clone();
       }
@@ -422,7 +446,7 @@ namespace rego
     std::vector<BuiltIn> uuid()
     {
       return {
-        BuiltInDef::create(Location("uuid.parse"), 1, parse),
+        BuiltInDef::create(Location("uuid.parse"), parse_decl, parse),
         std::make_shared<UUIDRFC4122>(),
       };
     }

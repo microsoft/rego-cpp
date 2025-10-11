@@ -85,7 +85,7 @@ print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
 
 ## Language Support
 
-We support v0.68.0 of Rego as defined by OPA, with the following grammar:
+We support v1.8.0 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
 module          = package { import } policy

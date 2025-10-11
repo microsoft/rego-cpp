@@ -1,7 +1,7 @@
 #include "trieste/yaml.h"
 
+#include "internal.hh"
 #include "trieste/json.h"
-#include "unify.hh"
 
 namespace
 {
@@ -80,7 +80,7 @@ namespace
               std::sort(
                 children.begin(), children.end(), [&strs](Node a, Node b) {
                   std::string lhs;
-                  if (contains(strs, a))
+                  if (strs.contains(a))
                   {
                     lhs = strs[a];
                   }
@@ -91,7 +91,7 @@ namespace
                   }
 
                   std::string rhs;
-                  if (contains(strs, b))
+                  if (strs.contains(b))
                   {
                     rhs = strs[b];
                   }
@@ -112,10 +112,10 @@ namespace
 
 namespace rego
 {
-  Rewriter to_yaml()
+  Rewriter rego_to_yaml()
   {
     return {
-      "to_yaml",
+      "rego_to_yaml",
       {to_yaml_()},
       wf_binding_term,
     };

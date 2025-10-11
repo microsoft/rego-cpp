@@ -1,7 +1,7 @@
 """Module providing an interface to the rego-cpp Node object."""
 
 import json
-from typing import Union
+from typing import Any, Optional, Union
 
 from .rego_shared import (
     NodeKind,
@@ -15,7 +15,7 @@ from .rego_shared import (
 
 
 class Node:
-    """Interface for the Rego Node.
+    """Interface for a Rego Node.
 
     Rego Nodes are the basic building blocks of a Rego result. They
     exist in a tree structure. Each node has a kind, which is one of
@@ -28,12 +28,12 @@ class Node:
     >>> output = rego.query('x={"a": 10, "b": "20", "c": [30.0, 60], "d": true, "e": null}')
     >>> x = output.binding("x")
     >>> print("x =", x.json())
-    x = {"a":10, "b":"20", "c":[30, 60], "d":true, "e":null}
+    x = {"a":10, "b":"20", "c":[30,60], "d":true, "e":null}
 
     >>> print("x['a'] =", x["a"].value)
     x['a'] = 10
 
-    >>> print("x['b'] =", x["b"].value)
+    >>> print("x['b'] =", '"' + x["b"].value + '"')
     x['b'] = "20"
 
     >>> print("x['c'][0] =", x["c"][0].value)
@@ -165,7 +165,7 @@ class Node:
 
         raise TypeError("index is only valid for Array nodes")
 
-    def lookup(self, key: str) -> "Node":
+    def lookup(self, key: Any) -> Optional["Node"]:
         """Returns the child node for the given key.
 
         If this is of kind Object or Set, then the key must be a string.
@@ -210,7 +210,7 @@ class Node:
         """Returns an iterator over the child nodes."""
         return iter(self._children)
 
-    def __getitem__(self, key: Union[int, str]) -> "Node":
+    def __getitem__(self, key: Union[int, str]) -> Optional["Node"]:
         """Returns the child node for the given key.
 
         If this is of kind OBJECT or SET, then the key must be a string.

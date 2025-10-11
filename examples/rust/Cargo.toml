@@ -6,5 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-regorust = "0.4.6"
+regorust = {path="../../wrappers/rust/regorust"}
 clap = { version = "4.0", features = ["derive"] }

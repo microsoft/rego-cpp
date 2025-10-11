@@ -2,7 +2,6 @@
 
 #include "internal.hh"
 #include "rego.hh"
-#include "unify.hh"
 
 namespace
 {
@@ -48,7 +47,11 @@ namespace
       {
         T(json::String)[String] >>
           [](Match& _) {
-            return DataTerm << (Scalar << (String << (JSONString ^ _(String))));
+            return DataTerm
+              << (Scalar
+                  << (String
+                      << (JSONString ^
+                          strip_quotes(_(String)->location().view()))));
           },
 
         T(json::Key)[Key] >>
@@ -90,7 +93,11 @@ namespace
       dir::bottomup | dir::once,
       {
         T(json::String)[String] >>
-          [](Match& _) { return Term << (Scalar << (JSONString ^ _(String))); },
+          [](Match& _) {
+            return Term
+              << (Scalar
+                  << (JSONString ^ strip_quotes(_(String)->location().view())));
+          },
 
         T(json::Key)[Key] >>
           [](Match& _) { return Term << (Scalar << (JSONString ^ _(Key))); },
@@ -144,7 +151,15 @@ namespace
           [](Match& _) { return json::Number ^ _(json::Number); },
 
         (T(Term) << (T(Scalar) << T(JSONString)[json::String])) >>
-          [](Match& _) { return json::String ^ _(json::String); },
+          [](Match& _) {
+            std::string_view str = _(json::String)->location().view();
+            if (!is_quoted(str))
+            {
+              return json::String ^ add_quotes(str);
+            }
+
+            return json::String ^ _(json::String);
+          },
 
         (T(Term) << (T(Scalar) << T(True)[json::True])) >>
           [](Match& _) { return json::True ^ _(json::True); },
@@ -165,7 +180,7 @@ namespace
               std::sort(
                 children.begin(), children.end(), [&strs](Node a, Node b) {
                   std::string lhs;
-                  if (contains(strs, a))
+                  if (strs.contains(a))
                   {
                     lhs = strs[a];
                   }
@@ -176,7 +191,7 @@ namespace
                   }
 
                   std::string rhs;
-                  if (contains(strs, b))
+                  if (strs.contains(b))
                   {
                     rhs = strs[b];
                   }
@@ -224,20 +239,20 @@ namespace
 
 namespace rego
 {
-  Rewriter from_json(bool as_term)
+  Rewriter json_to_rego(bool as_term)
   {
     auto pass = as_term ? from_json_to_term() : from_json_to_dataterm();
     return {
-      "from_json",
+      "json_to_rego",
       {pass},
       json::wf,
     };
   }
 
-  Rewriter to_json()
+  Rewriter rego_to_json()
   {
     return {
-      "to_json",
+      "rego_to_json",
       {to_json_()},
       wf_binding_term,
     };

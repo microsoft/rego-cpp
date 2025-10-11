@@ -1,4 +1,5 @@
 #include "builtins.h"
+#include "rego.hh"
 #include "trieste/json.h"
 #include "trieste/utf8.h"
 
@@ -7,6 +8,7 @@
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
   using namespace trieste::utf8;
 
   Node unwrap_strings(const Node& collection, std::vector<std::string>& items)
@@ -66,6 +68,25 @@ namespace
     return Resolver::scalar(result_str.str());
   }
 
+  Node concat_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg
+                       << (bi::Name ^ "delimiter")
+                       << (bi::Description ^ "string to use as a delimiter")
+                       << (bi::Type << bi::String))
+                   << (bi::Arg
+                       << (bi::Name ^ "collection")
+                       << (bi::Description ^ "strings to join")
+                       << (bi::Type
+                           << (bi::TypeSeq
+                               << (bi::Type
+                                   << (bi::DynamicArray
+                                       << (bi::Type << bi::String)))
+                               << (bi::Type
+                                   << (bi::Set << (bi::Type << bi::String)))))))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^ "the joined string")
+                   << (bi::Type << bi::Boolean));
+
   Node startswith(const Nodes& args)
   {
     Node search_node =
@@ -84,8 +105,19 @@ namespace
 
     std::string search = get_string(search_node);
     std::string base = get_string(base_node);
-    return Resolver::scalar(starts_with(search, base));
+    return Resolver::scalar(search.starts_with(base));
   }
+
+  Node startswith_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "search")
+                               << (bi::Description ^ "search string")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "base")
+                               << (bi::Description ^ "base string")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^ "result of the prefix check")
+                   << (bi::Type << bi::Boolean));
 
   Node endswith(const Nodes& args)
   {
@@ -106,8 +138,19 @@ namespace
     std::string search = get_string(search_node);
     std::string base = get_string(base_node);
 
-    return Resolver::scalar(ends_with(search, base));
+    return Resolver::scalar(search.ends_with(base));
   }
+
+  Node endswith_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "search")
+                               << (bi::Description ^ "search string")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "base")
+                               << (bi::Description ^ "base string")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^ "result of the suffix check")
+                   << (bi::Type << bi::Boolean));
 
   Node contains(const Nodes& args)
   {
@@ -129,6 +172,17 @@ namespace
     std::string needle_str = get_string(needle);
     return Resolver::scalar(haystack_str.find(needle_str) != std::string::npos);
   }
+
+  Node contains_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "haystack")
+                               << (bi::Description ^ "string to search in")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "needle")
+                               << (bi::Description ^ "substring to look for")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^ "result of the containment check")
+                   << (bi::Type << bi::Boolean));
 
   Node format_int(const Nodes& args)
   {
@@ -179,6 +233,18 @@ namespace
     return Resolver::scalar(result.str());
   }
 
+  Node format_int_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "number")
+                               << (bi::Description ^ "number to format")
+                               << (bi::Type << bi::Number))
+                   << (bi::Arg << (bi::Name ^ "base")
+                               << (bi::Description ^
+                                   "base of number representation to use")
+                               << (bi::Type << bi::Number)))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^ "formatted number")
+                   << (bi::Type << bi::String));
+
   Node indexof(const Nodes& args)
   {
     Node haystack =
@@ -205,6 +271,18 @@ namespace
 
     return Int ^ std::to_string(pos);
   }
+
+  Node indexof_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "haystack")
+                               << (bi::Description ^ "string to search in")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "needle")
+                               << (bi::Description ^ "substring to look for")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "index of first occurrence, `-1` if not found")
+                   << (bi::Type << bi::Number));
 
   Node indexof_n(const Nodes& args)
   {
@@ -235,6 +313,19 @@ namespace
     return array;
   }
 
+  Node indexof_n_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "haystack")
+                               << (bi::Description ^ "string to search in")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "needle")
+                               << (bi::Description ^ "substring to look for")
+                               << (bi::Type << bi::String)))
+    << (bi::Result
+        << (bi::Name ^ "output")
+        << (bi::Description ^
+            "all indices at which `needle` occurs in `haystack`, may be empty")
+        << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Number))));
+
   Node lower(const Nodes& args)
   {
     Node x = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("lower"));
@@ -250,6 +341,16 @@ namespace
       });
     return Resolver::scalar(x_str);
   }
+
+  Node lower_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^
+                                 "string that is converted to lower-case")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^ "lower-case of x")
+                            << (bi::Type << bi::String));
 
   Node upper(const Nodes& args)
   {
@@ -267,6 +368,16 @@ namespace
     return Resolver::scalar(x_str);
   }
 
+  Node upper_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^
+                                 "string that is converted to upper-case")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^ "upper-case of x")
+                            << (bi::Type << bi::String));
+
   void do_replace(
     std::string& x, const std::string& old, const std::string& new_)
   {
@@ -281,6 +392,7 @@ namespace
   Node replace(const Nodes& args)
   {
     Node x = unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("replace"));
+
     if (x->type() == Error)
     {
       return x;
@@ -305,6 +417,21 @@ namespace
 
     return Resolver::scalar(x_str);
   }
+
+  Node replace_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "x")
+                               << (bi::Description ^ "string being processed")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "old")
+                               << (bi::Description ^ "substring to replace")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg
+                       << (bi::Name ^ "new")
+                       << (bi::Description ^ "string to replace `old` with")
+                       << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "y")
+                   << (bi::Description ^ "string with replaced substrings")
+                   << (bi::Type << bi::String));
 
   Node split(const Nodes& args)
   {
@@ -336,6 +463,18 @@ namespace
     array->push_back(JSONString ^ x_str.substr(start));
     return array;
   }
+
+  Node split_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "x")
+                               << (bi::Description ^ "string that is split")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg
+                       << (bi::Name ^ "delimiter")
+                       << (bi::Description ^ "delimiter used for splitting")
+                       << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "ys") << (bi::Description ^ "split parts")
+                   << (bi::Type
+                       << (bi::DynamicArray << (bi::Type << bi::String))));
 
   enum class PrintVerbType
   {
@@ -477,7 +616,7 @@ namespace
       switch (verb.type)
       {
         case PrintVerbType::Value:
-          result << json::escape(to_key(node));
+          result << json::escape(to_key(node, false, false, ", "));
           break;
 
         case PrintVerbType::Boolean:
@@ -522,6 +661,22 @@ namespace
 
     return JSONString ^ result.str();
   }
+
+  Node sprintf_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg
+                       << (bi::Name ^ "format")
+                       << (bi::Description ^ "string with formatting verbs")
+                       << (bi::Type << bi::String))
+                   << (bi::Arg
+                       << (bi::Name ^ "values")
+                       << (bi::Description ^
+                           "arguments to format into formatting verbs")
+                       << (bi::Type
+                           << (bi::DynamicArray << (bi::Type << bi::Any)))))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "`format` formatted by the values in `values`")
+                   << (bi::Type << bi::String));
 
   Node any_prefix_match(const Nodes& args)
   {
@@ -583,7 +738,7 @@ namespace
     {
       for (auto& base_str : base_strings)
       {
-        if (starts_with(search_str, base_str))
+        if (search_str.starts_with(base_str))
         {
           return True ^ "true";
         }
@@ -592,6 +747,28 @@ namespace
 
     return False ^ "false";
   }
+
+  Node any_prefix_match_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg
+            << (bi::Name ^ "search") << (bi::Description ^ "search string(s)")
+            << (bi::Type
+                << (bi::TypeSeq
+                    << (bi::Type << bi::String)
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::String)))
+                    << (bi::Type << (bi::Set << (bi::Type << bi::String))))))
+        << (bi::Arg
+            << (bi::Name ^ "base") << (bi::Description ^ "base string(s)")
+            << (bi::Type
+                << (bi::TypeSeq
+                    << (bi::Type << bi::String)
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::String)))
+                    << (bi::Type << (bi::Set << (bi::Type << bi::String)))))))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^ "result of the prefix check")
+                   << (bi::Type << bi::String));
 
   Node any_suffix_match(const Nodes& args)
   {
@@ -653,7 +830,7 @@ namespace
     {
       for (auto& base_str : base_strings)
       {
-        if (ends_with(search_str, base_str))
+        if (search_str.ends_with(base_str))
         {
           return True ^ "true";
         }
@@ -662,6 +839,28 @@ namespace
 
     return False ^ "false";
   }
+
+  Node any_suffix_match_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg
+            << (bi::Name ^ "search") << (bi::Description ^ "search string(s)")
+            << (bi::Type
+                << (bi::TypeSeq
+                    << (bi::Type << bi::String)
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::String)))
+                    << (bi::Type << (bi::Set << (bi::Type << bi::String))))))
+        << (bi::Arg
+            << (bi::Name ^ "base") << (bi::Description ^ "base string(s)")
+            << (bi::Type
+                << (bi::TypeSeq
+                    << (bi::Type << bi::String)
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::String)))
+                    << (bi::Type << (bi::Set << (bi::Type << bi::String)))))))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^ "result of the suffix check")
+                   << (bi::Type << bi::String));
 
   Node replace_n(const Nodes& args)
   {
@@ -678,6 +877,8 @@ namespace
     {
       return value;
     }
+
+    std::map<std::string, std::string> pattern_map;
 
     std::string value_str = get_string(value);
     for (auto& item : *patterns)
@@ -706,11 +907,32 @@ namespace
 
       std::string old_str = get_string(old_node);
       std::string new_str = get_string(new_node);
+      pattern_map[old_str] = new_str;
+    }
+
+    for (const auto& [old_str, new_str] : pattern_map)
+    {
       do_replace(value_str, old_str, new_str);
     }
 
     return JSONString ^ value_str;
   }
+
+  Node replace_n_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg
+                       << (bi::Name ^ "patterns")
+                       << (bi::Description ^ "replacement pairs")
+                       << (bi::Type
+                           << (bi::DynamicObject << (bi::Type << bi::String)
+                                                 << (bi::Type << bi::String))))
+
+                   << (bi::Arg << (bi::Name ^ "value")
+                               << (bi::Description ^
+                                   "string to replace substring matches in")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^ "string with replaced substrings")
+                   << (bi::Type << bi::String));
 
   Node reverse(const Nodes& args)
   {
@@ -727,6 +949,15 @@ namespace
     y << x_runes;
     return JSONString ^ y.str();
   }
+
+  Node reverse_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "string to reverse")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^ "reversed string")
+                            << (bi::Type << bi::Number));
 
   Node substring(const Nodes& args)
   {
@@ -782,6 +1013,24 @@ namespace
     return JSONString ^ output.str();
   }
 
+  Node substring_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg
+                       << (bi::Name ^ "value")
+                       << (bi::Description ^ "string to extract substring from")
+                       << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "offset")
+                               << (bi::Description ^ "offset, must be positive")
+                               << (bi::Type << bi::Number))
+                   << (bi::Arg
+                       << (bi::Name ^ "length")
+                       << (bi::Description ^
+                           "length of the substring starting from `offset`")
+                       << (bi::Type << bi::Number)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "substring of `value` from `offset`, of length `length`")
+                   << (bi::Type << bi::String));
+
   std::string do_trim(
     const std::string& value, const std::string& cutset, bool left, bool right)
   {
@@ -834,6 +1083,19 @@ namespace
       do_trim(get_string(value), get_string(cutset), true, true);
   }
 
+  Node trim_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "value")
+                               << (bi::Description ^ "string to trim")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "cutset")
+                               << (bi::Description ^
+                                   "string of characters that are cut off")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "string trimmed of `cutset` characters")
+                   << (bi::Type << bi::String));
+
   Node trim_left(const Nodes& args)
   {
     Node value =
@@ -852,6 +1114,20 @@ namespace
     return JSONString ^
       do_trim(get_string(value), get_string(cutset), true, false);
   }
+
+  Node trim_left_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "value")
+                               << (bi::Description ^ "string to trim")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg
+                       << (bi::Name ^ "cutset")
+                       << (bi::Description ^
+                           "string of characters that are cut off on the left")
+                       << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "string left-trimmed of `cutset` characters")
+                   << (bi::Type << bi::String));
 
   Node trim_right(const Nodes& args)
   {
@@ -872,6 +1148,20 @@ namespace
       do_trim(get_string(value), get_string(cutset), false, true);
   }
 
+  Node trim_right_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "value")
+                               << (bi::Description ^ "string to trim")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg
+                       << (bi::Name ^ "cutset")
+                       << (bi::Description ^
+                           "string of characters that are cut off on the right")
+                       << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "string right-trimmed of `cutset` characters")
+                   << (bi::Type << bi::String));
+
   Node trim_space(const Nodes& args)
   {
     Node value =
@@ -883,6 +1173,17 @@ namespace
 
     return JSONString ^ do_trim(get_string(value), " \t\n\r\v\f", true, true);
   }
+
+  Node trim_space_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "value")
+                             << (bi::Description ^ "string to trim")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "output")
+                 << (bi::Description ^
+                     "string leading and trailing white space cut off")
+                 << (bi::Type << bi::String));
 
   Node trim_prefix(const Nodes& args)
   {
@@ -901,13 +1202,24 @@ namespace
 
     std::string value_str = get_string(value);
     std::string prefix_str = get_string(prefix);
-    if (starts_with(value_str, prefix_str))
+    if (value_str.starts_with(prefix_str))
     {
       return JSONString ^ value_str.substr(prefix_str.size());
     }
 
     return value;
   }
+
+  Node trim_prefix_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "value")
+                               << (bi::Description ^ "string to trim")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "prefix")
+                               << (bi::Description ^ "prefix to cut off")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^ "string with `prefix` cut off")
+                   << (bi::Type << bi::String));
 
   Node trim_suffix(const Nodes& args)
   {
@@ -926,7 +1238,7 @@ namespace
 
     std::string value_str = get_string(value);
     std::string suffix_str = get_string(suffix);
-    if (ends_with(value_str, suffix_str))
+    if (value_str.ends_with(suffix_str))
     {
       return JSONString ^
         value_str.substr(0, value_str.size() - suffix_str.size());
@@ -934,6 +1246,17 @@ namespace
 
     return value;
   }
+
+  Node trim_suffix_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "value")
+                               << (bi::Description ^ "string to trim")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "suffix")
+                               << (bi::Description ^ "suffix to cut off")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^ "string with `suffix` cut off")
+                   << (bi::Type << bi::String));
 
   Node count(const Nodes& args)
   {
@@ -969,6 +1292,18 @@ namespace
 
     return Int ^ std::to_string(count);
   }
+
+  Node count_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "search")
+                               << (bi::Description ^ "string to search in")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "substring")
+                               << (bi::Description ^ "substring to look for")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "count of occurrences, `0` if not found")
+                   << (bi::Type << bi::Number));
 }
 
 namespace rego
@@ -978,32 +1313,39 @@ namespace rego
     std::vector<BuiltIn> strings()
     {
       return {
-        BuiltInDef::create(Location("concat"), 2, concat),
-        BuiltInDef::create(Location("startswith"), 2, startswith),
-        BuiltInDef::create(Location("endswith"), 2, endswith),
-        BuiltInDef::create(Location("contains"), 2, ::contains),
-        BuiltInDef::create(Location("format_int"), 2, format_int),
-        BuiltInDef::create(Location("indexof"), 2, indexof),
-        BuiltInDef::create(Location("indexof_n"), 2, indexof_n),
-        BuiltInDef::create(Location("lower"), 1, lower),
-        BuiltInDef::create(Location("upper"), 1, upper),
-        BuiltInDef::create(Location("replace"), 3, replace),
-        BuiltInDef::create(Location("split"), 2, split),
-        BuiltInDef::create(Location("sprintf"), 2, sprintf_),
+        BuiltInDef::create(Location("concat"), concat_decl, concat),
+        BuiltInDef::create(Location("startswith"), startswith_decl, startswith),
+        BuiltInDef::create(Location("endswith"), endswith_decl, endswith),
+        BuiltInDef::create(Location("contains"), contains_decl, ::contains),
+        BuiltInDef::create(Location("format_int"), format_int_decl, format_int),
+        BuiltInDef::create(Location("indexof"), indexof_decl, indexof),
+        BuiltInDef::create(Location("indexof_n"), indexof_n_decl, indexof_n),
+        BuiltInDef::create(Location("lower"), lower_decl, lower),
+        BuiltInDef::create(Location("upper"), upper_decl, upper),
+        BuiltInDef::create(Location("replace"), replace_decl, replace),
+        BuiltInDef::create(Location("split"), split_decl, split),
+        BuiltInDef::create(Location("sprintf"), sprintf_decl, sprintf_),
         BuiltInDef::create(
-          Location("strings.any_prefix_match"), 2, any_prefix_match),
+          Location("strings.any_prefix_match"),
+          any_prefix_match_decl,
+          any_prefix_match),
         BuiltInDef::create(
-          Location("strings.any_suffix_match"), 2, any_suffix_match),
-        BuiltInDef::create(Location("strings.count"), 2, count),
-        BuiltInDef::create(Location("strings.replace_n"), 2, replace_n),
-        BuiltInDef::create(Location("strings.reverse"), 1, reverse),
-        BuiltInDef::create(Location("substring"), 3, substring),
-        BuiltInDef::create(Location("trim"), 2, trim),
-        BuiltInDef::create(Location("trim_left"), 2, trim_left),
-        BuiltInDef::create(Location("trim_right"), 2, trim_right),
-        BuiltInDef::create(Location("trim_space"), 1, trim_space),
-        BuiltInDef::create(Location("trim_prefix"), 2, trim_prefix),
-        BuiltInDef::create(Location("trim_suffix"), 2, trim_suffix),
+          Location("strings.any_suffix_match"),
+          any_suffix_match_decl,
+          any_suffix_match),
+        BuiltInDef::create(Location("strings.count"), count_decl, count),
+        BuiltInDef::create(
+          Location("strings.replace_n"), replace_n_decl, replace_n),
+        BuiltInDef::create(Location("strings.reverse"), reverse_decl, reverse),
+        BuiltInDef::create(Location("substring"), substring_decl, substring),
+        BuiltInDef::create(Location("trim"), trim_decl, trim),
+        BuiltInDef::create(Location("trim_left"), trim_left_decl, trim_left),
+        BuiltInDef::create(Location("trim_right"), trim_right_decl, trim_right),
+        BuiltInDef::create(Location("trim_space"), trim_space_decl, trim_space),
+        BuiltInDef::create(
+          Location("trim_prefix"), trim_prefix_decl, trim_prefix),
+        BuiltInDef::create(
+          Location("trim_suffix"), trim_suffix_decl, trim_suffix),
       };
     }
   }

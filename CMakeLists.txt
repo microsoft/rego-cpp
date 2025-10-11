@@ -15,7 +15,7 @@ list( GET REGOCPP_VERSION_LIST 1 REGOCPP_VERSION_MINOR )
 
 list( GET REGOCPP_VERSION_LIST 2 REGOCPP_VERSION_REVISION )
 
-set ( REGOCPP_OPA_VERSION 0.68.0 )
+set ( REGOCPP_OPA_VERSION 1.8.0 )
 
 set( REGOCPP_VERSION ${REGOCPP_VERSION_MAJOR}.${REGOCPP_VERSION_MINOR}.${REGOCPP_VERSION_REVISION} )
 
@@ -65,14 +65,23 @@ option(REGOCPP_BUILD_TESTS "Specifies whether to build the tests" OFF)
 option(REGOCPP_BUILD_DOCS "Specifies whether to build the documentation" OFF)
 option(REGOCPP_BUILD_SHARED "Whether to build the rego_shared library" OFF)
 option(REGOCPP_OPA_TESTS "Specifies whether to load and run the OPA built-ins tests" OFF)
+option(REGOCPP_OPA_ROUNDTRIP_TESTS "Whether to perform roundtrip encoding tests for bundles" OFF)
 option(REGOCPP_COPY_EXAMPLES "Specifies whether to copy the examples to the install directory" OFF)
 option(REGOCPP_ACTION_METRICS "Specifies whether to metricate Trieste Actions" OFF)
 option(REGOCPP_CLEAN_INSTALL "Whether the install directory should be cleaned before install" OFF)
 set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
+option(REGOCPP_USE_SNMALLOC "Whether to use snmalloc for memory allocation" ON)
 
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# -------------------- OS adjustments -------------------------
+
+if(APPLE)
+  set(REGOCPP_USE_SNMALLOC OFF)
+  message("Disabling SNMALLOC due to issues with overwriting new/delete on MacOS")
+endif()
 
 # -------------------- Find packages --------------------------
 
@@ -90,7 +99,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        44e71e994b03ef766357167df32f148b03a97aa4
+  GIT_TAG        67273a5e13b640dd8a9d0eb6a6a3953b543787f0
 )
 
 FetchContent_MakeAvailable(cmake_utils)
@@ -99,6 +108,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 set(TRIESTE_BUILD_SAMPLES OFF)
 set(TRIESTE_BUILD_PARSERS ON)
+set(TRIESTE_USE_SNMALLOC ${REGOCPP_USE_SNMALLOC})
 
 FetchContent_MakeAvailable_ExcludeFromAll(trieste)
 
@@ -233,8 +243,10 @@ endif()
 
 if (REGOCPP_BUILD_TESTS)
   install(TARGETS rego_test rego_test_c_api RUNTIME)
-  install(FILES tests/regocpp.yaml tests/bigint.yaml tests/bugs.yaml tests/regov1.yaml tests/bad.json DESTINATION tests)
+  install(FILES tests/regocpp.yaml tests/bigint.yaml tests/bugs.yaml tests/bad.json DESTINATION tests)
   install(DIRECTORY tests/aci DESTINATION tests)
+  install(DIRECTORY tests/cts DESTINATION tests)
+  install(DIRECTORY tests/opa DESTINATION tests)
 endif()
 
 export(EXPORT ${PROJECT_NAME}_Targets

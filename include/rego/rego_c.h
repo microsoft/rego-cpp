@@ -8,19 +8,28 @@
 
 #include "version.h"
 
+#include <stdint.h>
+
 typedef void regoInterpreter;
 typedef void regoNode;
 typedef void regoOutput;
-typedef unsigned int regoEnum;
-typedef unsigned char regoBoolean;
-typedef unsigned int regoSize;
+typedef void regoBundle;
+typedef void regoInput;
+typedef uint_least8_t regoBoolean;
+typedef uint_least32_t regoEnum;
+typedef uint_least32_t regoSize;
+typedef int_least64_t regoInt;
+typedef uint_least32_t regoType;
 
 // error codes
 #define REGO_OK 0
 #define REGO_ERROR 1
 #define REGO_ERROR_BUFFER_TOO_SMALL 2
 #define REGO_ERROR_INVALID_LOG_LEVEL 3
-#define REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED 4
+// #define REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED 4 deprecated
+#define REGO_ERROR_INPUT_NULL 5
+#define REGO_ERROR_INPUT_MISSING_ARGUMENTS 6
+#define REGO_ERROR_INPUT_OBJECT_ITEM 7
 
 // term node types
 #define REGO_NODE_BINDING 1000
@@ -59,6 +68,7 @@ typedef unsigned int regoSize;
 #define REGO_LOG_LEVEL_INFO 4
 #define REGO_LOG_LEVEL_DEBUG 5
 #define REGO_LOG_LEVEL_TRACE 6
+#define REGO_LOG_LEVEL_UNSUPPORTED 7
 
 #define REGO_BUILD_INFO \
   (REGOCPP_VERSION " (" REGOCPP_BUILD_NAME ", " REGOCPP_BUILD_DATE \
@@ -78,24 +88,30 @@ extern "C"
   // ----- Interpreter functions ------ //
   ////////////////////////////////////////
 
+  REGO_API(regoSize) regoBuildInfoSize(void);
+
   /**
    * Returns a string of the form
    * "VERSION (BUILD_NAME, BUILD_DATE) BUILD_TOOLCHAIN on PLATFORM"
    * @return The build info string.
    */
-  REGO_API(const char*) regoBuildInfo(void);
+  REGO_API(regoEnum) regoBuildInfo(char* buffer, regoSize size);
+
+  REGO_API(regoSize) regoVersionSize(void);
 
   /**
    * Returns the version of the Rego library.
    * @return The version string.
    */
-  REGO_API(const char*) regoVersion(void);
+  REGO_API(regoEnum) regoVersion(char* buffer, regoSize size);
+
+  REGO_API(regoEnum) regoLogLevelFromString(const char* level);
 
   /**
-   * Sets the level of logging.
+   * Sets the level of logging on the interpreter.
    *
    * This setting controls the amount of logging that will be output to stdout.
-   * The default level is REGO_LOG_LEVEL_NONE.
+   * The default level is REGO_LOG_LEVEL_OUTPUT.
    *
    * @param level One of the following values: REGO_LOG_LEVEL_NONE,
    *              REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
@@ -103,28 +119,31 @@ extern "C"
    *              REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
    * @return REGO_OK if successful, REGO_ERROR_INVALID_LOG_LEVEL otherwise.
    */
-  REGO_API(regoEnum) regoSetLogLevel(regoEnum level);
+  REGO_API(regoEnum) regoSetLogLevel(regoInterpreter* rego, regoEnum level);
 
   /**
-   * Sets the level of logging.
+   * Sets the default level of logging.
    *
    * This setting controls the amount of logging that will be output to stdout.
-   * The default level is REGO_LOG_LEVEL_NONE.
+   * The default level is REGO_LOG_LEVEL_OUTPUT.
    *
-   * @param level One of the following strings: "None", "Error", "Output",
-   *              "Warn", "Info", "Debug", "Trace".
+   * @param level One of the following values: REGO_LOG_LEVEL_NONE,
+   *              REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
+   *              REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
+   *              REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
    * @return REGO_OK if successful, REGO_ERROR_INVALID_LOG_LEVEL otherwise.
    */
-  REGO_API(regoEnum) regoSetLogLevelFromString(const char* level);
+  REGO_API(regoEnum) regoSetDefaultLogLevel(regoEnum level);
 
   /**
-   * Deprecated. This function no longer has any effect.
+   * Gets the level of logging on the interpreter.
    *
-   * @deprecated
-   * @param path Ignored
-   * @return REGO_OK.
+   * @return One of the following values: REGO_LOG_LEVEL_NONE,
+   *              REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
+   *              REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
+   *              REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
    */
-  REGO_API(regoEnum) regoSetTZDataPath(const char* path);
+  REGO_API(regoEnum) regoGetLogLevel(regoInterpreter* rego);
 
   /**
    * Allocates and initializes a new Rego interpreter.
@@ -134,15 +153,6 @@ extern "C"
    * @return A pointer to the new interpreter.
    */
   REGO_API(regoInterpreter*) regoNew(void);
-
-  /**
-   * Allocates and initializes a new V1 Rego interpreter.
-   *
-   * The caller is responsible for freeing the interpreter with regoFree.
-   *
-   * @return A pointer to the new V1 interpreter.
-   */
-  REGO_API(regoInterpreter*) regoNewV1(void);
 
   /**
    * Frees a Rego interpreter.
@@ -158,7 +168,7 @@ extern "C"
    * specified path.
    *
    * If an error code is returned, more error information can be
-   * obtained by calling regoGetError.
+   * obtained by calling regoError.
    *
    * @param rego The interpreter.
    * @param path The path to the policy file.
@@ -170,7 +180,7 @@ extern "C"
    * Adds a module (e.g. virtual document) from the specified string.
    *
    * If an error code is returned, more error information can be
-   * obtained by calling regoGetError.
+   * obtained by calling regoError.
    *
    * @param rego The interpreter.
    * @param name The name of the module.
@@ -187,7 +197,7 @@ extern "C"
    * parsed and merged with the interpreter's base document.
    *
    * If an error code is returned, more error information can be
-   * obtained by calling regoGetError.
+   * obtained by calling regoError.
    *
    * @param rego The interpreter.
    * @param path The path to the JSON file.
@@ -203,7 +213,7 @@ extern "C"
    * parsed and merged with the interpreter's base document.
    *
    * If an error code is returned, more error information can be
-   * obtained by calling regoGetError.
+   * obtained by calling regoError.
    *
    * @param rego The interpreter.
    * @param contents The contents of the JSON object.
@@ -219,7 +229,7 @@ extern "C"
    * parsed and set as the interpreter's input document.
    *
    * If an error code is returned, more error information can be
-   * obtained by calling regoGetError.
+   * obtained by calling regoError.
    *
    * @param rego The interpreter.
    * @param path The path to the JSON file.
@@ -231,30 +241,11 @@ extern "C"
   /**
    * Sets the current input document from the specified string.
    *
-   * The string should contain a single JSON value. The value will be
-   * parsed and set as the interpreter's input document.
-   *
-   * If an error code is returned, more error information can be
-   * obtained by calling regoGetError.
-   *
-   * @deprecated This method's name is misleading, as the input term can be any
-   * valid Rego (i.e. not just JSON). Please use the updated version
-   * `regoSetInputTerm`.
-   * @param rego The interpreter.
-   * @param contents The contents of the JSON value.
-   * @return REGO_OK if successful, REGO_ERROR otherwise.
-   */
-  REGO_API(regoEnum)
-  regoSetInputJSON(regoInterpreter* rego, const char* contents);
-
-  /**
-   * Sets the current input document from the specified string.
-   *
    * The string should contain a single Rego data term. The value will be
    * parsed and set as the interpreter's input document.
    *
    * If an error code is returned, more error information can be
-   * obtained by calling regoGetError.
+   * obtained by calling regoError.
    *
    * @param rego The interpreter.
    * @param contents The contents of the Rego data term.
@@ -262,6 +253,9 @@ extern "C"
    */
   REGO_API(regoEnum)
   regoSetInputTerm(regoInterpreter* rego, const char* contents);
+
+  REGO_API(regoEnum)
+  regoSetInput(regoInterpreter* rego, regoInput* input);
 
   /**
    * Sets the debug mode of the interpreter.
@@ -294,7 +288,7 @@ extern "C"
    * not exist, it will be created.
    *
    * If an error code is returned, more error information can be
-   * obtained by calling regoGetError.
+   * obtained by calling regoError.
    *
    * @param rego The interpreter.
    * @param path The path to the debug directory.
@@ -366,7 +360,10 @@ extern "C"
    * @param name The name of the built-in.
    * @return Whether the built-in exists.
    */
-  REGO_API(regoBoolean) regoIsBuiltIn(regoInterpreter* rego, const char* name);
+  REGO_API(regoBoolean)
+  regoIsAvailableBuiltIn(regoInterpreter* rego, const char* name);
+
+  REGO_API(regoSize) regoErrorSize(regoInterpreter* rego);
 
   /**
    * Returns the most recently thrown error.
@@ -377,7 +374,35 @@ extern "C"
    * @param rego The interpreter.
    * @return The error message.
    */
-  REGO_API(const char*) regoGetError(regoInterpreter* rego);
+  REGO_API(regoEnum)
+  regoError(regoInterpreter* rego, char* buffer, regoSize size);
+
+  REGO_API(regoEnum)
+  regoSetQuery(regoInterpreter* rego, const char* query_expr);
+
+  REGO_API(regoEnum)
+  regoAddEntrypoint(regoInterpreter* rego, const char* entrypoint);
+
+  REGO_API(regoBundle*) regoBuild(regoInterpreter* rego);
+
+  REGO_API(regoBundle*) regoBundleLoad(regoInterpreter* rego, const char* dir);
+
+  REGO_API(regoBundle*)
+  regoBundleLoadBinary(regoInterpreter* rego, const char* path);
+
+  REGO_API(regoEnum)
+  regoBundleSave(regoInterpreter* rego, const char* dir, regoBundle* bundle);
+
+  REGO_API(regoEnum)
+  regoBundleSaveBinary(
+    regoInterpreter* rego, const char* path, regoBundle* bundle);
+
+  REGO_API(regoOutput*)
+  regoBundleQuery(regoInterpreter* rego, regoBundle* bundle);
+
+  REGO_API(regoOutput*)
+  regoBundleQueryEntrypoint(
+    regoInterpreter* rego, regoBundle* bundle, const char* endpoint);
 
   ////////////////////////////////////////
   // -------- Output functions -------- //
@@ -486,15 +511,6 @@ extern "C"
   regoOutputJSON(regoOutput* output, char* buffer, regoSize size);
 
   /**
-   * Returns the output represented as a human-readable string.
-   *
-   * @deprecated This method is unstable. Use regoOutputJSON instead.
-   * @param output The output.
-   * @return The output string.
-   */
-  REGO_API(const char*) regoOutputString(regoOutput* output);
-
-  /**
    * Frees a Rego output.
    *
    * This pointer must have been allocated with regoQuery.
@@ -541,9 +557,11 @@ extern "C"
    *
    * @return The node type.
    */
-  REGO_API(regoEnum) regoNodeType(regoNode* node);
+  REGO_API(regoType) regoNodeType(regoNode* node);
 
   // clang-format on
+
+  REGO_API(regoEnum) regoNodeTypeNameSize(regoNode* node);
 
   /**
    * Returns the name of the node type as a human-readable string.
@@ -554,7 +572,8 @@ extern "C"
    * @param node The node.
    * @return The node type name.
    */
-  REGO_API(const char*) regoNodeTypeName(regoNode* node);
+  REGO_API(regoEnum)
+  regoNodeTypeName(regoNode* node, char* buffer, regoSize size);
 
   /**
    * Returns the number of bytes needed to store a 0-terminated string
@@ -622,6 +641,48 @@ extern "C"
    * @return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.
    */
   REGO_API(regoEnum) regoNodeJSON(regoNode* node, char* buffer, regoSize size);
+
+  /////////////////////////////////////////
+  // --------- Input functions --------- //
+  /////////////////////////////////////////
+
+  REGO_API(regoInput*) regoNewInput();
+
+  REGO_API(regoEnum) regoInputInt(regoInput* input, regoInt value);
+
+  REGO_API(regoEnum) regoInputFloat(regoInput* input, double value);
+
+  REGO_API(regoEnum) regoInputString(regoInput* input, const char* value);
+
+  REGO_API(regoEnum) regoInputBoolean(regoInput* input, regoBoolean value);
+
+  REGO_API(regoEnum) regoInputNull(regoInput* input);
+
+  REGO_API(regoEnum) regoInputObjectItem(regoInput* input);
+
+  REGO_API(regoEnum) regoInputObject(regoInput* input, regoSize count);
+
+  REGO_API(regoEnum) regoInputArray(regoInput* input, regoSize count);
+
+  REGO_API(regoEnum) regoInputSet(regoInput* input, regoSize count);
+
+  REGO_API(regoEnum) regoInputValidate(regoInput* input);
+
+  REGO_API(regoNode*) regoInputNode(regoInput* input);
+
+  REGO_API(regoSize) regoInputSize(regoInput* input);
+
+  REGO_API(void) regoFreeInput(regoInput* input);
+
+  //////////////////////////////////////////
+  // --------- Bundle functions --------- //
+  //////////////////////////////////////////
+
+  REGO_API(regoBoolean) regoBundleOk(regoBundle* bundle);
+
+  REGO_API(regoNode*) regoBundleNode(regoBundle* bundle);
+
+  REGO_API(void) regoFreeBundle(regoBundle* bundle);
 
 #ifdef __cplusplus
 }

@@ -1,8 +1,10 @@
 #include "builtins.h"
+#include "rego.hh"
 
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   Node concat(const Nodes& args)
   {
@@ -23,6 +25,20 @@ namespace
     z->insert(z->end(), y->begin(), y->end());
     return z;
   }
+
+  Node concat_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg << (bi::Name ^ "x") << (bi::Description ^ "the first array")
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::Any))))
+        << (bi::Arg << (bi::Name ^ "y")
+                    << (bi::Description ^ "the second array")
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::Any)))))
+    << (bi::Result << (bi::Name ^ "z")
+                   << (bi::Description ^ "the concatenation of `x` and `y`")
+                   << (bi::Type
+                       << (bi::DynamicArray << (bi::Type << bi::Any))));
 
   Node reverse(const Nodes& args)
   {
@@ -46,6 +62,18 @@ namespace
 
     return rev;
   }
+
+  Node reverse_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg << (bi::Name ^ "arr")
+                    << (bi::Description ^ "the array to be reverse")
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::Any)))))
+    << (bi::Result
+        << (bi::Name ^ "rev")
+        << (bi::Description ^
+            "an array containing the elements of `arr` in reverse order")
+        << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Any))));
 
   Node slice(const Nodes& args)
   {
@@ -93,6 +121,30 @@ namespace
 
     return array;
   }
+
+  Node slice_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg
+                       << (bi::Name ^ "arr")
+                       << (bi::Description ^ "the array to be reverse")
+                       << (bi::Type
+                           << (bi::DynamicArray << (bi::Type << bi::Any))))
+                   << (bi::Arg << (bi::Name ^ "start")
+                               << (bi::Description ^
+                                   "the start index of the returned slice; if "
+                                   "less than zero, it's clamped to 0")
+                               << (bi::Type << bi::Number))
+                   << (bi::Arg
+                       << (bi::Name ^ "stop")
+                       << (bi::Description ^
+                           "the stop index of the returned slice; if larger "
+                           "than `count(arr)`, it's clamped to `count(arr)`")
+                       << (bi::Type << bi::Number)))
+    << (bi::Result << (bi::Name ^ "slice")
+                   << (bi::Description ^
+                       "the subslice of `array`, from `start` to `end`, "
+                       "including `arr[start]`, but excluding `arr[end]`")
+                   << (bi::Type
+                       << (bi::DynamicArray << (bi::Type << bi::Any))));
 }
 
 namespace rego
@@ -102,9 +154,9 @@ namespace rego
     std::vector<BuiltIn> arrays()
     {
       return {
-        BuiltInDef::create(Location("array.concat"), 2, concat),
-        BuiltInDef::create(Location("array.reverse"), 1, reverse),
-        BuiltInDef::create(Location("array.slice"), 3, slice),
+        BuiltInDef::create(Location("array.concat"), concat_decl, concat),
+        BuiltInDef::create(Location("array.reverse"), reverse_decl, reverse),
+        BuiltInDef::create(Location("array.slice"), slice_decl, slice),
       };
     }
   }

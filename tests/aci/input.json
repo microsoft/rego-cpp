@@ -1,0 +1,70 @@
+{
+    "argList": [
+        "rustc",
+        "--help"
+    ],
+    "capabilities": {
+        "ambient": [
+            "CAP_SYS_ADMIN"
+        ],
+        "bounding": [
+            "CAP_SYS_ADMIN"
+        ],
+        "effective": [
+            "CAP_SYS_ADMIN"
+        ],
+        "inheritable": [
+            "CAP_SYS_ADMIN"
+        ],
+        "permitted": [
+            "CAP_SYS_ADMIN"
+        ]
+    },
+    "containerID": "container0",
+    "envList": [
+        "CARGO_HOME=/usr/local/cargo",
+        "RUST_VERSION=1.52.1",
+        "TERM=xterm",
+        "PATH=/usr/local/cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "RUSTUP_HOME=/usr/local/rustup"
+    ],
+    "groups": [
+        {
+            "id": 0,
+            "name": "root"
+        }
+    ],
+    "hugePagesDir": "/run/gcs/c/sandbox0/hugepages",
+    "mounts": [
+        {
+            "destination": "/container/path/one",
+            "options": [
+                "rbind",
+                "rshared",
+                "rw"
+            ],
+            "source": "/run/gcs/c/sandbox0/sandboxMounts/host/path/one",
+            "type": "bind"
+        },
+        {
+            "destination": "/container/path/two",
+            "options": [
+                "rbind",
+                "rshared",
+                "ro"
+            ],
+            "source": "/run/gcs/c/sandbox0/sandboxMounts/host/path/two",
+            "type": "bind"
+        }
+    ],
+    "noNewPrivileges": true,
+    "privileged": false,
+    "seccompProfileSHA256": "",
+    "sandboxDir": "/run/gcs/c/sandbox0/sandboxMounts",
+    "umask": "0022",
+    "user": {
+        "id": 0,
+        "name": "root"
+    },
+    "workingDir": "/home/user"
+}

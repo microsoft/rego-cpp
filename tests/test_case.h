@@ -15,6 +15,13 @@ namespace rego_test
     std::string error;
   };
 
+  enum class RoundTrip
+  {
+    None,
+    JSON,
+    Binary,
+  };
+
   class TestCase
   {
   public:
@@ -28,7 +35,8 @@ namespace rego_test
     Result run(
       const std::filesystem::path& debug_path,
       bool wf_checks,
-      bool v1_compatible) const;
+      RoundTrip roundtrip,
+      LogLevel log_level) const;
 
     /** name of the test case category. */
     const std::string& category() const;
@@ -88,6 +96,10 @@ namespace rego_test
     /** indicates that the test is broken and should be skipped */
     bool broken() const;
     TestCase& broken(bool broken);
+
+    /** whether to perform a serialisation round-trip before running the test */
+    RoundTrip roundtrip() const;
+    TestCase& roundtrip(RoundTrip setting);
 
   private:
     BindingMaps to_binding_maps(const Node& node) const;

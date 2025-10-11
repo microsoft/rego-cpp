@@ -14,7 +14,8 @@ int main(int argc, char** argv)
 
   std::string transform;
   app.add_option("transform", transform, "Transform to test")
-    ->check(CLI::IsMember({"reader", "unify"}))
+    ->check(CLI::IsMember(
+      {"file_to_rego", "json_to_bundle", "rego_to_bundle", "bundle_to_json"}))
     ->required(true);
 
   uint32_t seed = std::random_device()();
@@ -49,15 +50,23 @@ int main(int argc, char** argv)
   logging::Output() << "Testing x" << count << ", seed: " << seed << std::endl;
 
   Fuzzer fuzzer;
-  Reader reader = rego::reader();
-  if (transform == "reader")
+  Reader reader = rego::file_to_rego();
+  if (transform == "file_to_rego")
   {
     fuzzer = Fuzzer(reader);
   }
-  else if (transform == "unify")
+  else if (transform == "json_to_bundle")
   {
-    auto builtins = rego::BuiltInsDef::create();
-    fuzzer = Fuzzer(rego::unify(builtins), reader.parser().generators());
+    auto builtins = rego::builtins::BuiltInsDef::create();
+    fuzzer = Fuzzer(rego::json_to_bundle(), reader.parser().generators());
+  }
+  else if (transform == "rego_to_bundle")
+  {
+    fuzzer = Fuzzer(rego::rego_to_bundle(), reader.parser().generators());
+  }
+  else if (transform == "bundle_to_json")
+  {
+    fuzzer = Fuzzer(rego::bundle_to_json(), reader.parser().generators());
   }
 
   return fuzzer.start_seed(seed).seed_count(count).failfast(failfast).test();

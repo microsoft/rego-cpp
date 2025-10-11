@@ -16,3 +16,5 @@ Cargo.lock
 # Rego
 rego-cpp
 rego
+bundle
+bundle_bin.rbb

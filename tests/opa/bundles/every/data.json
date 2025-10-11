@@ -1,0 +1,91 @@
+{
+    "apps": [
+        {
+            "name": "web",
+            "servers": [
+                "web-0",
+                "web-1",
+                "web-1000",
+                "web-1001",
+                "web-dev"
+            ]
+        },
+        {
+            "name": "mysql",
+            "servers": [
+                "db-0",
+                "db-1000"
+            ]
+        },
+        {
+            "name": "mongodb",
+            "servers": [
+                "db-dev"
+            ]
+        }
+    ],
+    "containers": [
+        {
+            "image": "redis",
+            "ipaddress": "10.0.0.1",
+            "name": "big_stallman"
+        },
+        {
+            "image": "nginx",
+            "ipaddress": "10.0.0.2",
+            "name": "cranky_euclid"
+        }
+    ],
+    "sites": [
+        {
+            "name": "prod",
+            "region": "east",
+            "servers": [
+                {
+                    "hostname": "hydrogen",
+                    "name": "web-0"
+                },
+                {
+                    "hostname": "helium",
+                    "name": "web-1"
+                },
+                {
+                    "hostname": "lithium",
+                    "name": "db-0"
+                }
+            ]
+        },
+        {
+            "name": "smoke",
+            "region": "west",
+            "servers": [
+                {
+                    "hostname": "beryllium",
+                    "name": "web-1000"
+                },
+                {
+                    "hostname": "boron",
+                    "name": "web-1001"
+                },
+                {
+                    "hostname": "carbon",
+                    "name": "db-1000"
+                }
+            ]
+        },
+        {
+            "name": "dev",
+            "region": "west",
+            "servers": [
+                {
+                    "hostname": "nitrogen",
+                    "name": "web-dev"
+                },
+                {
+                    "hostname": "oxygen",
+                    "name": "db-dev"
+                }
+            ]
+        }
+    ]
+}
