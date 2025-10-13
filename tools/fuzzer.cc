@@ -57,7 +57,7 @@ int main(int argc, char** argv)
   }
   else if (transform == "json_to_bundle")
   {
-    auto builtins = rego::builtins::BuiltInsDef::create();
+    auto builtins = rego::BuiltInsDef::create();
     fuzzer = Fuzzer(rego::json_to_bundle(), reader.parser().generators());
   }
   else if (transform == "rego_to_bundle")

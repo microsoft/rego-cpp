@@ -17,6 +17,10 @@ still works as you expect.
   loading from disk. Read [this document](binary.md) for details.
 - `regoInput*` C API methods for in-memory input creation.
 - `regoBundle*` C API methods for working with bundles.
+- The `BuiltInDef` API has changed to support full built-in metadata during creation.
+  See the [Custom Built-In](examples/cpp/custom_builtin.cc) example for details.
+  The old API remains but has been deprecated and will be removed in a future
+  release.
 
 **Improvements**
 - The entire backend has been rewritten. All code is compiled and run as bundles,
@@ -33,8 +37,6 @@ still works as you expect.
 
 **Breaking Changes**
 - Support for v0 Rego has been dropped.
-- The `BuiltInDef` API has changed to support full built-in metadata during creation.
-  See the [Custom Built-In](examples/cpp/custom_builtin.cc) example for details
 - All TZData related methods have been removed. Platforms which do not support
   `cpp_lib_chrono >= 201907L` will be missing builtins which require timezone
   functionality.

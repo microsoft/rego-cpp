@@ -56,7 +56,7 @@ namespace rego
     m_debug_path(""),
     m_debug_enabled(false),
     m_wf_check_enabled(false),
-    m_builtins(builtins::BuiltInsDef::create()),
+    m_builtins(BuiltInsDef::create()),
     m_data_count(0),
     m_log_level(LogLevel::Output)
   {}

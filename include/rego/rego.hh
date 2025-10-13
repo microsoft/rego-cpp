@@ -218,13 +218,10 @@ namespace rego
     ;
   // clang-format on
 
-  namespace builtins
-  {
-    struct BuiltInDef;
-  };
+  struct BuiltInDef;
 
   /** A pointer to a BuiltInDef.*/
-  using BuiltIn = std::shared_ptr<builtins::BuiltInDef>;
+  using BuiltIn = std::shared_ptr<BuiltInDef>;
 
   /** The function pointer to the behavior of the built-in. */
   using BuiltInBehavior = std::function<Node(const Nodes&)>;
@@ -631,224 +628,239 @@ namespace rego
       | (Result <<= Name * Description * Type)
       ;
     // clang-format on
-
-    /**
-     * Struct which defines a built-in function.
-     *
-     * You can extend Rego by registering your own built-ins. A built-in is a
-     * function which is called by Rego during evaluation. Built-ins are called
-     * with a vector of Nodes, and return a Node. The vector of Nodes contains
-     * the arguments passed to the built-in. The Node returned by the built-in
-     * is the result of the built-in's evaluation.
-     *
-     * Here is an example built-in which performs addition:
-     *
-     * ```cpp
-     * Node add(const Nodes& args)
-     * {
-     *   Node a = unwrap_arg(args, UnwrapOpt(0).types({Int, Float}));
-     *   if(a.type() == Error){
-     *     return a;
-     *   }
-     *
-     *   Node b = unwrap_arg(args, UnwrapOpt(1).types({Int, Float}));
-     *   if(b.type() == Error){
-     *    return b;
-     *   }
-     *
-     *   if(a.type() == Int && b.type() == Int)
-     *   {
-     *     return scalar(get_int(a) + get_int(b));
-     *   }
-     *
-     *   return scalar(get_double(a) + get_double(b));
-     * }
-     * ```
-     *
-     * Note that there are several helper methods and objects to aid in
-     * writing managing nodes and wrapping/unwrapping them into basic
-     * types. Once a method like the above has been written, use
-     * BuiltInDef::create following way:
-     * ```cpp
-     * builtins.register_builtin(BuiltInDef::create(Location("add"), 2, add))
-     * ```
-     *
-     * Then, during evaluation, any call to the built-in `add` will be
-     * handled by the `add` function.
-     */
-    struct BuiltInDef
-    {
-      /** The name used to match against expression calls in the rego program.
-       */
-      Location name;
-
-      Node decl;
-      /**
-       * The number of expected arguments.
-       *
-       * If any number of arguments can be provided, use the constant AnyArity.
-       */
-      std::size_t arity;
-
-      /** The function which will be called when the built-in is evaluated. */
-      BuiltInBehavior behavior;
-
-      /** Whether the builtin is available. */
-      bool available;
-
-      /**
-       * Constructor.
-       */
-      BuiltInDef(
-        Location name_, Node decl_, BuiltInBehavior behavior_, bool available_);
-
-      virtual ~BuiltInDef() = default;
-
-      /**
-       * Called to clear any persistent state or caching.
-       */
-      virtual void clear();
-
-      /**
-       * Creates a new built-in.
-       *
-       * The `decl` node adheres to the `builtins::wf_decl` well-formedness
-       * definition. BuiltIn is a pointer to a BuiltInDef.
-       *
-       * @param name The name of the built-in.
-       * @param decl Metadata and documentation for the built-in.
-       * @param behavior The function which will be called when the built-in is
-       * evaluated.
-       * @return The built-in.
-       */
-      static BuiltIn create(
-        const Location& name, Node decl, BuiltInBehavior behavior);
-
-      /**
-       * Creates a placeholder for a built-in which is not available on this
-       * platform.
-       *
-       * The `decl` node adheres to the `builtins::wf_decl` well-formedness
-       * definition. BuiltIn is a pointer to a BuiltInDef.
-       *
-       * @param name The name of the built-in.
-       * @param decl Metadata and documentation for the built-in.
-       * @return The built-in.
-       */
-      static BuiltIn placeholder(
-        const Location& name, Node decl, const std::string& message);
-    };
-
-    /**
-     * Manages the set of builtins used by an interpreter to resolve built-in
-     * calls.
-     */
-    class BuiltInsDef
-    {
-    public:
-      /** Constructor. */
-      BuiltInsDef() noexcept;
-
-      /**
-       * Determines whether the provided name refers to a built-in.
-       *
-       * @param name The name to check.
-       * @return True if the name refers to a built-in, otherwise false.
-       */
-      bool is_builtin(const Location& name) const;
-
-      Node decl(const Location& name) const;
-
-      /**
-       * Determines whether the provided builtin name is deprecated in the
-       * provided version.
-       *
-       * @param version The version to check.
-       * @param name The name to check.
-       */
-      bool is_deprecated(const Location& version, const Location& name) const;
-
-      /**
-       * Calls the built-in with the provided name and arguments.
-       *
-       * @param name The name of the built-in to call.
-       * @param args The arguments to pass to the built-in.
-       * @param version The Rego version.
-       * @return The result of the built-in call.
-       */
-      Node call(
-        const Location& name, const Location& version, const Nodes& args);
-
-      /**
-       * Called to clear any persistent state or caching.
-       */
-      void clear();
-
-      /**
-       * Registers a built-in.
-       *
-       * @param built_in The built-in to register.
-       */
-      BuiltInsDef& register_builtin(const BuiltIn& built_in);
-
-      /**
-       * Gets the built-in with the provided name.
-       */
-      const BuiltIn& at(const Location& name) const;
-
-      /**
-       * Whether to throw built-in errors.
-       *
-       * If true, built-in errors will be thrown as exceptions. If false,
-       * built-in errors will result in Undefined nodes.
-       */
-      bool strict_errors() const;
-      BuiltInsDef& strict_errors(bool strict_errors);
-
-      /**
-       * Registers a set of built-ins.
-       *
-       * @param built_ins The built-ins to register.
-       */
-      template <typename T>
-      BuiltInsDef& register_builtins(const T& built_ins)
-      {
-        for (auto& built_in : built_ins)
-        {
-          register_builtin(built_in);
-        }
-
-        return *this;
-      }
-
-      /**
-       * This registers the "standard library" of built-ins.
-       *
-       * There are a number of built-ins which are provided by default. These
-       * built-ins are those documented
-       * <a
-       * href="https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions">here</a>.
-       *
-       * rego-cpp supports the following built-ins as standard:
-       *
-       */
-      BuiltInsDef& register_standard_builtins();
-
-      /**
-       * Creates the standard builtin set.
-       */
-      static std::shared_ptr<BuiltInsDef> create();
-
-      std::map<Location, BuiltIn>::const_iterator begin() const;
-      std::map<Location, BuiltIn>::const_iterator end() const;
-
-    private:
-      std::map<Location, BuiltIn> m_builtins;
-      bool m_strict_errors;
-    };
   }
 
-  using BuiltIns = std::shared_ptr<builtins::BuiltInsDef>;
+  /**
+   * Struct which defines a built-in function.
+   *
+   * You can extend Rego by registering your own built-ins. A built-in is a
+   * function which is called by Rego during evaluation. Built-ins are called
+   * with a vector of Nodes, and return a Node. The vector of Nodes contains
+   * the arguments passed to the built-in. The Node returned by the built-in
+   * is the result of the built-in's evaluation.
+   *
+   * Here is an example built-in which performs addition:
+   *
+   * ```cpp
+   * Node add(const Nodes& args)
+   * {
+   *   Node a = unwrap_arg(args, UnwrapOpt(0).types({Int, Float}));
+   *   if(a.type() == Error){
+   *     return a;
+   *   }
+   *
+   *   Node b = unwrap_arg(args, UnwrapOpt(1).types({Int, Float}));
+   *   if(b.type() == Error){
+   *    return b;
+   *   }
+   *
+   *   if(a.type() == Int && b.type() == Int)
+   *   {
+   *     return scalar(get_int(a) + get_int(b));
+   *   }
+   *
+   *   return scalar(get_double(a) + get_double(b));
+   * }
+   * ```
+   *
+   * Note that there are several helper methods and objects to aid in
+   * writing managing nodes and wrapping/unwrapping them into basic
+   * types. Once a method like the above has been written, use
+   * BuiltInDef::create following way:
+   * ```cpp
+   * builtins.register_builtin(BuiltInDef::create(Location("add"), 2, add))
+   * ```
+   *
+   * Then, during evaluation, any call to the built-in `add` will be
+   * handled by the `add` function.
+   */
+  struct BuiltInDef
+  {
+    /** The name used to match against expression calls in the rego program.
+     */
+    Location name;
+
+    Node decl;
+    /**
+     * The number of expected arguments.
+     *
+     * If any number of arguments can be provided, use the constant AnyArity.
+     */
+    std::size_t arity;
+
+    /** The function which will be called when the built-in is evaluated. */
+    BuiltInBehavior behavior;
+
+    /** Whether the builtin is available. */
+    bool available;
+
+    /**
+     * Constructor.
+     */
+    BuiltInDef(
+      Location name_, Node decl_, BuiltInBehavior behavior_, bool available_);
+
+    virtual ~BuiltInDef() = default;
+
+    /**
+     * Called to clear any persistent state or caching.
+     */
+    virtual void clear();
+
+    /**
+     * Creates a new built-in.
+     *
+     * The `decl` node adheres to the `builtins::wf_decl` well-formedness
+     * definition. BuiltIn is a pointer to a BuiltInDef.
+     *
+     * @param name The name of the built-in.
+     * @param decl Metadata and documentation for the built-in.
+     * @param behavior The function which will be called when the built-in is
+     * evaluated.
+     * @return The built-in.
+     */
+    static BuiltIn create(
+      const Location& name, Node decl, BuiltInBehavior behavior);
+
+    /**
+     * Creates a new built-in.
+     *
+     * An empty decl node with the correct arity and a return type of `Any` will
+     * be automatically created from the arity argument.
+     *
+     * @deprecated
+     * @param name The name of the built-in.
+     * @param arity Number of arguments to the builtin
+     * @param behavior The function which will be called when the built-in is
+     * evaluated.
+     * @return The built-in.
+     */
+    static BuiltIn create(
+      const Location& name, size_t arity, BuiltInBehavior behavior);
+
+    /**
+     * Creates a placeholder for a built-in which is not available on this
+     * platform.
+     *
+     * The `decl` node adheres to the `builtins::wf_decl` well-formedness
+     * definition. BuiltIn is a pointer to a BuiltInDef.
+     *
+     * @param name The name of the built-in.
+     * @param decl Metadata and documentation for the built-in.
+     * @return The built-in.
+     */
+    static BuiltIn placeholder(
+      const Location& name, Node decl, const std::string& message);
+  };
+
+  /**
+   * Manages the set of builtins used by an interpreter to resolve built-in
+   * calls.
+   */
+  class BuiltInsDef
+  {
+  public:
+    /** Constructor. */
+    BuiltInsDef() noexcept;
+
+    /**
+     * Determines whether the provided name refers to a built-in.
+     *
+     * @param name The name to check.
+     * @return True if the name refers to a built-in, otherwise false.
+     */
+    bool is_builtin(const Location& name) const;
+
+    Node decl(const Location& name) const;
+
+    /**
+     * Determines whether the provided builtin name is deprecated in the
+     * provided version.
+     *
+     * @param version The version to check.
+     * @param name The name to check.
+     */
+    bool is_deprecated(const Location& version, const Location& name) const;
+
+    /**
+     * Calls the built-in with the provided name and arguments.
+     *
+     * @param name The name of the built-in to call.
+     * @param args The arguments to pass to the built-in.
+     * @param version The Rego version.
+     * @return The result of the built-in call.
+     */
+    Node call(const Location& name, const Location& version, const Nodes& args);
+
+    /**
+     * Called to clear any persistent state or caching.
+     */
+    void clear();
+
+    /**
+     * Registers a built-in.
+     *
+     * @param built_in The built-in to register.
+     */
+    BuiltInsDef& register_builtin(const BuiltIn& built_in);
+
+    /**
+     * Gets the built-in with the provided name.
+     */
+    const BuiltIn& at(const Location& name) const;
+
+    /**
+     * Whether to throw built-in errors.
+     *
+     * If true, built-in errors will be thrown as exceptions. If false,
+     * built-in errors will result in Undefined nodes.
+     */
+    bool strict_errors() const;
+    BuiltInsDef& strict_errors(bool strict_errors);
+
+    /**
+     * Registers a set of built-ins.
+     *
+     * @param built_ins The built-ins to register.
+     */
+    template <typename T>
+    BuiltInsDef& register_builtins(const T& built_ins)
+    {
+      for (auto& built_in : built_ins)
+      {
+        register_builtin(built_in);
+      }
+
+      return *this;
+    }
+
+    /**
+     * This registers the "standard library" of built-ins.
+     *
+     * There are a number of built-ins which are provided by default. These
+     * built-ins are those documented
+     * <a
+     * href="https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions">here</a>.
+     *
+     * rego-cpp supports the following built-ins as standard:
+     *
+     */
+    BuiltInsDef& register_standard_builtins();
+
+    /**
+     * Creates the standard builtin set.
+     */
+    static std::shared_ptr<BuiltInsDef> create();
+
+    std::map<Location, BuiltIn>::const_iterator begin() const;
+    std::map<Location, BuiltIn>::const_iterator end() const;
+
+  private:
+    std::map<Location, BuiltIn> m_builtins;
+    bool m_strict_errors;
+  };
+
+  using BuiltIns = std::shared_ptr<BuiltInsDef>;
 
   const std::string UnknownError = "unknown_error";
   const std::string EvalTypeError = "eval_type_error";
@@ -1636,5 +1648,5 @@ namespace rego
 
   Rewriter bundle_to_json();
 
-  Rewriter rego_to_bundle(BuiltIns builtins = builtins::BuiltInsDef::create());
+  Rewriter rego_to_bundle(BuiltIns builtins = BuiltInsDef::create());
 }

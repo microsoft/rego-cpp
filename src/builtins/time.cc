@@ -26,10 +26,9 @@ namespace
                    << (bi::Description ^ "nanoseconds since epoch")
                    << (bi::Type << bi::Number));
 
-  struct NowNS : public bi::BuiltInDef
+  static thread_local Node cached = nullptr;
+  struct NowNS : public BuiltInDef
   {
-    Node cached;
-
     NowNS() :
       BuiltInDef(
         Location("time.now_ns"),

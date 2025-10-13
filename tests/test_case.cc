@@ -685,8 +685,8 @@ namespace rego_test
   {
     rego::Interpreter interpreter;
     interpreter.builtins()->strict_errors(m_strict_error);
-    interpreter.builtins()->register_builtin(builtins::BuiltInDef::create(
-      Location("test.sleep"), test_sleep_decl, test_sleep));
+    interpreter.builtins()->register_builtin(
+      BuiltInDef::create(Location("test.sleep"), test_sleep_decl, test_sleep));
     interpreter.wf_check_enabled(wf_checks)
       .debug_enabled(!debug_path.empty())
       .debug_path(debug_path)

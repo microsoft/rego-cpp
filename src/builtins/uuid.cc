@@ -398,11 +398,11 @@ namespace
                      "consistent throughout a query evaluation")
                  << (bi::Type << bi::String));
 
-  struct UUIDRFC4122 : public bi::BuiltInDef
-  {
-    xoroshiro::p128r32 generator;
-    std::map<std::string, Node> cache;
+  thread_local std::map<std::string, Node> cache;
+  thread_local xoroshiro::p128r32 generator;
 
+  struct UUIDRFC4122 : public BuiltInDef
+  {
     UUIDRFC4122() :
       BuiltInDef(
         Location("uuid.rfc4122"),
