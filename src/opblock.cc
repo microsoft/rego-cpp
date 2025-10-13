@@ -201,8 +201,6 @@ namespace
       if (has_brack)
       {
         // this requires a dynamic lookup at runtime
-
-        // TODO how do you determine where the prefix should end?
         prefix.index = argseq->size();
         prefix.type = LOOKUP_DYNAMIC;
       }

@@ -386,6 +386,12 @@ extern "C"
         return REGO_ERROR;
       }
 
+      if (ri->status != REGO_OK)
+      {
+        rego::setError(rego, "Input is in error state");
+        return ri->status;
+      }
+
       rego::Node value = ri->stack.back()->clone();
 
       ok_or_error(reinterpret_cast<rego::Interpreter*>(rego)->set_input(value));
@@ -445,7 +451,7 @@ extern "C"
     {
       auto interpreter = reinterpret_cast<rego::Interpreter*>(rego);
       rego::regoOutput* output = new rego::regoOutput();
-      output->node = interpreter->raw_query(query_expr);
+      output->node = interpreter->query_node(query_expr);
       if (output->node == rego::Term)
       {
         output->node = output->node->front();
@@ -1316,7 +1322,7 @@ extern "C"
   {
     logging::Debug() << "regoInputNode";
     rego::regoInput* ri = reinterpret_cast<rego::regoInput*>(input);
-    if (ri->stack.empty())
+    if (ri->stack.empty() || ri->status != REGO_OK)
     {
       return NULL;
     }

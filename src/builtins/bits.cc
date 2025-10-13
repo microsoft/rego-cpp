@@ -8,21 +8,34 @@ namespace
   Node and_(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args, UnwrapOpt(0).types({Int}).func("bits.and").specify_number(true));
+      args, UnwrapOpt(0).type(Int).func("bits.and").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node y = unwrap_arg(
-      args, UnwrapOpt(1).types({Int}).func("bits.and").specify_number(true));
+      args, UnwrapOpt(1).type(Int).func("bits.and").specify_number(true));
     if (y->type() == Error)
     {
       return y;
     }
 
-    std::int64_t x_int = get_int(x).to_int();
-    std::int64_t y_int = get_int(y).to_int();
+    auto maybe_x_int = get_int(x).to_int();
+    if (!maybe_x_int.has_value())
+    {
+      return err(
+        x, "bits.and: first operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t x_int = maybe_x_int.value();
+
+    auto maybe_y_int = get_int(y).to_int();
+    if (!maybe_y_int.has_value())
+    {
+      return err(
+        y, "bits.and: second operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t y_int = maybe_y_int.value();
 
     return Resolver::scalar(BigInt(x_int & y_int));
   }
@@ -43,21 +56,28 @@ namespace
   Node lsh(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args, UnwrapOpt(0).types({Int}).func("bits.lsh").specify_number(true));
+      args, UnwrapOpt(0).type(Int).func("bits.lsh").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node s = unwrap_arg(
-      args, UnwrapOpt(1).types({Int}).func("bits.lsh").specify_number(true));
+      args, UnwrapOpt(1).type(Int).func("bits.lsh").specify_number(true));
     if (s->type() == Error)
     {
       return s;
     }
 
     BigInt x_int = get_int(x);
-    std::int64_t s_int = get_int(s).to_int();
+
+    auto maybe_s_int = get_int(s).to_int();
+    if (!maybe_s_int.has_value())
+    {
+      return err(
+        s, "bits.lsh: second operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t s_int = maybe_s_int.value();
 
     if (s_int < 0)
     {
@@ -91,13 +111,19 @@ namespace
   Node negate(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args, UnwrapOpt(0).types({Int}).func("bits.negate").specify_number(true));
+      args, UnwrapOpt(0).type(Int).func("bits.negate").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
-    std::int64_t x_int = get_int(x).to_int();
+    auto maybe_x_int = get_int(x).to_int();
+    if (!maybe_x_int.has_value())
+    {
+      return err(
+        x, "bits.negate: operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t x_int = maybe_x_int.value();
 
     return Resolver::scalar(BigInt(~x_int));
   }
@@ -114,21 +140,34 @@ namespace
   Node or_(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args, UnwrapOpt(0).types({Int}).func("bits.or").specify_number(true));
+      args, UnwrapOpt(0).type(Int).func("bits.or").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node y = unwrap_arg(
-      args, UnwrapOpt(1).types({Int}).func("bits.or").specify_number(true));
+      args, UnwrapOpt(1).type(Int).func("bits.or").specify_number(true));
     if (y->type() == Error)
     {
       return y;
     }
 
-    std::int64_t x_int = get_int(x).to_int();
-    std::int64_t y_int = get_int(y).to_int();
+    auto maybe_x_int = get_int(x).to_int();
+    if (!maybe_x_int.has_value())
+    {
+      return err(
+        x, "bits.or: first operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t x_int = maybe_x_int.value();
+
+    auto maybe_y_int = get_int(y).to_int();
+    if (!maybe_y_int.has_value())
+    {
+      return err(
+        y, "bits.or: second operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t y_int = maybe_y_int.value();
 
     return Resolver::scalar(BigInt(x_int | y_int));
   }
@@ -149,21 +188,34 @@ namespace
   Node rsh(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args, UnwrapOpt(0).types({Int}).func("bits.rsh").specify_number(true));
+      args, UnwrapOpt(0).type(Int).func("bits.rsh").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node s = unwrap_arg(
-      args, UnwrapOpt(1).types({Int}).func("bits.rsh").specify_number(true));
+      args, UnwrapOpt(1).type(Int).func("bits.rsh").specify_number(true));
     if (s->type() == Error)
     {
       return s;
     }
 
-    std::int64_t x_int = get_int(x).to_int();
-    std::int64_t s_int = get_int(s).to_int();
+    auto maybe_x_int = get_int(x).to_int();
+    if (!maybe_x_int.has_value())
+    {
+      return err(
+        x, "bits.rsh: first operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t x_int = maybe_x_int.value();
+
+    auto maybe_s_int = get_int(s).to_int();
+    if (!maybe_s_int.has_value())
+    {
+      return err(
+        s, "bits.rsh: second operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t s_int = maybe_s_int.value();
 
     if (s_int < 0)
     {
@@ -195,21 +247,34 @@ namespace
   Node xor_(const Nodes& args)
   {
     Node x = unwrap_arg(
-      args, UnwrapOpt(0).types({Int}).func("bits.xor").specify_number(true));
+      args, UnwrapOpt(0).type(Int).func("bits.xor").specify_number(true));
     if (x->type() == Error)
     {
       return x;
     }
 
     Node y = unwrap_arg(
-      args, UnwrapOpt(1).types({Int}).func("bits.xor").specify_number(true));
+      args, UnwrapOpt(1).type(Int).func("bits.xor").specify_number(true));
     if (y->type() == Error)
     {
       return y;
     }
 
-    std::int64_t x_int = get_int(x).to_int();
-    std::int64_t y_int = get_int(y).to_int();
+    auto maybe_x_int = get_int(x).to_int();
+    if (!maybe_x_int.has_value())
+    {
+      return err(
+        x, "bits.xor: first operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t x_int = maybe_x_int.value();
+
+    auto maybe_y_int = get_int(y).to_int();
+    if (!maybe_y_int.has_value())
+    {
+      return err(
+        y, "bits.xor: second operand is not a valid integer", EvalTypeError);
+    }
+    std::int64_t y_int = maybe_y_int.value();
 
     return Resolver::scalar(BigInt(x_int ^ y_int));
   }

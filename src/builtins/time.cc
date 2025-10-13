@@ -5,8 +5,6 @@
 #include <chrono>
 
 #if __cpp_lib_chrono >= 201907L
-#include <format>
-#include <fstream>
 #include <inttypes.h>
 #endif
 
@@ -422,15 +420,48 @@ namespace
       return days_node;
     }
 
-    nanoseconds ns(get_int(ns_node).to_int());
+    auto maybe_ns = get_int(ns_node).to_int();
+    if (!maybe_ns.has_value())
+    {
+      return err(
+        ns_node,
+        "time.add_date: first operand is not a valid integer",
+        EvalTypeError);
+    }
+    nanoseconds ns(maybe_ns.value());
     days days_since_epoch = floor<days>(ns);
     year_month_day ymd{sys_days(days_since_epoch)};
-    years add_y = years(static_cast<int>(get_int(years_node).to_int()));
-    months add_m = months(static_cast<int>(get_int(months_node).to_size()));
+    auto maybe_years = get_int(years_node).to_int();
+    if (!maybe_years.has_value())
+    {
+      return err(
+        years_node,
+        "time.add_date: second operand is not a valid integer",
+        EvalTypeError);
+    }
+    auto maybe_months = get_int(months_node).to_int();
+    if (!maybe_months.has_value())
+    {
+      return err(
+        months_node,
+        "time.add_date: third operand is not a valid integer",
+        EvalTypeError);
+    }
+    auto maybe_days = get_int(days_node).to_int();
+    if (!maybe_days.has_value())
+    {
+      return err(
+        days_node,
+        "time.add_date: fourth operand is not a valid integer",
+        EvalTypeError);
+    }
+
+    years add_y = years(static_cast<int>(maybe_years.value()));
+    months add_m = months(static_cast<int>(maybe_months.value()));
     ymd += add_y;
     ymd += add_m;
     std::int64_t days = sys_days(ymd).time_since_epoch().count();
-    days += get_int(days_node).to_int();
+    days += maybe_days.value();
 
     ns -= days_since_epoch;
     BigInt time = days * BigInt(day_ns) + ns.count();
@@ -453,7 +484,13 @@ namespace
       return std::nullopt;
     }
 
-    return nanoseconds(x_int.to_int());
+    auto maybe_ns = x_int.to_int();
+    if (!maybe_ns.has_value())
+    {
+      return std::nullopt;
+    }
+
+    return nanoseconds(maybe_ns.value());
   }
 
   std::pair<std::string, std::pair<Resolution, size_t>> get_format(
@@ -526,7 +563,6 @@ namespace
 
     if (x->type() == Int)
     {
-      BigInt x_int = get_int(x);
       auto maybe_ns = get_timestamp(x);
       if (!maybe_ns.has_value())
       {

@@ -397,13 +397,13 @@ namespace rego
     return m_entrypoints;
   }
 
-  Node Interpreter::raw_query(const std::string& query_expr)
+  Node Interpreter::query_node(const std::string& query_expr)
   {
     set_query(query_expr);
-    return raw_query();
+    return query_node();
   }
 
-  Node Interpreter::raw_query()
+  Node Interpreter::query_node()
   {
     auto loglevel = ::log_level(m_log_level);
     logging::Info() << "Query";
@@ -461,12 +461,12 @@ namespace rego
 
   std::string Interpreter::query()
   {
-    return output_to_string(raw_query());
+    return output_to_string(query_node());
   }
 
   std::string Interpreter::query(const std::string& query_expr)
   {
-    return output_to_string(raw_query(query_expr));
+    return output_to_string(query_node(query_expr));
   }
 
   std::string Interpreter::output_to_string(const Node& ast) const

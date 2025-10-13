@@ -83,8 +83,26 @@ namespace
     Node end_number =
       unwrap_arg(args, UnwrapOpt(2).func("array.slice").type(Int));
 
-    std::int64_t raw_start = BigInt(start_number->location()).to_int();
-    std::int64_t raw_end = BigInt(end_number->location()).to_int();
+    auto maybe_raw_start = BigInt(start_number->location()).to_int();
+    if (!maybe_raw_start.has_value())
+    {
+      return err(
+        start_number,
+        "array.slice: start index is not a valid integer",
+        EvalBuiltInError);
+    }
+    std::int64_t raw_start = maybe_raw_start.value();
+
+    auto maybe_raw_end = BigInt(end_number->location()).to_int();
+    if (!maybe_raw_end.has_value())
+    {
+      return err(
+        end_number,
+        "array.slice: end index is not a valid integer",
+        EvalBuiltInError);
+    }
+    std::int64_t raw_end = maybe_raw_end.value();
+
     std::size_t start, end;
     if (raw_start < 0)
     {

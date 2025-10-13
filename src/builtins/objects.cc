@@ -127,7 +127,12 @@ namespace
       }
 
       Node key = maybe_key.node;
-      std::size_t i = BigInt(key->location()).to_size();
+      auto maybe_i = BigInt(key->location()).to_size();
+      if (!maybe_i.has_value())
+      {
+        return std::nullopt;
+      }
+      std::size_t i = maybe_i.value();
       return get_key(collection->at(i), keys, index + 1);
     }
 
@@ -273,9 +278,8 @@ namespace
     return map;
   }
 
-  /** This function checks if sub appears contiguously in order within super,
-   *  and also does not attempt to recurse.
-   */
+  /// This function checks if sub appears contiguously in order within super,
+  /// and also does not attempt to recurse.
   bool array_subset(Node& super, Node& sub)
   {
     if (super->size() < sub->size())
@@ -316,9 +320,8 @@ namespace
     return false;
   }
 
-  /** This function checks if every element of sub is a member of super,
-   *  but does not attempt to recurse
-   */
+  /// This function checks if every element of sub is a member of super,
+  ///  but does not attempt to recurse
   bool set_subset(Node& super, Node& sub)
   {
     if (super->size() < sub->size())
@@ -338,9 +341,8 @@ namespace
     return true;
   }
 
-  /** This function checks if super contains every element of sub with
-   *  no consideration of ordering, and also does not attempt to recurse.
-   */
+  /// This function checks if super contains every element of sub with
+  ///  no consideration of ordering, and also does not attempt to recurse.
   bool set_array_subset(Node& super, Node& sub)
   {
     if (super->size() < sub->size())
@@ -398,12 +400,11 @@ namespace
     return false;
   }
 
-  /** Object sub is a subset of object super if and only if every
-   *  key in sub is also in super, and for all keys which sub and
-   *  super share, they have the same value. The  operation is recursive,
-   *  e.g. {"c": {"x": {10, 15, 20}} is a subset of {"a": "b", "c":
-   *  {"x": {10, 15, 20, 25}, "y": "z"}
-   */
+  /// Object sub is a subset of object super if and only if every
+  /// key in sub is also in super, and for all keys which sub and
+  /// super share, they have the same value. The  operation is recursive,
+  /// e.g. {"c": {"x": {10, 15, 20}} is a subset of {"a": "b", "c":
+  /// {"x": {10, 15, 20, 25}, "y": "z"}
   bool object_subset(Node& super, Node& sub)
   {
     if (super->size() < sub->size())

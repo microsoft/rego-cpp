@@ -98,6 +98,7 @@ namespace
     return exists;
   }
 
+  /// Handle "refhead" rules by expanding them into nested virtual documents.
   PassDef refheads()
   {
     PassDef pass = {
@@ -444,11 +445,9 @@ namespace
     return possible_vars.find(var->location()) != possible_vars.end();
   }
 
-  /**
-   *  This pass adds rules and modules to the symbol table, so that they
-   *  can be used for telling the difference between rule references and
-   *  undeclared unification variables.
-   */
+  /// This pass adds rules and modules to the symbol table, so that they
+  /// can be used for telling the difference between rule references and
+  /// undeclared unification variables.
   PassDef rules()
   {
     auto func_argnames =
@@ -458,35 +457,34 @@ namespace
       wf_bundle_rules,
       dir::bottomup | dir::once,
       {
-        T(Expr)[Expr]
-            << (T(ExprInfix)
-                << (T(Expr) *
-                    (T(InfixOperator) << (T(AssignOperator) << T(Assign))) *
-                    T(Expr))) >>
+        In(Expr) *
+            (T(ExprInfix)[ExprInfix]
+             << (T(Expr) *
+                 (T(InfixOperator) << (T(AssignOperator) << T(Assign))) *
+                 T(Expr))) >>
           [](Match& _) -> Node {
-          if (_(Expr)->parent() == Literal)
+          if (_(ExprInfix)->parent()->parent() == Literal)
           {
             return NoChange;
           }
 
-          return err(_(Expr), "Invalid assignment");
+          return err(_(ExprInfix), "Invalid assignment");
         },
 
-        T(Expr)[Expr]
-            << (T(ExprInfix)
-                << (T(Expr)[Lhs] *
-                    (T(InfixOperator) << (T(AssignOperator) << T(Unify))) *
-                    T(Expr)[Rhs])) >>
+        In(Expr) *
+            (T(ExprInfix)[ExprInfix]
+             << (T(Expr)[Lhs] *
+                 (T(InfixOperator) << (T(AssignOperator) << T(Unify))) *
+                 T(Expr)[Rhs])) >>
           [](Match& _) -> Node {
-          if (_(Expr)->parent() == Literal)
+          if (_(ExprInfix)->parent()->parent() == Literal)
           {
             return NoChange;
           }
 
-          return Expr
-            << (ExprInfix << _(Lhs)
-                          << (InfixOperator << (BoolOperator << Equals))
-                          << _(Rhs));
+          return (
+            ExprInfix << _(Lhs) << (InfixOperator << (BoolOperator << Equals))
+                      << _(Rhs));
         },
 
         In(Literal) *
@@ -1431,6 +1429,7 @@ namespace
     ;
   // clang-format on
 
+  /// Determines what is or is not a local variable
   PassDef locals()
   {
     auto rule_locals = std::make_shared<NodeMap<std::set<Location>>>();
@@ -1696,12 +1695,10 @@ namespace
     return Ref << refhead << args;
   }
 
-  /**
-   * Find the implicit scans hiding as refs, and establish the rule-level
-   * locals. This needs to go before the document merge, because that destroys
-   * the file-level imports which can only be resolved after the rule locals
-   * have been established.
-   */
+  /// Find the implicit scans hiding as refs, and establish the rule-level
+  /// locals. This needs to go before the document merge, because that destroys
+  /// the file-level imports which can only be resolved after the rule locals
+  /// have been established.
   PassDef implicit_scans()
   {
     auto scope_locals = std::make_shared<NodeMap<std::set<std::string>>>();
@@ -2342,6 +2339,8 @@ namespace
     return seq;
   }
 
+  /// This pass merges all the virtual documents from all modules into a single
+  /// hierarchy.
   PassDef merge()
   {
     auto files = std::make_shared<std::map<Location, Source>>();
@@ -2616,6 +2615,9 @@ namespace
     return nullptr;
   }
 
+  /// Performs unification. After this pass all unification statements are
+  /// either assignments or equality tests. This is done by buiding a dependency
+  /// graph and performing a topological sort. See DependencyGraph for details.
   PassDef unify(const BuiltIns& builtins)
   {
     auto scope_locals = std::make_shared<NodeMap<std::set<std::string>>>();
@@ -3175,6 +3177,7 @@ namespace
     return false;
   }
 
+  /// Convert all expressions or Operation/Block pairs.
   PassDef expr_to_opblock(const BuiltIns& builtins)
   {
     auto rule_locals = std::make_shared<NodeMap<Nodes>>();
@@ -4074,8 +4077,7 @@ namespace
     }
   }
 
-  /** This pass lifts all rules as functions that can be called from plans.
-   */
+  /// This pass lifts all rules as functions that can be called from plans.
   PassDef lift_functions(const BuiltIns& builtins)
   {
     auto functions = std::make_shared<std::map<std::string, Node>>();
@@ -4998,6 +5000,11 @@ namespace
     return false;
   }
 
+  /// Deals with the sometimes bizarre logic of with statements. Simple with
+  /// statements overwrite local vairables temporarily, but more complex with
+  /// statements which call functions essentially require those functions to be
+  /// reified, potentially with specialized versions of builtin functions or
+  /// other rules. This pass figures that out.
   PassDef with_rules()
   {
     auto rule_templates = std::make_shared<std::map<Location, Node>>();
@@ -5661,6 +5668,7 @@ namespace
     return Block << (BlockStmt << ret_blockseq);
   }
 
+  /// Adds the plans necessary to execute the entrypoints and/or query.
   PassDef add_plans(const BuiltIns& builtins)
   {
     PassDef pass = {
@@ -5907,6 +5915,7 @@ namespace
     return pass;
   }
 
+  /// Converts all strings and local variables into integer index references.
   PassDef index_strings_locals()
   {
     auto func_lookup =

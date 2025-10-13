@@ -273,7 +273,13 @@ namespace
 
     std::string pattern = json::unescape(get_string(pattern_node));
     std::string value = get_string(value_node);
-    std::size_t number = get_int(number_node).to_size();
+
+    auto maybe_number = get_int(number_node).to_size();
+    if (!maybe_number.has_value())
+    {
+      return err(number_node, "not a valid integer", EvalBuiltInError);
+    }
+    std::size_t number = maybe_number.value();
 
     std::regex re;
     try
@@ -348,7 +354,13 @@ namespace
 
     std::string pattern = json::unescape(get_string(pattern_node));
     std::string value = get_string(value_node);
-    std::size_t number = get_int(number_node).to_size();
+
+    auto maybe_number = get_int(number_node).to_size();
+    if (!maybe_number.has_value())
+    {
+      return err(number_node, "not a valid integer", EvalBuiltInError);
+    }
+    std::size_t number = maybe_number.value();
 
     std::regex re;
     try

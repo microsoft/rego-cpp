@@ -74,7 +74,7 @@ You can run the test driver from the same directory:
 See the [examples](examples/README.md) directory for examples of how to use the
 library from different langauages.
 
-## Language Support
+## Language Support {#language-support}
 
 We support v1.8.0 of Rego as defined by OPA, with the following grammar:
 

@@ -2,7 +2,6 @@
 #include "rego.hh"
 #include "trieste/wf.h"
 
-#include <format>
 #include <sstream>
 #include <stdexcept>
 

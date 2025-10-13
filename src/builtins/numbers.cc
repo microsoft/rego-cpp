@@ -289,7 +289,17 @@ namespace
     }
 
     std::string seed_string = get_string(seed_string_node);
-    std::size_t n = BigInt(n_node->location()).to_size();
+
+    auto maybe_n = BigInt(n_node->location()).to_size();
+    if (!maybe_n.has_value())
+    {
+      return err(
+        n_node,
+        "rand.intn: upper bound is not a valid integer",
+        EvalBuiltInError);
+    }
+    std::size_t n = maybe_n.value();
+
     std::hash<std::string> hash;
     auto seed = static_cast<std::mt19937::result_type>(hash(seed_string));
     std::mt19937 rng(seed);

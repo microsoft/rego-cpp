@@ -1,4 +1,4 @@
-# Rego Bundle Binary Format
+# Rego Bundle Binary Format      {#rbb}
 
 The OPA standard for bundles is a JSON document, as described in the
 [IR documentation](https://www.openpolicyagent.org/docs/ir). However, this

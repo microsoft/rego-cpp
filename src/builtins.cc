@@ -167,7 +167,7 @@ namespace rego
     }
     else if (args == bi::VarArgs)
     {
-      arity = AnyArity;
+      arity = bi::AnyArity;
     }
     else
     {
@@ -288,7 +288,7 @@ namespace rego
     }
 
     auto& builtin = m_builtins.at(name);
-    if (builtin->arity != AnyArity && builtin->arity != args.size())
+    if (builtin->arity != bi::AnyArity && builtin->arity != args.size())
     {
       return err(args[0], "wrong number of arguments");
     }

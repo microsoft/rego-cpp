@@ -25,7 +25,7 @@ namespace rego_test
   class TestCase
   {
   public:
-    /** Loads a test case from a YAML file */
+    /// Loads a test case from a YAML file
     static std::vector<TestCase> load(
       const std::filesystem::path& path,
       const std::filesystem::path& debug_path = "");
@@ -38,66 +38,66 @@ namespace rego_test
       RoundTrip roundtrip,
       LogLevel log_level) const;
 
-    /** name of the test case category. */
+    /// name of the test case category.
     const std::string& category() const;
 
-    /** name of file that case was loaded from */
+    /// name of file that case was loaded from
     const std::filesystem::path& filename() const;
     TestCase& filename(const std::filesystem::path& filename);
 
-    /** globally unique identifier for this test case */
+    /// globally unique identifier for this test case
     const std::string& note() const;
     TestCase& note(const std::string& note);
 
-    /** policy query to execute */
+    /// policy query to execute
     const std::string& query() const;
     TestCase& query(const std::string& query);
 
-    /** policies to test against */
+    /// policies to test against
     const std::vector<std::string>& modules() const;
     TestCase& modules(const std::vector<std::string>& modules);
 
-    /** data to tests against */
+    /// data to tests against
     const Node& data() const;
     TestCase& data(const Node& data);
 
-    /** parsed input data to use */
+    /// parsed input data to use
     const Node& input() const;
     TestCase& input(const Node& input);
 
-    /** raw input data (serialized to a string, overrides input) */
+    /// raw input data (serialized to a string, overrides input)
     const std::string& input_term() const;
     TestCase& input_term(const std::string& input_term);
 
-    /** expect query result to be defined (or not) */
+    /// expect query result to be defined (or not)
     bool want_defined() const;
     TestCase& want_defined(bool want_defined);
 
-    /** expect query result (overrides defined) */
+    /// expect query result (overrides defined)
     const Node& want_result() const;
     TestCase& want_result(const Node& want_result);
 
-    /** expect query error code (overrides result) */
+    /// expect query error code (overrides result)
     const std::string& want_error_code() const;
     TestCase& want_error_code(const std::string& want_error_code);
 
-    /** expect query error message (overrides error code) */
+    /// expect query error message (overrides error code)
     const std::string& want_error() const;
     TestCase& want_error(const std::string& want_error);
 
-    /** indicates that binding values should be treated as sets */
+    /// indicates that binding values should be treated as sets
     bool sort_bindings() const;
     TestCase& sort_bindings(bool sort_bindings);
 
-    /** indicates that the error message depends on strict builtin error mode */
+    /// indicates that the error message depends on strict builtin error mode
     bool strict_error() const;
     TestCase& strict_error(bool strict_error);
 
-    /** indicates that the test is broken and should be skipped */
+    /// indicates that the test is broken and should be skipped
     bool broken() const;
     TestCase& broken(bool broken);
 
-    /** whether to perform a serialisation round-trip before running the test */
+    /// whether to perform a serialisation round-trip before running the test
     RoundTrip roundtrip() const;
     TestCase& roundtrip(RoundTrip setting);
 

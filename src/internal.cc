@@ -400,7 +400,17 @@ namespace rego
   Node UnwrapOpt::unwrap(const Nodes& args) const
   {
     Node node = args[m_index];
-    auto result = rego::unwrap(node, m_types);
+    UnwrapResult result;
+    if (m_types.empty())
+    {
+      result = rego::unwrap(node, m_type);
+    }
+    else
+    {
+      result =
+        rego::unwrap(node, std::set<Token>(m_types.begin(), m_types.end()));
+    }
+
     if (result.success)
     {
       return result.node;
@@ -434,9 +444,9 @@ namespace rego
           });
         error << "}";
       }
-      else if (m_types.size() == 1)
+      else if (m_types.empty())
       {
-        error << "must be " << type_name(m_types[0], m_specify_number);
+        error << "must be " << type_name(m_type, m_specify_number);
       }
       else
       {
@@ -482,10 +492,10 @@ namespace rego
     return {value, false};
   }
 
-  UnwrapResult unwrap(const Node& node, const std::vector<Token>& types)
+  UnwrapResult unwrap(const Node& node, const std::set<Token>& types)
   {
     Node value = node;
-    if (std::find(types.begin(), types.end(), value->type()) != types.end())
+    if (types.find(value->type()) != types.end())
     {
       return {value, true};
     }
@@ -495,7 +505,7 @@ namespace rego
       value = value->front();
     }
 
-    if (std::find(types.begin(), types.end(), value->type()) != types.end())
+    if (types.find(value->type()) != types.end())
     {
       return {value, true};
     }
@@ -505,7 +515,7 @@ namespace rego
       value = value->front();
     }
 
-    if (std::find(types.begin(), types.end(), value->type()) != types.end())
+    if (types.find(value->type()) != types.end())
     {
       return {value, true};
     }
@@ -513,7 +523,7 @@ namespace rego
     return {value, false};
   }
 
-  bool is_instance(const Node& value, const std::vector<Token>& types)
+  bool is_instance(const Node& value, const std::set<Token>& types)
   {
     return unwrap(value, types).success;
   }
@@ -583,7 +593,7 @@ namespace rego
   UnwrapOpt& UnwrapOpt::type(const Token& type)
   {
     m_types.clear();
-    m_types.push_back(type);
+    m_type = type;
     return *this;
   }
 
@@ -594,7 +604,14 @@ namespace rego
 
   UnwrapOpt& UnwrapOpt::types(const std::vector<Token>& types)
   {
-    m_types.insert(m_types.end(), types.begin(), types.end());
+    if (types.size() == 1)
+    {
+      m_type = types.front();
+      m_types.clear();
+      return *this;
+    }
+
+    m_types = std::vector<Token>(types.begin(), types.end());
     return *this;
   }
 

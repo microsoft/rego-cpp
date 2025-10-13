@@ -259,7 +259,7 @@ namespace rego
   Node document_stmt(
     Node document, const Location& doc_name, Node refargseq, size_t start);
   bool is_constant(const Node& node);
-  bool is_instance(const Node& value, const std::vector<Token>& types);
+  bool is_instance(const Node& value, const std::set<Token>& types);
   bool is_falsy(const Node& node);
   bool is_truthy(const Node& node);
   Node to_constant_term(Node expr);

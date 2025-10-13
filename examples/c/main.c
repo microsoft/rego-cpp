@@ -12,9 +12,7 @@
 #define MODE_BUILD 1
 #define MODE_RUN 2
 
-/**
- * This is the main configuration of all options available.
- */
+/// This is the main configuration of all options available.
 static struct cag_option options[] = {
   {.identifier = 'm',
    .access_letters = "m",
@@ -76,15 +74,13 @@ static struct cag_option options[] = {
    .value_name = NULL,
    .description = "Shows the command help"}};
 
-/**
- * This is a custom project configuration structure where you can store the
- * parsed information.
- */
+/// This is a custom project configuration structure where you can store the
+/// parsed information.
 struct regoc_configuration
 {
   int mode;
   char log_level;
-  bool use_raw_query;
+  bool use_query_node;
   const char* data_files[MAX_DATA_FILES];
   unsigned int data_files_count;
   const char* input_file;
@@ -287,7 +283,7 @@ int main(int argc, char** argv)
   struct regoc_configuration config = {
     .mode = MODE_EVAL,
     .log_level = 'n',
-    .use_raw_query = false,
+    .use_query_node = false,
     .data_files_count = 0,
     .input_file = NULL,
     .query = NULL,
@@ -324,8 +320,8 @@ int main(int argc, char** argv)
         config.log_level = cag_option_get_value(&context)[0];
         break;
 
-      case 'r':
-        config.use_raw_query = true;
+      case 'n':
+        config.use_query_node = true;
         break;
 
       case 'd':
@@ -475,7 +471,7 @@ int main(int argc, char** argv)
     goto error;
   }
 
-  if (config.use_raw_query)
+  if (config.use_query_node)
   {
     print_node(regoOutputNode(output), 0);
     goto exit;

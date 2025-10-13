@@ -320,10 +320,10 @@ namespace rego
     if (!maybe_index.has_value())
     {
       logging::Error() << "Plan not found for query";
-      throw std::runtime_error("Plan not found");
+      return ErrorSeq << err(
+               Line ^ Location("<query>"), "query plan not found");
     }
 
-    logging::Debug() << "Data: " << m_bundle->data;
     State state(input, m_bundle->data, m_bundle->local_count);
     run_plan(m_bundle->plans[*maybe_index], state);
 
@@ -357,14 +357,15 @@ namespace rego
           auto maybe_object = unwrap(expr, Object);
           if (!maybe_object.success)
           {
-            throw std::runtime_error("Invalid results object");
+            return ErrorSeq << err(expr, "Expected a results object");
           }
 
           Nodes values =
             Resolver::object_lookdown(maybe_object.node, "\"value\"");
           if (values.size() != 1)
           {
-            throw std::runtime_error("Invalid results object");
+            return ErrorSeq
+              << err(maybe_object.node, "No results in result object");
           }
 
           terms << values.front();
@@ -403,13 +404,13 @@ namespace rego
     {
       logging::Error() << "Plan not found for entrypoint: "
                        << entrypoint.view();
-      throw std::runtime_error("Plan not found");
+      return ErrorSeq << err(Line ^ entrypoint, "entrypoint not found");
     }
 
     if (input != Input)
     {
       logging::Error() << "Input node is not of type Input: " << input;
-      throw std::runtime_error("Invalid input node");
+      return ErrorSeq << err(input, "Invalid input node");
     }
 
     logging::Debug() << "Input: " << input;
@@ -433,13 +434,14 @@ namespace rego
       auto maybe_object = unwrap(result, Object);
       if (!maybe_object.success)
       {
-        throw std::runtime_error("Invalid results object");
+        return ErrorSeq << err(result, "Expected a result object");
       }
 
       Nodes values = Resolver::object_lookdown(maybe_object.node, "\"result\"");
       if (values.size() != 1)
       {
-        throw std::runtime_error("Invalid results object");
+        return ErrorSeq << err(
+                 maybe_object.node, "No result values in result object");
       }
 
       results << (Result << (Terms << values.front()) << Bindings);

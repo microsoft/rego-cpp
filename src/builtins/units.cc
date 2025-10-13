@@ -119,7 +119,12 @@ namespace
 
     if (num->type() == Float)
     {
-      double result = get_double(num) * scale.to_int();
+      auto maybe_scale_int = scale.to_int();
+      if (!maybe_scale_int.has_value())
+      {
+        return err(num, "scale: scale too big", EvalBuiltInError);
+      }
+      double result = get_double(num) * maybe_scale_int.value();
       if (round)
       {
         result = std::round(result);

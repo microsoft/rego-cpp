@@ -206,11 +206,21 @@ namespace
     }
     else
     {
-      value = get_int(number).to_int();
+      auto maybe_int = get_int(number).to_int();
+      if (!maybe_int.has_value())
+      {
+        return err(number, "not a valid integer", EvalTypeError);
+      }
+      value = maybe_int.value();
     }
 
     std::ostringstream result;
-    std::size_t base_size = get_int(base).to_size();
+    auto maybe_base_size = get_int(base).to_size();
+    if (!maybe_base_size.has_value())
+    {
+      return err(base, "not a valid base", EvalTypeError);
+    }
+    std::size_t base_size = maybe_base_size.value();
     switch (base_size)
     {
       case 2:
@@ -623,20 +633,33 @@ namespace
           result << std::boolalpha << is_truthy(node);
           break;
 
-        case PrintVerbType::Binary:
-          result << std::bitset<8>(get_int(values).to_int());
+        case PrintVerbType::Binary: {
+          auto maybe_bytes = get_int(values).to_int();
+          if (!maybe_bytes.has_value())
+          {
+            return err(
+              values, "sprintf: operand is not a valid integer", EvalTypeError);
+          }
+          result << std::bitset<8>(maybe_bytes.value());
           break;
+        }
 
-        case PrintVerbType::Integer:
+        case PrintVerbType::Integer: {
           node = unwrap_arg({node}, UnwrapOpt(0).type(Int).func("sprintf"));
           if (node->type() == Error)
           {
             return node;
           }
-          std::snprintf(
-            buf, buf_size, verb.format.c_str(), get_int(node).to_int());
+          auto maybe_int = get_int(node).to_int();
+          if (!maybe_int.has_value())
+          {
+            return err(
+              node, "sprintf: operand is not a valid integer", EvalTypeError);
+          }
+          std::snprintf(buf, buf_size, verb.format.c_str(), maybe_int.value());
           result << buf;
           break;
+        }
 
         case PrintVerbType::Double:
           node = unwrap_arg(
@@ -980,7 +1003,13 @@ namespace
 
     std::string value_str = get_string(value);
     runestring value_runes = utf8_to_runestring(value_str);
-    std::int64_t offset_int = get_int(offset).to_int();
+    auto maybe_offset_int = get_int(offset).to_int();
+    if (!maybe_offset_int)
+    {
+      return err(args[1], "offset out of range", EvalBuiltInError);
+    }
+
+    std::int64_t offset_int = maybe_offset_int.value();
     if (offset_int < 0)
     {
       return err(args[1], "negative offset", EvalBuiltInError);
@@ -992,7 +1021,13 @@ namespace
       return JSONString ^ "";
     }
 
-    std::int64_t length_int = get_int(length).to_int();
+    auto maybe_length_int = get_int(length).to_int();
+    if (!maybe_length_int)
+    {
+      return err(args[2], "length out of range", EvalBuiltInError);
+    }
+
+    std::int64_t length_int = maybe_length_int.value();
     std::size_t length_size;
     if (length_int < 0)
     {
