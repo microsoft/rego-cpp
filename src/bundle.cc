@@ -141,12 +141,12 @@ namespace rego
                         << ")";
 
         case StatementType::With:
-          stream << "WithStmt(source=" << stmt.op0 << ", path=[";
+          stream << "WithStmt(local=" << stmt.target << ", path=[";
           for (size_t index : stmt.ext->with().path)
           {
             stream << " " << index;
           }
-          return stream << " ], value=" << stmt.op1 << ")";
+          return stream << " ], value=" << stmt.op0 << ")";
 
         case StatementType::Break:
           return stream << "BreakStmt() is unsupported";
@@ -181,7 +181,7 @@ namespace rego
           return stream << "value(" << op.value << ")";
 
         default:
-          return stream << "invalid";
+          return stream << "invalid op type:" << (int)op.type;
       }
 
       return stream;

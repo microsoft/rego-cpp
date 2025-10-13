@@ -595,7 +595,7 @@ namespace rego
     {
       Node value = state.read_local(function.result);
       state.write_local(target, value);
-      if (function.cacheable)
+      if (function.cacheable && !state.in_with())
       {
         state.put_function_result(function.name, value);
       }
