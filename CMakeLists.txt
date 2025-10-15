@@ -146,6 +146,12 @@ endif()
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
+# If tests are requested, we need tools since tests depend on rego_interpreter
+if(REGOCPP_BUILD_TESTS AND NOT REGOCPP_BUILD_TOOLS)
+  set(REGOCPP_BUILD_TOOLS ON CACHE BOOL "Automatically enabled because tests depend on tools" FORCE)
+  message(STATUS "Automatically enabling REGOCPP_BUILD_TOOLS because tests depend on it")
+endif()
+
 # -------------------- Walk the subdirectories --------------------
 
 if(REGOCPP_BUILD_TESTS)
