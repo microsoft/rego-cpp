@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API &#8212; regopy 0.4.5 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
-    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <title>API &#8212; regopy 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
-    <script src="_static/documentation_options.js?v=340bb9e5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -40,15 +40,15 @@
 <h2>Interpreter<a class="headerlink" href="#interpreter" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="regopy.Interpreter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">Interpreter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v1_compatible</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">Interpreter</span></span><a class="headerlink" href="#regopy.Interpreter" title="Link to this definition">¶</a></dt>
 <dd><p>Pythonic interface to the rego-cpp interpreter.</p>
 <p>This wraps the Rego C API, and handles passing calls to
 the C API and converting the results to Python types.</p>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4&quot;</span><span class="p">))</span>
-<span class="go">{&quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5&quot;</span><span class="p">))</span>
+<span class="go">{&quot;expressions&quot;:[true, true, 10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}</span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="p">{</span>
@@ -105,7 +105,7 @@ the C API and converting the results to Python types.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">data1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s2">&quot;objects&quot;</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=[data.one, input.b, data.objects.sites[1]]&quot;</span><span class="p">))</span>
-<span class="go">{&quot;bindings&quot;:{&quot;x&quot;:[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]}}</span>
+<span class="go">{&quot;expressions&quot;:[true], &quot;bindings&quot;:{&quot;x&quot;:[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4},&quot;20&quot;,{&quot;name&quot;:&quot;smoke1&quot;}]}}</span>
 </pre></div>
 </div>
 <dl class="py method">
@@ -141,7 +141,7 @@ the C API and converting the results to Python types.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">  {</span>
@@ -183,7 +183,7 @@ the C API and converting the results to Python types.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">module</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">  package scalars</span>
 <span class="gp">...</span>
@@ -202,14 +202,124 @@ the C API and converting the results to Python types.</p>
 </div>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Interpreter.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entrypoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.build" title="Link to this definition">¶</a></dt>
+<dd><p>Builds a bundle, which contains a compiled version of the base and virtual documents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> (<em>str</em>) – The query string. Either a query or at least one entrypoint
+must be provided.</p></li>
+<li><p><strong>entrypoints</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – Zero or more entrypoints, in the form <cite>&lt;document&gt;/&lt;rule&gt;</cite>,
+for example <cite>objects/sites</cite> or <cite>parent/child/foo</cite>. There must
+either be at least one entrypoint or a query for the bundle
+to be produced.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>contains the compiled base and virtual documents, and plans to execute the</dt><dd><p>specified entrypoints (and the query, if provided). Can be written to disk and
+loaded back again by a different interpreter.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#regopy.Bundle" title="regopy.Bundle">Bundle</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RegoError</strong> – If an error occurs during compilation.</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input0</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">104</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mi">119</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">13</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">module</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">... </span><span class="s1">    package example</span>
+<span class="gp">...</span>
+<span class="gp">... </span><span class="s1">    foo := data.a * input.x + data.b * input.y</span>
+<span class="gp">... </span><span class="s1">    bar := data.b * input.x + data.a * input.y</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_build</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_build</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_build</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s2">&quot;example.rego&quot;</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bundle</span> <span class="o">=</span> <span class="n">rego_build</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="s2">&quot;x=data.example.foo + data.example.bar&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="p">[</span><span class="s2">&quot;example/foo&quot;</span><span class="p">,</span> <span class="s2">&quot;example/bar&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_run</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_run</span><span class="o">.</span><span class="n">set_input</span><span class="p">(</span><span class="n">input0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego_run</span><span class="o">.</span><span class="n">query_bundle</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="go">{&quot;expressions&quot;:[true], &quot;bindings&quot;:{&quot;x&quot;:4460}}</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="regopy.Interpreter.debug_enabled">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">debug_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#regopy.Interpreter.debug_enabled" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">debug_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#regopy.Interpreter.debug_enabled" title="Link to this definition">¶</a></dt>
 <dd><p>Whether debug mode is enabled.</p>
 <p>When debug mode is enabled, the Rego interpreter will output extensive
 debugging information about the compliation process, including intermediary
 ASTs and the generated bytecode. This is mostly useful for debugging the
 Rego compiler itself, and may not be as useful for debugging Rego policies.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Interpreter.is_builtin">
+<span class="sig-name descname"><span class="pre">is_builtin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.is_builtin" title="Link to this definition">¶</a></dt>
+<dd><p>Returns whether the given name is a built-in function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the function.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the given name is a built-in function.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Interpreter.load_bundle">
+<span class="sig-name descname"><span class="pre">load_bundle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">BundleFormat.JSON</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.load_bundle" title="Link to this definition">¶</a></dt>
+<dd><p>Loads a bundle from the disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – A path to a location on disk. If being saved in default
+mode, this will be a directory. Otherwise, it will become
+a single binary file.</p></li>
+<li><p><strong>bundle</strong> (<a class="reference internal" href="#regopy.Bundle" title="regopy.Bundle"><em>Bundle</em></a>) – The bundle to save</p></li>
+<li><p><strong>binary</strong> (<em>bool</em>) – Whether to save the bundle as a directory (default) or
+as a single binary file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The serialized bundle</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bundle (<a class="reference internal" href="#regopy.Bundle" title="regopy.Bundle">Bundle</a>)</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RegoError</strong> – If an error occurs during compilation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="regopy.Interpreter.log_level">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#regopy.LogLevel" title="regopy.rego_shared.LogLevel"><span class="pre">LogLevel</span></a></em><a class="headerlink" href="#regopy.Interpreter.log_level" title="Link to this definition">¶</a></dt>
+<dd><p>The log level of the interpreter</p>
 </dd></dl>
 
 <dl class="py method">
@@ -221,7 +331,7 @@ users will want to load one or more base documents (using <a class="reference in
 <a class="reference internal" href="#regopy.Interpreter.add_data_json" title="regopy.Interpreter.add_data_json"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_data_json()</span></code></a>) and one or more Rego modules
 (using <a class="reference internal" href="#regopy.Interpreter.add_module" title="regopy.Interpreter.add_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_module()</span></code></a> or <code class="xref py py-func docutils literal notranslate"><span class="pre">add_module_file()</span></code>).
 Then, multiple queries can be performed by providing an input
-(using <a class="reference internal" href="#regopy.Interpreter.set_input" title="regopy.Interpreter.set_input"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_input()</span></code></a> or <a class="reference internal" href="#regopy.Interpreter.set_input_json" title="regopy.Interpreter.set_input_json"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_input_json()</span></code></a>)
+(using <a class="reference internal" href="#regopy.Interpreter.set_input" title="regopy.Interpreter.set_input"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_input()</span></code></a> or <code class="xref py py-func docutils literal notranslate"><span class="pre">set_input_json()</span></code>)
 and then calling this method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -238,7 +348,7 @@ and then calling this method.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input0</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input2</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">}</span>
@@ -282,6 +392,101 @@ and then calling this method.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="regopy.Interpreter.query_bundle">
+<span class="sig-name descname"><span class="pre">query_bundle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bundle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.query_bundle" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a query using the compiled policy in the bundle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bundle</strong> (<a class="reference internal" href="#regopy.Bundle" title="regopy.Bundle"><em>Bundle</em></a>) – The bundle to execute</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the query</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>output (<a class="reference internal" href="#regopy.Output" title="regopy.Output">Output</a>)</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RegoError</strong> – If an error occurs during execution</p>
+</dd>
+</dl>
+<p>This method requires that a query was provided to <cite>:func:`~regopy.Interpreter.build</cite>.
+Otherwise, it will throw an exception.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Interpreter.query_bundle_entrypoint">
+<span class="sig-name descname"><span class="pre">query_bundle_entrypoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bundle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entrypoint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.query_bundle_entrypoint" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a query using the compiled policy in the bundle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bundle</strong> (<a class="reference internal" href="#regopy.Bundle" title="regopy.Bundle"><em>Bundle</em></a>) – The bundle to execute</p></li>
+<li><p><strong>entrypoint</strong> (<em>str</em>) – The entrypoint to execute</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the query</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>output (<a class="reference internal" href="#regopy.Output" title="regopy.Output">Output</a>)</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RegoError</strong> – If an error occurs during execution</p>
+</dd>
+</dl>
+<p>This method requires that the specified entrypoint was provided to
+<cite>:func:`~regopy.Interpreter.build</cite>. Otherwise, it will throw an exception.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Interpreter.save_bundle">
+<span class="sig-name descname"><span class="pre">save_bundle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bundle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">BundleFormat.JSON</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.save_bundle" title="Link to this definition">¶</a></dt>
+<dd><p>Save a bundle to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – A path to a location on disk. If being saved in default
+mode, this will be a directory. Otherwise, it will become
+a single binary file.</p></li>
+<li><p><strong>bundle</strong> (<a class="reference internal" href="#regopy.Bundle" title="regopy.Bundle"><em>Bundle</em></a>) – The bundle to save</p></li>
+<li><p><strong>binary</strong> (<em>bool</em>) – Whether to save the bundle as a directory (default) or
+as a single binary file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RegoError</strong> – If an error occurs during compilation.</p>
+</dd>
+</dl>
+<p>There are two modes for bundle serialization. The default, which uses JSON,
+creates a directory at the specified path (if it does not already exist)
+and then writes at least two files: <cite>plan.json</cite> (which contains the compiled
+virtual documents and plans for execution) and <cite>data.json</cite> (which contains the
+base documents merged into a single JSON hierarchy). Module source files
+will also be copied into the directory.</p>
+<p>The second mode is binary serialization. This uses the Rego Bundle Binary
+format (<a class="reference external" href="https://microsoft.github.io/rego-cpp/cpp/rbb.html">https://microsoft.github.io/rego-cpp/cpp/rbb.html</a>) to create a single
+file which contains all the bundle information.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_build</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bundle</span> <span class="o">=</span> <span class="n">rego_build</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="s2">&quot;a=1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_build</span><span class="o">.</span><span class="n">save_bundle</span><span class="p">(</span><span class="s2">&quot;bundle&quot;</span><span class="p">,</span> <span class="n">bundle</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_build</span><span class="o">.</span><span class="n">save_bundle</span><span class="p">(</span><span class="s2">&quot;bundle_bin.rbb&quot;</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">BundleFormat</span><span class="o">.</span><span class="n">Binary</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego_run</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bundle</span> <span class="o">=</span> <span class="n">rego_run</span><span class="o">.</span><span class="n">load_bundle</span><span class="p">(</span><span class="s2">&quot;bundle&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego_run</span><span class="o">.</span><span class="n">query_bundle</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">binding</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">))</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bundle</span> <span class="o">=</span> <span class="n">rego_run</span><span class="o">.</span><span class="n">load_bundle</span><span class="p">(</span><span class="s2">&quot;bundle_bin.rbb&quot;</span><span class="p">,</span> <span class="n">BundleFormat</span><span class="o">.</span><span class="n">Binary</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego_run</span><span class="o">.</span><span class="n">query_bundle</span><span class="p">(</span><span class="n">bundle</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">binding</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">))</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="regopy.Interpreter.set_debug_path">
 <span class="sig-name descname"><span class="pre">set_debug_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.set_debug_path" title="Link to this definition">¶</a></dt>
 <dd><p>Sets the path to the directory where this will write debug AST files.</p>
@@ -301,7 +506,7 @@ and then calling this method.</p>
 The value must be JSON encodable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>value</strong> (<em>Any</em>) – The input value.</p>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference internal" href="#regopy.Input" title="regopy.Input"><em>Input</em></a>) – The input value.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>RegoError</strong> – If an error occurs in the Rego interpreter.</p>
@@ -309,40 +514,7 @@ The value must be JSON encodable.</p>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#regopy.Interpreter.set_input_json" title="regopy.Interpreter.set_input_json"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_input_json()</span></code></a></p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="regopy.Interpreter.set_input_json">
-<span class="sig-name descname"><span class="pre">set_input_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Interpreter.set_input_json" title="Link to this definition">¶</a></dt>
-<dd><p>Sets the input document of the interpreter.</p>
-<p>This can be called several times during the lifetime of the interpreter.
-The input should be provided as single JSON-encoded value.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>json</strong> (<em>str</em>) – The input JSON.</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>RegoError</strong> – If an error occurs in the Rego interpreter.</p>
-</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="gp">... </span><span class="s1">  {</span>
-<span class="gp">... </span><span class="s1">    &quot;a&quot;: 10,</span>
-<span class="gp">... </span><span class="s1">    &quot;b&quot;: &quot;20&quot;,</span>
-<span class="gp">... </span><span class="s1">    &quot;c&quot;: 30.0,</span>
-<span class="gp">... </span><span class="s1">    &quot;d&quot;: true</span>
-<span class="gp">... </span><span class="s1">  }</span>
-<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input_json</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;input.a&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">{&quot;expressions&quot;:[10]}</span>
-</pre></div>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">set_input_json()</span></code></p>
 </div>
 </dd></dl>
 
@@ -360,7 +532,7 @@ The input should be provided as single JSON-encoded value.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">  {</span>
 <span class="gp">... </span><span class="s1">    &quot;a&quot;: 10,</span>
@@ -370,7 +542,7 @@ The input should be provided as single JSON-encoded value.</p>
 <span class="gp">... </span><span class="s1">  }</span>
 <span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input_json</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input_term</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;input.a&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
 <span class="go">{&quot;expressions&quot;:[10]}</span>
@@ -380,7 +552,7 @@ The input should be provided as single JSON-encoded value.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="regopy.Interpreter.strict_built_in_errors">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">strict_built_in_errors</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#regopy.Interpreter.strict_built_in_errors" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">strict_built_in_errors</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#regopy.Interpreter.strict_built_in_errors" title="Link to this definition">¶</a></dt>
 <dd><p>Whether the interpreter will forward errors thrown by the built-ins.</p>
 <p>By default, the Rego interpreter will catch errors thrown by the built-ins
 and return them as an Undefined result. When this is enabled, the interpreter
@@ -389,11 +561,116 @@ will instead forward the error to the caller.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="regopy.Interpreter.well_formed_checks_enabled">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">well_formed_checks_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#regopy.Interpreter.well_formed_checks_enabled" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">well_formed_checks_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#regopy.Interpreter.well_formed_checks_enabled" title="Link to this definition">¶</a></dt>
 <dd><p>Whether the Rego interpreter will perform well-formedness checks.</p>
 <p>When enabled, the Rego interpreter will perform well-formedness checks on
 the AST during each pass of the compiler.</p>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="regopy.Bundle">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">Bundle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">impl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Bundle" title="Link to this definition">¶</a></dt>
+<dd><p>Compiled base and virtual documents.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Bundle.node">
+<span class="sig-name descname"><span class="pre">node</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Bundle.node" title="Link to this definition">¶</a></dt>
+<dd><p>The AST which represents the saved state of the bundle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#regopy.Node" title="regopy.node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="regopy.Bundle.ok">
+<span class="sig-name descname"><span class="pre">ok</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Bundle.ok" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the bundle was built successfully.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="regopy.Input">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">Input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Input" title="Link to this definition">¶</a></dt>
+<dd><p>Used to create an in-memory Input object for passing to a policy.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Interpreter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span><span class="o">.</span><span class="n">set_input</span><span class="p">(</span><span class="n">Input</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="s2">&quot;20&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;input.a&quot;</span><span class="p">))</span>
+<span class="go">{&quot;expressions&quot;:[10]}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class enum">
+<dt class="sig sig-object py" id="regopy.BundleFormat">
+<em class="property"><span class="k"><span class="pre">enum</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">BundleFormat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.BundleFormat" title="Link to this definition">¶</a></dt>
+<dd><p>Formats for bundle serialization.</p>
+<p>Valid values are as follows:</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.BundleFormat.JSON">
+<span class="sig-name descname"><span class="pre">JSON</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;BundleFormat.JSON:</span> <span class="pre">0&gt;</span></em><a class="headerlink" href="#regopy.BundleFormat.JSON" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.BundleFormat.Binary">
+<span class="sig-name descname"><span class="pre">Binary</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;BundleFormat.Binary:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#regopy.BundleFormat.Binary" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class enum">
+<dt class="sig sig-object py" id="regopy.LogLevel">
+<em class="property"><span class="k"><span class="pre">enum</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">LogLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.LogLevel" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Member Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+<p>Valid values are as follows:</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.LogLevel.NONE">
+<span class="sig-name descname"><span class="pre">NONE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.NONE:</span> <span class="pre">0&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.NONE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.LogLevel.ERROR">
+<span class="sig-name descname"><span class="pre">ERROR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.ERROR:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.ERROR" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.LogLevel.OUTPUT">
+<span class="sig-name descname"><span class="pre">OUTPUT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.OUTPUT:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.OUTPUT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.LogLevel.WARN">
+<span class="sig-name descname"><span class="pre">WARN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.WARN:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.WARN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.LogLevel.INFO">
+<span class="sig-name descname"><span class="pre">INFO</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.INFO:</span> <span class="pre">4&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.INFO" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.LogLevel.DEBUG">
+<span class="sig-name descname"><span class="pre">DEBUG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.DEBUG:</span> <span class="pre">5&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.DEBUG" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.LogLevel.TRACE">
+<span class="sig-name descname"><span class="pre">TRACE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.TRACE:</span> <span class="pre">6&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.TRACE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -402,17 +679,17 @@ the AST during each pass of the compiler.</p>
 <h2>Output<a class="headerlink" href="#output" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="regopy.Output">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">Output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">impl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Output" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">Output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">impl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Output" title="Link to this definition">¶</a></dt>
 <dd><p>Interface for the Rego output.</p>
 <p>Outputs can either be examined as strings, or inspected
 using Rego Nodes. It is also possible to extract bindings
 for specific variables.</p>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="go">{&quot;expressions&quot;:[10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}</span>
+<span class="go">{&quot;expressions&quot;:[true, true, 10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}</span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">binding</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
@@ -494,8 +771,8 @@ it is ok.</p>
 <h2>Node<a class="headerlink" href="#node" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="regopy.Node">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">impl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Node" title="Link to this definition">¶</a></dt>
-<dd><p>Interface for the Rego Node.</p>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">impl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.Node" title="Link to this definition">¶</a></dt>
+<dd><p>Interface for a Rego Node.</p>
 <p>Rego Nodes are the basic building blocks of a Rego result. They
 exist in a tree structure. Each node has a kind, which is one of
 the variants of [<cite>NodeKind</cite>]. Each node also has zero or more
@@ -506,12 +783,12 @@ children, which are also nodes.</p>
 &gt;&gt;&gt; output = rego.query(‘x={“a”: 10, “b”: “20”, “c”: [30.0, 60], “d”: true, “e”: null}’)
 &gt;&gt;&gt; x = output.binding(“x”)
 &gt;&gt;&gt; print(“x =”, x.json())
-x = {“a”:10, “b”:”20”, “c”:[30, 60], “d”:true, “e”:null}</p>
+x = {“a”:10, “b”:”20”, “c”:[30,60], “d”:true, “e”:null}</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x[&#39;a&#39;] =&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="go">x[&#39;a&#39;] = 10</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x[&#39;b&#39;] =&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x[&#39;b&#39;] =&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
 <span class="go">x[&#39;b&#39;] = &quot;20&quot;</span>
 </pre></div>
 </div>
@@ -575,13 +852,13 @@ x = {“a”:10, “b”:”20”, “c”:[30, 60], “d”:true, “e”:null}
 
 <dl class="py property">
 <dt class="sig sig-object py" id="regopy.Node.kind">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kind</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#regopy.NodeKind" title="regopy.node.NodeKind"><span class="pre">NodeKind</span></a></em><a class="headerlink" href="#regopy.Node.kind" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kind</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#regopy.NodeKind" title="regopy.rego_shared.NodeKind"><span class="pre">NodeKind</span></a></em><a class="headerlink" href="#regopy.Node.kind" title="Link to this definition">¶</a></dt>
 <dd><p>Returns the node type.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="regopy.Node.kind_name">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kind_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#regopy.Node.kind_name" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kind_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#regopy.Node.kind_name" title="Link to this definition">¶</a></dt>
 <dd><p>Returns a human-readable string representation of the node kind.</p>
 </dd></dl>
 
@@ -608,7 +885,7 @@ x = {“a”:10, “b”:”20”, “c”:[30, 60], “d”:true, “e”:null}
 
 <dl class="py property">
 <dt class="sig sig-object py" id="regopy.Node.value">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#regopy.Node.value" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#regopy.Node.value" title="Link to this definition">¶</a></dt>
 <dd><p>Returns the node value.</p>
 <p>If the node has a singular value (i.e is a <cite>Scalar</cite> or a <cite>Term</cite> containing a scalar)
 then this will return that value. Otherwise it will raise a RegoError.</p>
@@ -624,7 +901,7 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">regopy</span> <span class="kn">import</span> <span class="n">Interpreter</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">regopy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Interpreter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rego</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">rego</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;x=10; y=&quot;20&quot;; z=true&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">binding</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
@@ -648,7 +925,7 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
 
 <dl class="py class enum">
 <dt class="sig sig-object py" id="regopy.NodeKind">
-<em class="property"><span class="pre">enum</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">NodeKind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.NodeKind" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">enum</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">NodeKind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.NodeKind" title="Link to this definition">¶</a></dt>
 <dd><p>Enumeration of node types.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Member Type<span class="colon">:</span></dt>
@@ -712,8 +989,18 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.NodeKind.True_">
+<span class="sig-name descname"><span class="pre">True_</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.True_:</span> <span class="pre">1011&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.True_" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="regopy.NodeKind.False_">
+<span class="sig-name descname"><span class="pre">False_</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.False_:</span> <span class="pre">1012&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.False_" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="regopy.NodeKind.Boolean">
-<span class="sig-name descname"><span class="pre">Boolean</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.Boolean:</span> <span class="pre">1011&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.Boolean" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">Boolean</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NodeKind.Boolean:</span> <span class="pre">1111&gt;</span></em><a class="headerlink" href="#regopy.NodeKind.Boolean" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -779,66 +1066,6 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
 </dd></dl>
 
 </section>
-<section id="logging">
-<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>
-<dl class="py class enum">
-<dt class="sig sig-object py" id="regopy.LogLevel">
-<em class="property"><span class="pre">enum</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">LogLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.LogLevel" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Member Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
-</dd>
-</dl>
-<p>Valid values are as follows:</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="regopy.LogLevel.NONE">
-<span class="sig-name descname"><span class="pre">NONE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.NONE:</span> <span class="pre">0&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.NONE" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="regopy.LogLevel.ERROR">
-<span class="sig-name descname"><span class="pre">ERROR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.ERROR:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.ERROR" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="regopy.LogLevel.OUTPUT">
-<span class="sig-name descname"><span class="pre">OUTPUT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.OUTPUT:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.OUTPUT" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="regopy.LogLevel.WARN">
-<span class="sig-name descname"><span class="pre">WARN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.WARN:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.WARN" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="regopy.LogLevel.INFO">
-<span class="sig-name descname"><span class="pre">INFO</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.INFO:</span> <span class="pre">4&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.INFO" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="regopy.LogLevel.DEBUG">
-<span class="sig-name descname"><span class="pre">DEBUG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.DEBUG:</span> <span class="pre">5&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.DEBUG" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="regopy.LogLevel.TRACE">
-<span class="sig-name descname"><span class="pre">TRACE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;LogLevel.TRACE:</span> <span class="pre">6&gt;</span></em><a class="headerlink" href="#regopy.LogLevel.TRACE" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="regopy.set_log_level">
-<span class="sig-prename descclassname"><span class="pre">regopy.</span></span><span class="sig-name descname"><span class="pre">set_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#regopy.set_log_level" title="Link to this definition">¶</a></dt>
-<dd><p>Sets the log level.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>level</strong> (<a class="reference internal" href="#regopy.LogLevel" title="regopy.LogLevel"><em>LogLevel</em></a>) – The log level.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
 </section>
 
 
@@ -876,7 +1103,6 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
 <li class="toctree-l2"><a class="reference internal" href="#interpreter">Interpreter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#output">Output</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#node">Node</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
 </ul>
 </li>
 </ul>
@@ -902,10 +1128,10 @@ then this will return that value. Otherwise it will raise a RegoError.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &#169;2024, Microsoft.
+      &#169;Microsoft.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |

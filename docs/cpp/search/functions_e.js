@@ -1,11 +1,6 @@
 var searchData=
 [
-  ['to_5finput_0',['to_input',['../namespacerego.html#a4289f092e732dbfad5758787d09c3b04',1,'rego']]],
-  ['to_5fjson_1',['to_json',['../namespacerego.html#ae2aca737556fd1ad1fbbd9c1ef7aa5ba',1,'rego']]],
-  ['to_5fkey_2',['to_key',['../namespacerego.html#a95d5445fa2f7ca535236568ead7ef44b',1,'rego']]],
-  ['to_5fyaml_3',['to_yaml',['../namespacerego.html#a689b0b6620ac219a3de7dde49e423c35',1,'rego']]],
-  ['try_5fget_5fint_4',['try_get_int',['../namespacerego.html#a544dda4b515e8d19a951582ecbbdff26',1,'rego']]],
-  ['try_5fget_5fitem_5',['try_get_item',['../namespacerego.html#a086444fa1a578d4af81c941097db039c',1,'rego']]],
-  ['type_6',['type',['../classrego_1_1UnwrapOpt.html#a1baa3498055407ef83b6d0f67b0acfa5',1,'rego::UnwrapOpt']]],
-  ['types_7',['types',['../classrego_1_1UnwrapOpt.html#af826c41849770e1daa53c72ab6cb07f6',1,'rego::UnwrapOpt']]]
+  ['query_0',['query',['../classrego_1_1Interpreter.html#a1c6a203e4301576a2386c96591648309',1,'rego::Interpreter::query()'],['../classrego_1_1Interpreter.html#a075f165e8c3151a71868c8191964fc46',1,'rego::Interpreter::query(const std::string &amp;query_expr)']]],
+  ['query_5fbundle_1',['query_bundle',['../classrego_1_1Interpreter.html#a04170df975c3f4f515669ac2ba7b1945',1,'rego::Interpreter::query_bundle(const Bundle &amp;bundle)'],['../classrego_1_1Interpreter.html#a429ed35a7bc1bf58b40b7181f799b4d0',1,'rego::Interpreter::query_bundle(const Bundle &amp;bundle, const std::string &amp;endpoint)']]],
+  ['query_5fnode_2',['query_node',['../classrego_1_1Interpreter.html#ab22f190eb758289681882dddba13e5d3',1,'rego::Interpreter::query_node(const std::string &amp;query_expr)'],['../classrego_1_1Interpreter.html#a9b3d9acf9aa242868dd66ee3312997b3',1,'rego::Interpreter::query_node()']]]
 ];

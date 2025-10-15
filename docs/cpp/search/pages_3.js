@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rego_20cpp_20tt_0',['&lt;tt&gt;rego-cpp&lt;/tt&gt;',['../index.html',1,'']]]
+  ['examples_0',['Examples',['../md_examples_2README.html',1,'']]]
 ];

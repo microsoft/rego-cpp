@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;0.4.5</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -97,11 +97,15 @@ $(function(){ initResizable(false); });
 <p>This is the complete list of members for <a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a>, including all inherited members.</p>
 <table class="directory">
   <tr class="even"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#af789e661faf72321dd091fa2b712dcb3">arity</a></td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#aded779c480058b167a6e83d3ced8604e">behavior</a></td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#a890e9d75fcdc26d3424de7a4dff43df2">BuiltInDef</a>(Location name_, std::size_t arity_, BuiltInBehavior behavior_)</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#a992f2b9f4bdca6dbbc431fe3f6123dc7">clear</a>()</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#afe42c3b9ebfbd569538f8e3b9fd26495">create</a>(const Location &amp;name, std::size_t arity, BuiltInBehavior behavior)</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#afada2c94fd89fd8e0dfd47cd58a46a3d">name</a></td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#a01fa42dd9aedf8b4147d687dea17720c">available</a></td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#aded779c480058b167a6e83d3ced8604e">behavior</a></td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#ade8d6d5bb39580777bb4089e8acdf8b4">BuiltInDef</a>(Location name_, Node decl_, BuiltInBehavior behavior_, bool available_)</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#a992f2b9f4bdca6dbbc431fe3f6123dc7">clear</a>()</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#af3780a73305a300b57bef4ff8ca9e409">create</a>(const Location &amp;name, Node decl, BuiltInBehavior behavior)</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#a7a5f5968bd30c8bd648b0e1fdf781154">create</a>(const Location &amp;name, size_t arity, BuiltInBehavior behavior)</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#a0c7453eb09e3c0ad59eb371a5e2065ff">decl</a></td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#afada2c94fd89fd8e0dfd47cd58a46a3d">name</a></td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html#aa2735b37bd9f2d2d2332972b53eba2f7">placeholder</a>(const Location &amp;name, Node decl, const std::string &amp;message)</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>~BuiltInDef</b>()=default (defined in <a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a>)</td><td class="entry"><a class="el" href="structrego_1_1BuiltInDef.html">rego::BuiltInDef</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
 </table></div><!-- contents -->
 <!-- start footer part -->

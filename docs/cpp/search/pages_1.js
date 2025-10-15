@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['deprecated_20list_0',['Deprecated List',['../deprecated.html',1,'']]]
+  ['cpp_20tt_0',['&lt;tt&gt;rego-cpp&lt;/tt&gt;',['../index.html',1,'']]]
 ];

@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['object_0',['object',['../namespacerego.html#a36de4cee872e31852a0243669f862d0d',1,'rego']]],
-  ['object_5fitem_1',['object_item',['../namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94',1,'rego']]],
-  ['opa_20rego_20go_20implementation_2',['Compatibility with the OPA Rego Go implementation',['../index.html#autotoc_md8',1,'']]]
+  ['message_0',['message',['../classrego_1_1UnwrapOpt.html#aa7b20e6f767103e057ea4eab49710aa3',1,'rego::UnwrapOpt::message() const'],['../classrego_1_1UnwrapOpt.html#acd439255d58ad26140761fc5b7d564bd',1,'rego::UnwrapOpt::message(const std::string &amp;value)']]]
 ];

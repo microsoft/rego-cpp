@@ -5,5 +5,6 @@ var searchData=
   ['get_5fint_2',['get_int',['../namespacerego.html#a47722fa721bf328696deb469f70f3bcb',1,'rego']]],
   ['get_5fstring_3',['get_string',['../namespacerego.html#ab76a283ff8f20682b941ec2678506512',1,'rego']]],
   ['getting_20started_4',['Getting Started',['../index.html#autotoc_md1',1,'']]],
-  ['go_20implementation_5',['Compatibility with the OPA Rego Go implementation',['../index.html#autotoc_md8',1,'']]]
+  ['go_20implementation_5',['Compatibility with the OPA Rego Go implementation',['../index.html#autotoc_md7',1,'']]],
+  ['grammar_6',['Grammar',['../rbb.html#autotoc_md17',1,'']]]
 ];

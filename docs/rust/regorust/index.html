@@ -1,7 +1,430 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `regorust` crate."><title>regorust - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="regorust" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../regorust/index.html">regorust</a><span class="version">0.4.5</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Aliases</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">regorust</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/regorust/lib.rs.html#1-1612">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Interpreter.html" title="struct regorust::Interpreter">Interpreter</a></div><div class="desc docblock-short">Interface for the Rego interpreter.</div></li><li><div class="item-name"><a class="struct" href="struct.Node.html" title="struct regorust::Node">Node</a></div><div class="desc docblock-short">Interface for Rego Node objects.</div></li><li><div class="item-name"><a class="struct" href="struct.Output.html" title="struct regorust::Output">Output</a></div><div class="desc docblock-short">Interface for the Rego output.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.LogLevel.html" title="enum regorust::LogLevel">LogLevel</a></div></li><li><div class="item-name"><a class="enum" href="enum.NodeKind.html" title="enum regorust::NodeKind">NodeKind</a></div><div class="desc docblock-short">Enumeration of different kinds of Rego Nodes that can be returned as output from a query.</div></li><li><div class="item-name"><a class="enum" href="enum.NodeValue.html" title="enum regorust::NodeValue">NodeValue</a></div><div class="desc docblock-short">Represents the value of a Rego Node.</div></li></ul><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="constant" href="constant.REGOCPP_BUILD_DATE.html" title="constant regorust::REGOCPP_BUILD_DATE">REGOCPP_BUILD_DATE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_BUILD_NAME.html" title="constant regorust::REGOCPP_BUILD_NAME">REGOCPP_BUILD_NAME</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_BUILD_TOOLCHAIN.html" title="constant regorust::REGOCPP_BUILD_TOOLCHAIN">REGOCPP_BUILD_TOOLCHAIN</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_GIT_HASH.html" title="constant regorust::REGOCPP_GIT_HASH">REGOCPP_GIT_HASH</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_OPA_VERSION.html" title="constant regorust::REGOCPP_OPA_VERSION">REGOCPP_OPA_VERSION</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_PLATFORM.html" title="constant regorust::REGOCPP_PLATFORM">REGOCPP_PLATFORM</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_VERSION.html" title="constant regorust::REGOCPP_VERSION">REGOCPP_VERSION</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_VERSION_MAJOR.html" title="constant regorust::REGOCPP_VERSION_MAJOR">REGOCPP_VERSION_MAJOR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_VERSION_MINOR.html" title="constant regorust::REGOCPP_VERSION_MINOR">REGOCPP_VERSION_MINOR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_VERSION_REVISION.html" title="constant regorust::REGOCPP_VERSION_REVISION">REGOCPP_VERSION_REVISION</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR.html" title="constant regorust::REGO_ERROR">REGO_ERROR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR_BUFFER_TOO_SMALL.html" title="constant regorust::REGO_ERROR_BUFFER_TOO_SMALL">REGO_ERROR_BUFFER_TOO_SMALL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR_INVALID_LOG_LEVEL.html" title="constant regorust::REGO_ERROR_INVALID_LOG_LEVEL">REGO_ERROR_INVALID_LOG_LEVEL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED.html" title="constant regorust::REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED">REGO_ERROR_MANUAL_TZDATA_NOT_SUPPORTED</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_DEBUG.html" title="constant regorust::REGO_LOG_LEVEL_DEBUG">REGO_LOG_LEVEL_DEBUG</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_ERROR.html" title="constant regorust::REGO_LOG_LEVEL_ERROR">REGO_LOG_LEVEL_ERROR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_INFO.html" title="constant regorust::REGO_LOG_LEVEL_INFO">REGO_LOG_LEVEL_INFO</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_NONE.html" title="constant regorust::REGO_LOG_LEVEL_NONE">REGO_LOG_LEVEL_NONE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_OUTPUT.html" title="constant regorust::REGO_LOG_LEVEL_OUTPUT">REGO_LOG_LEVEL_OUTPUT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_TRACE.html" title="constant regorust::REGO_LOG_LEVEL_TRACE">REGO_LOG_LEVEL_TRACE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_WARN.html" title="constant regorust::REGO_LOG_LEVEL_WARN">REGO_LOG_LEVEL_WARN</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ARRAY.html" title="constant regorust::REGO_NODE_ARRAY">REGO_NODE_ARRAY</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_BINDING.html" title="constant regorust::REGO_NODE_BINDING">REGO_NODE_BINDING</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_BINDINGS.html" title="constant regorust::REGO_NODE_BINDINGS">REGO_NODE_BINDINGS</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR.html" title="constant regorust::REGO_NODE_ERROR">REGO_NODE_ERROR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR_AST.html" title="constant regorust::REGO_NODE_ERROR_AST">REGO_NODE_ERROR_AST</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR_CODE.html" title="constant regorust::REGO_NODE_ERROR_CODE">REGO_NODE_ERROR_CODE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR_MESSAGE.html" title="constant regorust::REGO_NODE_ERROR_MESSAGE">REGO_NODE_ERROR_MESSAGE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR_SEQ.html" title="constant regorust::REGO_NODE_ERROR_SEQ">REGO_NODE_ERROR_SEQ</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_FALSE.html" title="constant regorust::REGO_NODE_FALSE">REGO_NODE_FALSE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_FLOAT.html" title="constant regorust::REGO_NODE_FLOAT">REGO_NODE_FLOAT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_INT.html" title="constant regorust::REGO_NODE_INT">REGO_NODE_INT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_INTERNAL.html" title="constant regorust::REGO_NODE_INTERNAL">REGO_NODE_INTERNAL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_NULL.html" title="constant regorust::REGO_NODE_NULL">REGO_NODE_NULL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_OBJECT.html" title="constant regorust::REGO_NODE_OBJECT">REGO_NODE_OBJECT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_OBJECT_ITEM.html" title="constant regorust::REGO_NODE_OBJECT_ITEM">REGO_NODE_OBJECT_ITEM</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_RESULT.html" title="constant regorust::REGO_NODE_RESULT">REGO_NODE_RESULT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_RESULTS.html" title="constant regorust::REGO_NODE_RESULTS">REGO_NODE_RESULTS</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_SCALAR.html" title="constant regorust::REGO_NODE_SCALAR">REGO_NODE_SCALAR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_SET.html" title="constant regorust::REGO_NODE_SET">REGO_NODE_SET</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_STRING.html" title="constant regorust::REGO_NODE_STRING">REGO_NODE_STRING</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_TERM.html" title="constant regorust::REGO_NODE_TERM">REGO_NODE_TERM</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_TERMS.html" title="constant regorust::REGO_NODE_TERMS">REGO_NODE_TERMS</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_TRUE.html" title="constant regorust::REGO_NODE_TRUE">REGO_NODE_TRUE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_UNDEFINED.html" title="constant regorust::REGO_NODE_UNDEFINED">REGO_NODE_UNDEFINED</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_VAR.html" title="constant regorust::REGO_NODE_VAR">REGO_NODE_VAR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_OK.html" title="constant regorust::REGO_OK">REGO_OK</a></div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.build_info.html" title="fn regorust::build_info">build_info</a></div><div class="desc docblock-short">Returns the build information as a string.</div></li><li><div class="item-name"><a class="fn" href="fn.regoAddDataJSON.html" title="fn regorust::regoAddDataJSON">regoAddDataJSON</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Adds a base document from the specified string.</div></li><li><div class="item-name"><a class="fn" href="fn.regoAddDataJSONFile.html" title="fn regorust::regoAddDataJSONFile">regoAddDataJSONFile</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Adds a base document from the file at the specified path.</div></li><li><div class="item-name"><a class="fn" href="fn.regoAddModule.html" title="fn regorust::regoAddModule">regoAddModule</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Adds a module (e.g. virtual document) from the specified string.</div></li><li><div class="item-name"><a class="fn" href="fn.regoAddModuleFile.html" title="fn regorust::regoAddModuleFile">regoAddModuleFile</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Adds a module (e.g. virtual document) from the file at the
-specified path.</div></li><li><div class="item-name"><a class="fn" href="fn.regoFree.html" title="fn regorust::regoFree">regoFree</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Frees a Rego interpreter.</div></li><li><div class="item-name"><a class="fn" href="fn.regoFreeOutput.html" title="fn regorust::regoFreeOutput">regoFreeOutput</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Frees a Rego output.</div></li><li><div class="item-name"><a class="fn" href="fn.regoGetDebugEnabled.html" title="fn regorust::regoGetDebugEnabled">regoGetDebugEnabled</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Gets the debug mode of the interpreter.</div></li><li><div class="item-name"><a class="fn" href="fn.regoGetError.html" title="fn regorust::regoGetError">regoGetError</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the most recently thrown error.</div></li><li><div class="item-name"><a class="fn" href="fn.regoGetStrictBuiltInErrors.html" title="fn regorust::regoGetStrictBuiltInErrors">regoGetStrictBuiltInErrors</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Gets whether strict built-in errors are enabled.</div></li><li><div class="item-name"><a class="fn" href="fn.regoGetWellFormedChecksEnabled.html" title="fn regorust::regoGetWellFormedChecksEnabled">regoGetWellFormedChecksEnabled</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Gets whether well-formed checks are enabled.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNew.html" title="fn regorust::regoNew">regoNew</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Allocates and initializes a new Rego interpreter.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNewV1.html" title="fn regorust::regoNewV1">regoNewV1</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Allocates and initializes a new V1 Rego interpreter.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeGet.html" title="fn regorust::regoNodeGet">regoNodeGet</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the child node at the specified index.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeJSON.html" title="fn regorust::regoNodeJSON">regoNodeJSON</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Populate a buffer with the JSON representation of the node.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeJSONSize.html" title="fn regorust::regoNodeJSONSize">regoNodeJSONSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the number of bytes needed to store a 0-terminated string
-representing the JSON representation of the node.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeSize.html" title="fn regorust::regoNodeSize">regoNodeSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the number of children of the node.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeType.html" title="fn regorust::regoNodeType">regoNodeType</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns an enumeration value indicating the nodes type.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeTypeName.html" title="fn regorust::regoNodeTypeName">regoNodeTypeName</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the name of the node type as a human-readable string.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeValue.html" title="fn regorust::regoNodeValue">regoNodeValue</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Populate a buffer with the node value.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeValueSize.html" title="fn regorust::regoNodeValueSize">regoNodeValueSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the number of bytes needed to store a 0-terminated string
-representing the text value of the node.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputBinding.html" title="fn regorust::regoOutputBinding">regoOutputBinding</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the bound value for a given variable name at the first index.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputBindingAtIndex.html" title="fn regorust::regoOutputBindingAtIndex">regoOutputBindingAtIndex</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the bound value for a given variable name.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputExpressions.html" title="fn regorust::regoOutputExpressions">regoOutputExpressions</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns a node containing a list of terms resulting from the query
-at the default index.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputExpressionsAtIndex.html" title="fn regorust::regoOutputExpressionsAtIndex">regoOutputExpressionsAtIndex</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns a node containing a list of terms resulting from the query at
-the specified index.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputNode.html" title="fn regorust::regoOutputNode">regoOutputNode</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the node containing the output of the query.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputOk.html" title="fn regorust::regoOutputOk">regoOutputOk</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns whether the output is ok.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputSize.html" title="fn regorust::regoOutputSize">regoOutputSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the number of results in the output.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputString.html" title="fn regorust::regoOutputString">regoOutputString</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Returns the output represented as a human-readable string.</div></li><li><div class="item-name"><a class="fn" href="fn.regoQuery.html" title="fn regorust::regoQuery">regoQuery</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Performs a query against the current base and virtual documents.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetDebugEnabled.html" title="fn regorust::regoSetDebugEnabled">regoSetDebugEnabled</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets the debug mode of the interpreter.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetDebugPath.html" title="fn regorust::regoSetDebugPath">regoSetDebugPath</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets the path to the debug directory.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetInputJSON.html" title="fn regorust::regoSetInputJSON">regoSetInputJSON</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets the current input document from the specified string.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetInputJSONFile.html" title="fn regorust::regoSetInputJSONFile">regoSetInputJSONFile</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets the current input document from the file at the specified path.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetInputTerm.html" title="fn regorust::regoSetInputTerm">regoSetInputTerm</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets the current input document from the specified string.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetLogLevel.html" title="fn regorust::regoSetLogLevel">regoSetLogLevel</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets the level of logging.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetLogLevelFromString.html" title="fn regorust::regoSetLogLevelFromString">regoSetLogLevelFromString</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets the level of logging.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetStrictBuiltInErrors.html" title="fn regorust::regoSetStrictBuiltInErrors">regoSetStrictBuiltInErrors</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets whether the built-ins should throw errors.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetTZDataPath.html" title="fn regorust::regoSetTZDataPath">regoSetTZDataPath</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets the location where rego-cpp will look for timezone database
-information.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetWellFormedChecksEnabled.html" title="fn regorust::regoSetWellFormedChecksEnabled">regoSetWellFormedChecksEnabled</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Sets whether to perform well-formed checks after each compiler pass.</div></li><li><div class="item-name"><a class="fn" href="fn.set_log_level.html" title="fn regorust::set_log_level">set_log_level</a></div><div class="desc docblock-short">Sets the level of logging produced by the library.</div></li><li><div class="item-name"><a class="fn" href="fn.set_tzdata_path.html" title="fn regorust::set_tzdata_path">set_tzdata_path</a></div><div class="desc docblock-short">Sets the path to the TZData directory.</div></li></ul><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="type" href="type.regoBoolean.html" title="type regorust::regoBoolean">regoBoolean</a></div></li><li><div class="item-name"><a class="type" href="type.regoEnum.html" title="type regorust::regoEnum">regoEnum</a></div></li><li><div class="item-name"><a class="type" href="type.regoInterpreter.html" title="type regorust::regoInterpreter">regoInterpreter</a></div></li><li><div class="item-name"><a class="type" href="type.regoNode.html" title="type regorust::regoNode">regoNode</a></div></li><li><div class="item-name"><a class="type" href="type.regoOutput.html" title="type regorust::regoOutput">regoOutput</a></div></li><li><div class="item-name"><a class="type" href="type.regoSize.html" title="type regorust::regoSize">regoSize</a></div></li></ul></section></div></main></body></html>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `regorust` crate."><title>regorust - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="regorust" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../regorust/index.html">regorust</a><span class="version">1.0.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#statics">Statics</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Aliases</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">regorust</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/regorust/lib.rs.html#1-2154">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Bundle.html" title="struct regorust::Bundle">Bundle</a></div><div class="desc docblock-short">Representation of a compiled Rego bundle. This can be produced by the
+<a href="struct.Interpreter.html#method.build" title="method regorust::Interpreter::build"><code>Interpreter::build()</code></a> method as an alternative to immediate evaluation.</div></li><li><div class="item-name"><a class="struct" href="struct.Input.html" title="struct regorust::Input">Input</a></div><div class="desc docblock-short">The Input interface allows the creation of inputs to a policy without
+requiring serialization to JSON. The interface is that of a stack,
+in which values are pushed and then various operations are used to turn
+terminal types into more complex ones like objects and arrays. When used,
+the Input will provide the top of the stack to any downstream consumer (such as
+<a href="struct.Interpreter.html#method.set_input" title="method regorust::Interpreter::set_input"><code>Interpreter::set_input()</code></a>).</div></li><li><div class="item-name"><a class="struct" href="struct.Interpreter.html" title="struct regorust::Interpreter">Interpreter</a></div><div class="desc docblock-short">Interface for the Rego interpreter.</div></li><li><div class="item-name"><a class="struct" href="struct.Node.html" title="struct regorust::Node">Node</a></div><div class="desc docblock-short">Interface for Rego Node objects.</div></li><li><div class="item-name"><a class="struct" href="struct.Output.html" title="struct regorust::Output">Output</a></div><div class="desc docblock-short">Interface for the Rego output.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.BundleFormat.html" title="enum regorust::BundleFormat">BundleFormat</a></div><div class="desc docblock-short">Format types for serializing bundles.</div></li><li><div class="item-name"><a class="enum" href="enum.LogLevel.html" title="enum regorust::LogLevel">LogLevel</a></div></li><li><div class="item-name"><a class="enum" href="enum.NodeKind.html" title="enum regorust::NodeKind">NodeKind</a></div><div class="desc docblock-short">Enumeration of different kinds of Rego Nodes that can be returned as output from a query.</div></li><li><div class="item-name"><a class="enum" href="enum.NodeValue.html" title="enum regorust::NodeValue">NodeValue</a></div><div class="desc docblock-short">Represents the value of a Rego Node.</div></li></ul><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="constant" href="constant.REGOCPP_BUILD_DATE.html" title="constant regorust::REGOCPP_BUILD_DATE">REGOCPP_BUILD_DATE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_BUILD_NAME.html" title="constant regorust::REGOCPP_BUILD_NAME">REGOCPP_BUILD_NAME</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_BUILD_TOOLCHAIN.html" title="constant regorust::REGOCPP_BUILD_TOOLCHAIN">REGOCPP_BUILD_TOOLCHAIN</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_GIT_HASH.html" title="constant regorust::REGOCPP_GIT_HASH">REGOCPP_GIT_HASH</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_OPA_VERSION.html" title="constant regorust::REGOCPP_OPA_VERSION">REGOCPP_OPA_VERSION</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_PLATFORM.html" title="constant regorust::REGOCPP_PLATFORM">REGOCPP_PLATFORM</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_VERSION.html" title="constant regorust::REGOCPP_VERSION">REGOCPP_VERSION</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_VERSION_MAJOR.html" title="constant regorust::REGOCPP_VERSION_MAJOR">REGOCPP_VERSION_MAJOR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_VERSION_MINOR.html" title="constant regorust::REGOCPP_VERSION_MINOR">REGOCPP_VERSION_MINOR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGOCPP_VERSION_REVISION.html" title="constant regorust::REGOCPP_VERSION_REVISION">REGOCPP_VERSION_REVISION</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_BUILD_INFO.html" title="constant regorust::REGO_BUILD_INFO">REGO_BUILD_INFO</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR.html" title="constant regorust::REGO_ERROR">REGO_ERROR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR_BUFFER_TOO_SMALL.html" title="constant regorust::REGO_ERROR_BUFFER_TOO_SMALL">REGO_ERROR_BUFFER_TOO_SMALL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR_INPUT_MISSING_ARGUMENTS.html" title="constant regorust::REGO_ERROR_INPUT_MISSING_ARGUMENTS">REGO_ERROR_INPUT_MISSING_ARGUMENTS</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR_INPUT_NULL.html" title="constant regorust::REGO_ERROR_INPUT_NULL">REGO_ERROR_INPUT_NULL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR_INPUT_OBJECT_ITEM.html" title="constant regorust::REGO_ERROR_INPUT_OBJECT_ITEM">REGO_ERROR_INPUT_OBJECT_ITEM</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_ERROR_INVALID_LOG_LEVEL.html" title="constant regorust::REGO_ERROR_INVALID_LOG_LEVEL">REGO_ERROR_INVALID_LOG_LEVEL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_DEBUG.html" title="constant regorust::REGO_LOG_LEVEL_DEBUG">REGO_LOG_LEVEL_DEBUG</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_ERROR.html" title="constant regorust::REGO_LOG_LEVEL_ERROR">REGO_LOG_LEVEL_ERROR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_INFO.html" title="constant regorust::REGO_LOG_LEVEL_INFO">REGO_LOG_LEVEL_INFO</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_NONE.html" title="constant regorust::REGO_LOG_LEVEL_NONE">REGO_LOG_LEVEL_NONE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_OUTPUT.html" title="constant regorust::REGO_LOG_LEVEL_OUTPUT">REGO_LOG_LEVEL_OUTPUT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_TRACE.html" title="constant regorust::REGO_LOG_LEVEL_TRACE">REGO_LOG_LEVEL_TRACE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_UNSUPPORTED.html" title="constant regorust::REGO_LOG_LEVEL_UNSUPPORTED">REGO_LOG_LEVEL_UNSUPPORTED</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_LOG_LEVEL_WARN.html" title="constant regorust::REGO_LOG_LEVEL_WARN">REGO_LOG_LEVEL_WARN</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ARRAY.html" title="constant regorust::REGO_NODE_ARRAY">REGO_NODE_ARRAY</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_BINDING.html" title="constant regorust::REGO_NODE_BINDING">REGO_NODE_BINDING</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_BINDINGS.html" title="constant regorust::REGO_NODE_BINDINGS">REGO_NODE_BINDINGS</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR.html" title="constant regorust::REGO_NODE_ERROR">REGO_NODE_ERROR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR_AST.html" title="constant regorust::REGO_NODE_ERROR_AST">REGO_NODE_ERROR_AST</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR_CODE.html" title="constant regorust::REGO_NODE_ERROR_CODE">REGO_NODE_ERROR_CODE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR_MESSAGE.html" title="constant regorust::REGO_NODE_ERROR_MESSAGE">REGO_NODE_ERROR_MESSAGE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_ERROR_SEQ.html" title="constant regorust::REGO_NODE_ERROR_SEQ">REGO_NODE_ERROR_SEQ</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_FALSE.html" title="constant regorust::REGO_NODE_FALSE">REGO_NODE_FALSE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_FLOAT.html" title="constant regorust::REGO_NODE_FLOAT">REGO_NODE_FLOAT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_INT.html" title="constant regorust::REGO_NODE_INT">REGO_NODE_INT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_INTERNAL.html" title="constant regorust::REGO_NODE_INTERNAL">REGO_NODE_INTERNAL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_NULL.html" title="constant regorust::REGO_NODE_NULL">REGO_NODE_NULL</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_OBJECT.html" title="constant regorust::REGO_NODE_OBJECT">REGO_NODE_OBJECT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_OBJECT_ITEM.html" title="constant regorust::REGO_NODE_OBJECT_ITEM">REGO_NODE_OBJECT_ITEM</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_RESULT.html" title="constant regorust::REGO_NODE_RESULT">REGO_NODE_RESULT</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_RESULTS.html" title="constant regorust::REGO_NODE_RESULTS">REGO_NODE_RESULTS</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_SCALAR.html" title="constant regorust::REGO_NODE_SCALAR">REGO_NODE_SCALAR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_SET.html" title="constant regorust::REGO_NODE_SET">REGO_NODE_SET</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_STRING.html" title="constant regorust::REGO_NODE_STRING">REGO_NODE_STRING</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_TERM.html" title="constant regorust::REGO_NODE_TERM">REGO_NODE_TERM</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_TERMS.html" title="constant regorust::REGO_NODE_TERMS">REGO_NODE_TERMS</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_TRUE.html" title="constant regorust::REGO_NODE_TRUE">REGO_NODE_TRUE</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_UNDEFINED.html" title="constant regorust::REGO_NODE_UNDEFINED">REGO_NODE_UNDEFINED</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_NODE_VAR.html" title="constant regorust::REGO_NODE_VAR">REGO_NODE_VAR</a></div></li><li><div class="item-name"><a class="constant" href="constant.REGO_OK.html" title="constant regorust::REGO_OK">REGO_OK</a></div></li><li><div class="item-name"><a class="constant" href="constant.WCHAR_MAX.html" title="constant regorust::WCHAR_MAX">WCHAR_MAX</a></div></li><li><div class="item-name"><a class="constant" href="constant.WCHAR_MIN.html" title="constant regorust::WCHAR_MIN">WCHAR_MIN</a></div></li><li><div class="item-name"><a class="constant" href="constant.WINT_MAX.html" title="constant regorust::WINT_MAX">WINT_MAX</a></div></li><li><div class="item-name"><a class="constant" href="constant.WINT_MIN.html" title="constant regorust::WINT_MIN">WINT_MIN</a></div></li><li><div class="item-name"><a class="constant" href="constant._CRT_PACKING.html" title="constant regorust::_CRT_PACKING">_CRT_PACKING</a></div></li><li><div class="item-name"><a class="constant" href="constant._HAS_CXX17.html" title="constant regorust::_HAS_CXX17">_HAS_CXX17</a></div></li><li><div class="item-name"><a class="constant" href="constant._HAS_CXX20.html" title="constant regorust::_HAS_CXX20">_HAS_CXX20</a></div></li><li><div class="item-name"><a class="constant" href="constant._HAS_CXX23.html" title="constant regorust::_HAS_CXX23">_HAS_CXX23</a></div></li><li><div class="item-name"><a class="constant" href="constant._HAS_CXX26.html" title="constant regorust::_HAS_CXX26">_HAS_CXX26</a></div></li><li><div class="item-name"><a class="constant" href="constant._HAS_EXCEPTIONS.html" title="constant regorust::_HAS_EXCEPTIONS">_HAS_EXCEPTIONS</a></div></li><li><div class="item-name"><a class="constant" href="constant._HAS_NODISCARD.html" title="constant regorust::_HAS_NODISCARD">_HAS_NODISCARD</a></div></li><li><div class="item-name"><a class="constant" href="constant._SAL_VERSION.html" title="constant regorust::_SAL_VERSION">_SAL_VERSION</a></div></li><li><div class="item-name"><a class="constant" href="constant._STL_LANG.html" title="constant regorust::_STL_LANG">_STL_LANG</a></div></li><li><div class="item-name"><a class="constant" href="constant._USE_ATTRIBUTES_FOR_SAL.html" title="constant regorust::_USE_ATTRIBUTES_FOR_SAL">_USE_ATTRIBUTES_FOR_SAL</a></div></li><li><div class="item-name"><a class="constant" href="constant._USE_DECLSPECS_FOR_SAL.html" title="constant regorust::_USE_DECLSPECS_FOR_SAL">_USE_DECLSPECS_FOR_SAL</a></div></li><li><div class="item-name"><a class="constant" href="constant._VCRT_COMPILER_PREPROCESSOR.html" title="constant regorust::_VCRT_COMPILER_PREPROCESSOR">_VCRT_COMPILER_PREPROCESSOR</a></div></li><li><div class="item-name"><a class="constant" href="constant.__SAL_H_VERSION.html" title="constant regorust::__SAL_H_VERSION">__SAL_H_VERSION</a></div></li></ul><h2 id="statics" class="section-header">Statics<a href="#statics" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="static" href="static.__security_cookie.html" title="static regorust::__security_cookie">__security_cookie</a><sup title="unsafe static">⚠</sup></div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.__report_gsfailure.html" title="fn regorust::__report_gsfailure">__report_gsfailure</a><sup title="unsafe function">⚠</sup></div></li><li><div class="item-name"><a class="fn" href="fn.__security_check_cookie.html" title="fn regorust::__security_check_cookie">__security_check_cookie</a><sup title="unsafe function">⚠</sup></div></li><li><div class="item-name"><a class="fn" href="fn.__security_init_cookie.html" title="fn regorust::__security_init_cookie">__security_init_cookie</a><sup title="unsafe function">⚠</sup></div></li><li><div class="item-name"><a class="fn" href="fn.__va_start.html" title="fn regorust::__va_start">__va_start</a><sup title="unsafe function">⚠</sup></div></li><li><div class="item-name"><a class="fn" href="fn.build_info.html" title="fn regorust::build_info">build_info</a></div><div class="desc docblock-short">Returns the build information as a string.</div></li><li><div class="item-name"><a class="fn" href="fn.log_level_from_string.html" title="fn regorust::log_level_from_string">log_level_from_string</a></div></li><li><div class="item-name"><a class="fn" href="fn.regoAddDataJSON.html" title="fn regorust::regoAddDataJSON">regoAddDataJSON</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds a base document from the specified string.
+@details
+The string should contain a single JSON object. The object will be
+parsed and merged with the interpreter’s base document.
+@par If an error code is returned, more error information can be
+obtained by calling ::regoError.
+@param rego The interpreter.
+@param contents The contents of the JSON object.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoAddDataJSONFile.html" title="fn regorust::regoAddDataJSONFile">regoAddDataJSONFile</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds a base document from the file at the specified path.
+@details
+The file should contain a single JSON object. The object will be
+parsed and merged with the interpreter’s base document.
+@par If an error code is returned, more error information can be
+obtained by calling ::regoError.
+@param rego The interpreter.
+@param path The path to the JSON file.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoAddEntrypoint.html" title="fn regorust::regoAddEntrypoint">regoAddEntrypoint</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds an entrypoint to the interpreter.
+@details
+By using this method, an entrypoint can be added to the list of those with
+compiled execution plans in a bundle.
+@param rego The interpreter
+@param entrypoint A valid Rego entrypoint of the form <code>path/to/rule</code>
+@return REGO_OK if successful, REGO_ERROR if there were any issues adding
+the entrypoint.</div></li><li><div class="item-name"><a class="fn" href="fn.regoAddModule.html" title="fn regorust::regoAddModule">regoAddModule</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds a module (e.g. virtual document) from the specified string.
+@details
+If an error code is returned, more error information can be
+obtained by calling ::regoError.
+@param rego The interpreter.
+@param name The name of the module.
+@param contents The contents of the module.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoAddModuleFile.html" title="fn regorust::regoAddModuleFile">regoAddModuleFile</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds a module (e.g. virtual document) from the file at the
+specified path.
+@details
+If an error code is returned, more error information can be
+obtained by calling ::regoError.
+@param rego The interpreter.
+@param path The path to the policy file.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBuild.html" title="fn regorust::regoBuild">regoBuild</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Builds a compiled Rego bundle.
+@details
+The bundle will include any base and virtual documents added to the
+interpreter, as well as a query set with ::regoSetQuery (if present) and
+any entrypoints added with ::regoAddEntrypoint (if any). There must be at
+least one entrypoint or a query specified for the build to be successful.
+The resulting handle can be used with ::regoBundleQuery and/or saved to
+the disk for later re-use.
+@return a compiled Rego bundle</div></li><li><div class="item-name"><a class="fn" href="fn.regoBuildInfo.html" title="fn regorust::regoBuildInfo">regoBuildInfo</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Populate a buffer with a string of the form “VERSION (BUILD_NAME,
+BUILD_DATE) BUILD_TOOLCHAIN on PLATFORM”
+@details
+The buffer must be large enough to hold the value. The size of the buffer
+can be determined by calling ::regoBuildInfoSize.
+@param buffer The buffer to populate.
+@param size The size of the buffer.
+@return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBuildInfoSize.html" title="fn regorust::regoBuildInfoSize">regoBuildInfoSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of bytes needed to store a 0-terminated string
+representing the build info.
+@details
+The value returned by this function can be used to allocate a buffer to
+pass to ::regoBuildInfo.
+@return The number of bytes needed to store the build info.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBundleLoad.html" title="fn regorust::regoBundleLoad">regoBundleLoad</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Loads a compiled Rego bundle from the specified directory.
+@details
+The directory must contain a valid Rego bundle, which consists of a
+<code>plan.json</code> file, a <code>data.json</code> file, and zero or more <code>.rego</code> files
+which were used to create the bundle.
+@param rego The interpreter
+@param dir The path to the directory containing the bundle.
+@return The loaded bundle, or NULL if there was an error.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBundleLoadBinary.html" title="fn regorust::regoBundleLoadBinary">regoBundleLoadBinary</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Loads a compiled Rego bundle from the specified binary file.
+@details
+The file must contain a valid Rego bundle in Rego Bundle Binary format.
+For more information on the format, see <a href="../../binary.md">the
+specification</a>.
+@param rego The interpreter
+@param path The path to the binary file containing the bundle.
+@return The loaded bundle, or NULL if there was an error.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBundleNode.html" title="fn regorust::regoBundleNode">regoBundleNode</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns a node containing the base document of the bundle.
+@warning If the node was loaded from a binary file, this node will be
+missing. Future versions of the API may provide a way to
+reconstruct the bundle AST from the binary file.
+@param bundle The bundle.
+@return A node containing the base document of the bundle.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBundleOk.html" title="fn regorust::regoBundleOk">regoBundleOk</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns whether the bundle is ok.
+@details
+If the bundle was built or loaded successfully, this function will
+return true. Otherwise, it will return false, indicating that there
+was an error during bundle creation. This error can be retrieved using
+regoError on the interpreter used to create or load the bundle.
+@param bundle The bundle.
+@return Whether the bundle is ok.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBundleQuery.html" title="fn regorust::regoBundleQuery">regoBundleQuery</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Performs a query against the specified bundle.
+@details
+The output of the query will be returned as a regoOutput object.
+The query executed will be the one set with ::regoSetQuery when the bundle
+was built. If no query was set, the output will be an error sequence.
+@note The caller is responsible for freeing the output object with
+::regoFreeOutput.
+@param rego The interpreter.
+@param bundle The bundle to query.
+@return The output of the query.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBundleQueryEntrypoint.html" title="fn regorust::regoBundleQueryEntrypoint">regoBundleQueryEntrypoint</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Performs a query against the specified bundle at the specified
+entrypoint.
+@details
+The output of the query will be returned as a regoOutput object.
+The entrypoint must be one of those added with ::regoAddEntrypoint when
+the bundle was built. If the entrypoint does not exist, the output will be
+an error sequence.
+@note The caller is responsible for freeing the output object with
+::regoFreeOutput.
+@param rego The interpreter.
+@param bundle The bundle to query.
+@param endpoint The entrypoint to query.
+@return The output of the query.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBundleSave.html" title="fn regorust::regoBundleSave">regoBundleSave</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Saves a compiled Rego bundle to the specified directory.
+@details
+The directory will be created if it does not exist.
+The bundle will be saved in the standard Rego bundle format, which
+consists of a <code>plan.json</code> file, a <code>data.json</code> file, and
+zero or more <code>.rego</code> files.
+@param rego The interpreter
+@param dir The path to the directory where the bundle will be saved.
+@param bundle The bundle to save.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoBundleSaveBinary.html" title="fn regorust::regoBundleSaveBinary">regoBundleSaveBinary</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Saves a compiled Rego bundle to the specified binary file.
+@details
+The bundle will be saved in Rego Bundle Binary format.
+For more information on the format, see <a href="../../binary.md">the
+specification</a>.
+@param rego The interpreter
+@param path The path to the binary file where the bundle will be saved.
+@param bundle The bundle to save.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoError.html" title="fn regorust::regoError">regoError</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Populate a buffer with the most recent error message.
+@details
+If an error code is returned from an interface function, more error
+information can usually be obtained by calling this function.
+@par The buffer must be large enough to hold the value. The size of the
+buffer can be determined by calling ::regoErrorSize.
+@param rego The interpreter.
+@param buffer The buffer to populate.
+@param size The size of the buffer.
+@return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoErrorSize.html" title="fn regorust::regoErrorSize">regoErrorSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of bytes needed to store a 0-terminated string
+representing the most recent error message.
+@details
+The value returned by this function can be used to allocate a buffer to
+pass to ::regoError.
+@return The number of bytes needed to store the error message.</div></li><li><div class="item-name"><a class="fn" href="fn.regoFree.html" title="fn regorust::regoFree">regoFree</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Frees a Rego interpreter.
+@note This pointer must have been allocated with ::regoNew.
+@param rego The interpreter to free.</div></li><li><div class="item-name"><a class="fn" href="fn.regoFreeBundle.html" title="fn regorust::regoFreeBundle">regoFreeBundle</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Frees a Rego bundle.
+@note This pointer must have been allocated with ::regoBuild,
+::regoBundleLoad, or ::regoBundleLoadBinary.
+@param bundle The bundle to free.</div></li><li><div class="item-name"><a class="fn" href="fn.regoFreeInput.html" title="fn regorust::regoFreeInput">regoFreeInput</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Frees a Rego Input object.
+@note This pointer must have been allocated with ::regoNewInput.
+@param input The input object to free.</div></li><li><div class="item-name"><a class="fn" href="fn.regoFreeOutput.html" title="fn regorust::regoFreeOutput">regoFreeOutput</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Frees a Rego output.
+@note This pointer must have been allocated with regoQuery.
+@param output The output to free.</div></li><li><div class="item-name"><a class="fn" href="fn.regoGetDebugEnabled.html" title="fn regorust::regoGetDebugEnabled">regoGetDebugEnabled</a><sup title="unsafe function">⚠</sup></div></li><li><div class="item-name"><a class="fn" href="fn.regoGetLogLevel.html" title="fn regorust::regoGetLogLevel">regoGetLogLevel</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Gets the level of logging on the interpreter.
+@return One of the following values: REGO_LOG_LEVEL_NONE,
+REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
+REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
+REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.</div></li><li><div class="item-name"><a class="fn" href="fn.regoGetStrictBuiltInErrors.html" title="fn regorust::regoGetStrictBuiltInErrors">regoGetStrictBuiltInErrors</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Gets whether strict built-in errors are enabled.
+@param rego The interpreter.
+@return Whether strict built-in errors are enabled.</div></li><li><div class="item-name"><a class="fn" href="fn.regoGetWellFormedChecksEnabled.html" title="fn regorust::regoGetWellFormedChecksEnabled">regoGetWellFormedChecksEnabled</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Gets whether well-formedness checks are enabled.
+@param rego The interpreter.
+@return Whether well-formedness checks are enabled.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputArray.html" title="fn regorust::regoInputArray">regoInputArray</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Uses the top ‘count’ values on the stack to create an array and
+pushes it back onto the stack.
+@param input The input object.
+@param count The number of values to use.
+@return REGO_OK if successful, REGO_ERROR or REGO_INPUT_MISSING_ARGUMENTS
+otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputBoolean.html" title="fn regorust::regoInputBoolean">regoInputBoolean</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds a boolean value to the input object.
+@param input The input object.
+@param value The boolean value.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputFloat.html" title="fn regorust::regoInputFloat">regoInputFloat</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds a floating point value to the input object.
+@param input The input object.
+@param value The floating point value.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputInt.html" title="fn regorust::regoInputInt">regoInputInt</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds an integer value to the input object.
+@param input The input object.
+@param value The integer value.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputNode.html" title="fn regorust::regoInputNode">regoInputNode</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the top of the Input stack.
+@param input The input object.
+@return The top of the input stack as a regoNode. If the input is invalid
+or empty, this function will return NULL.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputNull.html" title="fn regorust::regoInputNull">regoInputNull</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds a null value to the input object.
+@param input The input object.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputObject.html" title="fn regorust::regoInputObject">regoInputObject</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Uses the top ‘count’ values on the stack to create an object
+and pushes it back onto the stack.
+@note The top ‘count’ values must be object items.
+@param input The input object.
+@param count The number of object items to use.
+@return REGO_OK if successful, REGO_ERROR, REGO_INPUT_MISSING_ARGUMENTS,
+or REGO_INPUT_OBJECT_ITEM otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputObjectItem.html" title="fn regorust::regoInputObjectItem">regoInputObjectItem</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Uses the top two values on the stack to create an object item
+and pushes it back onto the stack.
+@details
+The top value on the stack will be used as the value, and the second value
+will be used as the key.
+@param input The input object.
+@return REGO_OK if successful, REGO_ERROR or REGO_INPUT_MISSING_ARGUMENTS
+otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputSet.html" title="fn regorust::regoInputSet">regoInputSet</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Uses the top ‘count’ values on the stack to create a set and pushes
+it back onto the stack.
+@note As part of this operation, duplicate values will be removed and the
+values will be sorted.
+@param input The input object.
+@param count The number of values to use.
+@return REGO_OK if successful, REGO_ERROR or REGO_INPUT_MISSING_ARGUMENTS
+otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputSize.html" title="fn regorust::regoInputSize">regoInputSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of items on the Input stack.
+@param input The input object.
+@return The number of items on the input stack.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputString.html" title="fn regorust::regoInputString">regoInputString</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Adds a string value to the input object.
+@param input The input object.
+@param value The string value.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoInputValidate.html" title="fn regorust::regoInputValidate">regoInputValidate</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Validates the input object.
+@details
+This function should be called after building the input object
+and before using it with ::regoSetInput. This function will ensure
+that the input object is valid (e.g. that there is exactly one
+value on the stack and there were no errors during construction).
+@param input The input object.
+@return REGO_OK if the input is valid, REGO_ERROR_INPUT_* otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoIsAvailableBuiltIn.html" title="fn regorust::regoIsAvailableBuiltIn">regoIsAvailableBuiltIn</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns whether the specified name corresponds to an available
+built-in in the interpreter.
+@param rego The interpreter.
+@param name The name of the built-in.
+@return Whether the built-in exists.</div></li><li><div class="item-name"><a class="fn" href="fn.regoLogLevelFromString.html" title="fn regorust::regoLogLevelFromString">regoLogLevelFromString</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Gets a log level constant value from a string (case-invariant).
+@details String must be one of None, Error, Output, Warn, Info, Debug or
+Trace. An unrecognized string will result in a value of
+REGO_LOG_LEVEL_UNSUPPORTED.
+@param level The log level string.
+@return One of the following values: REGO_LOG_LEVEL_NONE,
+REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
+REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
+REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE,
+or REGO_LOG_LEVEL_UNSUPPORTED</div></li><li><div class="item-name"><a class="fn" href="fn.regoNew.html" title="fn regorust::regoNew">regoNew</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Allocates and initializes a new Rego interpreter.
+@note The caller is responsible for freeing the interpreter with
+::regoFree.
+@return A pointer to the new interpreter.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNewInput.html" title="fn regorust::regoNewInput">regoNewInput</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Allocates and initializes a new Rego Input object.
+@details
+Rego Input objects can be used to build input documents programmatically.
+An input is built up by making a series of calls to the API to add
+values to the stack. Some operations use the values on the stack to
+create composite values (e.g. objects, arrays, sets) which are then
+pushed back onto the stack. Once the input is built, it can be validated
+and then set on the interpreter with regoSetInput. While you can test the
+result of every operation, you can continue to use a broken Input object
+and the error will be returned when you call regoInputValidate.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeGet.html" title="fn regorust::regoNodeGet">regoNodeGet</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the child node at the specified index.
+@param node The node.
+@param index The index of the child.
+@return The child node.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeJSON.html" title="fn regorust::regoNodeJSON">regoNodeJSON</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Populate a buffer with the JSON representation of the node.
+@details
+The buffer must be large enough to hold the value. The size of the buffer
+can be determined by calling ::regoNodeJSONSize.
+@param node The node.
+@param buffer The buffer to populate.
+@param size The size of the buffer.
+@return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeJSONSize.html" title="fn regorust::regoNodeJSONSize">regoNodeJSONSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of bytes needed to store a 0-terminated string
+representing the JSON representation of the node.
+@details
+The value returned by this function can be used to allocate a buffer to
+pass to ::regoNodeJSON.
+@param node The node.
+@return The number of bytes needed to store the JSON representation.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeSize.html" title="fn regorust::regoNodeSize">regoNodeSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of children of the node.
+@param node The node.
+@return The number of children.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeType.html" title="fn regorust::regoNodeType">regoNodeType</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns an enumeration value indicating the node’s type.
+@details
+This type will be one of the following values:</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeTypeName.html" title="fn regorust::regoNodeTypeName">regoNodeTypeName</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the name of the node type as a human-readable string.
+@details
+This function supports arbitrary nodes (i.e. it will always produce a
+value) including internal nodes which appear in error messages.
+The buffer must be large enough to hold the value. The size of the buffer
+can be determined by calling ::regoNodeTypeNameSize.
+@param node The node.
+@param buffer The buffer to populate.
+@param size The size of the buffer.
+@return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeTypeNameSize.html" title="fn regorust::regoNodeTypeNameSize">regoNodeTypeNameSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of bytes needed to store a 0-terminated string
+representing the name of the node type.
+@details
+The value returned by this function can be used to allocate a buffer to
+pass to ::regoNodeTypeName.
+@param node The node.
+@return The number of bytes needed to store the node type name.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeValue.html" title="fn regorust::regoNodeValue">regoNodeValue</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Populate a buffer with the node value.
+@details
+The buffer must be large enough to hold the value. The size of the buffer
+can be determined by calling regoNodeValueSize.
+@param node The node.
+@param buffer The buffer to populate.
+@param size The size of the buffer.
+@return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoNodeValueSize.html" title="fn regorust::regoNodeValueSize">regoNodeValueSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of bytes needed to store a 0-terminated string
+representing the text value of the node.
+@details
+The value returned by this function can be used to allocate a buffer to
+pass to ::regoNodeValue.
+@param node The node.
+@return The number of bytes needed to store the text value.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputBinding.html" title="fn regorust::regoOutputBinding">regoOutputBinding</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the bound value for a given variable name at the first
+index.
+@details
+If the variable is not bound, then this function will return NULL.
+@param output The output.
+@param name The variable name.
+@return The bound value (or NULL if the variable was not bound)</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputBindingAtIndex.html" title="fn regorust::regoOutputBindingAtIndex">regoOutputBindingAtIndex</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the bound value for a given variable name.
+@details
+If the variable is not bound, then this function will return NULL.
+@param output The output.
+@param index The result index.
+@param name The variable name.
+@return The bound value (or NULL if the variable was not bound)</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputExpressions.html" title="fn regorust::regoOutputExpressions">regoOutputExpressions</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns a node containing a list of terms resulting from the query
+at the default index.
+@param output The output.
+@return The output node.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputExpressionsAtIndex.html" title="fn regorust::regoOutputExpressionsAtIndex">regoOutputExpressionsAtIndex</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns a node containing a list of terms resulting from the query
+at the specified index.
+@param output The output.
+@param index The result index.
+@return The output node.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputJSON.html" title="fn regorust::regoOutputJSON">regoOutputJSON</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Populate a buffer with the output represented as a human-readable
+string.
+@details
+The buffer must be large enough to hold the value. The size of the buffer
+can be determined by calling ::regoOutputJSONSize.
+@param output The output.
+@param buffer The buffer to populate.
+@param size The size of the buffer.
+@return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputJSONSize.html" title="fn regorust::regoOutputJSONSize">regoOutputJSONSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of bytes needed to store a 0-terminated string
+representing the output as a human-readable string.
+@details
+The value returned by this function can be used to allocate a buffer to
+pass to ::regoOutputJSON.
+@param output The output.
+@return The number of bytes needed to store the output string.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputNode.html" title="fn regorust::regoOutputNode">regoOutputNode</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the node containing the output of the query.
+@details
+This will either be a node which contains one or more results,
+or an error sequence.
+@param output The output.
+@return The output node.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputOk.html" title="fn regorust::regoOutputOk">regoOutputOk</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns whether the output is ok.
+@details
+If the output resulted in a valid query result, then this function will
+return true. Otherwise, it will return false, indicating that the
+output contains an error sequence.
+@param output The output.
+@return Whether the output is ok.</div></li><li><div class="item-name"><a class="fn" href="fn.regoOutputSize.html" title="fn regorust::regoOutputSize">regoOutputSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of results in the output.
+@details
+Each query can potentially generate multiple results.
+@return The number of results in the output</div></li><li><div class="item-name"><a class="fn" href="fn.regoQuery.html" title="fn regorust::regoQuery">regoQuery</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Performs a query against the current base and virtual documents.
+@details
+The query expression should be a Rego query. The output of the query
+will be returned as a regoOutput object.
+@note The caller is responsible for freeing the output object with
+::regoFreeOutput.
+@param rego The interpreter.
+@param query_expr The query expression.
+@return The output of the query.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetDebugEnabled.html" title="fn regorust::regoSetDebugEnabled">regoSetDebugEnabled</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets the debug mode of the interpreter.
+@details
+When debug mode is enabled, the interpreter will output intermediary
+ASTs after each compiler pass to the debug directory and output pass
+information to stdout. This is mostly useful for creating reports for
+compiler issues, but can also be of use in understanding why a policy is
+invalid or is behaving unexpectedly.
+@param rego The interpreter.
+@param enabled Whether debug mode should be enabled.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetDebugPath.html" title="fn regorust::regoSetDebugPath">regoSetDebugPath</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets the path to the debug directory.
+@details
+If set, then (when in debug mode) the interpreter will output intermediary
+ASTs after each compiler pass to the debug directory. If the directory
+does not exist, it will be created.
+@par If an error code is returned, more error information can be
+obtained by calling ::regoError.
+@param rego The interpreter.
+@param path The path to the debug directory.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetDefaultLogLevel.html" title="fn regorust::regoSetDefaultLogLevel">regoSetDefaultLogLevel</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets the default level of logging.
+@details
+This setting controls the amount of logging that will be output to stdout.
+The default level is REGO_LOG_LEVEL_OUTPUT. New interpreters will be set
+to this level of logging unless overridden by ::regoSetLogLevel.
+@param level One of the following values: REGO_LOG_LEVEL_NONE,
+REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
+REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
+REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
+@return REGO_OK if successful, REGO_ERROR_INVALID_LOG_LEVEL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetInput.html" title="fn regorust::regoSetInput">regoSetInput</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets the current input document from the specified Input object.
+@details
+If an error code is returned, more error information can be
+obtained by calling ::regoError.
+@param rego The interpreter.
+@param input The input object.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetInputJSONFile.html" title="fn regorust::regoSetInputJSONFile">regoSetInputJSONFile</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets the current input document from the file at the specified
+path.
+@details
+The file should contain a single JSON value. The value will be
+parsed and set as the interpreter’s input document.
+@par If an error code is returned, more error information can be
+obtained by calling ::regoError.
+@param rego The interpreter.
+@param path The path to the JSON file.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetInputTerm.html" title="fn regorust::regoSetInputTerm">regoSetInputTerm</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets the current input document from the specified string.
+@details
+The string should contain a single Rego data term. The value will be
+parsed and set as the interpreter’s input document.
+@par If an error code is returned, more error information can be
+obtained by calling ::regoError.
+@param rego The interpreter.
+@param contents The contents of the Rego data term.
+@return REGO_OK if successful, REGO_ERROR otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetLogLevel.html" title="fn regorust::regoSetLogLevel">regoSetLogLevel</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets the level of logging on the interpreter.
+@details
+This setting controls the amount of logging that will be output to stdout.
+The default level is REGO_LOG_LEVEL_OUTPUT, but can be changed using
+::regoSetDefaultLogLevel.
+@param rego The interpreter whose log level is to be set.
+@param level One of the following values: REGO_LOG_LEVEL_NONE,
+REGO_LOG_LEVEL_ERROR, REGO_LOG_LEVEL_OUTPUT,
+REGO_LOG_LEVEL_WARN, REGO_LOG_LEVEL_INFO,
+REGO_LOG_LEVEL_DEBUG, REGO_LOG_LEVEL_TRACE.
+@return REGO_OK if successful, REGO_ERROR_INVALID_LOG_LEVEL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetQuery.html" title="fn regorust::regoSetQuery">regoSetQuery</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets the query for the interpreter.
+@details
+By using this method, a query can be set such that it is included as a
+default entrypoint in a bundle.
+@param rego The interpreter
+@param query_expr A Rego query expression
+@return REGO_OK if successful, REGO_ERROR if there was a problem parsing
+the query</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetStrictBuiltInErrors.html" title="fn regorust::regoSetStrictBuiltInErrors">regoSetStrictBuiltInErrors</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets whether the built-ins should throw errors.
+@details
+When strict built-in errors are enabled, built-in functions will throw
+errors when they encounter invalid input. When disabled, built-in
+functions will return undefined when they encounter invalid input.
+@param rego The interpreter.
+@param enabled Whether strict built-in errors should be enabled.</div></li><li><div class="item-name"><a class="fn" href="fn.regoSetWellFormedChecksEnabled.html" title="fn regorust::regoSetWellFormedChecksEnabled">regoSetWellFormedChecksEnabled</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Sets whether to perform well-formedness checks after each compiler
+pass.
+@details
+The interpreter has a set of well-formedness definitions which indicate
+the expected form of the AST before and after each compiler pass. This
+setting determines whether the interpreter will perform these intermediary
+checks.
+@param rego The interpreter.
+@param enabled Whether well-formedness checks should be enabled.</div></li><li><div class="item-name"><a class="fn" href="fn.regoVersion.html" title="fn regorust::regoVersion">regoVersion</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Populate a buffer with a string representing the semantic version
+of the library.
+@details
+The buffer must be large enough to hold the value. The size of the buffer
+can be determined by calling ::regoVersionSize.
+@param buffer The buffer to populate.
+@param size The size of the buffer.
+@return REGO_OK if successful, REGO_ERROR_BUFFER_TOO_SMALL otherwise.</div></li><li><div class="item-name"><a class="fn" href="fn.regoVersionSize.html" title="fn regorust::regoVersionSize">regoVersionSize</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">@brief Returns the number of bytes needed to store a 0-terminated string
+representing version.
+@details
+The value returned by this function can be used to allocate a buffer to
+pass to ::regoVersion.
+@return The number of bytes needed to store the version string.</div></li></ul><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="type" href="type.__vcrt_bool.html" title="type regorust::__vcrt_bool">__vcrt_bool</a></div></li><li><div class="item-name"><a class="type" href="type.int_fast8_t.html" title="type regorust::int_fast8_t">int_fast8_t</a></div></li><li><div class="item-name"><a class="type" href="type.int_fast16_t.html" title="type regorust::int_fast16_t">int_fast16_t</a></div></li><li><div class="item-name"><a class="type" href="type.int_fast32_t.html" title="type regorust::int_fast32_t">int_fast32_t</a></div></li><li><div class="item-name"><a class="type" href="type.int_fast64_t.html" title="type regorust::int_fast64_t">int_fast64_t</a></div></li><li><div class="item-name"><a class="type" href="type.int_least8_t.html" title="type regorust::int_least8_t">int_least8_t</a></div></li><li><div class="item-name"><a class="type" href="type.int_least16_t.html" title="type regorust::int_least16_t">int_least16_t</a></div></li><li><div class="item-name"><a class="type" href="type.int_least32_t.html" title="type regorust::int_least32_t">int_least32_t</a></div></li><li><div class="item-name"><a class="type" href="type.int_least64_t.html" title="type regorust::int_least64_t">int_least64_t</a></div></li><li><div class="item-name"><a class="type" href="type.intmax_t.html" title="type regorust::intmax_t">intmax_t</a></div></li><li><div class="item-name"><a class="type" href="type.regoBoolean.html" title="type regorust::regoBoolean">regoBoolean</a></div><div class="desc docblock-short">@brief Boolean type</div></li><li><div class="item-name"><a class="type" href="type.regoBundle.html" title="type regorust::regoBundle">regoBundle</a></div><div class="desc docblock-short">@brief Opaque bundle type</div></li><li><div class="item-name"><a class="type" href="type.regoEnum.html" title="type regorust::regoEnum">regoEnum</a></div><div class="desc docblock-short">@brief Enum type</div></li><li><div class="item-name"><a class="type" href="type.regoInput.html" title="type regorust::regoInput">regoInput</a></div><div class="desc docblock-short">@brief Opaque input type</div></li><li><div class="item-name"><a class="type" href="type.regoInt.html" title="type regorust::regoInt">regoInt</a></div><div class="desc docblock-short">@brief Integer type</div></li><li><div class="item-name"><a class="type" href="type.regoInterpreter.html" title="type regorust::regoInterpreter">regoInterpreter</a></div><div class="desc docblock-short">@brief Opaque interpreter type</div></li><li><div class="item-name"><a class="type" href="type.regoNode.html" title="type regorust::regoNode">regoNode</a></div><div class="desc docblock-short">@brief Opaque node type</div></li><li><div class="item-name"><a class="type" href="type.regoOutput.html" title="type regorust::regoOutput">regoOutput</a></div><div class="desc docblock-short">@brief Opaque output type</div></li><li><div class="item-name"><a class="type" href="type.regoSize.html" title="type regorust::regoSize">regoSize</a></div><div class="desc docblock-short">@brief Size type</div></li><li><div class="item-name"><a class="type" href="type.regoType.html" title="type regorust::regoType">regoType</a></div><div class="desc docblock-short">@brief Node Type type</div></li><li><div class="item-name"><a class="type" href="type.uint_fast8_t.html" title="type regorust::uint_fast8_t">uint_fast8_t</a></div></li><li><div class="item-name"><a class="type" href="type.uint_fast16_t.html" title="type regorust::uint_fast16_t">uint_fast16_t</a></div></li><li><div class="item-name"><a class="type" href="type.uint_fast32_t.html" title="type regorust::uint_fast32_t">uint_fast32_t</a></div></li><li><div class="item-name"><a class="type" href="type.uint_fast64_t.html" title="type regorust::uint_fast64_t">uint_fast64_t</a></div></li><li><div class="item-name"><a class="type" href="type.uint_least8_t.html" title="type regorust::uint_least8_t">uint_least8_t</a></div></li><li><div class="item-name"><a class="type" href="type.uint_least16_t.html" title="type regorust::uint_least16_t">uint_least16_t</a></div></li><li><div class="item-name"><a class="type" href="type.uint_least32_t.html" title="type regorust::uint_least32_t">uint_least32_t</a></div></li><li><div class="item-name"><a class="type" href="type.uint_least64_t.html" title="type regorust::uint_least64_t">uint_least64_t</a></div></li><li><div class="item-name"><a class="type" href="type.uintmax_t.html" title="type regorust::uintmax_t">uintmax_t</a></div></li><li><div class="item-name"><a class="type" href="type.va_list.html" title="type regorust::va_list">va_list</a></div></li><li><div class="item-name"><a class="type" href="type.wchar_t.html" title="type regorust::wchar_t">wchar_t</a></div></li></ul></section></div></main></body></html>

@@ -1,0 +1,5 @@
+<map id="rego::bundle::Statement" name="rego::bundle::Statement">
+<area shape="rect" id="Node000001" title="Represents a single IR statement." alt="" coords="5,112,166,139"/>
+<area shape="rect" id="Node000002" href="$structrego_1_1bundle_1_1Operand.html" title="Represents an operand in the IR." alt="" coords="11,5,160,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,47,88,112,83,112,83,47"/>
+</map>

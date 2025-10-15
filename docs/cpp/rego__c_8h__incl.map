@@ -1,5 +1,7 @@
 <map id="include/rego/rego_c.h" name="include/rego/rego_c.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,151,32"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="41,80,115,107"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,33,81,64,75,64,75,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="16,5,162,32"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,80,80,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,34,61,68,56,66,79,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,80,168,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="100,31,122,66,117,68,95,34"/>
 </map>

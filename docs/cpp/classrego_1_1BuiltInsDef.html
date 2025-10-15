@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;0.4.5</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -98,76 +98,68 @@ $(function(){ initResizable(false); });
 </div><!--header-->
 <div class="contents">
 
+<p>Manages the set of builtins used by an interpreter to resolve built-in calls.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="rego_8hh_source.html">rego.hh</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:abbed5b740b79053cf2adf9b3b56ea485" id="r_abbed5b740b79053cf2adf9b3b56ea485"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abbed5b740b79053cf2adf9b3b56ea485">BuiltInsDef</a> () noexcept</td></tr>
+<tr class="memitem:abbed5b740b79053cf2adf9b3b56ea485" id="r_abbed5b740b79053cf2adf9b3b56ea485"><td class="memItemLeft" align="right" valign="top"><a id="abbed5b740b79053cf2adf9b3b56ea485" name="abbed5b740b79053cf2adf9b3b56ea485"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>BuiltInsDef</b> () noexcept</td></tr>
+<tr class="memdesc:abbed5b740b79053cf2adf9b3b56ea485"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
 <tr class="separator:abbed5b740b79053cf2adf9b3b56ea485"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae44bb77a0da9a854e2446f4fac74cc0a" id="r_ae44bb77a0da9a854e2446f4fac74cc0a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae44bb77a0da9a854e2446f4fac74cc0a">is_builtin</a> (const Location &amp;name) const</td></tr>
+<tr class="memdesc:ae44bb77a0da9a854e2446f4fac74cc0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether the provided name refers to a built-in.  <br /></td></tr>
 <tr class="separator:ae44bb77a0da9a854e2446f4fac74cc0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdec4af9256b6424edd5c34668593cf9" id="r_acdec4af9256b6424edd5c34668593cf9"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acdec4af9256b6424edd5c34668593cf9">decl</a> (const Location &amp;name) const</td></tr>
+<tr class="memdesc:acdec4af9256b6424edd5c34668593cf9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the declaration node for the specified built-in.  <br /></td></tr>
+<tr class="separator:acdec4af9256b6424edd5c34668593cf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d9d00b7b19cc83e17ddc81c4ed2d72b" id="r_a1d9d00b7b19cc83e17ddc81c4ed2d72b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d9d00b7b19cc83e17ddc81c4ed2d72b">is_deprecated</a> (const Location &amp;<a class="el" href="namespacerego.html#a8a4e1c0ca79a3754c1ee8b95eabc8a5a">version</a>, const Location &amp;name) const</td></tr>
+<tr class="memdesc:a1d9d00b7b19cc83e17ddc81c4ed2d72b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether the provided builtin name is deprecated in the provided version.  <br /></td></tr>
 <tr class="separator:a1d9d00b7b19cc83e17ddc81c4ed2d72b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a356156d773ab877b8f8de0c7569d449c" id="r_a356156d773ab877b8f8de0c7569d449c"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a356156d773ab877b8f8de0c7569d449c">call</a> (const Location &amp;name, const Location &amp;<a class="el" href="namespacerego.html#a8a4e1c0ca79a3754c1ee8b95eabc8a5a">version</a>, const Nodes &amp;args)</td></tr>
+<tr class="memdesc:a356156d773ab877b8f8de0c7569d449c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls the built-in with the provided name and arguments.  <br /></td></tr>
 <tr class="separator:a356156d773ab877b8f8de0c7569d449c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a595bceb462f91e19125815e23f689527" id="r_a595bceb462f91e19125815e23f689527"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a595bceb462f91e19125815e23f689527">clear</a> ()</td></tr>
+<tr class="memitem:a595bceb462f91e19125815e23f689527" id="r_a595bceb462f91e19125815e23f689527"><td class="memItemLeft" align="right" valign="top"><a id="a595bceb462f91e19125815e23f689527" name="a595bceb462f91e19125815e23f689527"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>clear</b> ()</td></tr>
+<tr class="memdesc:a595bceb462f91e19125815e23f689527"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called to clear any persistent state or caching. <br /></td></tr>
 <tr class="separator:a595bceb462f91e19125815e23f689527"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acaa894cbf62312ee7bf3a809b5d01647" id="r_acaa894cbf62312ee7bf3a809b5d01647"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acaa894cbf62312ee7bf3a809b5d01647">register_builtin</a> (const <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> &amp;built_in)</td></tr>
+<tr class="memdesc:acaa894cbf62312ee7bf3a809b5d01647"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a built-in.  <br /></td></tr>
 <tr class="separator:acaa894cbf62312ee7bf3a809b5d01647"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7062419aa316c722204046853120d1b" id="r_ad7062419aa316c722204046853120d1b"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7062419aa316c722204046853120d1b">at</a> (const Location &amp;name) const</td></tr>
+<tr class="memdesc:ad7062419aa316c722204046853120d1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the built-in with the provided name.  <br /></td></tr>
 <tr class="separator:ad7062419aa316c722204046853120d1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a336db846bccf0689805db95e46e12017" id="r_a336db846bccf0689805db95e46e12017"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a336db846bccf0689805db95e46e12017">strict_errors</a> () const</td></tr>
+<tr class="memdesc:a336db846bccf0689805db95e46e12017"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether to throw built-in errors.  <br /></td></tr>
 <tr class="separator:a336db846bccf0689805db95e46e12017"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a0ecde945a56a29abd4b8781cc12b18" id="r_a8a0ecde945a56a29abd4b8781cc12b18"><td class="memItemLeft" align="right" valign="top"><a id="a8a0ecde945a56a29abd4b8781cc12b18" name="a8a0ecde945a56a29abd4b8781cc12b18"></a>
-<a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>strict_errors</b> (bool strict_errors)</td></tr>
+<tr class="memitem:a8a0ecde945a56a29abd4b8781cc12b18" id="r_a8a0ecde945a56a29abd4b8781cc12b18"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a0ecde945a56a29abd4b8781cc12b18">strict_errors</a> (bool strict_errors)</td></tr>
+<tr class="memdesc:a8a0ecde945a56a29abd4b8781cc12b18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether to throw built-in errors.  <br /></td></tr>
 <tr class="separator:a8a0ecde945a56a29abd4b8781cc12b18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a839b53ad13757aa9b60db5668e06bbb8" id="r_a839b53ad13757aa9b60db5668e06bbb8"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a839b53ad13757aa9b60db5668e06bbb8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a839b53ad13757aa9b60db5668e06bbb8">register_builtins</a> (const T &amp;built_ins)</td></tr>
+<tr class="memdesc:a839b53ad13757aa9b60db5668e06bbb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a set of built-ins.  <br /></td></tr>
 <tr class="separator:a839b53ad13757aa9b60db5668e06bbb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a873bb9b748d1f3d68d599c7a9aad9101" id="r_a873bb9b748d1f3d68d599c7a9aad9101"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a873bb9b748d1f3d68d599c7a9aad9101">register_standard_builtins</a> ()</td></tr>
+<tr class="memdesc:a873bb9b748d1f3d68d599c7a9aad9101"><td class="mdescLeft">&#160;</td><td class="mdescRight">This registers the "standard library" of built-ins.  <br /></td></tr>
 <tr class="separator:a873bb9b748d1f3d68d599c7a9aad9101"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad45bbe3d58d2ad9a96dbc65be88bed18" id="r_ad45bbe3d58d2ad9a96dbc65be88bed18"><td class="memItemLeft" align="right" valign="top"><a id="ad45bbe3d58d2ad9a96dbc65be88bed18" name="ad45bbe3d58d2ad9a96dbc65be88bed18"></a>
-std::map&lt; Location, <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> &gt;::const_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>begin</b> () const</td></tr>
+<tr class="memitem:ad45bbe3d58d2ad9a96dbc65be88bed18" id="r_ad45bbe3d58d2ad9a96dbc65be88bed18"><td class="memItemLeft" align="right" valign="top">std::map&lt; Location, <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> &gt;::const_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad45bbe3d58d2ad9a96dbc65be88bed18">begin</a> () const</td></tr>
+<tr class="memdesc:ad45bbe3d58d2ad9a96dbc65be88bed18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the beginning iterator for the built-ins map.  <br /></td></tr>
 <tr class="separator:ad45bbe3d58d2ad9a96dbc65be88bed18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a915f791c2e4df7792450f1e006f493c9" id="r_a915f791c2e4df7792450f1e006f493c9"><td class="memItemLeft" align="right" valign="top"><a id="a915f791c2e4df7792450f1e006f493c9" name="a915f791c2e4df7792450f1e006f493c9"></a>
-std::map&lt; Location, <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> &gt;::const_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>end</b> () const</td></tr>
+<tr class="memitem:a915f791c2e4df7792450f1e006f493c9" id="r_a915f791c2e4df7792450f1e006f493c9"><td class="memItemLeft" align="right" valign="top">std::map&lt; Location, <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> &gt;::const_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a915f791c2e4df7792450f1e006f493c9">end</a> () const</td></tr>
+<tr class="memdesc:a915f791c2e4df7792450f1e006f493c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the ending iterator for the built-ins map.  <br /></td></tr>
 <tr class="separator:a915f791c2e4df7792450f1e006f493c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a09cea6708193a4bf56a7ca03a31510a6" id="r_a09cea6708193a4bf56a7ca03a31510a6"><td class="memItemLeft" align="right" valign="top">static std::shared_ptr&lt; <a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a09cea6708193a4bf56a7ca03a31510a6">create</a> ()</td></tr>
+<tr class="memdesc:a09cea6708193a4bf56a7ca03a31510a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the standard builtin set.  <br /></td></tr>
 <tr class="separator:a09cea6708193a4bf56a7ca03a31510a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Manages the set of builtins used by an interpreter to resolve built-in calls. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="abbed5b740b79053cf2adf9b3b56ea485" name="abbed5b740b79053cf2adf9b3b56ea485"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abbed5b740b79053cf2adf9b3b56ea485">&#9670;&#160;</a></span>BuiltInsDef()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">rego::BuiltInsDef::BuiltInsDef </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Constructor. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ad7062419aa316c722204046853120d1b" name="ad7062419aa316c722204046853120d1b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad7062419aa316c722204046853120d1b">&#9670;&#160;</a></span>at()</h2>
 
@@ -182,7 +174,35 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
 <p>Gets the built-in with the provided name. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>The name of the built-in to retrieve. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The built-in with the specified name. </dd></dl>
+
+</div>
+</div>
+<a id="ad45bbe3d58d2ad9a96dbc65be88bed18" name="ad45bbe3d58d2ad9a96dbc65be88bed18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad45bbe3d58d2ad9a96dbc65be88bed18">&#9670;&#160;</a></span>begin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::map&lt; Location, <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> &gt;::const_iterator rego::BuiltInsDef::begin </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the beginning iterator for the built-ins map. </p>
+<dl class="section return"><dt>Returns</dt><dd>The beginning iterator for the built-ins map. </dd></dl>
 
 </div>
 </div>
@@ -209,34 +229,17 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Calls the built-in with the provided name and arguments.</p>
+
+<p>Calls the built-in with the provided name and arguments. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">name</td><td>The name of the built-in to call. </td></tr>
-    <tr><td class="paramname">args</td><td>The arguments to pass to the built-in. </td></tr>
     <tr><td class="paramname">version</td><td>The Rego version. </td></tr>
+    <tr><td class="paramname">args</td><td>The arguments to pass to the built-in. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The result of the built-in call. </dd></dl>
-
-</div>
-</div>
-<a id="a595bceb462f91e19125815e23f689527" name="a595bceb462f91e19125815e23f689527"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a595bceb462f91e19125815e23f689527">&#9670;&#160;</a></span>clear()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void rego::BuiltInsDef::clear </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Called to clear any persistent state or caching. </p>
 
 </div>
 </div>
@@ -262,7 +265,55 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
 <p>Creates the standard builtin set. </p>
+<dl class="section return"><dt>Returns</dt><dd>A shared pointer to the created <a class="el" href="classrego_1_1BuiltInsDef.html" title="Manages the set of builtins used by an interpreter to resolve built-in calls.">BuiltInsDef</a>. </dd></dl>
+
+</div>
+</div>
+<a id="acdec4af9256b6424edd5c34668593cf9" name="acdec4af9256b6424edd5c34668593cf9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acdec4af9256b6424edd5c34668593cf9">&#9670;&#160;</a></span>decl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::BuiltInsDef::decl </td>
+          <td>(</td>
+          <td class="paramtype">const Location &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the declaration node for the specified built-in. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>The name of the built-in. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The declaration node for the built-in, or an empty node if not found. </dd></dl>
+
+</div>
+</div>
+<a id="a915f791c2e4df7792450f1e006f493c9" name="a915f791c2e4df7792450f1e006f493c9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a915f791c2e4df7792450f1e006f493c9">&#9670;&#160;</a></span>end()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::map&lt; Location, <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> &gt;::const_iterator rego::BuiltInsDef::end </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the ending iterator for the built-ins map. </p>
+<dl class="section return"><dt>Returns</dt><dd>The ending iterator for the built-ins map. </dd></dl>
 
 </div>
 </div>
@@ -280,7 +331,8 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Determines whether the provided name refers to a built-in.</p>
+
+<p>Determines whether the provided name refers to a built-in. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">name</td><td>The name to check. </td></tr>
@@ -309,7 +361,8 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Determines whether the provided builtin name is deprecated in the provided version.</p>
+
+<p>Determines whether the provided builtin name is deprecated in the provided version. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">version</td><td>The version to check. </td></tr>
@@ -317,6 +370,7 @@ Static Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the builtin is deprecated in the specified version, otherwise false. </dd></dl>
 
 </div>
 </div>
@@ -334,13 +388,15 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Registers a built-in.</p>
+
+<p>Registers a built-in. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">built_in</td><td>The built-in to register. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to this instance. </dd></dl>
 
 </div>
 </div>
@@ -368,13 +424,15 @@ template&lt;typename T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Registers a set of built-ins.</p>
+
+<p>Registers a set of built-ins. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">built_ins</td><td>The built-ins to register. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to this instance. </dd></dl>
 
 </div>
 </div>
@@ -392,14 +450,14 @@ template&lt;typename T &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>This registers the "standard library" of built-ins.</p>
-<p>There are a number of built-ins which are provided by default. These built-ins are those documented <a href="https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions">here</a>.</p>
-<p>rego-cpp supports the following built-ins as standard: </p>
+
+<p>This registers the "standard library" of built-ins. </p>
+<p>There are a number of built-ins which are provided by default. These built-ins are those documented <a href="https://www.openpolicyagent.org/docs/policy-reference/builtins/">in the OPA docs</a>. </p><dl class="section return"><dt>Returns</dt><dd>A reference to this instance. </dd></dl>
 
 </div>
 </div>
 <a id="a336db846bccf0689805db95e46e12017" name="a336db846bccf0689805db95e46e12017"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a336db846bccf0689805db95e46e12017">&#9670;&#160;</a></span>strict_errors()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a336db846bccf0689805db95e46e12017">&#9670;&#160;</a></span>strict_errors() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -412,8 +470,35 @@ template&lt;typename T &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Whether to throw built-in errors.</p>
-<p>If true, built-in errors will be thrown as exceptions. If false, built-in errors will result in Undefined nodes. </p>
+
+<p>Whether to throw built-in errors. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if built-in errors will be thrown as exceptions, false otherwise. If true, built-in errors will be thrown as exceptions. If false, built-in errors will result in Undefined nodes. </dd></dl>
+
+</div>
+</div>
+<a id="a8a0ecde945a56a29abd4b8781cc12b18" name="a8a0ecde945a56a29abd4b8781cc12b18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a0ecde945a56a29abd4b8781cc12b18">&#9670;&#160;</a></span>strict_errors() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &amp; rego::BuiltInsDef::strict_errors </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>strict_errors</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets whether to throw built-in errors. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">strict_errors</td><td>True to throw built-in errors as exceptions, false to return Undefined nodes. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to this instance. </dd></dl>
 
 </div>
 </div>

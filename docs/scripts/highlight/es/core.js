@@ -1,6 +1,6 @@
 /*!
-  Highlight.js v11.8.0 (git: 65687a907b)
-  (c) 2006-2023 undefined and other contributors
+  Highlight.js v11.11.1 (git: 08cb242e7d)
+  (c) 2006-2025 Josh Goebel <hello@joshgoebel.com> and other contributors
   License: BSD-3-Clause
  */
 /* eslint-disable no-multi-assign */
@@ -203,8 +203,8 @@ class HTMLRenderer {
   }
 }
 
-/** @typedef {{scope?: string, language?: string, sublanguage?: boolean, children: Node[]} | string} Node */
-/** @typedef {{scope?: string, language?: string, sublanguage?: boolean, children: Node[]} } DataNode */
+/** @typedef {{scope?: string, language?: string, children: Node[]} | string} Node */
+/** @typedef {{scope?: string, language?: string, children: Node[]} } DataNode */
 /** @typedef {import('highlight.js').Emitter} Emitter */
 /**  */
 
@@ -671,28 +671,18 @@ const BINARY_NUMBER_MODE = {
   relevance: 0
 };
 const REGEXP_MODE = {
-  // this outer rule makes sure we actually have a WHOLE regex and not simply
-  // an expression such as:
-  //
-  //     3 / something
-  //
-  // (which will then blow up when regex's `illegal` sees the newline)
-  begin: /(?=\/[^/\n]*\/)/,
-  contains: [{
-    scope: 'regexp',
-    begin: /\//,
-    end: /\/[gimuy]*/,
-    illegal: /\n/,
-    contains: [
-      BACKSLASH_ESCAPE,
-      {
-        begin: /\[/,
-        end: /\]/,
-        relevance: 0,
-        contains: [BACKSLASH_ESCAPE]
-      }
-    ]
-  }]
+  scope: "regexp",
+  begin: /\/(?=[^/\n]*\/)/,
+  end: /\/[gimuy]*/,
+  contains: [
+    BACKSLASH_ESCAPE,
+    {
+      begin: /\[/,
+      end: /\]/,
+      relevance: 0,
+      contains: [BACKSLASH_ESCAPE]
+    }
+  ]
 };
 const TITLE_MODE = {
   scope: 'title',
@@ -729,30 +719,30 @@ const END_SAME_AS_BEGIN = function(mode) {
 
 var MODES = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  MATCH_NOTHING_RE: MATCH_NOTHING_RE,
-  IDENT_RE: IDENT_RE,
-  UNDERSCORE_IDENT_RE: UNDERSCORE_IDENT_RE,
-  NUMBER_RE: NUMBER_RE,
-  C_NUMBER_RE: C_NUMBER_RE,
+  APOS_STRING_MODE: APOS_STRING_MODE,
+  BACKSLASH_ESCAPE: BACKSLASH_ESCAPE,
+  BINARY_NUMBER_MODE: BINARY_NUMBER_MODE,
   BINARY_NUMBER_RE: BINARY_NUMBER_RE,
+  COMMENT: COMMENT,
+  C_BLOCK_COMMENT_MODE: C_BLOCK_COMMENT_MODE,
+  C_LINE_COMMENT_MODE: C_LINE_COMMENT_MODE,
+  C_NUMBER_MODE: C_NUMBER_MODE,
+  C_NUMBER_RE: C_NUMBER_RE,
+  END_SAME_AS_BEGIN: END_SAME_AS_BEGIN,
+  HASH_COMMENT_MODE: HASH_COMMENT_MODE,
+  IDENT_RE: IDENT_RE,
+  MATCH_NOTHING_RE: MATCH_NOTHING_RE,
+  METHOD_GUARD: METHOD_GUARD,
+  NUMBER_MODE: NUMBER_MODE,
+  NUMBER_RE: NUMBER_RE,
+  PHRASAL_WORDS_MODE: PHRASAL_WORDS_MODE,
+  QUOTE_STRING_MODE: QUOTE_STRING_MODE,
+  REGEXP_MODE: REGEXP_MODE,
   RE_STARTERS_RE: RE_STARTERS_RE,
   SHEBANG: SHEBANG,
-  BACKSLASH_ESCAPE: BACKSLASH_ESCAPE,
-  APOS_STRING_MODE: APOS_STRING_MODE,
-  QUOTE_STRING_MODE: QUOTE_STRING_MODE,
-  PHRASAL_WORDS_MODE: PHRASAL_WORDS_MODE,
-  COMMENT: COMMENT,
-  C_LINE_COMMENT_MODE: C_LINE_COMMENT_MODE,
-  C_BLOCK_COMMENT_MODE: C_BLOCK_COMMENT_MODE,
-  HASH_COMMENT_MODE: HASH_COMMENT_MODE,
-  NUMBER_MODE: NUMBER_MODE,
-  C_NUMBER_MODE: C_NUMBER_MODE,
-  BINARY_NUMBER_MODE: BINARY_NUMBER_MODE,
-  REGEXP_MODE: REGEXP_MODE,
   TITLE_MODE: TITLE_MODE,
-  UNDERSCORE_TITLE_MODE: UNDERSCORE_TITLE_MODE,
-  METHOD_GUARD: METHOD_GUARD,
-  END_SAME_AS_BEGIN: END_SAME_AS_BEGIN
+  UNDERSCORE_IDENT_RE: UNDERSCORE_IDENT_RE,
+  UNDERSCORE_TITLE_MODE: UNDERSCORE_TITLE_MODE
 });
 
 /**
@@ -1565,7 +1555,7 @@ function expandOrCloneMode(mode) {
   return mode;
 }
 
-var version = "11.8.0";
+var version = "11.11.1";
 
 class HTMLInjectionError extends Error {
   constructor(reason, html) {
@@ -1579,6 +1569,7 @@ class HTMLInjectionError extends Error {
 Syntax highlighting with language autodetection.
 https://highlightjs.org/
 */
+
 
 
 /**
@@ -2091,6 +2082,7 @@ const HLJS = function(hljs) {
       // first handler (when ignoreIllegals is true)
       if (match.type === "illegal" && lexeme === "") {
         // advance so we aren't stuck in an infinite loop
+        modeBuffer += "\n";
         return 1;
       }
 
@@ -2308,6 +2300,11 @@ const HLJS = function(hljs) {
     fire("before:highlightElement",
       { el: element, language });
 
+    if (element.dataset.highlighted) {
+      console.log("Element previously highlighted. To highlight again, first unset `dataset.highlighted`.", element);
+      return;
+    }
+
     // we should be all text, no child nodes (unescaped HTML) - this is possibly
     // an HTML injection attack - it's likely too late if this is already in
     // production (the code has likely already done its damage by the time
@@ -2334,6 +2331,7 @@ const HLJS = function(hljs) {
     const result = language ? highlight(text, { language, ignoreIllegals: true }) : highlightAuto(text);
 
     element.innerHTML = result.value;
+    element.dataset.highlighted = "yes";
     updateClassName(element, language, result.language);
     element.result = {
       language: result.language,
@@ -2378,24 +2376,23 @@ const HLJS = function(hljs) {
    * auto-highlights all pre>code elements on the page
    */
   function highlightAll() {
+    function boot() {
+      // if a highlight was requested before DOM was loaded, do now
+      highlightAll();
+    }
+
     // if we are called too early in the loading process
     if (document.readyState === "loading") {
+      // make sure the event listener is only added once
+      if (!wantsHighlight) {
+        window.addEventListener('DOMContentLoaded', boot, false);
+      }
       wantsHighlight = true;
       return;
     }
 
     const blocks = document.querySelectorAll(options.cssSelector);
     blocks.forEach(highlightElement);
-  }
-
-  function boot() {
-    // if a highlight was requested before DOM was loaded, do now
-    if (wantsHighlight) highlightAll();
-  }
-
-  // make sure we are in the browser environment
-  if (typeof window !== 'undefined' && window.addEventListener) {
-    window.addEventListener('DOMContentLoaded', boot, false);
   }
 
   /**

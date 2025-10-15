@@ -1,0 +1,342 @@
+{
+  "source_base_path": "C:/Source/rego-cpp/wrappers/dotnet",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "Rego/README.md",
+      "output": {
+        ".html": {
+          "relative_path": "Rego/README.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.Bundle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.Bundle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.Bundle",
+      "Summary": "<p sourcefile=\"api/Rego.Bundle.yml\" sourcestartlinenumber=\"1\">Encapsulates a Rego bundle, which contains compiled virtual documents and execution plans,\nthe base documents merged into a single JSON hierarchy, and assorted metadata, including the\noriginal module files.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.BundleFormat.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.BundleFormat.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.BundleFormat",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.Input.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.Input.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.Input",
+      "Summary": "<p sourcefile=\"api/Rego.Input.yml\" sourcestartlinenumber=\"1\">The Input class allows the creation of inputs to a policy without\nrequiring serialization to JSON. The interface is that of a stack,\nin which values are pushed and then various operations are used to turn\nterminal types into more complex ones like objects and arrays. When used,\nthe Input will provide the top of the stack to any downstream consumer (such as\n<xref href=\"Rego.Interpreter.SetInput(Rego.Input)\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.Interpreter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.Interpreter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.Interpreter",
+      "Summary": "<p sourcefile=\"api/Rego.Interpreter.yml\" sourcestartlinenumber=\"1\">Rego interpreter instance. This class provides methods to load modules, data, and input,\nexecute queries, and manage bundles.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.LogLevel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.LogLevel.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.LogLevel",
+      "Summary": "<p sourcefile=\"api/Rego.LogLevel.yml\" sourcestartlinenumber=\"1\">Log levels for Rego logging</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.Logging.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.Logging.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.Logging",
+      "Summary": "<p sourcefile=\"api/Rego.Logging.yml\" sourcestartlinenumber=\"1\">Logging utilities for Rego</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.Node.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.Node.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.Node",
+      "Summary": "<p sourcefile=\"api/Rego.Node.yml\" sourcestartlinenumber=\"1\">Interface for a Rego Node.</p>\n<p sourcefile=\"api/Rego.Node.yml\" sourcestartlinenumber=\"3\">Rego Nodes are the basic building blocks of a Rego result. They\nexist in a tree structure. Each node has a kind, which is one of\nthe variants of <xref href=\"Rego.NodeType\" data-throw-if-not-resolved=\"false\"></xref>. Each node also has zero or more\nchildren, which are also nodes.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.NodeType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.NodeType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.NodeType",
+      "Summary": "<p sourcefile=\"api/Rego.NodeType.yml\" sourcestartlinenumber=\"1\">Node types for Rego AST nodes</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.Output.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.Output.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.Output",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.RegoBundleHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.RegoBundleHandle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.RegoBundleHandle",
+      "Summary": "<p sourcefile=\"api/Rego.RegoBundleHandle.yml\" sourcestartlinenumber=\"1\">Handle wrapping the pointer to the native Rego bundle object</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.RegoException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.RegoException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.RegoException",
+      "Summary": "<p sourcefile=\"api/Rego.RegoException.yml\" sourcestartlinenumber=\"1\">Exception thrown for errors returned from the Rego library</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.RegoHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.RegoHandle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.RegoHandle",
+      "Summary": "<p sourcefile=\"api/Rego.RegoHandle.yml\" sourcestartlinenumber=\"1\">Handle wrapping the pointer to the native Rego interpreter object</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.RegoInputHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.RegoInputHandle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.RegoInputHandle",
+      "Summary": "<p sourcefile=\"api/Rego.RegoInputHandle.yml\" sourcestartlinenumber=\"1\">Handle wrapping the pointer to the native Rego input object</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.RegoNull.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.RegoNull.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.RegoNull",
+      "Summary": "<p sourcefile=\"api/Rego.RegoNull.yml\" sourcestartlinenumber=\"1\">Represents a null value in Rego</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.RegoOutputHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.RegoOutputHandle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego.RegoOutputHandle",
+      "Summary": "<p sourcefile=\"api/Rego.RegoOutputHandle.yml\" sourcestartlinenumber=\"1\">Handle wrapping the pointer to the native Rego output object</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Rego.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Rego.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Rego",
+      "Summary": null
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/introduction.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/introduction.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "docs/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "docs/toc.html"
+        },
+        ".json": {
+          "relative_path": "docs/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/rego_icon.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/rego_icon.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/rego_icon.svg",
+      "output": {
+        "resource": {
+          "relative_path": "images/rego_icon.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

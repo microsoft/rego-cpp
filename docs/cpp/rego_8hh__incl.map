@@ -1,0 +1,17 @@
+<map id="include/rego/rego.hh" name="include/rego/rego.hh">
+<area shape="rect" id="Node000001" title="Contains the C++ API for the Rego library. This namespace provides the C++ API for the library...." alt="" coords="269,5,408,32"/>
+<area shape="rect" id="Node000002" href="$rego__c_8h.html" title=" " alt="" coords="54,80,125,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="296,35,141,80,139,75,294,30"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="148,80,262,107"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="317,35,243,75,240,70,314,30"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="286,80,391,107"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="341,33,341,64,336,64,336,33"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="414,80,511,107"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="361,30,429,70,427,74,359,35"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="535,80,643,107"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="383,30,531,73,530,78,381,35"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,155,80,181"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="83,109,61,143,56,140,79,106"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="104,155,168,181"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="100,106,122,140,117,143,95,109"/>
+</map>

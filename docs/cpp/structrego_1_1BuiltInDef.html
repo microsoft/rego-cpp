@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;0.4.5</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -99,31 +99,58 @@ $(function(){ initResizable(false); });
 </div><!--header-->
 <div class="contents">
 
+<p>Struct which defines a built-in function.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="rego_8hh_source.html">rego.hh</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a890e9d75fcdc26d3424de7a4dff43df2" id="r_a890e9d75fcdc26d3424de7a4dff43df2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a890e9d75fcdc26d3424de7a4dff43df2">BuiltInDef</a> (Location name_, std::size_t arity_, <a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a> behavior_)</td></tr>
-<tr class="separator:a890e9d75fcdc26d3424de7a4dff43df2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a992f2b9f4bdca6dbbc431fe3f6123dc7" id="r_a992f2b9f4bdca6dbbc431fe3f6123dc7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a992f2b9f4bdca6dbbc431fe3f6123dc7">clear</a> ()</td></tr>
+<tr class="memitem:ade8d6d5bb39580777bb4089e8acdf8b4" id="r_ade8d6d5bb39580777bb4089e8acdf8b4"><td class="memItemLeft" align="right" valign="top"><a id="ade8d6d5bb39580777bb4089e8acdf8b4" name="ade8d6d5bb39580777bb4089e8acdf8b4"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>BuiltInDef</b> (Location name_, Node decl_, <a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a> behavior_, bool available_)</td></tr>
+<tr class="memdesc:ade8d6d5bb39580777bb4089e8acdf8b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
+<tr class="separator:ade8d6d5bb39580777bb4089e8acdf8b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a992f2b9f4bdca6dbbc431fe3f6123dc7" id="r_a992f2b9f4bdca6dbbc431fe3f6123dc7"><td class="memItemLeft" align="right" valign="top"><a id="a992f2b9f4bdca6dbbc431fe3f6123dc7" name="a992f2b9f4bdca6dbbc431fe3f6123dc7"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>clear</b> ()</td></tr>
+<tr class="memdesc:a992f2b9f4bdca6dbbc431fe3f6123dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called to clear any persistent state or caching. <br /></td></tr>
 <tr class="separator:a992f2b9f4bdca6dbbc431fe3f6123dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:afe42c3b9ebfbd569538f8e3b9fd26495" id="r_afe42c3b9ebfbd569538f8e3b9fd26495"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afe42c3b9ebfbd569538f8e3b9fd26495">create</a> (const Location &amp;<a class="el" href="#afada2c94fd89fd8e0dfd47cd58a46a3d">name</a>, std::size_t <a class="el" href="#af789e661faf72321dd091fa2b712dcb3">arity</a>, <a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a> <a class="el" href="#aded779c480058b167a6e83d3ced8604e">behavior</a>)</td></tr>
-<tr class="separator:afe42c3b9ebfbd569538f8e3b9fd26495"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3780a73305a300b57bef4ff8ca9e409" id="r_af3780a73305a300b57bef4ff8ca9e409"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3780a73305a300b57bef4ff8ca9e409">create</a> (const Location &amp;<a class="el" href="#afada2c94fd89fd8e0dfd47cd58a46a3d">name</a>, Node <a class="el" href="#a0c7453eb09e3c0ad59eb371a5e2065ff">decl</a>, <a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a> <a class="el" href="#aded779c480058b167a6e83d3ced8604e">behavior</a>)</td></tr>
+<tr class="memdesc:af3780a73305a300b57bef4ff8ca9e409"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new built-in.  <br /></td></tr>
+<tr class="separator:af3780a73305a300b57bef4ff8ca9e409"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a5f5968bd30c8bd648b0e1fdf781154" id="r_a7a5f5968bd30c8bd648b0e1fdf781154"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7a5f5968bd30c8bd648b0e1fdf781154">create</a> (const Location &amp;<a class="el" href="#afada2c94fd89fd8e0dfd47cd58a46a3d">name</a>, size_t <a class="el" href="#af789e661faf72321dd091fa2b712dcb3">arity</a>, <a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a> <a class="el" href="#aded779c480058b167a6e83d3ced8604e">behavior</a>)</td></tr>
+<tr class="memdesc:a7a5f5968bd30c8bd648b0e1fdf781154"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new built-in.  <br /></td></tr>
+<tr class="separator:a7a5f5968bd30c8bd648b0e1fdf781154"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2735b37bd9f2d2d2332972b53eba2f7" id="r_aa2735b37bd9f2d2d2332972b53eba2f7"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa2735b37bd9f2d2d2332972b53eba2f7">placeholder</a> (const Location &amp;<a class="el" href="#afada2c94fd89fd8e0dfd47cd58a46a3d">name</a>, Node <a class="el" href="#a0c7453eb09e3c0ad59eb371a5e2065ff">decl</a>, const std::string &amp;message)</td></tr>
+<tr class="memdesc:aa2735b37bd9f2d2d2332972b53eba2f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a placeholder for a built-in which is not available on this platform.  <br /></td></tr>
+<tr class="separator:aa2735b37bd9f2d2d2332972b53eba2f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:afada2c94fd89fd8e0dfd47cd58a46a3d" id="r_afada2c94fd89fd8e0dfd47cd58a46a3d"><td class="memItemLeft" align="right" valign="top">Location&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afada2c94fd89fd8e0dfd47cd58a46a3d">name</a></td></tr>
+<tr class="memitem:afada2c94fd89fd8e0dfd47cd58a46a3d" id="r_afada2c94fd89fd8e0dfd47cd58a46a3d"><td class="memItemLeft" align="right" valign="top"><a id="afada2c94fd89fd8e0dfd47cd58a46a3d" name="afada2c94fd89fd8e0dfd47cd58a46a3d"></a>
+Location&#160;</td><td class="memItemRight" valign="bottom"><b>name</b></td></tr>
+<tr class="memdesc:afada2c94fd89fd8e0dfd47cd58a46a3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name used to match against expression calls in the rego program. <br /></td></tr>
 <tr class="separator:afada2c94fd89fd8e0dfd47cd58a46a3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c7453eb09e3c0ad59eb371a5e2065ff" id="r_a0c7453eb09e3c0ad59eb371a5e2065ff"><td class="memItemLeft" align="right" valign="top"><a id="a0c7453eb09e3c0ad59eb371a5e2065ff" name="a0c7453eb09e3c0ad59eb371a5e2065ff"></a>
+Node&#160;</td><td class="memItemRight" valign="bottom"><b>decl</b></td></tr>
+<tr class="memdesc:a0c7453eb09e3c0ad59eb371a5e2065ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">The declaration node which adheres to the builtins::wf_decl well-formedness definition. <br /></td></tr>
+<tr class="separator:a0c7453eb09e3c0ad59eb371a5e2065ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af789e661faf72321dd091fa2b712dcb3" id="r_af789e661faf72321dd091fa2b712dcb3"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af789e661faf72321dd091fa2b712dcb3">arity</a></td></tr>
+<tr class="memdesc:af789e661faf72321dd091fa2b712dcb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of expected arguments.  <br /></td></tr>
 <tr class="separator:af789e661faf72321dd091fa2b712dcb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aded779c480058b167a6e83d3ced8604e" id="r_aded779c480058b167a6e83d3ced8604e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aded779c480058b167a6e83d3ced8604e">behavior</a></td></tr>
+<tr class="memitem:aded779c480058b167a6e83d3ced8604e" id="r_aded779c480058b167a6e83d3ced8604e"><td class="memItemLeft" align="right" valign="top"><a id="aded779c480058b167a6e83d3ced8604e" name="aded779c480058b167a6e83d3ced8604e"></a>
+<a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a>&#160;</td><td class="memItemRight" valign="bottom"><b>behavior</b></td></tr>
+<tr class="memdesc:aded779c480058b167a6e83d3ced8604e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The function which will be called when the built-in is evaluated. <br /></td></tr>
 <tr class="separator:aded779c480058b167a6e83d3ced8604e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a01fa42dd9aedf8b4147d687dea17720c" id="r_a01fa42dd9aedf8b4147d687dea17720c"><td class="memItemLeft" align="right" valign="top"><a id="a01fa42dd9aedf8b4147d687dea17720c" name="a01fa42dd9aedf8b4147d687dea17720c"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>available</b></td></tr>
+<tr class="memdesc:a01fa42dd9aedf8b4147d687dea17720c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the builtin is available. <br /></td></tr>
+<tr class="separator:a01fa42dd9aedf8b4147d687dea17720c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Struct which defines a built-in function.</p>
+<div class="textblock"><p>Struct which defines a built-in function. </p>
 <p>You can extend Rego by registering your own built-ins. A built-in is a function which is called by Rego during evaluation. Built-ins are called with a vector of Nodes, and return a Node. The vector of Nodes contains the arguments passed to the built-in. The Node returned by the built-in is the result of the built-in's evaluation.</p>
 <p>Here is an example built-in which performs addition:</p>
 <div class="fragment"><div class="line">Node add(<span class="keyword">const</span> Nodes&amp; args)</div>
@@ -135,7 +162,7 @@ Public Attributes</h2></td></tr>
 <div class="line"> </div>
 <div class="line">  Node b = <a class="code hl_function" href="namespacerego.html#a4bbc90866d749c37f7f7d04c7c98af84">unwrap_arg</a>(args, UnwrapOpt(1).types({Int, Float}));</div>
 <div class="line">  <span class="keywordflow">if</span>(b.type() == Error){</div>
-<div class="line">   <span class="keywordflow">return</span> b;</div>
+<div class="line">    <span class="keywordflow">return</span> b;</div>
 <div class="line">  }</div>
 <div class="line"> </div>
 <div class="line">  <span class="keywordflow">if</span>(a.type() == Int &amp;&amp; b.type() == Int)</div>
@@ -145,71 +172,29 @@ Public Attributes</h2></td></tr>
 <div class="line"> </div>
 <div class="line">  <span class="keywordflow">return</span> <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">scalar</a>(<a class="code hl_function" href="namespacerego.html#a477a2c57792c1283ae69433e154a03ca">get_double</a>(a) + <a class="code hl_function" href="namespacerego.html#a477a2c57792c1283ae69433e154a03ca">get_double</a>(b));</div>
 <div class="line">}</div>
-<div class="ttc" id="aclassrego_1_1UnwrapOpt_html"><div class="ttname"><a href="classrego_1_1UnwrapOpt.html">rego::UnwrapOpt</a></div><div class="ttdef"><b>Definition</b> rego.hh:311</div></div>
-<div class="ttc" id="anamespacerego_html_a0f699011db385484155281fb1d9bc719"><div class="ttname"><a href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a></div><div class="ttdeci">Node scalar()</div></div>
-<div class="ttc" id="anamespacerego_html_a47722fa721bf328696deb469f70f3bcb"><div class="ttname"><a href="namespacerego.html#a47722fa721bf328696deb469f70f3bcb">rego::get_int</a></div><div class="ttdeci">BigInt get_int(const Node &amp;node)</div></div>
-<div class="ttc" id="anamespacerego_html_a477a2c57792c1283ae69433e154a03ca"><div class="ttname"><a href="namespacerego.html#a477a2c57792c1283ae69433e154a03ca">rego::get_double</a></div><div class="ttdeci">double get_double(const Node &amp;node)</div></div>
-<div class="ttc" id="anamespacerego_html_a4bbc90866d749c37f7f7d04c7c98af84"><div class="ttname"><a href="namespacerego.html#a4bbc90866d749c37f7f7d04c7c98af84">rego::unwrap_arg</a></div><div class="ttdeci">Node unwrap_arg(const Nodes &amp;args, const UnwrapOpt &amp;options)</div></div>
-</div><!-- fragment --><p>Note that there are several helper methods and objects to aid in writing managing nodes and wrapping/unwrapping them into basic types. Once a method like the above has been written, use <a class="el" href="#afe42c3b9ebfbd569538f8e3b9fd26495">BuiltInDef::create</a> following way: </p><div class="fragment"><div class="line">builtins.register_builtin(<a class="code hl_function" href="#afe42c3b9ebfbd569538f8e3b9fd26495">BuiltInDef::create</a>(Location(<span class="stringliteral">&quot;add&quot;</span>), 2, add))</div>
-<div class="ttc" id="astructrego_1_1BuiltInDef_html_afe42c3b9ebfbd569538f8e3b9fd26495"><div class="ttname"><a href="#afe42c3b9ebfbd569538f8e3b9fd26495">rego::BuiltInDef::create</a></div><div class="ttdeci">static BuiltIn create(const Location &amp;name, std::size_t arity, BuiltInBehavior behavior)</div></div>
-</div><!-- fragment --><p>Then, during evaluation, any call to the built-in <code>add</code> will be handled by the <code>add</code> function. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a890e9d75fcdc26d3424de7a4dff43df2" name="a890e9d75fcdc26d3424de7a4dff43df2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a890e9d75fcdc26d3424de7a4dff43df2">&#9670;&#160;</a></span>BuiltInDef()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">rego::BuiltInDef::BuiltInDef </td>
-          <td>(</td>
-          <td class="paramtype">Location</td>          <td class="paramname"><span class="paramname"><em>name_</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em>arity_</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a></td>          <td class="paramname"><span class="paramname"><em>behavior_</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Constructor. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="a992f2b9f4bdca6dbbc431fe3f6123dc7" name="a992f2b9f4bdca6dbbc431fe3f6123dc7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a992f2b9f4bdca6dbbc431fe3f6123dc7">&#9670;&#160;</a></span>clear()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void rego::BuiltInDef::clear </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Called to clear any persistent state or caching. </p>
-
-</div>
-</div>
-<a id="afe42c3b9ebfbd569538f8e3b9fd26495" name="afe42c3b9ebfbd569538f8e3b9fd26495"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe42c3b9ebfbd569538f8e3b9fd26495">&#9670;&#160;</a></span>create()</h2>
+<div class="line"> </div>
+<div class="line">Node add_decl =</div>
+<div class="line">  bi::Decl &lt;&lt; (bi::ArgSeq &lt;&lt; (bi::Arg &lt;&lt; (bi::Name ^ <span class="stringliteral">&quot;a&quot;</span>) &lt;&lt;</div>
+<div class="line">  bi::Description</div>
+<div class="line">                                      &lt;&lt; (bi::Type &lt;&lt; bi::Number))</div>
+<div class="line">                          &lt;&lt; (bi::Arg &lt;&lt; (bi::Name ^ <span class="stringliteral">&quot;b&quot;</span>) &lt;&lt;</div>
+<div class="line">                          bi::Description</div>
+<div class="line">                                      &lt;&lt; (bi::Type &lt;&lt; bi::Number)))</div>
+<div class="line">           &lt;&lt; (bi::Result &lt;&lt; (bi::Name ^ <span class="stringliteral">&quot;result&quot;</span>)</div>
+<div class="line">                          &lt;&lt; (bi::Description ^ <span class="stringliteral">&quot;The sum of `a` and `b`.&quot;</span>)</div>
+<div class="line">                          &lt;&lt; (bi::Type &lt;&lt; bi::Number));</div>
+<div class="ttc" id="aclassrego_1_1UnwrapOpt_html"><div class="ttname"><a href="classrego_1_1UnwrapOpt.html">rego::UnwrapOpt</a></div><div class="ttdoc">Options for unwrapping an argument.</div><div class="ttdef"><b>Definition</b> rego.hh:419</div></div>
+<div class="ttc" id="anamespacerego_html_a0f699011db385484155281fb1d9bc719"><div class="ttname"><a href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a></div><div class="ttdeci">Node scalar()</div><div class="ttdoc">Creates a null scalar.</div></div>
+<div class="ttc" id="anamespacerego_html_a47722fa721bf328696deb469f70f3bcb"><div class="ttname"><a href="namespacerego.html#a47722fa721bf328696deb469f70f3bcb">rego::get_int</a></div><div class="ttdeci">BigInt get_int(const Node &amp;node)</div><div class="ttdoc">Extracts the value of a node as an integer.</div></div>
+<div class="ttc" id="anamespacerego_html_a477a2c57792c1283ae69433e154a03ca"><div class="ttname"><a href="namespacerego.html#a477a2c57792c1283ae69433e154a03ca">rego::get_double</a></div><div class="ttdeci">double get_double(const Node &amp;node)</div><div class="ttdoc">Extracts the value of a node as an double.</div></div>
+<div class="ttc" id="anamespacerego_html_a4bbc90866d749c37f7f7d04c7c98af84"><div class="ttname"><a href="namespacerego.html#a4bbc90866d749c37f7f7d04c7c98af84">rego::unwrap_arg</a></div><div class="ttdeci">Node unwrap_arg(const Nodes &amp;args, const UnwrapOpt &amp;options)</div><div class="ttdoc">Unwraps an argument from the provided vector of nodes.</div></div>
+</div><!-- fragment --><p>Note that there are several helper methods and objects to aid in writing managing nodes and wrapping/unwrapping them into basic types. Once a method like the above has been written, use <a class="el" href="#af3780a73305a300b57bef4ff8ca9e409" title="Creates a new built-in.">BuiltInDef::create</a> following way: </p><div class="fragment"><div class="line">builtins.register_builtin(<a class="code hl_function" href="#af3780a73305a300b57bef4ff8ca9e409">BuiltInDef::create</a>(Location(<span class="stringliteral">&quot;myadd&quot;</span>), add_decl,</div>
+<div class="line">add))</div>
+<div class="ttc" id="astructrego_1_1BuiltInDef_html_af3780a73305a300b57bef4ff8ca9e409"><div class="ttname"><a href="#af3780a73305a300b57bef4ff8ca9e409">rego::BuiltInDef::create</a></div><div class="ttdeci">static BuiltIn create(const Location &amp;name, Node decl, BuiltInBehavior behavior)</div><div class="ttdoc">Creates a new built-in.</div></div>
+</div><!-- fragment --><p>Then, during evaluation, any call to the built-in <code>myadd</code> will be handled by the <code>myadd</code> function. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="af3780a73305a300b57bef4ff8ca9e409" name="af3780a73305a300b57bef4ff8ca9e409"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3780a73305a300b57bef4ff8ca9e409">&#9670;&#160;</a></span>create() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -225,7 +210,7 @@ Public Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em>arity</em></span>, </td>
+          <td class="paramtype">Node</td>          <td class="paramname"><span class="paramname"><em>decl</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -239,13 +224,105 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Creates a new built-in.</p>
-<p>BuiltIn is a pointer to a <a class="el" href="structrego_1_1BuiltInDef.html">BuiltInDef</a>.</p>
+
+<p>Creates a new built-in. </p>
+<p>The <code>decl</code> node adheres to the <code>builtins::wf_decl</code> well-formedness definition. BuiltIn is a pointer to a <a class="el" href="structrego_1_1BuiltInDef.html" title="Struct which defines a built-in function.">BuiltInDef</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>The name of the built-in. </td></tr>
+    <tr><td class="paramname">decl</td><td>Metadata and documentation for the built-in. </td></tr>
+    <tr><td class="paramname">behavior</td><td>The function which will be called when the built-in is evaluated. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The built-in. </dd></dl>
+
+</div>
+</div>
+<a id="a7a5f5968bd30c8bd648b0e1fdf781154" name="a7a5f5968bd30c8bd648b0e1fdf781154"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a5f5968bd30c8bd648b0e1fdf781154">&#9670;&#160;</a></span>create() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> rego::BuiltInDef::create </td>
+          <td>(</td>
+          <td class="paramtype">const Location &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>arity</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a></td>          <td class="paramname"><span class="paramname"><em>behavior</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates a new built-in. </p>
+<p>An empty decl node with the correct arity and a return type of <code>Any</code> will be automatically created from the arity argument. /// </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000001">Deprecated</a></b></dt><dd></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">name</td><td>The name of the built-in. </td></tr>
-    <tr><td class="paramname">arity</td><td>The number of arguments expected by the built-in. </td></tr>
+    <tr><td class="paramname">arity</td><td>Number of arguments to the builtin </td></tr>
     <tr><td class="paramname">behavior</td><td>The function which will be called when the built-in is evaluated. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The built-in. </dd></dl>
+
+</div>
+</div>
+<a id="aa2735b37bd9f2d2d2332972b53eba2f7" name="aa2735b37bd9f2d2d2332972b53eba2f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2735b37bd9f2d2d2332972b53eba2f7">&#9670;&#160;</a></span>placeholder()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="namespacerego.html#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> rego::BuiltInDef::placeholder </td>
+          <td>(</td>
+          <td class="paramtype">const Location &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Node</td>          <td class="paramname"><span class="paramname"><em>decl</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>message</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates a placeholder for a built-in which is not available on this platform. </p>
+<p>The <code>decl</code> node adheres to the <code>builtins::wf_decl</code> well-formedness definition. BuiltIn is a pointer to a <a class="el" href="structrego_1_1BuiltInDef.html" title="Struct which defines a built-in function.">BuiltInDef</a>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>The name of the built-in. </td></tr>
+    <tr><td class="paramname">decl</td><td>Metadata and documentation for the built-in. </td></tr>
+    <tr><td class="paramname">message</td><td>The message to include in the error when the built-in is called. </td></tr>
   </table>
   </dd>
 </dl>
@@ -265,38 +342,9 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The number of expected arguments.</p>
+
+<p>The number of expected arguments. </p>
 <p>If any number of arguments can be provided, use the constant AnyArity. </p>
-
-</div>
-</div>
-<a id="aded779c480058b167a6e83d3ced8604e" name="aded779c480058b167a6e83d3ced8604e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aded779c480058b167a6e83d3ced8604e">&#9670;&#160;</a></span>behavior</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacerego.html#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a> rego::BuiltInDef::behavior</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The function which will be called when the built-in is evaluated. </p>
-
-</div>
-</div>
-<a id="afada2c94fd89fd8e0dfd47cd58a46a3d" name="afada2c94fd89fd8e0dfd47cd58a46a3d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afada2c94fd89fd8e0dfd47cd58a46a3d">&#9670;&#160;</a></span>name</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Location rego::BuiltInDef::name</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The name used to match against expression calls in the rego program. </p>
 
 </div>
 </div>

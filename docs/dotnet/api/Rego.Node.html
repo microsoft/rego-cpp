@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Node | Rego </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Node | Rego ">
+      
+      <meta name="description" content="Interface for a Rego Node. Rego Nodes are the basic building blocks of a Rego result. They exist in a tree structure. Each node has a kind, which is one of the variants of . Each node also has zero or more children, which are also nodes.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/rego_icon.svg" alt="Rego">
+            Rego
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Rego.Node">
+
+
+
+  <h1 id="Rego_Node" data-uid="Rego.Node" class="text-break">
+Class Node  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Rego.html">Rego</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Rego.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Interface for a Rego Node.</p>
+<p>Rego Nodes are the basic building blocks of a Rego result. They
+exist in a tree structure. Each node has a kind, which is one of
+the variants of <a class="xref" href="Rego.NodeType.html">NodeType</a>. Each node also has zero or more
+children, which are also nodes.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class Node : IList&lt;Node&gt;, ICollection&lt;Node&gt;, IEnumerable&lt;Node&gt;, IEnumerable</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Node</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1">IList</a>&lt;<a class="xref" href="Rego.Node.html">Node</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1">ICollection</a>&lt;<a class="xref" href="Rego.Node.html">Node</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1">IEnumerable</a>&lt;<a class="xref" href="Rego.Node.html">Node</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.ienumerable">IEnumerable</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+  <h2 id="Rego_Node_examples">Examples</h2>
+  <pre><code class="lang-csharp">Interpreter rego = new();
+var output = rego.Query("""x={"a": 10, "b": "20", "c": [30.5, 60], "d": true, "e": null}""");
+var x = output.Binding("x");
+Console.WriteLine(x);
+// {"a":10, "b":"20", "c":[30.5,60], "d":true, "e":null}
+
+Console.WriteLine(x["a"]);
+// 10
+
+Console.WriteLine(x["b"]);
+// "20"
+
+Console.WriteLine(x["c"][0]);
+// 30.5
+
+Console.WriteLine(x["c"][1]);
+// 60
+
+Console.WriteLine(x["d"]);
+// true
+
+Console.WriteLine(x["e"]);
+// null</code></pre>
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Rego_Node_Count_" data-uid="Rego.Node.Count*"></a>
+
+  <h3 id="Rego_Node_Count" data-uid="Rego.Node.Count">
+  Count
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L614"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The number of child nodes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Count { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_IsReadOnly_" data-uid="Rego.Node.IsReadOnly*"></a>
+
+  <h3 id="Rego_Node_IsReadOnly" data-uid="Rego.Node.IsReadOnly">
+  IsReadOnly
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L512"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Indicates whether the collection is read-only. This is always true.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsReadOnly { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_Item_" data-uid="Rego.Node.Item*"></a>
+
+  <h3 id="Rego_Node_Item_System_Object_" data-uid="Rego.Node.Item(System.Object)">
+  this[object]
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L552"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a child node by key or index.
+If the node is a Term, the first child is used as the base node.
+If the node is an Object or Set, the child with the specified key is returned.
+If the node is an Array, Terms, or Results, the child at the specified index is returned.
+For other node types, an exception is thrown.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Node this[object key] { get; set; }</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>key</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>the key or index of the child node</p>
+</dd>
+  </dl>
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd><p>the child node</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd></dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.notsupportedexception">NotSupportedException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_Keys_" data-uid="Rego.Node.Keys*"></a>
+
+  <h3 id="Rego_Node_Keys" data-uid="Rego.Node.Keys">
+  Keys
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L663"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The keys of the child nodes, if this node is an Object or Set.
+If the node is a Term, the first child is used as the base node.
+For other node types, an empty collection is returned.
+The keys are the JSON representation of the child nodes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ICollection&lt;string&gt; Keys { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icollection-1">ICollection</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_Pointer_" data-uid="Rego.Node.Pointer*"></a>
+
+  <h3 id="Rego_Node_Pointer" data-uid="Rego.Node.Pointer">
+  Pointer
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L256"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Pointer to the underlying native node.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public nint Pointer { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.intptr">nint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_Type_" data-uid="Rego.Node.Type*"></a>
+
+  <h3 id="Rego_Node_Type" data-uid="Rego.Node.Type">
+  Type
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L267"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The type of this node.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NodeType Type { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Rego.NodeType.html">NodeType</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_Value_" data-uid="Rego.Node.Value*"></a>
+
+  <h3 id="Rego_Node_Value" data-uid="Rego.Node.Value">
+  Value
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L296"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The value of this node, if it is a scalar type (int, float, string, true, false, null).
+If the node is a Term or Scalar, the value of the first child is returned.
+For other node types, an exception is thrown.
+The value is cached after the first call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public object Value { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <h4 class="section" id="Rego_Node_Value_examples">Examples</h4>
+  <pre><code class="lang-csharp">Interpreter rego = new();
+var output = rego.Query("""x=10; y="20"; z=true""");
+Console.WriteLine(output.Binding("x").Value);
+// 10
+
+Console.WriteLine(output.Binding("y").Value);
+// "20"
+
+Console.WriteLine(output.Binding("z").Value);
+// True</code></pre>
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Rego.RegoException.html">RegoException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Rego_Node_Add_" data-uid="Rego.Node.Add*"></a>
+
+  <h3 id="Rego_Node_Add_Rego_Node_" data-uid="Rego.Node.Add(Rego.Node)">
+  Add(Node)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L439"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Adds a child node. This is not supported and will always throw an exception.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Add(Node value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.notsupportedexception">NotSupportedException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_At_" data-uid="Rego.Node.At*"></a>
+
+  <h3 id="Rego_Node_At_System_Int32_" data-uid="Rego.Node.At(System.Int32)">
+  At(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L360"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the child node at the specified index.
+If the node is a Term, the first child is returned.
+The child node is cached after the first call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Node At(int index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Index of the child node</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd><p>The child node at the specified index</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.indexoutofrangeexception">IndexOutOfRangeException</a></dt>
+    <dd></dd>
+    <dt><a class="xref" href="Rego.RegoException.html">RegoException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_Clear_" data-uid="Rego.Node.Clear*"></a>
+
+  <h3 id="Rego_Node_Clear" data-uid="Rego.Node.Clear">
+  Clear()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L448"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears all child nodes. This is not supported and will always throw an exception.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Clear()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.notsupportedexception">NotSupportedException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_Contains_" data-uid="Rego.Node.Contains*"></a>
+
+  <h3 id="Rego_Node_Contains_Rego_Node_" data-uid="Rego.Node.Contains(Rego.Node)">
+  Contains(Node)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L461"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks if the specified node is a child of this node.
+If the node is a Term, the first child is used as the base node.
+For other node types, the child nodes are checked.
+The comparison is done by comparing the JSON representation of the nodes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Contains(Node value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd><p>the <a class="xref" href="Rego.Node.html">Node</a> to check</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>whether the node is a child of this node</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_ContainsKey_" data-uid="Rego.Node.ContainsKey*"></a>
+
+  <h3 id="Rego_Node_ContainsKey_System_Object_" data-uid="Rego.Node.ContainsKey(System.Object)">
+  ContainsKey(object)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L680"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks if the specified key exists in the child nodes.
+If the node is a Term, the first child is used as the base node.
+If the node is an Object or Set, the keys are checked.
+For other node types, an exception is thrown.
+The comparison is done by comparing the JSON representation of the keys.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool ContainsKey(object key)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>key</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>the key to check</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>true if the key exists; otherwise, false</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_CopyTo_" data-uid="Rego.Node.CopyTo*"></a>
+
+  <h3 id="Rego_Node_CopyTo_Rego_Node___System_Int32_" data-uid="Rego.Node.CopyTo(Rego.Node[],System.Int32)">
+  CopyTo(Node[], int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L603"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copies the child nodes to the specified array, starting at the specified index.
+If the node is a Term, the first child is used as the base node.
+For other node types, the child nodes are copied.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void CopyTo(Node[] array, int index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>array</code> <a class="xref" href="Rego.Node.html">Node</a>[]</dt>
+    <dd><p>The array to copy the child nodes to.</p>
+</dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The zero-based index at which copying begins.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_GetEnumerator_" data-uid="Rego.Node.GetEnumerator*"></a>
+
+  <h3 id="Rego_Node_GetEnumerator" data-uid="Rego.Node.GetEnumerator">
+  GetEnumerator()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L647"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns an enumerator that iterates through the child nodes.
+If the node is a Term, the first child is used as the base node.
+For other node types, the child nodes are iterated.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IEnumerator&lt;Node&gt; GetEnumerator()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerator-1">IEnumerator</a>&lt;<a class="xref" href="Rego.Node.html">Node</a>&gt;</dt>
+    <dd><p>the enumerator</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_Index_" data-uid="Rego.Node.Index*"></a>
+
+  <h3 id="Rego_Node_Index_System_Int32_" data-uid="Rego.Node.Index(System.Int32)">
+  Index(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L395"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the child node at the specified index.
+If the node is a Term, the first child is used as the base node.
+If the node is an Array, Terms, or Results, the child at the specified index is returned.
+For other node types, an exception is thrown.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Node Index(int index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Index of the child node</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd><p>The child node at the specified index</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.notsupportedexception">NotSupportedException</a></dt>
+    <dd></dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.indexoutofrangeexception">IndexOutOfRangeException</a></dt>
+    <dd></dd>
+    <dt><a class="xref" href="Rego.RegoException.html">RegoException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_IndexOf_" data-uid="Rego.Node.IndexOf*"></a>
+
+  <h3 id="Rego_Node_IndexOf_Rego_Node_" data-uid="Rego.Node.IndexOf(Rego.Node)">
+  IndexOf(Node)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L484"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the index of the specified child node.
+If the node is a Term, the first child is used as the base node.
+For other node types, the child nodes are checked.
+The comparison is done by comparing the JSON representation of the nodes.
+If the node is not found, -1 is returned.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int IndexOf(Node value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd><p>the <a class="xref" href="Rego.Node.html">Node</a> to find</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>the index of the child node, or -1 if not found</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_Insert_" data-uid="Rego.Node.Insert*"></a>
+
+  <h3 id="Rego_Node_Insert_System_Int32_Rego_Node_" data-uid="Rego.Node.Insert(System.Int32,Rego.Node)">
+  Insert(int, Node)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L504"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Inserts a child node at the specified index. This is not supported and will always throw an exception.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Insert(int index, Node value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.notsupportedexception">NotSupportedException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_Lookup_" data-uid="Rego.Node.Lookup*"></a>
+
+  <h3 id="Rego_Node_Lookup_System_Object_" data-uid="Rego.Node.Lookup(System.Object)">
+  Lookup(object)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L418"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Looks up a child node by key.
+If the node is a Term, the first child is used as the base node.
+If the node is an Object or Set, the child with the specified key is returned.
+For other node types, an exception is thrown.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Node Lookup(object key)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>key</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>The key to look up.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd><p>The child node with the specified key</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.notsupportedexception">NotSupportedException</a></dt>
+    <dd></dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.keynotfoundexception">KeyNotFoundException</a></dt>
+    <dd></dd>
+    <dt><a class="xref" href="Rego.RegoException.html">RegoException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_Remove_" data-uid="Rego.Node.Remove*"></a>
+
+  <h3 id="Rego_Node_Remove_Rego_Node_" data-uid="Rego.Node.Remove(Rego.Node)">
+  Remove(Node)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L526"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Removes the specified child node. This is not supported and will always throw an exception.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Remove(Node value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.notsupportedexception">NotSupportedException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_RemoveAt_" data-uid="Rego.Node.RemoveAt*"></a>
+
+  <h3 id="Rego_Node_RemoveAt_System_Int32_" data-uid="Rego.Node.RemoveAt(System.Int32)">
+  RemoveAt(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L536"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Removes the child node at the specified index. This is not supported and will always throw an exception.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void RemoveAt(int index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.notsupportedexception">NotSupportedException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_ToJson_" data-uid="Rego.Node.ToJson*"></a>
+
+  <h3 id="Rego_Node_ToJson" data-uid="Rego.Node.ToJson">
+  ToJson()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L333"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a JSON representation of this node.
+The JSON is cached after the first call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ToJson()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>a JSON string representation of this node</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Rego.RegoException.html">RegoException</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+  <a id="Rego_Node_ToString_" data-uid="Rego.Node.ToString*"></a>
+
+  <h3 id="Rego_Node_ToString" data-uid="Rego.Node.ToString">
+  ToString()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L707"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a JSON representation of this node.
+This is the same as calling <a class="xref" href="Rego.Node.html#Rego_Node_ToJson">ToJson()</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>the JSON representation of this node</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Rego_Node_TryGetValue_" data-uid="Rego.Node.TryGetValue*"></a>
+
+  <h3 id="Rego_Node_TryGetValue_System_Object_Rego_Node__" data-uid="Rego.Node.TryGetValue(System.Object,Rego.Node@)">
+  TryGetValue(object, out Node?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/Rego/Node.cs/#L696"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Tries to get the child node with the specified key.
+If the node is a Term, the first child is used as the base node.
+If the node is an Object or Set, the keys are checked.
+For other node types, an exception is thrown.
+The comparison is done by comparing the JSON representation of the keys.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool TryGetValue(object key, out Node? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>key</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>the key to look up</p>
+</dd>
+    <dt><code>value</code> <a class="xref" href="Rego.Node.html">Node</a></dt>
+    <dd><p>when this method returns, contains the child node associated with the specified key, if the key is found; otherwise, null</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>true if the key was found; otherwise, false</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

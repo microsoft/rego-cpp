@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;0.4.5</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -92,104 +92,143 @@ $(function(){ initResizable(false); });
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#friends">Friends</a> &#124;
 <a href="classrego_1_1Interpreter-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">rego::Interpreter Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
+<p>This class forms the main interface to the Rego library.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="rego_8hh_source.html">rego.hh</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a1c202e5e771d60a223f55c4827c7dca3" id="r_a1c202e5e771d60a223f55c4827c7dca3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1c202e5e771d60a223f55c4827c7dca3">Interpreter</a> (bool v1_compatible=false)</td></tr>
-<tr class="separator:a1c202e5e771d60a223f55c4827c7dca3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e59175363a7ce01233abc4d9dcc37f3" id="r_a8e59175363a7ce01233abc4d9dcc37f3"><td class="memItemLeft" align="right" valign="top"><a id="a8e59175363a7ce01233abc4d9dcc37f3" name="a8e59175363a7ce01233abc4d9dcc37f3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Interpreter</b> ()</td></tr>
+<tr class="memdesc:a8e59175363a7ce01233abc4d9dcc37f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
+<tr class="separator:a8e59175363a7ce01233abc4d9dcc37f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb54ee54aadd0c38d2448071e18c809e" id="r_afb54ee54aadd0c38d2448071e18c809e"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afb54ee54aadd0c38d2448071e18c809e">add_module_file</a> (const std::filesystem::path &amp;path)</td></tr>
+<tr class="memdesc:afb54ee54aadd0c38d2448071e18c809e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a module (i.e. virtual document) file to the interpreter.  <br /></td></tr>
 <tr class="separator:afb54ee54aadd0c38d2448071e18c809e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a098df3a7eafd17dbd8815e9eb2666f8e" id="r_a098df3a7eafd17dbd8815e9eb2666f8e"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a098df3a7eafd17dbd8815e9eb2666f8e">add_module</a> (const std::string &amp;name, const std::string &amp;contents)</td></tr>
+<tr class="memdesc:a098df3a7eafd17dbd8815e9eb2666f8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a module (i.e. virtual document) to the interpreter.  <br /></td></tr>
 <tr class="separator:a098df3a7eafd17dbd8815e9eb2666f8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d52d74b87bab6834f12c885e4b608f5" id="r_a1d52d74b87bab6834f12c885e4b608f5"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d52d74b87bab6834f12c885e4b608f5">add_data_json_file</a> (const std::filesystem::path &amp;path)</td></tr>
+<tr class="memdesc:a1d52d74b87bab6834f12c885e4b608f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a base document to the interpreter.  <br /></td></tr>
 <tr class="separator:a1d52d74b87bab6834f12c885e4b608f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83e895fea48fd522810a64a4144e5796" id="r_a83e895fea48fd522810a64a4144e5796"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a83e895fea48fd522810a64a4144e5796">add_data_json</a> (const std::string &amp;json)</td></tr>
+<tr class="memdesc:a83e895fea48fd522810a64a4144e5796"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a base document to the interpreter.  <br /></td></tr>
 <tr class="separator:a83e895fea48fd522810a64a4144e5796"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aebadd6d41054c93f5ed71e574a7573cb" id="r_aebadd6d41054c93f5ed71e574a7573cb"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aebadd6d41054c93f5ed71e574a7573cb">add_data</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:aebadd6d41054c93f5ed71e574a7573cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a base document to the interpreter.  <br /></td></tr>
 <tr class="separator:aebadd6d41054c93f5ed71e574a7573cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2af0f7c0ff71f9e1a7587578e982426f" id="r_a2af0f7c0ff71f9e1a7587578e982426f"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2af0f7c0ff71f9e1a7587578e982426f">set_input_json_file</a> (const std::filesystem::path &amp;path)</td></tr>
+<tr class="memdesc:a2af0f7c0ff71f9e1a7587578e982426f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the input document to the interpreter.  <br /></td></tr>
 <tr class="separator:a2af0f7c0ff71f9e1a7587578e982426f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a485b982c44e4924cae92997a8d72fa8f" id="r_a485b982c44e4924cae92997a8d72fa8f"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a485b982c44e4924cae92997a8d72fa8f">set_input_json</a> (const std::string &amp;json)</td></tr>
+<tr class="memdesc:a485b982c44e4924cae92997a8d72fa8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the input document to the interpreter.  <br /></td></tr>
+<tr class="separator:a485b982c44e4924cae92997a8d72fa8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1528fc5aa42944a7fbf795f21304816d" id="r_a1528fc5aa42944a7fbf795f21304816d"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1528fc5aa42944a7fbf795f21304816d">set_input_term</a> (const std::string &amp;term)</td></tr>
+<tr class="memdesc:a1528fc5aa42944a7fbf795f21304816d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the input term of the interpreter.  <br /></td></tr>
 <tr class="separator:a1528fc5aa42944a7fbf795f21304816d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64fb70a222860e89f0968a4a8b1b5710" id="r_a64fb70a222860e89f0968a4a8b1b5710"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64fb70a222860e89f0968a4a8b1b5710">set_input</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a64fb70a222860e89f0968a4a8b1b5710"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the input document to the interpreter.  <br /></td></tr>
 <tr class="separator:a64fb70a222860e89f0968a4a8b1b5710"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afbd3e53e404bf5f43512de163da4ca80" id="r_afbd3e53e404bf5f43512de163da4ca80"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afbd3e53e404bf5f43512de163da4ca80">set_query</a> (const std::string &amp;<a class="el" href="#a1c6a203e4301576a2386c96591648309">query</a>)</td></tr>
+<tr class="memdesc:afbd3e53e404bf5f43512de163da4ca80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the query expression of the interpreter.  <br /></td></tr>
+<tr class="separator:afbd3e53e404bf5f43512de163da4ca80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f94715bf9cdde8df848cdcf5877eab0" id="r_a2f94715bf9cdde8df848cdcf5877eab0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2f94715bf9cdde8df848cdcf5877eab0">entrypoints</a> (const std::initializer_list&lt; std::string &gt; &amp;entrypoints)</td></tr>
+<tr class="memdesc:a2f94715bf9cdde8df848cdcf5877eab0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the entrypoints to include when building a bundle.  <br /></td></tr>
+<tr class="separator:a2f94715bf9cdde8df848cdcf5877eab0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9a2b3e4bd0144b2cd4c559b75511117" id="r_ad9a2b3e4bd0144b2cd4c559b75511117"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad9a2b3e4bd0144b2cd4c559b75511117">entrypoints</a> (const std::vector&lt; std::string &gt; &amp;entrypoints)</td></tr>
+<tr class="memdesc:ad9a2b3e4bd0144b2cd4c559b75511117"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the entrypoints to include when building a bundle.  <br /></td></tr>
+<tr class="separator:ad9a2b3e4bd0144b2cd4c559b75511117"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5962daa7eeb086a9adb7e044dc1eafe" id="r_aa5962daa7eeb086a9adb7e044dc1eafe"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5962daa7eeb086a9adb7e044dc1eafe">entrypoints</a> () const</td></tr>
+<tr class="memdesc:aa5962daa7eeb086a9adb7e044dc1eafe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the entrypoints to include when building a bundle.  <br /></td></tr>
+<tr class="separator:aa5962daa7eeb086a9adb7e044dc1eafe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a718e67c0efe1a5914cdcdbadafc94d46" id="r_a718e67c0efe1a5914cdcdbadafc94d46"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a718e67c0efe1a5914cdcdbadafc94d46">entrypoints</a> ()</td></tr>
+<tr class="memdesc:a718e67c0efe1a5914cdcdbadafc94d46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the entrypoints to include when building a bundle.  <br /></td></tr>
+<tr class="separator:a718e67c0efe1a5914cdcdbadafc94d46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c6a203e4301576a2386c96591648309" id="r_a1c6a203e4301576a2386c96591648309"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1c6a203e4301576a2386c96591648309">query</a> ()</td></tr>
+<tr class="memdesc:a1c6a203e4301576a2386c96591648309"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the documents against the interpreter.  <br /></td></tr>
+<tr class="separator:a1c6a203e4301576a2386c96591648309"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a075f165e8c3151a71868c8191964fc46" id="r_a075f165e8c3151a71868c8191964fc46"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a075f165e8c3151a71868c8191964fc46">query</a> (const std::string &amp;query_expr)</td></tr>
+<tr class="memdesc:a075f165e8c3151a71868c8191964fc46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query against the interpreter.  <br /></td></tr>
 <tr class="separator:a075f165e8c3151a71868c8191964fc46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af317461e913af365bfa73560ab04cf59" id="r_af317461e913af365bfa73560ab04cf59"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af317461e913af365bfa73560ab04cf59">raw_query</a> (const std::string &amp;query_expr)</td></tr>
-<tr class="separator:af317461e913af365bfa73560ab04cf59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab22f190eb758289681882dddba13e5d3" id="r_ab22f190eb758289681882dddba13e5d3"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab22f190eb758289681882dddba13e5d3">query_node</a> (const std::string &amp;query_expr)</td></tr>
+<tr class="memdesc:ab22f190eb758289681882dddba13e5d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query against the interpreter.  <br /></td></tr>
+<tr class="separator:ab22f190eb758289681882dddba13e5d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b3d9acf9aa242868dd66ee3312997b3" id="r_a9b3d9acf9aa242868dd66ee3312997b3"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9b3d9acf9aa242868dd66ee3312997b3">query_node</a> ()</td></tr>
+<tr class="memdesc:a9b3d9acf9aa242868dd66ee3312997b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query against the interpreter.  <br /></td></tr>
+<tr class="separator:a9b3d9acf9aa242868dd66ee3312997b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2f575cb2f06a4d4cbc7ee4e8c3c1987" id="r_ae2f575cb2f06a4d4cbc7ee4e8c3c1987"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2f575cb2f06a4d4cbc7ee4e8c3c1987">build</a> ()</td></tr>
+<tr class="memdesc:ae2f575cb2f06a4d4cbc7ee4e8c3c1987"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a bundle from the current state of the interpreter.  <br /></td></tr>
+<tr class="separator:ae2f575cb2f06a4d4cbc7ee4e8c3c1987"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38ab0705a7f66322fb593d0d1d3a4f4d" id="r_a38ab0705a7f66322fb593d0d1d3a4f4d"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38ab0705a7f66322fb593d0d1d3a4f4d">save_bundle</a> (const std::filesystem::path &amp;dir, const Node &amp;bundle)</td></tr>
+<tr class="memdesc:a38ab0705a7f66322fb593d0d1d3a4f4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves a bundle to a directory in JSON format.  <br /></td></tr>
+<tr class="separator:a38ab0705a7f66322fb593d0d1d3a4f4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4c346ecb8d0d26a09ae93bc91ee0a41" id="r_ad4c346ecb8d0d26a09ae93bc91ee0a41"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad4c346ecb8d0d26a09ae93bc91ee0a41">load_bundle</a> (const std::filesystem::path &amp;dir)</td></tr>
+<tr class="memdesc:ad4c346ecb8d0d26a09ae93bc91ee0a41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads a bundle in JSON format from a direction.  <br /></td></tr>
+<tr class="separator:ad4c346ecb8d0d26a09ae93bc91ee0a41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04170df975c3f4f515669ac2ba7b1945" id="r_a04170df975c3f4f515669ac2ba7b1945"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a04170df975c3f4f515669ac2ba7b1945">query_bundle</a> (const <a class="el" href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">Bundle</a> &amp;bundle)</td></tr>
+<tr class="memdesc:a04170df975c3f4f515669ac2ba7b1945"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a query against a bundle.  <br /></td></tr>
+<tr class="separator:a04170df975c3f4f515669ac2ba7b1945"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a429ed35a7bc1bf58b40b7181f799b4d0" id="r_a429ed35a7bc1bf58b40b7181f799b4d0"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a429ed35a7bc1bf58b40b7181f799b4d0">query_bundle</a> (const <a class="el" href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">Bundle</a> &amp;bundle, const std::string &amp;endpoint)</td></tr>
+<tr class="memdesc:a429ed35a7bc1bf58b40b7181f799b4d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Performs a query against a bundle.  <br /></td></tr>
+<tr class="separator:a429ed35a7bc1bf58b40b7181f799b4d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06a450331c862e3f9952998fc1ebc1a3" id="r_a06a450331c862e3f9952998fc1ebc1a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a06a450331c862e3f9952998fc1ebc1a3">debug_path</a> (const std::filesystem::path &amp;prefix)</td></tr>
+<tr class="memdesc:a06a450331c862e3f9952998fc1ebc1a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path to the debug directory.  <br /></td></tr>
 <tr class="separator:a06a450331c862e3f9952998fc1ebc1a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ae778ed2d472de72a48387f0d98ffda" id="r_a0ae778ed2d472de72a48387f0d98ffda"><td class="memItemLeft" align="right" valign="top"><a id="a0ae778ed2d472de72a48387f0d98ffda" name="a0ae778ed2d472de72a48387f0d98ffda"></a>
-const std::filesystem::path &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>debug_path</b> () const</td></tr>
+<tr class="memitem:a0ae778ed2d472de72a48387f0d98ffda" id="r_a0ae778ed2d472de72a48387f0d98ffda"><td class="memItemLeft" align="right" valign="top">const std::filesystem::path &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ae778ed2d472de72a48387f0d98ffda">debug_path</a> () const</td></tr>
+<tr class="memdesc:a0ae778ed2d472de72a48387f0d98ffda"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the debug path.  <br /></td></tr>
 <tr class="separator:a0ae778ed2d472de72a48387f0d98ffda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aedcf60964281f98971ce0275eea237e9" id="r_aedcf60964281f98971ce0275eea237e9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aedcf60964281f98971ce0275eea237e9">debug_enabled</a> (bool enabled)</td></tr>
+<tr class="memdesc:aedcf60964281f98971ce0275eea237e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether debug mode is enabled.  <br /></td></tr>
 <tr class="separator:aedcf60964281f98971ce0275eea237e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea89dfa7b582f9ea29796e7385a72c2c" id="r_aea89dfa7b582f9ea29796e7385a72c2c"><td class="memItemLeft" align="right" valign="top"><a id="aea89dfa7b582f9ea29796e7385a72c2c" name="aea89dfa7b582f9ea29796e7385a72c2c"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>debug_enabled</b> () const</td></tr>
+<tr class="memitem:aea89dfa7b582f9ea29796e7385a72c2c" id="r_aea89dfa7b582f9ea29796e7385a72c2c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea89dfa7b582f9ea29796e7385a72c2c">debug_enabled</a> () const</td></tr>
+<tr class="memdesc:aea89dfa7b582f9ea29796e7385a72c2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if debug mode is enabled.  <br /></td></tr>
 <tr class="separator:aea89dfa7b582f9ea29796e7385a72c2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac57631c42b02f86ae0f70800ab76aeb0" id="r_ac57631c42b02f86ae0f70800ab76aeb0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac57631c42b02f86ae0f70800ab76aeb0">wf_check_enabled</a> (bool enabled)</td></tr>
+<tr class="memdesc:ac57631c42b02f86ae0f70800ab76aeb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether well-formedness checks are enabled.  <br /></td></tr>
 <tr class="separator:ac57631c42b02f86ae0f70800ab76aeb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48fe09923170d2944303d6888dd30ac7" id="r_a48fe09923170d2944303d6888dd30ac7"><td class="memItemLeft" align="right" valign="top"><a id="a48fe09923170d2944303d6888dd30ac7" name="a48fe09923170d2944303d6888dd30ac7"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>wf_check_enabled</b> () const</td></tr>
+<tr class="memitem:a48fe09923170d2944303d6888dd30ac7" id="r_a48fe09923170d2944303d6888dd30ac7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a48fe09923170d2944303d6888dd30ac7">wf_check_enabled</a> () const</td></tr>
+<tr class="memdesc:a48fe09923170d2944303d6888dd30ac7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if well-formedness checks are enabled.  <br /></td></tr>
 <tr class="separator:a48fe09923170d2944303d6888dd30ac7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a833742cd61bc321805fad1ada9fda0a1" id="r_a833742cd61bc321805fad1ada9fda0a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a833742cd61bc321805fad1ada9fda0a1">builtins</a> () const</td></tr>
-<tr class="separator:a833742cd61bc321805fad1ada9fda0a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:a8ef56e9b52040b1d0a676355cd40b0f3" id="r_a8ef56e9b52040b1d0a676355cd40b0f3"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8ef56e9b52040b1d0a676355cd40b0f3">regoGetError</a> (regoInterpreter *rego)</td></tr>
-<tr class="separator:a8ef56e9b52040b1d0a676355cd40b0f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f7be766b68d680ce6eb58b006cc3d2b" id="r_a8f7be766b68d680ce6eb58b006cc3d2b"><td class="memItemLeft" align="right" valign="top"><a id="a8f7be766b68d680ce6eb58b006cc3d2b" name="a8f7be766b68d680ce6eb58b006cc3d2b"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInterpreter *rego, const std::string &amp;error)</td></tr>
-<tr class="separator:a8f7be766b68d680ce6eb58b006cc3d2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4dfc1686d9104bb2377a3290fbae5d21" id="r_a4dfc1686d9104bb2377a3290fbae5d21"><td class="memItemLeft" align="right" valign="top">regoOutput *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4dfc1686d9104bb2377a3290fbae5d21">regoQuery</a> (regoInterpreter *rego, const char *query_expr)</td></tr>
-<tr class="separator:a4dfc1686d9104bb2377a3290fbae5d21"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6afe5946837f3b7b5b456679a8a65853" id="r_a6afe5946837f3b7b5b456679a8a65853"><td class="memItemLeft" align="right" valign="top">BuiltIns&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6afe5946837f3b7b5b456679a8a65853">builtins</a> () const</td></tr>
+<tr class="memdesc:a6afe5946837f3b7b5b456679a8a65853"><td class="mdescLeft">&#160;</td><td class="mdescRight">The built-ins used by the interpreter.  <br /></td></tr>
+<tr class="separator:a6afe5946837f3b7b5b456679a8a65853"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76f978b939611c894383be66a0b84e76" id="r_a76f978b939611c894383be66a0b84e76"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a76f978b939611c894383be66a0b84e76">output_to_string</a> (const Node &amp;output) const</td></tr>
+<tr class="memdesc:a76f978b939611c894383be66a0b84e76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts an output node into a human-readable string.  <br /></td></tr>
+<tr class="separator:a76f978b939611c894383be66a0b84e76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43b0d4b9b8bd0b80c32b2bc937ec0f72" id="r_a43b0d4b9b8bd0b80c32b2bc937ec0f72"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacerego.html#aa75ac8997598027145dd773e048f29c5">LogLevel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a43b0d4b9b8bd0b80c32b2bc937ec0f72">log_level</a> () const</td></tr>
+<tr class="memdesc:a43b0d4b9b8bd0b80c32b2bc937ec0f72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current log level of this interpreter.  <br /></td></tr>
+<tr class="separator:a43b0d4b9b8bd0b80c32b2bc937ec0f72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55122343c6b02cb6915bc1dd0c965bcc" id="r_a55122343c6b02cb6915bc1dd0c965bcc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a55122343c6b02cb6915bc1dd0c965bcc">log_level</a> (<a class="el" href="namespacerego.html#aa75ac8997598027145dd773e048f29c5">LogLevel</a> level)</td></tr>
+<tr class="memdesc:a55122343c6b02cb6915bc1dd0c965bcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the log level of the interpreter.  <br /></td></tr>
+<tr class="separator:a55122343c6b02cb6915bc1dd0c965bcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9bf250a033e289d217e67177a669dc7f" id="r_a9bf250a033e289d217e67177a669dc7f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9bf250a033e289d217e67177a669dc7f">log_level</a> (const std::string &amp;level)</td></tr>
+<tr class="memdesc:a9bf250a033e289d217e67177a669dc7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the logging level for the interpreter from a string.  <br /></td></tr>
+<tr class="separator:a9bf250a033e289d217e67177a669dc7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9ad32e5071e6372f8503425ceda909f" id="r_af9ad32e5071e6372f8503425ceda909f"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af9ad32e5071e6372f8503425ceda909f">c_error</a> () const</td></tr>
+<tr class="memdesc:af9ad32e5071e6372f8503425ceda909f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a string representing the most recent error message.  <br /></td></tr>
+<tr class="separator:af9ad32e5071e6372f8503425ceda909f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7856d978980a29139f9d3e8b53e78bfa" id="r_a7856d978980a29139f9d3e8b53e78bfa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7856d978980a29139f9d3e8b53e78bfa">c_error</a> (const std::string &amp;error)</td></tr>
+<tr class="memdesc:a7856d978980a29139f9d3e8b53e78bfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the most recent error message.  <br /></td></tr>
+<tr class="separator:a7856d978980a29139f9d3e8b53e78bfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This class forms the main interface to the Rego library.</p>
-<p>You can use it to assemble and then execute queries, for example:</p>
-<div class="fragment"><div class="line"><a class="code hl_class" href="classrego_1_1Interpreter.html">Interpreter</a> <a class="code hl_namespace" href="namespacerego.html">rego</a>;</div>
+<div class="textblock"><p>This class forms the main interface to the Rego library. </p>
+<p>You can use it to assemble and then execute queries, for example: </p><div class="fragment"><div class="line"><a class="code hl_class" href="classrego_1_1Interpreter.html">Interpreter</a> <a class="code hl_namespace" href="namespacerego.html">rego</a>;</div>
 <div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.add_module_file(<span class="stringliteral">&quot;objects.rego&quot;</span>);</div>
 <div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.add_data_json_file(<span class="stringliteral">&quot;data0.json&quot;</span>);</div>
 <div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.add_data_json_file(<span class="stringliteral">&quot;data1.json&quot;</span>);</div>
-<div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.add_input_json_file(<span class="stringliteral">&quot;input0.json&quot;</span>);</div>
+<div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.set_input_json_file(<span class="stringliteral">&quot;input0.json&quot;</span>);</div>
 <div class="line">std::cout &lt;&lt; <a class="code hl_namespace" href="namespacerego.html">rego</a>.query(<span class="stringliteral">&quot;[data.one, input.b, data.objects.sites[1]]&quot;</span>) &lt;&lt;</div>
 <div class="line">std::endl;</div>
-<div class="ttc" id="aclassrego_1_1Interpreter_html"><div class="ttname"><a href="classrego_1_1Interpreter.html">rego::Interpreter</a></div><div class="ttdef"><b>Definition</b> rego.hh:873</div></div>
-<div class="ttc" id="anamespacerego_html"><div class="ttname"><a href="namespacerego.html">rego</a></div><div class="ttdef"><b>Definition</b> rego.hh:17</div></div>
-</div><!-- fragment --> </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a1c202e5e771d60a223f55c4827c7dca3" name="a1c202e5e771d60a223f55c4827c7dca3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1c202e5e771d60a223f55c4827c7dca3">&#9670;&#160;</a></span>Interpreter()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">rego::Interpreter::Interpreter </td>
-          <td>(</td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>v1_compatible</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Constructor.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">v1_compatible</td><td>whether the <a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> should run in rego-v1 mode. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
+<div class="ttc" id="aclassrego_1_1Interpreter_html"><div class="ttname"><a href="classrego_1_1Interpreter.html">rego::Interpreter</a></div><div class="ttdoc">This class forms the main interface to the Rego library.</div><div class="ttdef"><b>Definition</b> rego.hh:1445</div></div>
+<div class="ttc" id="anamespacerego_html"><div class="ttname"><a href="namespacerego.html">rego</a></div><div class="ttdef"><b>Definition</b> rego.hh:18</div></div>
+</div><!-- fragment --> </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="aebadd6d41054c93f5ed71e574a7573cb" name="aebadd6d41054c93f5ed71e574a7573cb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aebadd6d41054c93f5ed71e574a7573cb">&#9670;&#160;</a></span>add_data()</h2>
 
@@ -204,14 +243,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a base document to the interpreter.</p>
-<p>Adds an AST node directly to the interpreter's data sequence. Use with caution.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Adds a base document to the interpreter. </p>
+<p>Adds a JSON AST node to the interpreter's data sequence. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The contents of the document. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>either an error node or a nullptr if the node is valid. </dd></dl>
 
 </div>
 </div>
@@ -229,9 +269,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a base document to the interpreter.</p>
-<p>The document must contain a single JSON-encoded object, and will be parsed and added to the interpreter's data sequence.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Adds a base document to the interpreter. </p>
+<p>The document must contain a single JSON-encoded object, and will be parsed and added to the interpreter's data sequence. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">json</td><td>The contents of the document. </td></tr>
   </table>
@@ -255,11 +295,11 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a base document to the interpreter.</p>
-<p>This is the same as calling <a class="el" href="#a83e895fea48fd522810a64a4144e5796">Interpreter::add_data_json</a> with the contents of the file.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Adds a base document to the interpreter. </p>
+<p>This is the same as calling <a class="el" href="#a83e895fea48fd522810a64a4144e5796" title="Adds a base document to the interpreter.">Interpreter::add_data_json</a> with the contents of the file. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">module</td><td>The module to add. </td></tr>
+    <tr><td class="paramname">path</td><td>The path to the data JSON file. </td></tr>
   </table>
   </dd>
 </dl>
@@ -285,9 +325,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a module (i.e. virtual document) to the interpreter.</p>
-<p>The module will be parsed and added to the interpreter's module sequence.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Adds a module (i.e. virtual document) to the interpreter. </p>
+<p>The module will be parsed and added to the interpreter's module sequence. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">name</td><td>The name of the module. </td></tr>
     <tr><td class="paramname">contents</td><td>The contents of the module. </td></tr>
@@ -312,9 +352,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a module (i.e. virtual document) file to the interpreter.</p>
-<p>This is the same as calling <a class="el" href="#a098df3a7eafd17dbd8815e9eb2666f8e">Interpreter::add_module</a> with the contents of the file.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Adds a module (i.e. virtual document) file to the interpreter. </p>
+<p>This is the same as calling <a class="el" href="#a098df3a7eafd17dbd8815e9eb2666f8e" title="Adds a module (i.e. virtual document) to the interpreter.">Interpreter::add_module</a> with the contents of the file. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>The path to the module file. </td></tr>
   </table>
@@ -324,27 +364,138 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
 
 </div>
 </div>
-<a id="a833742cd61bc321805fad1ada9fda0a1" name="a833742cd61bc321805fad1ada9fda0a1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a833742cd61bc321805fad1ada9fda0a1">&#9670;&#160;</a></span>builtins()</h2>
+<a id="ae2f575cb2f06a4d4cbc7ee4e8c3c1987" name="ae2f575cb2f06a4d4cbc7ee4e8c3c1987"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2f575cb2f06a4d4cbc7ee4e8c3c1987">&#9670;&#160;</a></span>build()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a> &amp; rego::Interpreter::builtins </td>
+          <td class="memname">Node rego::Interpreter::build </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds a bundle from the current state of the interpreter. </p>
+<p>The bundle will include all base and virtual documents, and will include execution plans for a query (if set) and zero or more entrypoints (if set). If no query or entrypoints are set, or if there is an error during bundle creation, an error node will be returned. The resulting bundle node can be used as an input to Bundle::from_node. </p><div class="fragment"><div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.set_query(<span class="stringliteral">&quot;[data.one, input.b, data.objects.sites[1]] = x&quot;</span>);</div>
+<div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.entrypoints({<span class="stringliteral">&quot;objects/sites&quot;</span>, <span class="stringliteral">&quot;objects/rect&quot;</span>});</div>
+<div class="line">rego::Node bundle_node = <a class="code hl_namespace" href="namespacerego.html">rego</a>.build();</div>
+<div class="line"><a class="code hl_typedef" href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">rego::Bundle</a> bundle = <a class="code hl_function" href="structrego_1_1BundleDef.html#a8ef288ececa06aaf680b73a17dfe3c12">rego::BundleDef::from_node</a>(bundle_node);</div>
+<div class="line"><span class="comment">// we can assemble the input term manually</span></div>
+<div class="line">rego::Node input = <a class="code hl_function" href="namespacerego.html#af28fe19f8db04140ea018db797d5c89d">rego::object</a>({</div>
+<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;a&quot;</span>), <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<a class="code hl_class" href="classrego_1_1BigInt.html">rego::BigInt</a>(10L))),</div>
+<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;b&quot;</span>), <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;20&quot;</span>)),</div>
+<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;c&quot;</span>), <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(30.0)),</div>
+<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;d&quot;</span>), <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="keyword">true</span>)),</div>
+<div class="line">});</div>
+<div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.set_input(input);</div>
+<div class="line">std::cout &lt;&lt; <a class="code hl_namespace" href="namespacerego.html">rego</a>.output_to_string(<a class="code hl_namespace" href="namespacerego.html">rego</a>.query_bundle(bundle)) &lt;&lt; std::endl;</div>
+<div class="line"><span class="comment">// we can also query bundle entrypoints directly</span></div>
+<div class="line">std::cout &lt;&lt; <a class="code hl_namespace" href="namespacerego.html">rego</a>.output_to_string(<a class="code hl_namespace" href="namespacerego.html">rego</a>.query_bundle(bundle, <span class="stringliteral">&quot;objects/sites&quot;</span>))</div>
+<div class="line">          &lt;&lt; std::endl;</div>
+<div class="ttc" id="aclassrego_1_1BigInt_html"><div class="ttname"><a href="classrego_1_1BigInt.html">rego::BigInt</a></div><div class="ttdoc">Big Integer implemention based on strings.</div><div class="ttdef"><b>Definition</b> rego.hh:240</div></div>
+<div class="ttc" id="anamespacerego_html_a0f699011db385484155281fb1d9bc719"><div class="ttname"><a href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a></div><div class="ttdeci">Node scalar()</div><div class="ttdoc">Creates a null scalar.</div></div>
+<div class="ttc" id="anamespacerego_html_a24ac77f6b9db6cdf802fef2de7d95c94"><div class="ttname"><a href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a></div><div class="ttdeci">Node object_item(const Node &amp;key_term, const Node &amp;val_term)</div><div class="ttdoc">Converts the key and val terms to an object item.</div></div>
+<div class="ttc" id="anamespacerego_html_a76add1d87091f574f02e5ea8f1c99ac0"><div class="ttname"><a href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">rego::Bundle</a></div><div class="ttdeci">std::shared_ptr&lt; BundleDef &gt; Bundle</div><div class="ttdoc">A pointer to a BundleDef.</div><div class="ttdef"><b>Definition</b> rego.hh:1221</div></div>
+<div class="ttc" id="anamespacerego_html_af28fe19f8db04140ea018db797d5c89d"><div class="ttname"><a href="namespacerego.html#af28fe19f8db04140ea018db797d5c89d">rego::object</a></div><div class="ttdeci">Node object(const std::initializer_list&lt; Node &gt; &amp;object_items)</div><div class="ttdoc">Converts the value to an object node.</div></div>
+<div class="ttc" id="astructrego_1_1BundleDef_html_a8ef288ececa06aaf680b73a17dfe3c12"><div class="ttname"><a href="structrego_1_1BundleDef.html#a8ef288ececa06aaf680b73a17dfe3c12">rego::BundleDef::from_node</a></div><div class="ttdeci">static Bundle from_node(Node bundle)</div><div class="ttdoc">Constructs a bundle from an AST node.</div></div>
+</div><!-- fragment --> <dl class="section return"><dt>Returns</dt><dd>The bundle, or an error node. </dd></dl>
+
+</div>
+</div>
+<a id="a6afe5946837f3b7b5b456679a8a65853" name="a6afe5946837f3b7b5b456679a8a65853"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6afe5946837f3b7b5b456679a8a65853">&#9670;&#160;</a></span>builtins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BuiltIns rego::Interpreter::builtins </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The built-ins used by the interpreter.</p>
-<p>This object can be used to register custom built-ins created using <a class="el" href="structrego_1_1BuiltInDef.html#afe42c3b9ebfbd569538f8e3b9fd26495">BuiltInDef::create</a>. </p>
+
+<p>The built-ins used by the interpreter. </p>
+<p>This object can be used to register custom built-ins created using <a class="el" href="structrego_1_1BuiltInDef.html#af3780a73305a300b57bef4ff8ca9e409" title="Creates a new built-in.">BuiltInDef::create</a>. </p><dl class="section return"><dt>Returns</dt><dd>the builtins used by the interpreter </dd></dl>
+
+</div>
+</div>
+<a id="af9ad32e5071e6372f8503425ceda909f" name="af9ad32e5071e6372f8503425ceda909f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9ad32e5071e6372f8503425ceda909f">&#9670;&#160;</a></span>c_error() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string &amp; rego::Interpreter::c_error </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns a string representing the most recent error message. </p>
+<dl class="section note"><dt>Note</dt><dd>This is intended for use by the C API. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An error string </dd></dl>
+
+</div>
+</div>
+<a id="a7856d978980a29139f9d3e8b53e78bfa" name="a7856d978980a29139f9d3e8b53e78bfa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7856d978980a29139f9d3e8b53e78bfa">&#9670;&#160;</a></span>c_error() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp; rego::Interpreter::c_error </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>error</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the most recent error message. </p>
+<dl class="section note"><dt>Note</dt><dd>This is intended for use by the C API. </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">error</td><td>the error message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the interpreter. </dd></dl>
+
+</div>
+</div>
+<a id="aea89dfa7b582f9ea29796e7385a72c2c" name="aea89dfa7b582f9ea29796e7385a72c2c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea89dfa7b582f9ea29796e7385a72c2c">&#9670;&#160;</a></span>debug_enabled() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool rego::Interpreter::debug_enabled </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks if debug mode is enabled. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if debug mode is enabled, false otherwise. </dd></dl>
 
 </div>
 </div>
 <a id="aedcf60964281f98971ce0275eea237e9" name="aedcf60964281f98971ce0275eea237e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aedcf60964281f98971ce0275eea237e9">&#9670;&#160;</a></span>debug_enabled()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aedcf60964281f98971ce0275eea237e9">&#9670;&#160;</a></span>debug_enabled() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -357,13 +508,40 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Whether debug mode is enabled.</p>
-<p>If true, then the interpreter will output intermediary ASTs after each compiler pass to the debug directory set via <a class="el" href="#a06a450331c862e3f9952998fc1ebc1a3">Interpreter::debug_path</a>. </p>
+
+<p>Sets whether debug mode is enabled. </p>
+<p>If true, then the interpreter will output intermediary ASTs after each compiler pass to the debug directory set via <a class="el" href="#a06a450331c862e3f9952998fc1ebc1a3" title="The path to the debug directory.">Interpreter::debug_path</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">enabled</td><td>whether debug is enabled </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a reference to this <a class="el" href="classrego_1_1Interpreter.html" title="This class forms the main interface to the Rego library.">Interpreter</a> </dd></dl>
+
+</div>
+</div>
+<a id="a0ae778ed2d472de72a48387f0d98ffda" name="a0ae778ed2d472de72a48387f0d98ffda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ae778ed2d472de72a48387f0d98ffda">&#9670;&#160;</a></span>debug_path() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::filesystem::path &amp; rego::Interpreter::debug_path </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the debug path. </p>
+<dl class="section return"><dt>Returns</dt><dd>The debug path. </dd></dl>
 
 </div>
 </div>
 <a id="a06a450331c862e3f9952998fc1ebc1a3" name="a06a450331c862e3f9952998fc1ebc1a3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a06a450331c862e3f9952998fc1ebc1a3">&#9670;&#160;</a></span>debug_path()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a06a450331c862e3f9952998fc1ebc1a3">&#9670;&#160;</a></span>debug_path() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -376,13 +554,250 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The path to the debug directory.</p>
+
+<p>The path to the debug directory. </p>
 <p>If set, then (when in debug mode) the interpreter will output intermediary ASTs after each compiler pass to the debug directory. If the directory does not exist, it will be created. </p>
 
 </div>
 </div>
+<a id="a718e67c0efe1a5914cdcdbadafc94d46" name="a718e67c0efe1a5914cdcdbadafc94d46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a718e67c0efe1a5914cdcdbadafc94d46">&#9670;&#160;</a></span>entrypoints() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; &amp; rego::Interpreter::entrypoints </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the entrypoints to include when building a bundle. </p>
+<dl class="section return"><dt>Returns</dt><dd>The entrypoints. </dd></dl>
+
+</div>
+</div>
+<a id="aa5962daa7eeb086a9adb7e044dc1eafe" name="aa5962daa7eeb086a9adb7e044dc1eafe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5962daa7eeb086a9adb7e044dc1eafe">&#9670;&#160;</a></span>entrypoints() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::vector&lt; std::string &gt; &amp; rego::Interpreter::entrypoints </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the entrypoints to include when building a bundle. </p>
+<dl class="section return"><dt>Returns</dt><dd>The entrypoints. </dd></dl>
+
+</div>
+</div>
+<a id="a2f94715bf9cdde8df848cdcf5877eab0" name="a2f94715bf9cdde8df848cdcf5877eab0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f94715bf9cdde8df848cdcf5877eab0">&#9670;&#160;</a></span>entrypoints() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp; rego::Interpreter::entrypoints </td>
+          <td>(</td>
+          <td class="paramtype">const std::initializer_list&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>entrypoints</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the entrypoints to include when building a bundle. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">entrypoints</td><td>The entrypoints. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to this interpreter. </dd></dl>
+
+</div>
+</div>
+<a id="ad9a2b3e4bd0144b2cd4c559b75511117" name="ad9a2b3e4bd0144b2cd4c559b75511117"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9a2b3e4bd0144b2cd4c559b75511117">&#9670;&#160;</a></span>entrypoints() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp; rego::Interpreter::entrypoints </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>entrypoints</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the entrypoints to include when building a bundle. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">entrypoints</td><td>The entrypoints. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to this interpreter. </dd></dl>
+
+</div>
+</div>
+<a id="ad4c346ecb8d0d26a09ae93bc91ee0a41" name="ad4c346ecb8d0d26a09ae93bc91ee0a41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4c346ecb8d0d26a09ae93bc91ee0a41">&#9670;&#160;</a></span>load_bundle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::Interpreter::load_bundle </td>
+          <td>(</td>
+          <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>dir</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Loads a bundle in JSON format from a direction. </p>
+<p>The directory is expected to contain a <code>plan.json</code> file, a <code>data.json</code> file, and zero or more <code>.rego</code> files. If there is an error when loading, an error node will be returned. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dir</td><td>The direction to use when loading the bundle </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Either an bundle node, or an error node if there was a problem during loading. </dd></dl>
+
+</div>
+</div>
+<a id="a43b0d4b9b8bd0b80c32b2bc937ec0f72" name="a43b0d4b9b8bd0b80c32b2bc937ec0f72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43b0d4b9b8bd0b80c32b2bc937ec0f72">&#9670;&#160;</a></span>log_level() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacerego.html#aa75ac8997598027145dd773e048f29c5">LogLevel</a> rego::Interpreter::log_level </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the current log level of this interpreter. </p>
+<dl class="section return"><dt>Returns</dt><dd>The log level </dd></dl>
+
+</div>
+</div>
+<a id="a9bf250a033e289d217e67177a669dc7f" name="a9bf250a033e289d217e67177a669dc7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9bf250a033e289d217e67177a669dc7f">&#9670;&#160;</a></span>log_level() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp; rego::Interpreter::log_level </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>level</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the logging level for the interpreter from a string. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">level</td><td>The logging level. One of "None", "Error", "Output", "Warn", "Info", "Debug", or "Trace". </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the interpreter. </dd></dl>
+
+</div>
+</div>
+<a id="a55122343c6b02cb6915bc1dd0c965bcc" name="a55122343c6b02cb6915bc1dd0c965bcc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55122343c6b02cb6915bc1dd0c965bcc">&#9670;&#160;</a></span>log_level() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp; rego::Interpreter::log_level </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacerego.html#aa75ac8997598027145dd773e048f29c5">LogLevel</a></td>          <td class="paramname"><span class="paramname"><em>level</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the log level of the interpreter. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">level</td><td>the log level </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to the interpreter. </dd></dl>
+
+</div>
+</div>
+<a id="a76f978b939611c894383be66a0b84e76" name="a76f978b939611c894383be66a0b84e76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76f978b939611c894383be66a0b84e76">&#9670;&#160;</a></span>output_to_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string rego::Interpreter::output_to_string </td>
+          <td>(</td>
+          <td class="paramtype">const Node &amp;</td>          <td class="paramname"><span class="paramname"><em>output</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts an output node into a human-readable string. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">output</td><td>An output node returned from <a class="el" href="#ab22f190eb758289681882dddba13e5d3" title="Executes a query against the interpreter.">Interpreter::query_node</a> or <a class="el" href="#a04170df975c3f4f515669ac2ba7b1945" title="Performs a query against a bundle.">Interpreter::query_bundle</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A human-readable string representing the output </dd></dl>
+
+</div>
+</div>
+<a id="a1c6a203e4301576a2386c96591648309" name="a1c6a203e4301576a2386c96591648309"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c6a203e4301576a2386c96591648309">&#9670;&#160;</a></span>query() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string rego::Interpreter::query </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Executes the documents against the interpreter. </p>
+<p>This method calls <a class="el" href="#ab22f190eb758289681882dddba13e5d3" title="Executes a query against the interpreter.">Interpreter::query_node</a> and then converts it into a human-readable string using Interpeter::output_to_string. </p><dl class="section return"><dt>Returns</dt><dd>The result of the query. </dd></dl>
+
+</div>
+</div>
 <a id="a075f165e8c3151a71868c8191964fc46" name="a075f165e8c3151a71868c8191964fc46"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a075f165e8c3151a71868c8191964fc46">&#9670;&#160;</a></span>query()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a075f165e8c3151a71868c8191964fc46">&#9670;&#160;</a></span>query() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -395,9 +810,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Executes a query against the interpreter.</p>
-<p>This method calls <a class="el" href="#af317461e913af365bfa73560ab04cf59">Interpreter::raw_query</a> and then converts it into a human-readable string.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Executes a query against the interpreter. </p>
+<p>This method calls <a class="el" href="#ab22f190eb758289681882dddba13e5d3" title="Executes a query against the interpreter.">Interpreter::query_node</a> and then converts it into a human-readable string using <a class="el" href="#a76f978b939611c894383be66a0b84e76" title="Converts an output node into a human-readable string.">Interpreter::output_to_string</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">query_expr</td><td>The query expression. </td></tr>
   </table>
@@ -407,29 +822,137 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
 
 </div>
 </div>
-<a id="af317461e913af365bfa73560ab04cf59" name="af317461e913af365bfa73560ab04cf59"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af317461e913af365bfa73560ab04cf59">&#9670;&#160;</a></span>raw_query()</h2>
+<a id="a04170df975c3f4f515669ac2ba7b1945" name="a04170df975c3f4f515669ac2ba7b1945"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04170df975c3f4f515669ac2ba7b1945">&#9670;&#160;</a></span>query_bundle() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Node rego::Interpreter::raw_query </td>
+          <td class="memname">Node rego::Interpreter::query_bundle </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">Bundle</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>bundle</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Performs a query against a bundle. </p>
+<p>The interpreter will load this bundle into its virtual machine and then execute the stored query plan. If no query was compiled into the bundle, this will result in an error. Otherwise, the result will be an AST node representing the result, which will either be a list of bindings and terms, or an error sequence. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bundle</td><td>The bundle to query </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The result of the query </dd></dl>
+
+</div>
+</div>
+<a id="a429ed35a7bc1bf58b40b7181f799b4d0" name="a429ed35a7bc1bf58b40b7181f799b4d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a429ed35a7bc1bf58b40b7181f799b4d0">&#9670;&#160;</a></span>query_bundle() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::Interpreter::query_bundle </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">Bundle</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>bundle</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>endpoint</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Performs a query against a bundle. </p>
+<p>The interpreter will load this bundle into its virtual machine and then execute the stored entrypoint plan. If this entrypoint was not compiled into the bundle, this will result in an error. Otherwise, the result will be an AST node representing the result, which will either be a list of bindings and terms, or an error sequence. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bundle</td><td>The bundle to query </td></tr>
+    <tr><td class="paramname">endpoint</td><td>The entrypoint to execute </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The result of the query </dd></dl>
+
+</div>
+</div>
+<a id="a9b3d9acf9aa242868dd66ee3312997b3" name="a9b3d9acf9aa242868dd66ee3312997b3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b3d9acf9aa242868dd66ee3312997b3">&#9670;&#160;</a></span>query_node() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::Interpreter::query_node </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Executes a query against the interpreter. </p>
+<p>The query executed will be the one provided to <a class="el" href="#afbd3e53e404bf5f43512de163da4ca80" title="Sets the query expression of the interpreter.">Interpreter::set_query</a>. The result will be an AST node representing the result, which will either be a list of bindings and terms, or an error sequence. </p><dl class="section return"><dt>Returns</dt><dd>The result of the query. </dd></dl>
+
+</div>
+</div>
+<a id="ab22f190eb758289681882dddba13e5d3" name="ab22f190eb758289681882dddba13e5d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab22f190eb758289681882dddba13e5d3">&#9670;&#160;</a></span>query_node() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::Interpreter::query_node </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>query_expr</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Executes a query against the interpreter.</p>
-<p>The query expression must be a valid Rego query expression. The result will be an AST node representing the result, which will either be a list of bindings and terms, or an error sequence.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Executes a query against the interpreter. </p>
+<p>The query expression must be a valid Rego query expression. The result will be an AST node representing the result, which will either be a list of bindings and terms, or an error sequence. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">query_expr</td><td>The query expression. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The result of the query. </dd></dl>
+
+</div>
+</div>
+<a id="a38ab0705a7f66322fb593d0d1d3a4f4d" name="a38ab0705a7f66322fb593d0d1d3a4f4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38ab0705a7f66322fb593d0d1d3a4f4d">&#9670;&#160;</a></span>save_bundle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::Interpreter::save_bundle </td>
+          <td>(</td>
+          <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>dir</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Node &amp;</td>          <td class="paramname"><span class="paramname"><em>bundle</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Saves a bundle to a directory in JSON format. </p>
+<p>The bundle will be saved in a format compatible with OPA. The directory will be created if it does not exist. There will be a <code>plan.json</code> file, a <code>data.json</code> file, and zero or more <code>.rego</code> files (from the modules used during compilation). If there is an error during saving, an error node will be returned. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dir</td><td>The directory to save the bundle to. </td></tr>
+    <tr><td class="paramname">bundle</td><td>The bundle to save (as produced by <a class="el" href="#ae2f575cb2f06a4d4cbc7ee4e8c3c1987" title="Builds a bundle from the current state of the interpreter.">Interpreter::build</a>). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Either an error node, or a null node if the bundle was saved successfully. </dd></dl>
 
 </div>
 </div>
@@ -447,14 +970,40 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Sets the input document to the interpreter.</p>
-<p>Sets an AST node directly as the interpreter's input. Use with caution.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Sets the input document to the interpreter. </p>
+<p>Sets an AST node directly as the interpreter's input. Use with caution. The node can either be a JSON AST (which will be converted) or a Rego AST. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The contents of the document. </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a485b982c44e4924cae92997a8d72fa8f" name="a485b982c44e4924cae92997a8d72fa8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a485b982c44e4924cae92997a8d72fa8f">&#9670;&#160;</a></span>set_input_json()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::Interpreter::set_input_json </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>json</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the input document to the interpreter. </p>
+<p>The document must contain a single JSON-encoded object, and will be parsed and set as the interpreter's input. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">json</td><td>The contents of the document. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>either an error node or a nullptr if the input document is valid. </dd></dl>
 
 </div>
 </div>
@@ -472,9 +1021,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Sets the input document to the interpreter.</p>
-<p>This is the same as calling Interpreter::add_input_json with the contents of the file.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Sets the input document to the interpreter. </p>
+<p>This is the same as calling <a class="el" href="#a485b982c44e4924cae92997a8d72fa8f" title="Sets the input document to the interpreter.">Interpreter::set_input_json</a> with the contents of the file. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>The path to the input file. </td></tr>
   </table>
@@ -498,9 +1047,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Sets the input term of the interpreter.</p>
-<p>The string must contain a single valid Rego data term.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+
+<p>Sets the input term of the interpreter. </p>
+<p>The string must contain a single valid Rego data term. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">term</td><td>The contents of the term. </td></tr>
   </table>
@@ -510,8 +1059,54 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
 
 </div>
 </div>
+<a id="afbd3e53e404bf5f43512de163da4ca80" name="afbd3e53e404bf5f43512de163da4ca80"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbd3e53e404bf5f43512de163da4ca80">&#9670;&#160;</a></span>set_query()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::Interpreter::set_query </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>query</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the query expression of the interpreter. </p>
+<p>This query will be included when building a bundle. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">query</td><td>The query expression. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>either an error node or a nullptr if the query expression is valid. </dd></dl>
+
+</div>
+</div>
+<a id="a48fe09923170d2944303d6888dd30ac7" name="a48fe09923170d2944303d6888dd30ac7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48fe09923170d2944303d6888dd30ac7">&#9670;&#160;</a></span>wf_check_enabled() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool rego::Interpreter::wf_check_enabled </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks if well-formedness checks are enabled. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if well-formedness checks are enabled, false otherwise. </dd></dl>
+
+</div>
+</div>
 <a id="ac57631c42b02f86ae0f70800ab76aeb0" name="ac57631c42b02f86ae0f70800ab76aeb0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac57631c42b02f86ae0f70800ab76aeb0">&#9670;&#160;</a></span>wf_check_enabled()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ac57631c42b02f86ae0f70800ab76aeb0">&#9670;&#160;</a></span>wf_check_enabled() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -524,82 +1119,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setError</b> (regoInt
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Whether well-formed checks are enabled.</p>
-<p>If true, then the interpreter will perform well-formedness checks after each compiler pass using the well-formedness definitions. </p>
 
-</div>
-</div>
-<h2 class="groupheader">Friends And Related Symbol Documentation</h2>
-<a id="a8ef56e9b52040b1d0a676355cd40b0f3" name="a8ef56e9b52040b1d0a676355cd40b0f3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8ef56e9b52040b1d0a676355cd40b0f3">&#9670;&#160;</a></span>regoGetError</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char * regoGetError </td>
-          <td>(</td>
-          <td class="paramtype">regoInterpreter *</td>          <td class="paramname"><span class="paramname"><em>rego</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Returns the most recently thrown error.</p>
-<p>If an error code is returned from an interface function, more error information can be obtained by calling this function.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Sets whether well-formedness checks are enabled. </p>
+<p>If true, then the interpreter will perform well-formedness checks after each compiler pass using the well-formedness definitions. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">rego</td><td>The interpreter. </td></tr>
+    <tr><td class="paramname">enabled</td><td>Whether well-formedness checks are enabled </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The error message. </dd></dl>
-
-</div>
-</div>
-<a id="a4dfc1686d9104bb2377a3290fbae5d21" name="a4dfc1686d9104bb2377a3290fbae5d21"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4dfc1686d9104bb2377a3290fbae5d21">&#9670;&#160;</a></span>regoQuery</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">regoOutput * regoQuery </td>
-          <td>(</td>
-          <td class="paramtype">regoInterpreter *</td>          <td class="paramname"><span class="paramname"><em>rego</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>query_expr</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Performs a query against the current base and virtual documents.</p>
-<p>The query expression should be a Rego query. The output of the query will be returned as a regoOutput object. The caller is responsible for freeing the output object with regoFreeOutput.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">rego</td><td>The interpreter. </td></tr>
-    <tr><td class="paramname">query_expr</td><td>The query expression. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The output of the query. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>a reference to this <a class="el" href="classrego_1_1Interpreter.html" title="This class forms the main interface to the Rego library.">Interpreter</a> </dd></dl>
 
 </div>
 </div>

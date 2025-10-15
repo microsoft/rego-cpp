@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;0.4.5</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -99,92 +99,863 @@ $(function(){ initResizable(false); });
 </div><!--header-->
 <div class="contents">
 
+<p>Big Integer implemention based on strings.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="rego_8hh_source.html">rego.hh</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:abf327a4cacc9d98555ae56e4c0137f5b" id="r_abf327a4cacc9d98555ae56e4c0137f5b"><td class="memItemLeft" align="right" valign="top"><a id="abf327a4cacc9d98555ae56e4c0137f5b" name="abf327a4cacc9d98555ae56e4c0137f5b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>BigInt</b> (const Location &amp;value)</td></tr>
+<tr class="memitem:abdca6d84b66a1f5b2d04ff1e9fc08a13" id="r_abdca6d84b66a1f5b2d04ff1e9fc08a13"><td class="memItemLeft" align="right" valign="top"><a id="abdca6d84b66a1f5b2d04ff1e9fc08a13" name="abdca6d84b66a1f5b2d04ff1e9fc08a13"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>BigInt</b> ()</td></tr>
+<tr class="memdesc:abdca6d84b66a1f5b2d04ff1e9fc08a13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor, initializes to zero. <br /></td></tr>
+<tr class="separator:abdca6d84b66a1f5b2d04ff1e9fc08a13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf327a4cacc9d98555ae56e4c0137f5b" id="r_abf327a4cacc9d98555ae56e4c0137f5b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abf327a4cacc9d98555ae56e4c0137f5b">BigInt</a> (const Location &amp;value)</td></tr>
+<tr class="memdesc:abf327a4cacc9d98555ae56e4c0137f5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a Location representing a arbitrary precision integer string.  <br /></td></tr>
 <tr class="separator:abf327a4cacc9d98555ae56e4c0137f5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8e140c25d662d4a16533b4dac943c33" id="r_ab8e140c25d662d4a16533b4dac943c33"><td class="memItemLeft" align="right" valign="top"><a id="ab8e140c25d662d4a16533b4dac943c33" name="ab8e140c25d662d4a16533b4dac943c33"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>BigInt</b> (std::int64_t value)</td></tr>
+<tr class="memitem:ab8e140c25d662d4a16533b4dac943c33" id="r_ab8e140c25d662d4a16533b4dac943c33"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab8e140c25d662d4a16533b4dac943c33">BigInt</a> (std::int64_t value)</td></tr>
+<tr class="memdesc:ab8e140c25d662d4a16533b4dac943c33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a 64-bit integer.  <br /></td></tr>
 <tr class="separator:ab8e140c25d662d4a16533b4dac943c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a95f2457c9532052356cc1f51440c1f" id="r_a0a95f2457c9532052356cc1f51440c1f"><td class="memItemLeft" align="right" valign="top"><a id="a0a95f2457c9532052356cc1f51440c1f" name="a0a95f2457c9532052356cc1f51440c1f"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>BigInt</b> (std::size_t value)</td></tr>
+<tr class="memitem:a0a95f2457c9532052356cc1f51440c1f" id="r_a0a95f2457c9532052356cc1f51440c1f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a95f2457c9532052356cc1f51440c1f">BigInt</a> (std::size_t value)</td></tr>
+<tr class="memdesc:a0a95f2457c9532052356cc1f51440c1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a size_t integer.  <br /></td></tr>
 <tr class="separator:a0a95f2457c9532052356cc1f51440c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac25402904d935c77b571ede0cb689319" id="r_ac25402904d935c77b571ede0cb689319"><td class="memItemLeft" align="right" valign="top"><a id="ac25402904d935c77b571ede0cb689319" name="ac25402904d935c77b571ede0cb689319"></a>
-const Location &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>loc</b> () const</td></tr>
+<tr class="memitem:ac25402904d935c77b571ede0cb689319" id="r_ac25402904d935c77b571ede0cb689319"><td class="memItemLeft" align="right" valign="top">const Location &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac25402904d935c77b571ede0cb689319">loc</a> () const</td></tr>
+<tr class="memdesc:ac25402904d935c77b571ede0cb689319"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the Location representing the integer string.  <br /></td></tr>
 <tr class="separator:ac25402904d935c77b571ede0cb689319"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78f6390070fd0726321c091e9e7500ba" id="r_a78f6390070fd0726321c091e9e7500ba"><td class="memItemLeft" align="right" valign="top"><a id="a78f6390070fd0726321c091e9e7500ba" name="a78f6390070fd0726321c091e9e7500ba"></a>
-std::int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>to_int</b> () const</td></tr>
-<tr class="separator:a78f6390070fd0726321c091e9e7500ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a298fac1f8b267c0ce76c4f8b4e96416b" id="r_a298fac1f8b267c0ce76c4f8b4e96416b"><td class="memItemLeft" align="right" valign="top"><a id="a298fac1f8b267c0ce76c4f8b4e96416b" name="a298fac1f8b267c0ce76c4f8b4e96416b"></a>
-std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>to_size</b> () const</td></tr>
-<tr class="separator:a298fac1f8b267c0ce76c4f8b4e96416b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ecf55e91a4e2481a501f6aa9f81df6d" id="r_a6ecf55e91a4e2481a501f6aa9f81df6d"><td class="memItemLeft" align="right" valign="top"><a id="a6ecf55e91a4e2481a501f6aa9f81df6d" name="a6ecf55e91a4e2481a501f6aa9f81df6d"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_negative</b> () const</td></tr>
+<tr class="memitem:a3d6f63e33a9c47366047b919a78c4230" id="r_a3d6f63e33a9c47366047b919a78c4230"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::int64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d6f63e33a9c47366047b919a78c4230">to_int</a> () const</td></tr>
+<tr class="memdesc:a3d6f63e33a9c47366047b919a78c4230"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to convert the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> to a 64-bit integer.  <br /></td></tr>
+<tr class="separator:a3d6f63e33a9c47366047b919a78c4230"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1503cf7ece6cd8deffd37fef17d9c53a" id="r_a1503cf7ece6cd8deffd37fef17d9c53a"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::size_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1503cf7ece6cd8deffd37fef17d9c53a">to_size</a> () const</td></tr>
+<tr class="memdesc:a1503cf7ece6cd8deffd37fef17d9c53a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to convert the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> to a size_t integer.  <br /></td></tr>
+<tr class="separator:a1503cf7ece6cd8deffd37fef17d9c53a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ecf55e91a4e2481a501f6aa9f81df6d" id="r_a6ecf55e91a4e2481a501f6aa9f81df6d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ecf55e91a4e2481a501f6aa9f81df6d">is_negative</a> () const</td></tr>
+<tr class="memdesc:a6ecf55e91a4e2481a501f6aa9f81df6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> is negative.  <br /></td></tr>
 <tr class="separator:a6ecf55e91a4e2481a501f6aa9f81df6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9242f4f213ccb55219155e74fd059fac" id="r_a9242f4f213ccb55219155e74fd059fac"><td class="memItemLeft" align="right" valign="top"><a id="a9242f4f213ccb55219155e74fd059fac" name="a9242f4f213ccb55219155e74fd059fac"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_zero</b> () const</td></tr>
+<tr class="memitem:a9242f4f213ccb55219155e74fd059fac" id="r_a9242f4f213ccb55219155e74fd059fac"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9242f4f213ccb55219155e74fd059fac">is_zero</a> () const</td></tr>
+<tr class="memdesc:a9242f4f213ccb55219155e74fd059fac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> is zero.  <br /></td></tr>
 <tr class="separator:a9242f4f213ccb55219155e74fd059fac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3ec89a61d32672a7598acd1e04970a6" id="r_ab3ec89a61d32672a7598acd1e04970a6"><td class="memItemLeft" align="right" valign="top"><a id="ab3ec89a61d32672a7598acd1e04970a6" name="ab3ec89a61d32672a7598acd1e04970a6"></a>
-<a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>increment</b> () const</td></tr>
+<tr class="memitem:ab3ec89a61d32672a7598acd1e04970a6" id="r_ab3ec89a61d32672a7598acd1e04970a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab3ec89a61d32672a7598acd1e04970a6">increment</a> () const</td></tr>
+<tr class="memdesc:ab3ec89a61d32672a7598acd1e04970a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increments the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> by one.  <br /></td></tr>
 <tr class="separator:ab3ec89a61d32672a7598acd1e04970a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9f4dcbd625dcdcc095e13feaa8e5a53" id="r_ad9f4dcbd625dcdcc095e13feaa8e5a53"><td class="memItemLeft" align="right" valign="top"><a id="ad9f4dcbd625dcdcc095e13feaa8e5a53" name="ad9f4dcbd625dcdcc095e13feaa8e5a53"></a>
-<a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>decrement</b> () const</td></tr>
+<tr class="memitem:ad9f4dcbd625dcdcc095e13feaa8e5a53" id="r_ad9f4dcbd625dcdcc095e13feaa8e5a53"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad9f4dcbd625dcdcc095e13feaa8e5a53">decrement</a> () const</td></tr>
+<tr class="memdesc:ad9f4dcbd625dcdcc095e13feaa8e5a53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decrements the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> by one.  <br /></td></tr>
 <tr class="separator:ad9f4dcbd625dcdcc095e13feaa8e5a53"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6421692d24384f56ce0f90e3865c9e14" id="r_a6421692d24384f56ce0f90e3865c9e14"><td class="memItemLeft" align="right" valign="top"><a id="a6421692d24384f56ce0f90e3865c9e14" name="a6421692d24384f56ce0f90e3865c9e14"></a>
-<a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>negate</b> () const</td></tr>
+<tr class="memitem:ae2a0fb485686685eaa9dd76e943a196c" id="r_ae2a0fb485686685eaa9dd76e943a196c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2a0fb485686685eaa9dd76e943a196c">abs</a> () const</td></tr>
+<tr class="memdesc:ae2a0fb485686685eaa9dd76e943a196c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the absolute value of the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a>.  <br /></td></tr>
+<tr class="separator:ae2a0fb485686685eaa9dd76e943a196c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6421692d24384f56ce0f90e3865c9e14" id="r_a6421692d24384f56ce0f90e3865c9e14"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6421692d24384f56ce0f90e3865c9e14">negate</a> () const</td></tr>
+<tr class="memdesc:a6421692d24384f56ce0f90e3865c9e14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Negates the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a>.  <br /></td></tr>
 <tr class="separator:a6421692d24384f56ce0f90e3865c9e14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a8dad6d5921ade73916c8302a318613ef" id="r_a8dad6d5921ade73916c8302a318613ef"><td class="memItemLeft" align="right" valign="top"><a id="a8dad6d5921ade73916c8302a318613ef" name="a8dad6d5921ade73916c8302a318613ef"></a>
-static bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_int</b> (const Location &amp;loc)</td></tr>
+<tr class="memitem:a8dad6d5921ade73916c8302a318613ef" id="r_a8dad6d5921ade73916c8302a318613ef"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8dad6d5921ade73916c8302a318613ef">is_int</a> (const Location &amp;<a class="el" href="#ac25402904d935c77b571ede0cb689319">loc</a>)</td></tr>
+<tr class="memdesc:a8dad6d5921ade73916c8302a318613ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a Location represents a valid integer string.  <br /></td></tr>
 <tr class="separator:a8dad6d5921ade73916c8302a318613ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:a02f7c10686c3587a0b6af3ef7e3c03f0" id="r_a02f7c10686c3587a0b6af3ef7e3c03f0"><td class="memItemLeft" align="right" valign="top"><a id="a02f7c10686c3587a0b6af3ef7e3c03f0" name="a02f7c10686c3587a0b6af3ef7e3c03f0"></a>
-<a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator+</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a02f7c10686c3587a0b6af3ef7e3c03f0" id="r_a02f7c10686c3587a0b6af3ef7e3c03f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a02f7c10686c3587a0b6af3ef7e3c03f0">operator+</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a02f7c10686c3587a0b6af3ef7e3c03f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds two BigInts.  <br /></td></tr>
 <tr class="separator:a02f7c10686c3587a0b6af3ef7e3c03f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3dab4c7ac8fb318531c7b93c120d862e" id="r_a3dab4c7ac8fb318531c7b93c120d862e"><td class="memItemLeft" align="right" valign="top"><a id="a3dab4c7ac8fb318531c7b93c120d862e" name="a3dab4c7ac8fb318531c7b93c120d862e"></a>
-<a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator-</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a3dab4c7ac8fb318531c7b93c120d862e" id="r_a3dab4c7ac8fb318531c7b93c120d862e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3dab4c7ac8fb318531c7b93c120d862e">operator-</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a3dab4c7ac8fb318531c7b93c120d862e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subtracts two BigInts.  <br /></td></tr>
 <tr class="separator:a3dab4c7ac8fb318531c7b93c120d862e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a283824759db788d23c961d9db575fd61" id="r_a283824759db788d23c961d9db575fd61"><td class="memItemLeft" align="right" valign="top"><a id="a283824759db788d23c961d9db575fd61" name="a283824759db788d23c961d9db575fd61"></a>
-<a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator*</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a283824759db788d23c961d9db575fd61" id="r_a283824759db788d23c961d9db575fd61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a283824759db788d23c961d9db575fd61">operator*</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a283824759db788d23c961d9db575fd61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiplies two BigInts.  <br /></td></tr>
 <tr class="separator:a283824759db788d23c961d9db575fd61"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb62c3300a3bfc815b7988cae7702b6a" id="r_acb62c3300a3bfc815b7988cae7702b6a"><td class="memItemLeft" align="right" valign="top"><a id="acb62c3300a3bfc815b7988cae7702b6a" name="acb62c3300a3bfc815b7988cae7702b6a"></a>
-<a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator/</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:acb62c3300a3bfc815b7988cae7702b6a" id="r_acb62c3300a3bfc815b7988cae7702b6a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb62c3300a3bfc815b7988cae7702b6a">operator/</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:acb62c3300a3bfc815b7988cae7702b6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Divides two BigInts.  <br /></td></tr>
 <tr class="separator:acb62c3300a3bfc815b7988cae7702b6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91de5765e98976436c39971c77dad6fc" id="r_a91de5765e98976436c39971c77dad6fc"><td class="memItemLeft" align="right" valign="top"><a id="a91de5765e98976436c39971c77dad6fc" name="a91de5765e98976436c39971c77dad6fc"></a>
-<a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator%</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a91de5765e98976436c39971c77dad6fc" id="r_a91de5765e98976436c39971c77dad6fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91de5765e98976436c39971c77dad6fc">operator%</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a91de5765e98976436c39971c77dad6fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the remainder of dividing two BigInts.  <br /></td></tr>
 <tr class="separator:a91de5765e98976436c39971c77dad6fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c00d370b762f5dc5431cd1e75824fe7" id="r_a3c00d370b762f5dc5431cd1e75824fe7"><td class="memItemLeft" align="right" valign="top"><a id="a3c00d370b762f5dc5431cd1e75824fe7" name="a3c00d370b762f5dc5431cd1e75824fe7"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a3c00d370b762f5dc5431cd1e75824fe7" id="r_a3c00d370b762f5dc5431cd1e75824fe7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c00d370b762f5dc5431cd1e75824fe7">operator&gt;</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a3c00d370b762f5dc5431cd1e75824fe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two BigInts for greater-than.  <br /></td></tr>
 <tr class="separator:a3c00d370b762f5dc5431cd1e75824fe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38d08ef4c96c84dd2755df0975b36077" id="r_a38d08ef4c96c84dd2755df0975b36077"><td class="memItemLeft" align="right" valign="top"><a id="a38d08ef4c96c84dd2755df0975b36077" name="a38d08ef4c96c84dd2755df0975b36077"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a38d08ef4c96c84dd2755df0975b36077" id="r_a38d08ef4c96c84dd2755df0975b36077"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38d08ef4c96c84dd2755df0975b36077">operator&lt;</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a38d08ef4c96c84dd2755df0975b36077"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two BigInts for less-than.  <br /></td></tr>
 <tr class="separator:a38d08ef4c96c84dd2755df0975b36077"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a761b0c40909e8af68c2e053061091b20" id="r_a761b0c40909e8af68c2e053061091b20"><td class="memItemLeft" align="right" valign="top"><a id="a761b0c40909e8af68c2e053061091b20" name="a761b0c40909e8af68c2e053061091b20"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;=</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a761b0c40909e8af68c2e053061091b20" id="r_a761b0c40909e8af68c2e053061091b20"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a761b0c40909e8af68c2e053061091b20">operator&lt;=</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a761b0c40909e8af68c2e053061091b20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two BigInts for less-than-or-equal.  <br /></td></tr>
 <tr class="separator:a761b0c40909e8af68c2e053061091b20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af858342c2f7f2aae7f11db228219c542" id="r_af858342c2f7f2aae7f11db228219c542"><td class="memItemLeft" align="right" valign="top"><a id="af858342c2f7f2aae7f11db228219c542" name="af858342c2f7f2aae7f11db228219c542"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;=</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:af858342c2f7f2aae7f11db228219c542" id="r_af858342c2f7f2aae7f11db228219c542"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af858342c2f7f2aae7f11db228219c542">operator&gt;=</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:af858342c2f7f2aae7f11db228219c542"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two BigInts for greater-than-or-equal.  <br /></td></tr>
 <tr class="separator:af858342c2f7f2aae7f11db228219c542"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9db2de6c54ff270b0603bff192436c03" id="r_a9db2de6c54ff270b0603bff192436c03"><td class="memItemLeft" align="right" valign="top"><a id="a9db2de6c54ff270b0603bff192436c03" name="a9db2de6c54ff270b0603bff192436c03"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator==</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a9db2de6c54ff270b0603bff192436c03" id="r_a9db2de6c54ff270b0603bff192436c03"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9db2de6c54ff270b0603bff192436c03">operator==</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a9db2de6c54ff270b0603bff192436c03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two BigInts for equality.  <br /></td></tr>
 <tr class="separator:a9db2de6c54ff270b0603bff192436c03"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a672022a280474e1307f12f2c9c3ae347" id="r_a672022a280474e1307f12f2c9c3ae347"><td class="memItemLeft" align="right" valign="top"><a id="a672022a280474e1307f12f2c9c3ae347" name="a672022a280474e1307f12f2c9c3ae347"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator!=</b> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memitem:a672022a280474e1307f12f2c9c3ae347" id="r_a672022a280474e1307f12f2c9c3ae347"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a672022a280474e1307f12f2c9c3ae347">operator!=</a> (const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;lhs, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;rhs)</td></tr>
+<tr class="memdesc:a672022a280474e1307f12f2c9c3ae347"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two BigInts for inequality.  <br /></td></tr>
 <tr class="separator:a672022a280474e1307f12f2c9c3ae347"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0545768a8072a7ecf4ace520cba1764" id="r_ae0545768a8072a7ecf4ace520cba1764"><td class="memItemLeft" align="right" valign="top"><a id="ae0545768a8072a7ecf4ace520cba1764" name="ae0545768a8072a7ecf4ace520cba1764"></a>
-std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;value)</td></tr>
+<tr class="memitem:ae0545768a8072a7ecf4ace520cba1764" id="r_ae0545768a8072a7ecf4ace520cba1764"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae0545768a8072a7ecf4ace520cba1764">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;value)</td></tr>
+<tr class="memdesc:ae0545768a8072a7ecf4ace520cba1764"><td class="mdescLeft">&#160;</td><td class="mdescRight">Outputs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> to a stream.  <br /></td></tr>
 <tr class="separator:ae0545768a8072a7ecf4ace520cba1764"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This is a basic, non-optimized implementation of a big integer using strings. In most circumstances this would be considerably slower than other approaches, but given the way in which Trieste nodes store their content as Location objects into a source document, and this class operates over those Locations, it is actual quite efficient when compared to parsing and serializing the Location into a vector of unsigned longs. </p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+<div class="textblock"><p>Big Integer implemention based on strings. </p>
+<p>using strings. In most circumstances this would be considerably slower than other approaches, but given the way in which Trieste nodes store their content as Location objects into a source document, and given how this class operates over those Locations, it is actually quite efficient when compared to parsing and serializing the Location into a vector of unsigned longs. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="abf327a4cacc9d98555ae56e4c0137f5b" name="abf327a4cacc9d98555ae56e4c0137f5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf327a4cacc9d98555ae56e4c0137f5b">&#9670;&#160;</a></span>BigInt() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">rego::BigInt::BigInt </td>
+          <td>(</td>
+          <td class="paramtype">const Location &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a Location representing a arbitrary precision integer string. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The Location to construct from. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ab8e140c25d662d4a16533b4dac943c33" name="ab8e140c25d662d4a16533b4dac943c33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8e140c25d662d4a16533b4dac943c33">&#9670;&#160;</a></span>BigInt() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">rego::BigInt::BigInt </td>
+          <td>(</td>
+          <td class="paramtype">std::int64_t</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a 64-bit integer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The 64-bit integer to construct from. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a0a95f2457c9532052356cc1f51440c1f" name="a0a95f2457c9532052356cc1f51440c1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a95f2457c9532052356cc1f51440c1f">&#9670;&#160;</a></span>BigInt() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">rego::BigInt::BigInt </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a size_t integer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The size_t integer to construct from. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="ae2a0fb485686685eaa9dd76e943a196c" name="ae2a0fb485686685eaa9dd76e943a196c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2a0fb485686685eaa9dd76e943a196c">&#9670;&#160;</a></span>abs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> rego::BigInt::abs </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the absolute value of the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a>. </p>
+<dl class="section return"><dt>Returns</dt><dd>A new <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> representing the absolute value. </dd></dl>
+
+</div>
+</div>
+<a id="ad9f4dcbd625dcdcc095e13feaa8e5a53" name="ad9f4dcbd625dcdcc095e13feaa8e5a53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9f4dcbd625dcdcc095e13feaa8e5a53">&#9670;&#160;</a></span>decrement()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> rego::BigInt::decrement </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Decrements the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> by one. </p>
+<dl class="section return"><dt>Returns</dt><dd>A new <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> representing the decremented value. </dd></dl>
+
+</div>
+</div>
+<a id="ab3ec89a61d32672a7598acd1e04970a6" name="ab3ec89a61d32672a7598acd1e04970a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3ec89a61d32672a7598acd1e04970a6">&#9670;&#160;</a></span>increment()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> rego::BigInt::increment </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Increments the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> by one. </p>
+<dl class="section return"><dt>Returns</dt><dd>A new <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> representing the incremented value. </dd></dl>
+
+</div>
+</div>
+<a id="a8dad6d5921ade73916c8302a318613ef" name="a8dad6d5921ade73916c8302a318613ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8dad6d5921ade73916c8302a318613ef">&#9670;&#160;</a></span>is_int()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool rego::BigInt::is_int </td>
+          <td>(</td>
+          <td class="paramtype">const Location &amp;</td>          <td class="paramname"><span class="paramname"><em>loc</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if a Location represents a valid integer string. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">loc</td><td>The Location to check. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the Location represents a valid integer string, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a6ecf55e91a4e2481a501f6aa9f81df6d" name="a6ecf55e91a4e2481a501f6aa9f81df6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ecf55e91a4e2481a501f6aa9f81df6d">&#9670;&#160;</a></span>is_negative()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool rego::BigInt::is_negative </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks if the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> is negative. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> is negative, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a9242f4f213ccb55219155e74fd059fac" name="a9242f4f213ccb55219155e74fd059fac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9242f4f213ccb55219155e74fd059fac">&#9670;&#160;</a></span>is_zero()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool rego::BigInt::is_zero </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks if the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> is zero. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> is zero, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="ac25402904d935c77b571ede0cb689319" name="ac25402904d935c77b571ede0cb689319"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac25402904d935c77b571ede0cb689319">&#9670;&#160;</a></span>loc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const Location &amp; rego::BigInt::loc </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the Location representing the integer string. </p>
+<dl class="section return"><dt>Returns</dt><dd>The Location representing the integer string. </dd></dl>
+
+</div>
+</div>
+<a id="a6421692d24384f56ce0f90e3865c9e14" name="a6421692d24384f56ce0f90e3865c9e14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6421692d24384f56ce0f90e3865c9e14">&#9670;&#160;</a></span>negate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> rego::BigInt::negate </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Negates the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a>. </p>
+<dl class="section return"><dt>Returns</dt><dd>A new <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> representing the negated value. </dd></dl>
+
+</div>
+</div>
+<a id="a3d6f63e33a9c47366047b919a78c4230" name="a3d6f63e33a9c47366047b919a78c4230"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d6f63e33a9c47366047b919a78c4230">&#9670;&#160;</a></span>to_int()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; std::int64_t &gt; rego::BigInt::to_int </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Attempts to convert the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> to a 64-bit integer. </p>
+<dl class="section return"><dt>Returns</dt><dd>The 64-bit integer representation of the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a>, or std::nullopt if out of range. </dd></dl>
+
+</div>
+</div>
+<a id="a1503cf7ece6cd8deffd37fef17d9c53a" name="a1503cf7ece6cd8deffd37fef17d9c53a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1503cf7ece6cd8deffd37fef17d9c53a">&#9670;&#160;</a></span>to_size()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; std::size_t &gt; rego::BigInt::to_size </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Attempts to convert the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> to a size_t integer. </p>
+<dl class="section return"><dt>Returns</dt><dd>The size_t integer representation of the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a>, or std::nullopt if out of range. </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Friends And Related Symbol Documentation</h2>
+<a id="a672022a280474e1307f12f2c9c3ae347" name="a672022a280474e1307f12f2c9c3ae347"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a672022a280474e1307f12f2c9c3ae347">&#9670;&#160;</a></span>operator!=</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool operator!= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Compares two BigInts for inequality. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if lhs is not equal to rhs, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a91de5765e98976436c39971c77dad6fc" name="a91de5765e98976436c39971c77dad6fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91de5765e98976436c39971c77dad6fc">&#9670;&#160;</a></span>operator%</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> operator% </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Computes the remainder of dividing two BigInts. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The remainder of the two BigInts. </dd></dl>
+
+</div>
+</div>
+<a id="a283824759db788d23c961d9db575fd61" name="a283824759db788d23c961d9db575fd61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a283824759db788d23c961d9db575fd61">&#9670;&#160;</a></span>operator*</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> operator* </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Multiplies two BigInts. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The product of the two BigInts. </dd></dl>
+
+</div>
+</div>
+<a id="a02f7c10686c3587a0b6af3ef7e3c03f0" name="a02f7c10686c3587a0b6af3ef7e3c03f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02f7c10686c3587a0b6af3ef7e3c03f0">&#9670;&#160;</a></span>operator+</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> operator+ </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Adds two BigInts. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The sum of the two BigInts. </dd></dl>
+
+</div>
+</div>
+<a id="a3dab4c7ac8fb318531c7b93c120d862e" name="a3dab4c7ac8fb318531c7b93c120d862e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3dab4c7ac8fb318531c7b93c120d862e">&#9670;&#160;</a></span>operator-</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> operator- </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Subtracts two BigInts. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The difference of the two BigInts. </dd></dl>
+
+</div>
+</div>
+<a id="acb62c3300a3bfc815b7988cae7702b6a" name="acb62c3300a3bfc815b7988cae7702b6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb62c3300a3bfc815b7988cae7702b6a">&#9670;&#160;</a></span>operator/</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1BigInt.html">BigInt</a> operator/ </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Divides two BigInts. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The quotient of the two BigInts. </dd></dl>
+
+</div>
+</div>
+<a id="a38d08ef4c96c84dd2755df0975b36077" name="a38d08ef4c96c84dd2755df0975b36077"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38d08ef4c96c84dd2755df0975b36077">&#9670;&#160;</a></span>operator&lt;</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool operator&lt; </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Compares two BigInts for less-than. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if lhs is less than rhs, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="ae0545768a8072a7ecf4ace520cba1764" name="ae0545768a8072a7ecf4ace520cba1764"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0545768a8072a7ecf4ace520cba1764">&#9670;&#160;</a></span>operator&lt;&lt;</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::ostream &amp; operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;</td>          <td class="paramname"><span class="paramname"><em>os</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Outputs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> to a stream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">os</td><td>The output stream. </td></tr>
+    <tr><td class="paramname">value</td><td>The <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> value. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The output stream. </dd></dl>
+
+</div>
+</div>
+<a id="a761b0c40909e8af68c2e053061091b20" name="a761b0c40909e8af68c2e053061091b20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a761b0c40909e8af68c2e053061091b20">&#9670;&#160;</a></span>operator&lt;=</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool operator&lt;= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Compares two BigInts for less-than-or-equal. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if lhs is less than or equal to rhs, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a9db2de6c54ff270b0603bff192436c03" name="a9db2de6c54ff270b0603bff192436c03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9db2de6c54ff270b0603bff192436c03">&#9670;&#160;</a></span>operator==</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool operator== </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Compares two BigInts for equality. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if lhs is equal to rhs, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a3c00d370b762f5dc5431cd1e75824fe7" name="a3c00d370b762f5dc5431cd1e75824fe7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c00d370b762f5dc5431cd1e75824fe7">&#9670;&#160;</a></span>operator&gt;</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool operator&gt; </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Compares two BigInts for greater-than. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if lhs is greater than rhs, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="af858342c2f7f2aae7f11db228219c542" name="af858342c2f7f2aae7f11db228219c542"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af858342c2f7f2aae7f11db228219c542">&#9670;&#160;</a></span>operator&gt;=</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool operator&gt;= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>lhs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>rhs</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Compares two BigInts for greater-than-or-equal. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">lhs</td><td>The left-hand side operand. </td></tr>
+    <tr><td class="paramname">rhs</td><td>The right-hand side operand. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if lhs is greater than or equal to rhs, false otherwise. </dd></dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/rego/<a class="el" href="rego_8hh_source.html">rego.hh</a></li>
 </ul>
 </div><!-- contents -->

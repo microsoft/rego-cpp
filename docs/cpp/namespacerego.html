@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;0.4.5</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -87,43 +87,65 @@ $(function(){ initResizable(false); });
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">rego Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacerego_1_1bundle.html">bundle</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrego_1_1BigInt.html">BigInt</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Big Integer implemention based on strings.  <a href="classrego_1_1BigInt.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structrego_1_1BuiltInDef.html">BuiltInDef</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Struct which defines a built-in function.  <a href="structrego_1_1BuiltInDef.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Manages the set of builtins used by an interpreter to resolve built-in calls.  <a href="classrego_1_1BuiltInsDef.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structrego_1_1BundleDef.html">BundleDef</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a compiled Rego bundle.  <a href="structrego_1_1BundleDef.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class forms the main interface to the Rego library.  <a href="classrego_1_1Interpreter.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrego_1_1UnwrapOpt.html">UnwrapOpt</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options for unwrapping an argument.  <a href="classrego_1_1UnwrapOpt.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structrego_1_1UnwrapResult.html">UnwrapResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of unwrapping a node.  <a href="structrego_1_1UnwrapResult.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrego_1_1VirtualMachine.html">VirtualMachine</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class implements a virtual machine that can execute compiled Rego bundles.  <a href="classrego_1_1VirtualMachine.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a7bf2dbac7de0eac9f50204f836687e44" id="r_a7bf2dbac7de0eac9f50204f836687e44"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a> = std::shared_ptr&lt;<a class="el" href="structrego_1_1BuiltInDef.html">BuiltInDef</a>&gt;</td></tr>
+<tr class="memitem:a7bf2dbac7de0eac9f50204f836687e44" id="r_a7bf2dbac7de0eac9f50204f836687e44"><td class="memItemLeft" align="right" valign="top"><a id="a7bf2dbac7de0eac9f50204f836687e44" name="a7bf2dbac7de0eac9f50204f836687e44"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>BuiltIn</b> = std::shared_ptr&lt;<a class="el" href="structrego_1_1BuiltInDef.html">BuiltInDef</a>&gt;</td></tr>
+<tr class="memdesc:a7bf2dbac7de0eac9f50204f836687e44"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to a <a class="el" href="structrego_1_1BuiltInDef.html" title="Struct which defines a built-in function.">BuiltInDef</a>. <br /></td></tr>
 <tr class="separator:a7bf2dbac7de0eac9f50204f836687e44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a3fb6eaba58722d3c636ececd00f075" id="r_a8a3fb6eaba58722d3c636ececd00f075"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a3fb6eaba58722d3c636ececd00f075">BuiltInBehavior</a> = std::function&lt;Node(const Nodes&amp;)&gt;</td></tr>
+<tr class="memitem:a8a3fb6eaba58722d3c636ececd00f075" id="r_a8a3fb6eaba58722d3c636ececd00f075"><td class="memItemLeft" align="right" valign="top"><a id="a8a3fb6eaba58722d3c636ececd00f075" name="a8a3fb6eaba58722d3c636ececd00f075"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>BuiltInBehavior</b> = std::function&lt;Node(const Nodes&amp;)&gt;</td></tr>
+<tr class="memdesc:a8a3fb6eaba58722d3c636ececd00f075"><td class="mdescLeft">&#160;</td><td class="mdescRight">The function pointer to the behavior of the built-in. <br /></td></tr>
 <tr class="separator:a8a3fb6eaba58722d3c636ececd00f075"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a49bd65c34b62d1c05a2ae1e336f337b0" id="r_a49bd65c34b62d1c05a2ae1e336f337b0"><td class="memItemLeft" align="right" valign="top"><a id="a49bd65c34b62d1c05a2ae1e336f337b0" name="a49bd65c34b62d1c05a2ae1e336f337b0"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>BuiltIns</b> = std::shared_ptr&lt;<a class="el" href="classrego_1_1BuiltInsDef.html">BuiltInsDef</a>&gt;</td></tr>
-<tr class="separator:a49bd65c34b62d1c05a2ae1e336f337b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76add1d87091f574f02e5ea8f1c99ac0" id="r_a76add1d87091f574f02e5ea8f1c99ac0"><td class="memItemLeft" align="right" valign="top"><a id="a76add1d87091f574f02e5ea8f1c99ac0" name="a76add1d87091f574f02e5ea8f1c99ac0"></a>
+typedef std::shared_ptr&lt; <a class="el" href="structrego_1_1BundleDef.html">BundleDef</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>Bundle</b></td></tr>
+<tr class="memdesc:a76add1d87091f574f02e5ea8f1c99ac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to a <a class="el" href="structrego_1_1BundleDef.html" title="Represents a compiled Rego bundle.">BundleDef</a>. <br /></td></tr>
+<tr class="separator:a76add1d87091f574f02e5ea8f1c99ac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:adac8d274e73c31ba9551c9953d72eb3f" id="r_adac8d274e73c31ba9551c9953d72eb3f"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adac8d274e73c31ba9551c9953d72eb3f">LogLevel</a> : char { <br />
+<tr class="memitem:aa75ac8997598027145dd773e048f29c5" id="r_aa75ac8997598027145dd773e048f29c5"><td class="memItemLeft" align="right" valign="top"><a id="aa75ac8997598027145dd773e048f29c5" name="aa75ac8997598027145dd773e048f29c5"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa75ac8997598027145dd773e048f29c5">LogLevel</a> : regoEnum { <br />
 &#160;&#160;<b>None</b> = REGO_LOG_LEVEL_NONE
 , <b>Error</b> = REGO_LOG_LEVEL_ERROR
 , <b>Output</b> = REGO_LOG_LEVEL_OUTPUT
@@ -134,475 +156,120 @@ Enumerations</h2></td></tr>
 , <b>Trace</b> = REGO_LOG_LEVEL_TRACE
 <br />
  }</td></tr>
-<tr class="separator:adac8d274e73c31ba9551c9953d72eb3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memdesc:aa75ac8997598027145dd773e048f29c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The logging level. <br /></td></tr>
+<tr class="separator:aa75ac8997598027145dd773e048f29c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a4bbc90866d749c37f7f7d04c7c98af84" id="r_a4bbc90866d749c37f7f7d04c7c98af84"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4bbc90866d749c37f7f7d04c7c98af84">unwrap_arg</a> (const Nodes &amp;args, const <a class="el" href="classrego_1_1UnwrapOpt.html">UnwrapOpt</a> &amp;options)</td></tr>
+<tr class="memdesc:a4bbc90866d749c37f7f7d04c7c98af84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unwraps an argument from the provided vector of nodes.  <br /></td></tr>
 <tr class="separator:a4bbc90866d749c37f7f7d04c7c98af84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b495425e0115d1af501ecb060bebe90" id="r_a8b495425e0115d1af501ecb060bebe90"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structrego_1_1UnwrapResult.html">UnwrapResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8b495425e0115d1af501ecb060bebe90">unwrap</a> (const Node &amp;term, const Token &amp;type)</td></tr>
+<tr class="memdesc:a8b495425e0115d1af501ecb060bebe90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to unwrap a node to a specified type.  <br /></td></tr>
 <tr class="separator:a8b495425e0115d1af501ecb060bebe90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9be6c35ef6fbeee923ea1b526763f092" id="r_a9be6c35ef6fbeee923ea1b526763f092"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structrego_1_1UnwrapResult.html">UnwrapResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9be6c35ef6fbeee923ea1b526763f092">unwrap</a> (const Node &amp;term, const std::set&lt; Token &gt; &amp;types)</td></tr>
+<tr class="memdesc:a9be6c35ef6fbeee923ea1b526763f092"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to unwrap an argument to a specified type.  <br /></td></tr>
 <tr class="separator:a9be6c35ef6fbeee923ea1b526763f092"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47722fa721bf328696deb469f70f3bcb" id="r_a47722fa721bf328696deb469f70f3bcb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a47722fa721bf328696deb469f70f3bcb">get_int</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a47722fa721bf328696deb469f70f3bcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as an integer.  <br /></td></tr>
 <tr class="separator:a47722fa721bf328696deb469f70f3bcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a477a2c57792c1283ae69433e154a03ca" id="r_a477a2c57792c1283ae69433e154a03ca"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a477a2c57792c1283ae69433e154a03ca">get_double</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a477a2c57792c1283ae69433e154a03ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as an double.  <br /></td></tr>
 <tr class="separator:a477a2c57792c1283ae69433e154a03ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a544dda4b515e8d19a951582ecbbdff26" id="r_a544dda4b515e8d19a951582ecbbdff26"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a544dda4b515e8d19a951582ecbbdff26">try_get_int</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a544dda4b515e8d19a951582ecbbdff26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to extract the value of a node as an integer. In the case that the node is a double, it will check if the double is integral, i.e. 5.0 will be considered the integer 5.  <br /></td></tr>
 <tr class="separator:a544dda4b515e8d19a951582ecbbdff26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab76a283ff8f20682b941ec2678506512" id="r_ab76a283ff8f20682b941ec2678506512"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab76a283ff8f20682b941ec2678506512">get_string</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:ab76a283ff8f20682b941ec2678506512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as a string. The resulting string will have any enclosing quotes removed.  <br /></td></tr>
 <tr class="separator:ab76a283ff8f20682b941ec2678506512"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05d218180a81176738b35f95d2b75753" id="r_a05d218180a81176738b35f95d2b75753"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a05d218180a81176738b35f95d2b75753">get_bool</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a05d218180a81176738b35f95d2b75753"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as a boolean.  <br /></td></tr>
 <tr class="separator:a05d218180a81176738b35f95d2b75753"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a086444fa1a578d4af81c941097db039c" id="r_a086444fa1a578d4af81c941097db039c"><td class="memItemLeft" align="right" valign="top">std::optional&lt; Node &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a086444fa1a578d4af81c941097db039c">try_get_item</a> (const Node &amp;node, const std::string_view &amp;key)</td></tr>
+<tr class="memdesc:a086444fa1a578d4af81c941097db039c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to get an item within an object using its key.  <br /></td></tr>
 <tr class="separator:a086444fa1a578d4af81c941097db039c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2472135737157347c38796f6a17abbc" id="r_ae2472135737157347c38796f6a17abbc"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2472135737157347c38796f6a17abbc">scalar</a> (<a class="el" href="classrego_1_1BigInt.html">BigInt</a> value)</td></tr>
+<tr class="memdesc:ae2472135737157347c38796f6a17abbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
 <tr class="separator:ae2472135737157347c38796f6a17abbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6070c3433d84fa888d941d7d7ef4b71d" id="r_a6070c3433d84fa888d941d7d7ef4b71d"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6070c3433d84fa888d941d7d7ef4b71d">scalar</a> (double value)</td></tr>
+<tr class="memdesc:a6070c3433d84fa888d941d7d7ef4b71d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
 <tr class="separator:a6070c3433d84fa888d941d7d7ef4b71d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5095fabc1594a8bbcfba9109964862a" id="r_ad5095fabc1594a8bbcfba9109964862a"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad5095fabc1594a8bbcfba9109964862a">scalar</a> (bool value)</td></tr>
+<tr class="memdesc:ad5095fabc1594a8bbcfba9109964862a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
 <tr class="separator:ad5095fabc1594a8bbcfba9109964862a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe6baed88ebc54487bd3445c582c1ae9" id="r_abe6baed88ebc54487bd3445c582c1ae9"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abe6baed88ebc54487bd3445c582c1ae9">scalar</a> (const char *value)</td></tr>
+<tr class="memdesc:abe6baed88ebc54487bd3445c582c1ae9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
 <tr class="separator:abe6baed88ebc54487bd3445c582c1ae9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74d622bc7e659ec2a055f77b2c0bf332" id="r_a74d622bc7e659ec2a055f77b2c0bf332"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a74d622bc7e659ec2a055f77b2c0bf332">scalar</a> (const std::string &amp;value)</td></tr>
+<tr class="memdesc:a74d622bc7e659ec2a055f77b2c0bf332"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
 <tr class="separator:a74d622bc7e659ec2a055f77b2c0bf332"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f699011db385484155281fb1d9bc719" id="r_a0f699011db385484155281fb1d9bc719"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f699011db385484155281fb1d9bc719">scalar</a> ()</td></tr>
+<tr class="memdesc:a0f699011db385484155281fb1d9bc719"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a null scalar.  <br /></td></tr>
 <tr class="separator:a0f699011db385484155281fb1d9bc719"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a24ac77f6b9db6cdf802fef2de7d95c94" id="r_a24ac77f6b9db6cdf802fef2de7d95c94"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a24ac77f6b9db6cdf802fef2de7d95c94">object_item</a> (const Node &amp;key_term, const Node &amp;val_term)</td></tr>
+<tr class="memdesc:a24ac77f6b9db6cdf802fef2de7d95c94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the key and val terms to an object item.  <br /></td></tr>
 <tr class="separator:a24ac77f6b9db6cdf802fef2de7d95c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36de4cee872e31852a0243669f862d0d" id="r_a36de4cee872e31852a0243669f862d0d"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36de4cee872e31852a0243669f862d0d">object</a> (const Nodes &amp;object_items)</td></tr>
-<tr class="separator:a36de4cee872e31852a0243669f862d0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb14b7e890342dc422ffbdb7dc0721bb" id="r_acb14b7e890342dc422ffbdb7dc0721bb"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb14b7e890342dc422ffbdb7dc0721bb">array</a> (const Nodes &amp;array_members)</td></tr>
-<tr class="separator:acb14b7e890342dc422ffbdb7dc0721bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a33a98122316fbfa443bc71f963fe299f" id="r_a33a98122316fbfa443bc71f963fe299f"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a33a98122316fbfa443bc71f963fe299f">set</a> (const Nodes &amp;set_members)</td></tr>
-<tr class="separator:a33a98122316fbfa443bc71f963fe299f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64ccad2271e663ee21529368de6c176b" id="r_a64ccad2271e663ee21529368de6c176b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64ccad2271e663ee21529368de6c176b">set_tzdata_path</a> (const std::filesystem::path &amp;path)</td></tr>
-<tr class="separator:a64ccad2271e663ee21529368de6c176b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af28fe19f8db04140ea018db797d5c89d" id="r_af28fe19f8db04140ea018db797d5c89d"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af28fe19f8db04140ea018db797d5c89d">object</a> (const std::initializer_list&lt; Node &gt; &amp;object_items)</td></tr>
+<tr class="memdesc:af28fe19f8db04140ea018db797d5c89d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to an object node.  <br /></td></tr>
+<tr class="separator:af28fe19f8db04140ea018db797d5c89d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e058120d57c0fd619adeaca901c5b97" id="r_a2e058120d57c0fd619adeaca901c5b97"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2e058120d57c0fd619adeaca901c5b97">array</a> (const std::initializer_list&lt; Node &gt; &amp;array_members)</td></tr>
+<tr class="memdesc:a2e058120d57c0fd619adeaca901c5b97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to an array node.  <br /></td></tr>
+<tr class="separator:a2e058120d57c0fd619adeaca901c5b97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab112bb642e883e9b9e0d1044d1240c03" id="r_ab112bb642e883e9b9e0d1044d1240c03"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab112bb642e883e9b9e0d1044d1240c03">set</a> (const std::initializer_list&lt; Node &gt; &amp;set_members)</td></tr>
+<tr class="memdesc:ab112bb642e883e9b9e0d1044d1240c03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a set node.  <br /></td></tr>
+<tr class="separator:ab112bb642e883e9b9e0d1044d1240c03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a539986ea016037ee4422d0679b7d852b" id="r_a539986ea016037ee4422d0679b7d852b"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a539986ea016037ee4422d0679b7d852b">err</a> (NodeRange &amp;r, const std::string &amp;msg, const std::string &amp;code=UnknownError)</td></tr>
+<tr class="memdesc:a539986ea016037ee4422d0679b7d852b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generates an error node.  <br /></td></tr>
 <tr class="separator:a539986ea016037ee4422d0679b7d852b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab540f1da3d763549c28445c7912130cb" id="r_ab540f1da3d763549c28445c7912130cb"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab540f1da3d763549c28445c7912130cb">err</a> (Node node, const std::string &amp;msg, const std::string &amp;code=UnknownError)</td></tr>
+<tr class="memdesc:ab540f1da3d763549c28445c7912130cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generates an error node.  <br /></td></tr>
 <tr class="separator:ab540f1da3d763549c28445c7912130cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a4e1c0ca79a3754c1ee8b95eabc8a5a" id="r_a8a4e1c0ca79a3754c1ee8b95eabc8a5a"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a4e1c0ca79a3754c1ee8b95eabc8a5a">version</a> ()</td></tr>
+<tr class="memdesc:a8a4e1c0ca79a3754c1ee8b95eabc8a5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a node representing the version of the library.  <br /></td></tr>
 <tr class="separator:a8a4e1c0ca79a3754c1ee8b95eabc8a5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a95d5445fa2f7ca535236568ead7ef44b" id="r_a95d5445fa2f7ca535236568ead7ef44b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a95d5445fa2f7ca535236568ead7ef44b">to_key</a> (const trieste::Node &amp;node, bool set_as_array=false, bool sort_arrays=false)</td></tr>
-<tr class="separator:a95d5445fa2f7ca535236568ead7ef44b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0172944422e39c3ea5d0465ddfa96c35" id="r_a0172944422e39c3ea5d0465ddfa96c35"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0172944422e39c3ea5d0465ddfa96c35">set_log_level</a> (<a class="el" href="#adac8d274e73c31ba9551c9953d72eb3f">LogLevel</a> level)</td></tr>
-<tr class="separator:a0172944422e39c3ea5d0465ddfa96c35"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd3736683aa702ee8564bc2ef7c82e51" id="r_afd3736683aa702ee8564bc2ef7c82e51"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afd3736683aa702ee8564bc2ef7c82e51">set_log_level_from_string</a> (const std::string &amp;level)</td></tr>
-<tr class="separator:afd3736683aa702ee8564bc2ef7c82e51"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64fd7394df010f7fb989a4d8321a2b78" id="r_a64fd7394df010f7fb989a4d8321a2b78"><td class="memItemLeft" align="right" valign="top">Reader&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64fd7394df010f7fb989a4d8321a2b78">reader</a> (bool v1_compatible=false)</td></tr>
-<tr class="separator:a64fd7394df010f7fb989a4d8321a2b78"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4289f092e732dbfad5758787d09c3b04" id="r_a4289f092e732dbfad5758787d09c3b04"><td class="memItemLeft" align="right" valign="top">Rewriter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4289f092e732dbfad5758787d09c3b04">to_input</a> ()</td></tr>
-<tr class="separator:a4289f092e732dbfad5758787d09c3b04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68f3f5fa5277d93d350fd90c82d67432" id="r_a68f3f5fa5277d93d350fd90c82d67432"><td class="memItemLeft" align="right" valign="top">Rewriter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a68f3f5fa5277d93d350fd90c82d67432">unify</a> (BuiltIns builtins=<a class="el" href="classrego_1_1BuiltInsDef.html#a09cea6708193a4bf56a7ca03a31510a6">BuiltInsDef::create</a>())</td></tr>
-<tr class="separator:a68f3f5fa5277d93d350fd90c82d67432"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e26d5e5315c437e28a882b76e47f475" id="r_a7e26d5e5315c437e28a882b76e47f475"><td class="memItemLeft" align="right" valign="top">Rewriter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7e26d5e5315c437e28a882b76e47f475">from_json</a> (bool as_term=false)</td></tr>
-<tr class="separator:a7e26d5e5315c437e28a882b76e47f475"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2aca737556fd1ad1fbbd9c1ef7aa5ba" id="r_ae2aca737556fd1ad1fbbd9c1ef7aa5ba"><td class="memItemLeft" align="right" valign="top">Rewriter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2aca737556fd1ad1fbbd9c1ef7aa5ba">to_json</a> ()</td></tr>
-<tr class="separator:ae2aca737556fd1ad1fbbd9c1ef7aa5ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a689b0b6620ac219a3de7dde49e423c35" id="r_a689b0b6620ac219a3de7dde49e423c35"><td class="memItemLeft" align="right" valign="top">Rewriter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a689b0b6620ac219a3de7dde49e423c35">to_yaml</a> ()</td></tr>
-<tr class="separator:a689b0b6620ac219a3de7dde49e423c35"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:ad16d75300518b82742d4d7b1f3cb7e73" id="r_ad16d75300518b82742d4d7b1f3cb7e73"><td class="memItemLeft" align="right" valign="top"><a id="ad16d75300518b82742d4d7b1f3cb7e73" name="ad16d75300518b82742d4d7b1f3cb7e73"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Module</b> = TokenDef(&quot;rego-module&quot;, flag::symtab)</td></tr>
-<tr class="separator:ad16d75300518b82742d4d7b1f3cb7e73"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae217bcd9b498c6feaa198ab2a232a610" id="r_ae217bcd9b498c6feaa198ab2a232a610"><td class="memItemLeft" align="right" valign="top"><a id="ae217bcd9b498c6feaa198ab2a232a610" name="ae217bcd9b498c6feaa198ab2a232a610"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Package</b> = TokenDef(&quot;rego-package&quot;)</td></tr>
-<tr class="separator:ae217bcd9b498c6feaa198ab2a232a610"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7b644fe23c0736373d6828076b149eb2" id="r_a7b644fe23c0736373d6828076b149eb2"><td class="memItemLeft" align="right" valign="top"><a id="a7b644fe23c0736373d6828076b149eb2" name="a7b644fe23c0736373d6828076b149eb2"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Policy</b> = TokenDef(&quot;rego-policy&quot;)</td></tr>
-<tr class="separator:a7b644fe23c0736373d6828076b149eb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a15ebc4be30bf3218f86ea295dbf06d3b" id="r_a15ebc4be30bf3218f86ea295dbf06d3b"><td class="memItemLeft" align="right" valign="top"><a id="a15ebc4be30bf3218f86ea295dbf06d3b" name="a15ebc4be30bf3218f86ea295dbf06d3b"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Rule</b> = TokenDef(&quot;rego-rule&quot;, flag::symtab)</td></tr>
-<tr class="separator:a15ebc4be30bf3218f86ea295dbf06d3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f0dcc84de79d8a7fb73ded521f689fa" id="r_a2f0dcc84de79d8a7fb73ded521f689fa"><td class="memItemLeft" align="right" valign="top"><a id="a2f0dcc84de79d8a7fb73ded521f689fa" name="a2f0dcc84de79d8a7fb73ded521f689fa"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleHead</b> = TokenDef(&quot;rego-rulehead&quot;)</td></tr>
-<tr class="separator:a2f0dcc84de79d8a7fb73ded521f689fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24e1898ca47f108dac3b8195cdae1385" id="r_a24e1898ca47f108dac3b8195cdae1385"><td class="memItemLeft" align="right" valign="top"><a id="a24e1898ca47f108dac3b8195cdae1385" name="a24e1898ca47f108dac3b8195cdae1385"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleHeadComp</b> = TokenDef(&quot;rego-ruleheadcomp&quot;)</td></tr>
-<tr class="separator:a24e1898ca47f108dac3b8195cdae1385"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a193ffc7a11fa03d1aa7797d9632776d9" id="r_a193ffc7a11fa03d1aa7797d9632776d9"><td class="memItemLeft" align="right" valign="top"><a id="a193ffc7a11fa03d1aa7797d9632776d9" name="a193ffc7a11fa03d1aa7797d9632776d9"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleHeadFunc</b> = TokenDef(&quot;rego-ruleheadfunc&quot;)</td></tr>
-<tr class="separator:a193ffc7a11fa03d1aa7797d9632776d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a07d1638e8fab725d19d20dc0ef1072b3" id="r_a07d1638e8fab725d19d20dc0ef1072b3"><td class="memItemLeft" align="right" valign="top"><a id="a07d1638e8fab725d19d20dc0ef1072b3" name="a07d1638e8fab725d19d20dc0ef1072b3"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleHeadSet</b> = TokenDef(&quot;rego-ruleheadset&quot;)</td></tr>
-<tr class="separator:a07d1638e8fab725d19d20dc0ef1072b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c873aa045fb9dc09f7fdd92df134e47" id="r_a4c873aa045fb9dc09f7fdd92df134e47"><td class="memItemLeft" align="right" valign="top"><a id="a4c873aa045fb9dc09f7fdd92df134e47" name="a4c873aa045fb9dc09f7fdd92df134e47"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleHeadObj</b> = TokenDef(&quot;rego-ruleheadobj&quot;)</td></tr>
-<tr class="separator:a4c873aa045fb9dc09f7fdd92df134e47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89b1e97bb9ffe8f624e80c824300f339" id="r_a89b1e97bb9ffe8f624e80c824300f339"><td class="memItemLeft" align="right" valign="top"><a id="a89b1e97bb9ffe8f624e80c824300f339" name="a89b1e97bb9ffe8f624e80c824300f339"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleArgs</b> = TokenDef(&quot;rego-ruleargs&quot;)</td></tr>
-<tr class="separator:a89b1e97bb9ffe8f624e80c824300f339"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82878f6d1c48234ef79358f769e3dd63" id="r_a82878f6d1c48234ef79358f769e3dd63"><td class="memItemLeft" align="right" valign="top"><a id="a82878f6d1c48234ef79358f769e3dd63" name="a82878f6d1c48234ef79358f769e3dd63"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Query</b> = TokenDef(&quot;rego-query&quot;)</td></tr>
-<tr class="separator:a82878f6d1c48234ef79358f769e3dd63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6b5d927a9722590c517faa6c6551608" id="r_ad6b5d927a9722590c517faa6c6551608"><td class="memItemLeft" align="right" valign="top"><a id="ad6b5d927a9722590c517faa6c6551608" name="ad6b5d927a9722590c517faa6c6551608"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Literal</b> = TokenDef(&quot;rego-literal&quot;)</td></tr>
-<tr class="separator:ad6b5d927a9722590c517faa6c6551608"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c5a1341a55d38ec151cb2dafe28e2d2" id="r_a2c5a1341a55d38ec151cb2dafe28e2d2"><td class="memItemLeft" align="right" valign="top"><a id="a2c5a1341a55d38ec151cb2dafe28e2d2" name="a2c5a1341a55d38ec151cb2dafe28e2d2"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Expr</b> = TokenDef(&quot;rego-expr&quot;)</td></tr>
-<tr class="separator:a2c5a1341a55d38ec151cb2dafe28e2d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac424f57266949b16062b89e164aa7f8" id="r_aac424f57266949b16062b89e164aa7f8"><td class="memItemLeft" align="right" valign="top"><a id="aac424f57266949b16062b89e164aa7f8" name="aac424f57266949b16062b89e164aa7f8"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ExprInfix</b> = TokenDef(&quot;rego-exprinfix&quot;)</td></tr>
-<tr class="separator:aac424f57266949b16062b89e164aa7f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99089f4a18e71fba120be01fc3fbebc0" id="r_a99089f4a18e71fba120be01fc3fbebc0"><td class="memItemLeft" align="right" valign="top"><a id="a99089f4a18e71fba120be01fc3fbebc0" name="a99089f4a18e71fba120be01fc3fbebc0"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ExprCall</b> = TokenDef(&quot;rego-exprcall&quot;)</td></tr>
-<tr class="separator:a99089f4a18e71fba120be01fc3fbebc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f7fcf3acfe20b9e355b6868d4feafda" id="r_a6f7fcf3acfe20b9e355b6868d4feafda"><td class="memItemLeft" align="right" valign="top"><a id="a6f7fcf3acfe20b9e355b6868d4feafda" name="a6f7fcf3acfe20b9e355b6868d4feafda"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ExprEvery</b> = TokenDef(&quot;rego-exprevery&quot;)</td></tr>
-<tr class="separator:a6f7fcf3acfe20b9e355b6868d4feafda"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09476f290912465fdf6b252e4ae11e8b" id="r_a09476f290912465fdf6b252e4ae11e8b"><td class="memItemLeft" align="right" valign="top"><a id="a09476f290912465fdf6b252e4ae11e8b" name="a09476f290912465fdf6b252e4ae11e8b"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ExprParens</b> = TokenDef(&quot;rego-exprparens&quot;)</td></tr>
-<tr class="separator:a09476f290912465fdf6b252e4ae11e8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a704f493ac204e13a7c8fab702579470f" id="r_a704f493ac204e13a7c8fab702579470f"><td class="memItemLeft" align="right" valign="top"><a id="a704f493ac204e13a7c8fab702579470f" name="a704f493ac204e13a7c8fab702579470f"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>UnaryExpr</b> = TokenDef(&quot;rego-unaryexpr&quot;)</td></tr>
-<tr class="separator:a704f493ac204e13a7c8fab702579470f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c85a91513954c29e3ceeb559e8cdda1" id="r_a6c85a91513954c29e3ceeb559e8cdda1"><td class="memItemLeft" align="right" valign="top"><a id="a6c85a91513954c29e3ceeb559e8cdda1" name="a6c85a91513954c29e3ceeb559e8cdda1"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>NotExpr</b> = TokenDef(&quot;rego-not-expr&quot;)</td></tr>
-<tr class="separator:a6c85a91513954c29e3ceeb559e8cdda1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27b8132b8fc998328c9ed078e324d519" id="r_a27b8132b8fc998328c9ed078e324d519"><td class="memItemLeft" align="right" valign="top"><a id="a27b8132b8fc998328c9ed078e324d519" name="a27b8132b8fc998328c9ed078e324d519"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Term</b> = TokenDef(&quot;rego-term&quot;)</td></tr>
-<tr class="separator:a27b8132b8fc998328c9ed078e324d519"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a50d8a72bd97a5d4c0b04467616577a13" id="r_a50d8a72bd97a5d4c0b04467616577a13"><td class="memItemLeft" align="right" valign="top"><a id="a50d8a72bd97a5d4c0b04467616577a13" name="a50d8a72bd97a5d4c0b04467616577a13"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>InfixOperator</b> = TokenDef(&quot;rego-infixoperator&quot;)</td></tr>
-<tr class="separator:a50d8a72bd97a5d4c0b04467616577a13"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab26ab2f00bf46226abed8f539557a510" id="r_ab26ab2f00bf46226abed8f539557a510"><td class="memItemLeft" align="right" valign="top"><a id="ab26ab2f00bf46226abed8f539557a510" name="ab26ab2f00bf46226abed8f539557a510"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>BoolOperator</b> = TokenDef(&quot;rego-booloperator&quot;)</td></tr>
-<tr class="separator:ab26ab2f00bf46226abed8f539557a510"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8bcf23a4923cd4558e65390e36a44995" id="r_a8bcf23a4923cd4558e65390e36a44995"><td class="memItemLeft" align="right" valign="top"><a id="a8bcf23a4923cd4558e65390e36a44995" name="a8bcf23a4923cd4558e65390e36a44995"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ArithOperator</b> = TokenDef(&quot;rego-arithoperator&quot;)</td></tr>
-<tr class="separator:a8bcf23a4923cd4558e65390e36a44995"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a28654a706c0487a76d33a5986625b286" id="r_a28654a706c0487a76d33a5986625b286"><td class="memItemLeft" align="right" valign="top"><a id="a28654a706c0487a76d33a5986625b286" name="a28654a706c0487a76d33a5986625b286"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>AssignOperator</b> = TokenDef(&quot;rego-assignoperator&quot;)</td></tr>
-<tr class="separator:a28654a706c0487a76d33a5986625b286"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba5b986333a8e7b8e47fde241edd9d31" id="r_aba5b986333a8e7b8e47fde241edd9d31"><td class="memItemLeft" align="right" valign="top"><a id="aba5b986333a8e7b8e47fde241edd9d31" name="aba5b986333a8e7b8e47fde241edd9d31"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>BinOperator</b> = TokenDef(&quot;rego-binoperator&quot;)</td></tr>
-<tr class="separator:aba5b986333a8e7b8e47fde241edd9d31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab749fd577100019aa7420aff48beb763" id="r_ab749fd577100019aa7420aff48beb763"><td class="memItemLeft" align="right" valign="top"><a id="ab749fd577100019aa7420aff48beb763" name="ab749fd577100019aa7420aff48beb763"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Ref</b> = TokenDef(&quot;rego-ref&quot;)</td></tr>
-<tr class="separator:ab749fd577100019aa7420aff48beb763"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afee94682bf3293ad398ced9b4bbe2d9c" id="r_afee94682bf3293ad398ced9b4bbe2d9c"><td class="memItemLeft" align="right" valign="top"><a id="afee94682bf3293ad398ced9b4bbe2d9c" name="afee94682bf3293ad398ced9b4bbe2d9c"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RefArgBrack</b> = TokenDef(&quot;rego-refargbrack&quot;)</td></tr>
-<tr class="separator:afee94682bf3293ad398ced9b4bbe2d9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a34739481474eef76e081a1e43df04ea9" id="r_a34739481474eef76e081a1e43df04ea9"><td class="memItemLeft" align="right" valign="top"><a id="a34739481474eef76e081a1e43df04ea9" name="a34739481474eef76e081a1e43df04ea9"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RefArgDot</b> = TokenDef(&quot;rego-refargdot&quot;)</td></tr>
-<tr class="separator:a34739481474eef76e081a1e43df04ea9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa42f2a7ceb69fc762ed765ba7b981655" id="r_aa42f2a7ceb69fc762ed765ba7b981655"><td class="memItemLeft" align="right" valign="top"><a id="aa42f2a7ceb69fc762ed765ba7b981655" name="aa42f2a7ceb69fc762ed765ba7b981655"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Var</b> = TokenDef(&quot;rego-var&quot;, flag::print)</td></tr>
-<tr class="separator:aa42f2a7ceb69fc762ed765ba7b981655"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad804fbd516f036857cb999669ae3b2e7" id="r_ad804fbd516f036857cb999669ae3b2e7"><td class="memItemLeft" align="right" valign="top"><a id="ad804fbd516f036857cb999669ae3b2e7" name="ad804fbd516f036857cb999669ae3b2e7"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Scalar</b> = TokenDef(&quot;rego-scalar&quot;)</td></tr>
-<tr class="separator:ad804fbd516f036857cb999669ae3b2e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8cf3aa96eeb5b7415f0526be63dd62d" id="r_ae8cf3aa96eeb5b7415f0526be63dd62d"><td class="memItemLeft" align="right" valign="top"><a id="ae8cf3aa96eeb5b7415f0526be63dd62d" name="ae8cf3aa96eeb5b7415f0526be63dd62d"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>String</b> = TokenDef(&quot;rego-string&quot;)</td></tr>
-<tr class="separator:ae8cf3aa96eeb5b7415f0526be63dd62d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8af5c5923dc4dbcf31600cb0500c2b7b" id="r_a8af5c5923dc4dbcf31600cb0500c2b7b"><td class="memItemLeft" align="right" valign="top"><a id="a8af5c5923dc4dbcf31600cb0500c2b7b" name="a8af5c5923dc4dbcf31600cb0500c2b7b"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Array</b> = TokenDef(&quot;rego-array&quot;)</td></tr>
-<tr class="separator:a8af5c5923dc4dbcf31600cb0500c2b7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f69e9f5577371b60672c56171c76cfe" id="r_a5f69e9f5577371b60672c56171c76cfe"><td class="memItemLeft" align="right" valign="top"><a id="a5f69e9f5577371b60672c56171c76cfe" name="a5f69e9f5577371b60672c56171c76cfe"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Object</b> = TokenDef(&quot;rego-object&quot;)</td></tr>
-<tr class="separator:a5f69e9f5577371b60672c56171c76cfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5985e1aeb8d81c021d1a6f249a32c2e7" id="r_a5985e1aeb8d81c021d1a6f249a32c2e7"><td class="memItemLeft" align="right" valign="top"><a id="a5985e1aeb8d81c021d1a6f249a32c2e7" name="a5985e1aeb8d81c021d1a6f249a32c2e7"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Set</b> = TokenDef(&quot;rego-set&quot;)</td></tr>
-<tr class="separator:a5985e1aeb8d81c021d1a6f249a32c2e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a900c4868147c88f7fa97d182ce511fd6" id="r_a900c4868147c88f7fa97d182ce511fd6"><td class="memItemLeft" align="right" valign="top"><a id="a900c4868147c88f7fa97d182ce511fd6" name="a900c4868147c88f7fa97d182ce511fd6"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ObjectItem</b> = TokenDef(&quot;rego-objectitem&quot;)</td></tr>
-<tr class="separator:a900c4868147c88f7fa97d182ce511fd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83556565d620d769632b0b4d20575856" id="r_a83556565d620d769632b0b4d20575856"><td class="memItemLeft" align="right" valign="top"><a id="a83556565d620d769632b0b4d20575856" name="a83556565d620d769632b0b4d20575856"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RawString</b> = TokenDef(&quot;rego-rawstring&quot;, flag::print)</td></tr>
-<tr class="separator:a83556565d620d769632b0b4d20575856"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee1f377faaf42ef7a2660e2be19c4183" id="r_aee1f377faaf42ef7a2660e2be19c4183"><td class="memItemLeft" align="right" valign="top"><a id="aee1f377faaf42ef7a2660e2be19c4183" name="aee1f377faaf42ef7a2660e2be19c4183"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>JSONString</b> = TokenDef(&quot;rego-STRING&quot;, flag::print)</td></tr>
-<tr class="separator:aee1f377faaf42ef7a2660e2be19c4183"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa60713c01b6862d3bb52bfa6e7c6114f" id="r_aa60713c01b6862d3bb52bfa6e7c6114f"><td class="memItemLeft" align="right" valign="top"><a id="aa60713c01b6862d3bb52bfa6e7c6114f" name="aa60713c01b6862d3bb52bfa6e7c6114f"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Int</b> = TokenDef(&quot;rego-INT&quot;, flag::print)</td></tr>
-<tr class="separator:aa60713c01b6862d3bb52bfa6e7c6114f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae1f6b541bf076d39f06754575125ae64" id="r_ae1f6b541bf076d39f06754575125ae64"><td class="memItemLeft" align="right" valign="top"><a id="ae1f6b541bf076d39f06754575125ae64" name="ae1f6b541bf076d39f06754575125ae64"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Float</b> = TokenDef(&quot;rego-FLOAT&quot;, flag::print)</td></tr>
-<tr class="separator:ae1f6b541bf076d39f06754575125ae64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d44ecdc4808799582977aa7bddc5362" id="r_a5d44ecdc4808799582977aa7bddc5362"><td class="memItemLeft" align="right" valign="top"><a id="a5d44ecdc4808799582977aa7bddc5362" name="a5d44ecdc4808799582977aa7bddc5362"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>True</b> = TokenDef(&quot;rego-true&quot;)</td></tr>
-<tr class="separator:a5d44ecdc4808799582977aa7bddc5362"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a11079c9fd30b1e17303b44e85aa72b61" id="r_a11079c9fd30b1e17303b44e85aa72b61"><td class="memItemLeft" align="right" valign="top"><a id="a11079c9fd30b1e17303b44e85aa72b61" name="a11079c9fd30b1e17303b44e85aa72b61"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>False</b> = TokenDef(&quot;rego-false&quot;)</td></tr>
-<tr class="separator:a11079c9fd30b1e17303b44e85aa72b61"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a08a278daf2000f524145a3af490e69e6" id="r_a08a278daf2000f524145a3af490e69e6"><td class="memItemLeft" align="right" valign="top"><a id="a08a278daf2000f524145a3af490e69e6" name="a08a278daf2000f524145a3af490e69e6"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Null</b> = TokenDef(&quot;rego-null&quot;)</td></tr>
-<tr class="separator:a08a278daf2000f524145a3af490e69e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af701c7a3a791097cb879fd0c2cf0c449" id="r_af701c7a3a791097cb879fd0c2cf0c449"><td class="memItemLeft" align="right" valign="top"><a id="af701c7a3a791097cb879fd0c2cf0c449" name="af701c7a3a791097cb879fd0c2cf0c449"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Equals</b> = TokenDef(&quot;rego-equals&quot;)</td></tr>
-<tr class="separator:af701c7a3a791097cb879fd0c2cf0c449"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a50c36f166c929979268e500261e298ca" id="r_a50c36f166c929979268e500261e298ca"><td class="memItemLeft" align="right" valign="top"><a id="a50c36f166c929979268e500261e298ca" name="a50c36f166c929979268e500261e298ca"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>NotEquals</b> = TokenDef(&quot;rego-notequals&quot;)</td></tr>
-<tr class="separator:a50c36f166c929979268e500261e298ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf84449734a4dd52da4d0097df16643b" id="r_aaf84449734a4dd52da4d0097df16643b"><td class="memItemLeft" align="right" valign="top"><a id="aaf84449734a4dd52da4d0097df16643b" name="aaf84449734a4dd52da4d0097df16643b"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>LessThan</b> = TokenDef(&quot;rego-lessthan&quot;)</td></tr>
-<tr class="separator:aaf84449734a4dd52da4d0097df16643b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af723cfdcb3ff35b379033fd206404ef4" id="r_af723cfdcb3ff35b379033fd206404ef4"><td class="memItemLeft" align="right" valign="top"><a id="af723cfdcb3ff35b379033fd206404ef4" name="af723cfdcb3ff35b379033fd206404ef4"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>GreaterThan</b> = TokenDef(&quot;rego-greaterthan&quot;)</td></tr>
-<tr class="separator:af723cfdcb3ff35b379033fd206404ef4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a960e8e50741ee435b2382f7777934a15" id="r_a960e8e50741ee435b2382f7777934a15"><td class="memItemLeft" align="right" valign="top"><a id="a960e8e50741ee435b2382f7777934a15" name="a960e8e50741ee435b2382f7777934a15"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>LessThanOrEquals</b> = TokenDef(&quot;rego-lessthanorequals&quot;)</td></tr>
-<tr class="separator:a960e8e50741ee435b2382f7777934a15"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:affb06650e1ea97870118f64df0e339e3" id="r_affb06650e1ea97870118f64df0e339e3"><td class="memItemLeft" align="right" valign="top"><a id="affb06650e1ea97870118f64df0e339e3" name="affb06650e1ea97870118f64df0e339e3"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>GreaterThanOrEquals</b> = TokenDef(&quot;rego-greaterthanorequals&quot;)</td></tr>
-<tr class="separator:affb06650e1ea97870118f64df0e339e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a80087604c823a8beac497b39ff6051" id="r_a4a80087604c823a8beac497b39ff6051"><td class="memItemLeft" align="right" valign="top"><a id="a4a80087604c823a8beac497b39ff6051" name="a4a80087604c823a8beac497b39ff6051"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Add</b> = TokenDef(&quot;rego-add&quot;)</td></tr>
-<tr class="separator:a4a80087604c823a8beac497b39ff6051"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa4ca1022350964d27f6584f41a040cc" id="r_afa4ca1022350964d27f6584f41a040cc"><td class="memItemLeft" align="right" valign="top"><a id="afa4ca1022350964d27f6584f41a040cc" name="afa4ca1022350964d27f6584f41a040cc"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Subtract</b> = TokenDef(&quot;rego-subtract&quot;)</td></tr>
-<tr class="separator:afa4ca1022350964d27f6584f41a040cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57f424e628ec6f846bc8d2b8617842bd" id="r_a57f424e628ec6f846bc8d2b8617842bd"><td class="memItemLeft" align="right" valign="top"><a id="a57f424e628ec6f846bc8d2b8617842bd" name="a57f424e628ec6f846bc8d2b8617842bd"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Multiply</b> = TokenDef(&quot;rego-multiply&quot;)</td></tr>
-<tr class="separator:a57f424e628ec6f846bc8d2b8617842bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c90177c390f6748362573fc766acdcb" id="r_a6c90177c390f6748362573fc766acdcb"><td class="memItemLeft" align="right" valign="top"><a id="a6c90177c390f6748362573fc766acdcb" name="a6c90177c390f6748362573fc766acdcb"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Divide</b> = TokenDef(&quot;rego-divide&quot;)</td></tr>
-<tr class="separator:a6c90177c390f6748362573fc766acdcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a10c00e66bf5c318fd247e5258a9bb1e9" id="r_a10c00e66bf5c318fd247e5258a9bb1e9"><td class="memItemLeft" align="right" valign="top"><a id="a10c00e66bf5c318fd247e5258a9bb1e9" name="a10c00e66bf5c318fd247e5258a9bb1e9"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Modulo</b> = TokenDef(&quot;rego-modulo&quot;)</td></tr>
-<tr class="separator:a10c00e66bf5c318fd247e5258a9bb1e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a70546162f8de6a604d33c139797067f4" id="r_a70546162f8de6a604d33c139797067f4"><td class="memItemLeft" align="right" valign="top"><a id="a70546162f8de6a604d33c139797067f4" name="a70546162f8de6a604d33c139797067f4"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>And</b> = TokenDef(&quot;rego-and&quot;)</td></tr>
-<tr class="separator:a70546162f8de6a604d33c139797067f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9a5b7e86b7307db11663b32d7b43cfa" id="r_ad9a5b7e86b7307db11663b32d7b43cfa"><td class="memItemLeft" align="right" valign="top"><a id="ad9a5b7e86b7307db11663b32d7b43cfa" name="ad9a5b7e86b7307db11663b32d7b43cfa"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Or</b> = TokenDef(&quot;rego-or&quot;)</td></tr>
-<tr class="separator:ad9a5b7e86b7307db11663b32d7b43cfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a7d689ed3d4bcfaf70170f08cbf6298" id="r_a3a7d689ed3d4bcfaf70170f08cbf6298"><td class="memItemLeft" align="right" valign="top"><a id="a3a7d689ed3d4bcfaf70170f08cbf6298" name="a3a7d689ed3d4bcfaf70170f08cbf6298"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Assign</b> = TokenDef(&quot;rego-assign&quot;)</td></tr>
-<tr class="separator:a3a7d689ed3d4bcfaf70170f08cbf6298"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a285540778d9a3febce409201d34d2b71" id="r_a285540778d9a3febce409201d34d2b71"><td class="memItemLeft" align="right" valign="top"><a id="a285540778d9a3febce409201d34d2b71" name="a285540778d9a3febce409201d34d2b71"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Unify</b> = TokenDef(&quot;rego-unify&quot;)</td></tr>
-<tr class="separator:a285540778d9a3febce409201d34d2b71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a682f35cefe2e50d8b40e17b50e9bd30c" id="r_a682f35cefe2e50d8b40e17b50e9bd30c"><td class="memItemLeft" align="right" valign="top"><a id="a682f35cefe2e50d8b40e17b50e9bd30c" name="a682f35cefe2e50d8b40e17b50e9bd30c"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Default</b> = TokenDef(&quot;rego-default&quot;)</td></tr>
-<tr class="separator:a682f35cefe2e50d8b40e17b50e9bd30c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abdd570f80edc56aca04a9beae9506b39" id="r_abdd570f80edc56aca04a9beae9506b39"><td class="memItemLeft" align="right" valign="top"><a id="abdd570f80edc56aca04a9beae9506b39" name="abdd570f80edc56aca04a9beae9506b39"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Some</b> = TokenDef(&quot;rego-some&quot;)</td></tr>
-<tr class="separator:abdd570f80edc56aca04a9beae9506b39"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9cc09f466773c808108c24b1a5c0f23f" id="r_a9cc09f466773c808108c24b1a5c0f23f"><td class="memItemLeft" align="right" valign="top"><a id="a9cc09f466773c808108c24b1a5c0f23f" name="a9cc09f466773c808108c24b1a5c0f23f"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>SomeDecl</b> = TokenDef(&quot;rego-somedecl&quot;)</td></tr>
-<tr class="separator:a9cc09f466773c808108c24b1a5c0f23f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74a7ed54c09b03d96ed1c9fc3f7db226" id="r_a74a7ed54c09b03d96ed1c9fc3f7db226"><td class="memItemLeft" align="right" valign="top"><a id="a74a7ed54c09b03d96ed1c9fc3f7db226" name="a74a7ed54c09b03d96ed1c9fc3f7db226"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>If</b> = TokenDef(&quot;rego-if&quot;)</td></tr>
-<tr class="separator:a74a7ed54c09b03d96ed1c9fc3f7db226"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5b43f824ab3a2078a332d16e828a5f6" id="r_aa5b43f824ab3a2078a332d16e828a5f6"><td class="memItemLeft" align="right" valign="top"><a id="aa5b43f824ab3a2078a332d16e828a5f6" name="aa5b43f824ab3a2078a332d16e828a5f6"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>IsIn</b> = TokenDef(&quot;rego-in&quot;)</td></tr>
-<tr class="separator:aa5b43f824ab3a2078a332d16e828a5f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d20a648d2f7365b6a22af9246cf1ec7" id="r_a3d20a648d2f7365b6a22af9246cf1ec7"><td class="memItemLeft" align="right" valign="top"><a id="a3d20a648d2f7365b6a22af9246cf1ec7" name="a3d20a648d2f7365b6a22af9246cf1ec7"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Contains</b> = TokenDef(&quot;rego-contains&quot;)</td></tr>
-<tr class="separator:a3d20a648d2f7365b6a22af9246cf1ec7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad51b6c6a281d0a9d02188de3934a21a1" id="r_ad51b6c6a281d0a9d02188de3934a21a1"><td class="memItemLeft" align="right" valign="top"><a id="ad51b6c6a281d0a9d02188de3934a21a1" name="ad51b6c6a281d0a9d02188de3934a21a1"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Else</b> = TokenDef(&quot;rego-else&quot;)</td></tr>
-<tr class="separator:ad51b6c6a281d0a9d02188de3934a21a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1448772e29528abbcf94b02ead278ae3" id="r_a1448772e29528abbcf94b02ead278ae3"><td class="memItemLeft" align="right" valign="top"><a id="a1448772e29528abbcf94b02ead278ae3" name="a1448772e29528abbcf94b02ead278ae3"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>As</b> = TokenDef(&quot;rego-as&quot;)</td></tr>
-<tr class="separator:a1448772e29528abbcf94b02ead278ae3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae43886dd49806244b6b2a2ca2cc431b1" id="r_ae43886dd49806244b6b2a2ca2cc431b1"><td class="memItemLeft" align="right" valign="top"><a id="ae43886dd49806244b6b2a2ca2cc431b1" name="ae43886dd49806244b6b2a2ca2cc431b1"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>With</b> = TokenDef(&quot;rego-with&quot;)</td></tr>
-<tr class="separator:ae43886dd49806244b6b2a2ca2cc431b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84f1138a50cfa0f88c675bc508473c3e" id="r_a84f1138a50cfa0f88c675bc508473c3e"><td class="memItemLeft" align="right" valign="top"><a id="a84f1138a50cfa0f88c675bc508473c3e" name="a84f1138a50cfa0f88c675bc508473c3e"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Every</b> = TokenDef(&quot;rego-every&quot;)</td></tr>
-<tr class="separator:a84f1138a50cfa0f88c675bc508473c3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5055d97d684026833628f737980e0183" id="r_a5055d97d684026833628f737980e0183"><td class="memItemLeft" align="right" valign="top"><a id="a5055d97d684026833628f737980e0183" name="a5055d97d684026833628f737980e0183"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ArrayCompr</b> = TokenDef(&quot;rego-arraycompr&quot;)</td></tr>
-<tr class="separator:a5055d97d684026833628f737980e0183"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f13a0a4ff45f62d2a7c0fd805ef0bcd" id="r_a2f13a0a4ff45f62d2a7c0fd805ef0bcd"><td class="memItemLeft" align="right" valign="top"><a id="a2f13a0a4ff45f62d2a7c0fd805ef0bcd" name="a2f13a0a4ff45f62d2a7c0fd805ef0bcd"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ObjectCompr</b> = TokenDef(&quot;rego-objectcompr&quot;)</td></tr>
-<tr class="separator:a2f13a0a4ff45f62d2a7c0fd805ef0bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3751f8e6833b1d01cfe8f8aa53ad97b7" id="r_a3751f8e6833b1d01cfe8f8aa53ad97b7"><td class="memItemLeft" align="right" valign="top"><a id="a3751f8e6833b1d01cfe8f8aa53ad97b7" name="a3751f8e6833b1d01cfe8f8aa53ad97b7"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>SetCompr</b> = TokenDef(&quot;rego-setcompr&quot;)</td></tr>
-<tr class="separator:a3751f8e6833b1d01cfe8f8aa53ad97b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc9328f737392f6760a71f2a0a37ac72" id="r_afc9328f737392f6760a71f2a0a37ac72"><td class="memItemLeft" align="right" valign="top"><a id="afc9328f737392f6760a71f2a0a37ac72" name="afc9328f737392f6760a71f2a0a37ac72"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Membership</b> = TokenDef(&quot;rego-membership&quot;)</td></tr>
-<tr class="separator:afc9328f737392f6760a71f2a0a37ac72"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeff12e76a96b72733e1de1ed1b906e8c" id="r_aeff12e76a96b72733e1de1ed1b906e8c"><td class="memItemLeft" align="right" valign="top"><a id="aeff12e76a96b72733e1de1ed1b906e8c" name="aeff12e76a96b72733e1de1ed1b906e8c"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Not</b> = TokenDef(&quot;rego-not&quot;)</td></tr>
-<tr class="separator:aeff12e76a96b72733e1de1ed1b906e8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abee096b0018b43b96f12f8b6dc076af2" id="r_abee096b0018b43b96f12f8b6dc076af2"><td class="memItemLeft" align="right" valign="top">const auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abee096b0018b43b96f12f8b6dc076af2">Import</a></td></tr>
-<tr class="separator:abee096b0018b43b96f12f8b6dc076af2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98aba0e9a434c18f4ee3dd5fdcce5f47" id="r_a98aba0e9a434c18f4ee3dd5fdcce5f47"><td class="memItemLeft" align="right" valign="top"><a id="a98aba0e9a434c18f4ee3dd5fdcce5f47" name="a98aba0e9a434c18f4ee3dd5fdcce5f47"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Placeholder</b> = TokenDef(&quot;rego-placeholder&quot;)</td></tr>
-<tr class="separator:a98aba0e9a434c18f4ee3dd5fdcce5f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad5caf242898fc79e8566d26deed7012b" id="r_ad5caf242898fc79e8566d26deed7012b"><td class="memItemLeft" align="right" valign="top"><a id="ad5caf242898fc79e8566d26deed7012b" name="ad5caf242898fc79e8566d26deed7012b"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Version</b> = TokenDef(&quot;rego-version&quot;, flag::print)</td></tr>
-<tr class="separator:ad5caf242898fc79e8566d26deed7012b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e261caae8c3eea4c9db6f4ed07bbcc3" id="r_a9e261caae8c3eea4c9db6f4ed07bbcc3"><td class="memItemLeft" align="right" valign="top"><a id="a9e261caae8c3eea4c9db6f4ed07bbcc3" name="a9e261caae8c3eea4c9db6f4ed07bbcc3"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleBodySeq</b> = TokenDef(&quot;rego-rulebodyseq&quot;)</td></tr>
-<tr class="separator:a9e261caae8c3eea4c9db6f4ed07bbcc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39b533c5da5d1e0034c0182d6f485193" id="r_a39b533c5da5d1e0034c0182d6f485193"><td class="memItemLeft" align="right" valign="top"><a id="a39b533c5da5d1e0034c0182d6f485193" name="a39b533c5da5d1e0034c0182d6f485193"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ImportSeq</b> = TokenDef(&quot;rego-importseq&quot;)</td></tr>
-<tr class="separator:a39b533c5da5d1e0034c0182d6f485193"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb2342208c1cd9b0466828987a7ccedc" id="r_aeb2342208c1cd9b0466828987a7ccedc"><td class="memItemLeft" align="right" valign="top"><a id="aeb2342208c1cd9b0466828987a7ccedc" name="aeb2342208c1cd9b0466828987a7ccedc"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleRef</b> = TokenDef(&quot;rego-ruleref&quot;)</td></tr>
-<tr class="separator:aeb2342208c1cd9b0466828987a7ccedc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a873dc4a1f2cfae059b4b2956d77c95fd" id="r_a873dc4a1f2cfae059b4b2956d77c95fd"><td class="memItemLeft" align="right" valign="top"><a id="a873dc4a1f2cfae059b4b2956d77c95fd" name="a873dc4a1f2cfae059b4b2956d77c95fd"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RuleHeadType</b> = TokenDef(&quot;rego-ruleheadtype&quot;)</td></tr>
-<tr class="separator:a873dc4a1f2cfae059b4b2956d77c95fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01372575a9ad26d6ff72ca154c5300d9" id="r_a01372575a9ad26d6ff72ca154c5300d9"><td class="memItemLeft" align="right" valign="top"><a id="a01372575a9ad26d6ff72ca154c5300d9" name="a01372575a9ad26d6ff72ca154c5300d9"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>WithSeq</b> = TokenDef(&quot;rego-withseq&quot;)</td></tr>
-<tr class="separator:a01372575a9ad26d6ff72ca154c5300d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a312d46508668c43750b8fa14f7457987" id="r_a312d46508668c43750b8fa14f7457987"><td class="memItemLeft" align="right" valign="top"><a id="a312d46508668c43750b8fa14f7457987" name="a312d46508668c43750b8fa14f7457987"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>TermSeq</b> = TokenDef(&quot;rego-termseq&quot;)</td></tr>
-<tr class="separator:a312d46508668c43750b8fa14f7457987"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae58bd2f5262826616aede34e01cd390b" id="r_ae58bd2f5262826616aede34e01cd390b"><td class="memItemLeft" align="right" valign="top"><a id="ae58bd2f5262826616aede34e01cd390b" name="ae58bd2f5262826616aede34e01cd390b"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ExprSeq</b> = TokenDef(&quot;rego-exprseq&quot;)</td></tr>
-<tr class="separator:ae58bd2f5262826616aede34e01cd390b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c3fc47d44cb73dad8feca2d3e9f6824" id="r_a3c3fc47d44cb73dad8feca2d3e9f6824"><td class="memItemLeft" align="right" valign="top"><a id="a3c3fc47d44cb73dad8feca2d3e9f6824" name="a3c3fc47d44cb73dad8feca2d3e9f6824"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>VarSeq</b> = TokenDef(&quot;rego-varseq&quot;)</td></tr>
-<tr class="separator:a3c3fc47d44cb73dad8feca2d3e9f6824"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a096e5d6ecd6a75549c8bf6a43adad294" id="r_a096e5d6ecd6a75549c8bf6a43adad294"><td class="memItemLeft" align="right" valign="top"><a id="a096e5d6ecd6a75549c8bf6a43adad294" name="a096e5d6ecd6a75549c8bf6a43adad294"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RefHead</b> = TokenDef(&quot;rego-refhead&quot;)</td></tr>
-<tr class="separator:a096e5d6ecd6a75549c8bf6a43adad294"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd200ee9c4ac2f47f6b5ec859fe7e168" id="r_acd200ee9c4ac2f47f6b5ec859fe7e168"><td class="memItemLeft" align="right" valign="top"><a id="acd200ee9c4ac2f47f6b5ec859fe7e168" name="acd200ee9c4ac2f47f6b5ec859fe7e168"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>RefArgSeq</b> = TokenDef(&quot;rego-refargseq&quot;)</td></tr>
-<tr class="separator:acd200ee9c4ac2f47f6b5ec859fe7e168"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac374336cb6deb97c1b996ee7c52dfabf" id="r_ac374336cb6deb97c1b996ee7c52dfabf"><td class="memItemLeft" align="right" valign="top"><a id="ac374336cb6deb97c1b996ee7c52dfabf" name="ac374336cb6deb97c1b996ee7c52dfabf"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Key</b> = TokenDef(&quot;rego-key&quot;, flag::print)</td></tr>
-<tr class="separator:ac374336cb6deb97c1b996ee7c52dfabf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2b2f03c5286e351da43d849f45f6fbb" id="r_ad2b2f03c5286e351da43d849f45f6fbb"><td class="memItemLeft" align="right" valign="top"><a id="ad2b2f03c5286e351da43d849f45f6fbb" name="ad2b2f03c5286e351da43d849f45f6fbb"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Val</b> = TokenDef(&quot;rego-value&quot;)</td></tr>
-<tr class="separator:ad2b2f03c5286e351da43d849f45f6fbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1960928ca9a851f951d42459b0ae83a" id="r_ab1960928ca9a851f951d42459b0ae83a"><td class="memItemLeft" align="right" valign="top"><a id="ab1960928ca9a851f951d42459b0ae83a" name="ab1960928ca9a851f951d42459b0ae83a"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Undefined</b> = TokenDef(&quot;rego-undefined&quot;)</td></tr>
-<tr class="separator:ab1960928ca9a851f951d42459b0ae83a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7cc413c7be61b6f8e7b9886ca0a8e8d3" id="r_a7cc413c7be61b6f8e7b9886ca0a8e8d3"><td class="memItemLeft" align="right" valign="top"><a id="a7cc413c7be61b6f8e7b9886ca0a8e8d3" name="a7cc413c7be61b6f8e7b9886ca0a8e8d3"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Results</b> = TokenDef(&quot;rego-results&quot;, flag::symtab)</td></tr>
-<tr class="separator:a7cc413c7be61b6f8e7b9886ca0a8e8d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ae486b7490d42f1b112722971587bec" id="r_a9ae486b7490d42f1b112722971587bec"><td class="memItemLeft" align="right" valign="top"><a id="a9ae486b7490d42f1b112722971587bec" name="a9ae486b7490d42f1b112722971587bec"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Result</b> = TokenDef(&quot;rego-result&quot;, flag::symtab)</td></tr>
-<tr class="separator:a9ae486b7490d42f1b112722971587bec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a46277f1a99a360dc243dd40eafa331c1" id="r_a46277f1a99a360dc243dd40eafa331c1"><td class="memItemLeft" align="right" valign="top"><a id="a46277f1a99a360dc243dd40eafa331c1" name="a46277f1a99a360dc243dd40eafa331c1"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Bindings</b> = TokenDef(&quot;rego-bindings&quot;)</td></tr>
-<tr class="separator:a46277f1a99a360dc243dd40eafa331c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b01bbb6d3bb2413b2cf8f74277aee80" id="r_a0b01bbb6d3bb2413b2cf8f74277aee80"><td class="memItemLeft" align="right" valign="top"><a id="a0b01bbb6d3bb2413b2cf8f74277aee80" name="a0b01bbb6d3bb2413b2cf8f74277aee80"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Terms</b> = TokenDef(&quot;rego-terms&quot;)</td></tr>
-<tr class="separator:a0b01bbb6d3bb2413b2cf8f74277aee80"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8785684a3f30a4a0ee3587b212cd4695" id="r_a8785684a3f30a4a0ee3587b212cd4695"><td class="memItemLeft" align="right" valign="top"><a id="a8785684a3f30a4a0ee3587b212cd4695" name="a8785684a3f30a4a0ee3587b212cd4695"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>Binding</b> = TokenDef(&quot;rego-binding&quot;, flag::lookdown)</td></tr>
-<tr class="separator:a8785684a3f30a4a0ee3587b212cd4695"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9b7461f4bd3c3b8ba7eb6bc8d3dc805c" id="r_a9b7461f4bd3c3b8ba7eb6bc8d3dc805c"><td class="memItemLeft" align="right" valign="top"><a id="a9b7461f4bd3c3b8ba7eb6bc8d3dc805c" name="a9b7461f4bd3c3b8ba7eb6bc8d3dc805c"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ErrorCode</b> = TokenDef(&quot;rego-errorcode&quot;)</td></tr>
-<tr class="separator:a9b7461f4bd3c3b8ba7eb6bc8d3dc805c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01dfc7c466cc291641215e8600704378" id="r_a01dfc7c466cc291641215e8600704378"><td class="memItemLeft" align="right" valign="top"><a id="a01dfc7c466cc291641215e8600704378" name="a01dfc7c466cc291641215e8600704378"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>ErrorSeq</b> = TokenDef(&quot;rego-errorseq&quot;)</td></tr>
-<tr class="separator:a01dfc7c466cc291641215e8600704378"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae632424d60286ba8fe90f456d7733d18" id="r_ae632424d60286ba8fe90f456d7733d18"><td class="memItemLeft" align="right" valign="top"><a id="ae632424d60286ba8fe90f456d7733d18" name="ae632424d60286ba8fe90f456d7733d18"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>wf_assign_op</b> = Assign | Unify</td></tr>
-<tr class="separator:ae632424d60286ba8fe90f456d7733d18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa4c646e100377dace376472b3c26ce59" id="r_aa4c646e100377dace376472b3c26ce59"><td class="memItemLeft" align="right" valign="top"><a id="aa4c646e100377dace376472b3c26ce59" name="aa4c646e100377dace376472b3c26ce59"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>wf_arith_op</b> = Add | Subtract | Multiply | Divide | Modulo</td></tr>
-<tr class="separator:aa4c646e100377dace376472b3c26ce59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1df4f98abf63e50e15dc0ae66f9d575" id="r_ad1df4f98abf63e50e15dc0ae66f9d575"><td class="memItemLeft" align="right" valign="top"><a id="ad1df4f98abf63e50e15dc0ae66f9d575" name="ad1df4f98abf63e50e15dc0ae66f9d575"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>wf_bin_op</b> = And | Or | Subtract</td></tr>
-<tr class="separator:ad1df4f98abf63e50e15dc0ae66f9d575"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59f6e5b339b933082d6c1e36e5dd9176" id="r_a59f6e5b339b933082d6c1e36e5dd9176"><td class="memItemLeft" align="right" valign="top">const auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a59f6e5b339b933082d6c1e36e5dd9176">wf_bool_op</a></td></tr>
-<tr class="separator:a59f6e5b339b933082d6c1e36e5dd9176"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9bd80de105a52ed7fe7c4ba477edfce8" id="r_a9bd80de105a52ed7fe7c4ba477edfce8"><td class="memItemLeft" align="right" valign="top">const auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9bd80de105a52ed7fe7c4ba477edfce8">wf_exprs</a></td></tr>
-<tr class="separator:a9bd80de105a52ed7fe7c4ba477edfce8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fb3efbbb5f080ced0fbb4fe9e5c7413" id="r_a8fb3efbbb5f080ced0fbb4fe9e5c7413"><td class="memItemLeft" align="right" valign="top"><a id="a8fb3efbbb5f080ced0fbb4fe9e5c7413" name="a8fb3efbbb5f080ced0fbb4fe9e5c7413"></a>
-const auto&#160;</td><td class="memItemRight" valign="bottom"><b>wf</b></td></tr>
-<tr class="separator:a8fb3efbbb5f080ced0fbb4fe9e5c7413"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab612b6c065e0a30480be3efa0dda034a" id="r_ab612b6c065e0a30480be3efa0dda034a"><td class="memItemLeft" align="right" valign="top">const auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab612b6c065e0a30480be3efa0dda034a">wf_result</a></td></tr>
-<tr class="separator:ab612b6c065e0a30480be3efa0dda034a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93979cd609d81b8b2d389200308d0c0a" id="r_a93979cd609d81b8b2d389200308d0c0a"><td class="memItemLeft" align="right" valign="top">const std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a93979cd609d81b8b2d389200308d0c0a">AnyArity</a> = std::numeric_limits&lt;std::size_t&gt;::max()</td></tr>
-<tr class="separator:a93979cd609d81b8b2d389200308d0c0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5af6f6ddf5810c6a6659c2ee9087ccc" id="r_ae5af6f6ddf5810c6a6659c2ee9087ccc"><td class="memItemLeft" align="right" valign="top"><a id="ae5af6f6ddf5810c6a6659c2ee9087ccc" name="ae5af6f6ddf5810c6a6659c2ee9087ccc"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>UnknownError</b> = &quot;unknown_error&quot;</td></tr>
-<tr class="separator:ae5af6f6ddf5810c6a6659c2ee9087ccc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac5c6774155a007ebbaac3e1b5ff67ee6" id="r_ac5c6774155a007ebbaac3e1b5ff67ee6"><td class="memItemLeft" align="right" valign="top"><a id="ac5c6774155a007ebbaac3e1b5ff67ee6" name="ac5c6774155a007ebbaac3e1b5ff67ee6"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>EvalTypeError</b> = &quot;eval_type_error&quot;</td></tr>
-<tr class="separator:ac5c6774155a007ebbaac3e1b5ff67ee6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec3668e0142508afd109c5b7b3d132b3" id="r_aec3668e0142508afd109c5b7b3d132b3"><td class="memItemLeft" align="right" valign="top"><a id="aec3668e0142508afd109c5b7b3d132b3" name="aec3668e0142508afd109c5b7b3d132b3"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>EvalBuiltInError</b> = &quot;eval_builtin_error&quot;</td></tr>
-<tr class="separator:aec3668e0142508afd109c5b7b3d132b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2989930d5243d2a89fdf74cc928658e" id="r_af2989930d5243d2a89fdf74cc928658e"><td class="memItemLeft" align="right" valign="top"><a id="af2989930d5243d2a89fdf74cc928658e" name="af2989930d5243d2a89fdf74cc928658e"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RegoTypeError</b> = &quot;rego_type_error&quot;</td></tr>
-<tr class="separator:af2989930d5243d2a89fdf74cc928658e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa268d7246e062c7c8fb2eb2eab22d740" id="r_aa268d7246e062c7c8fb2eb2eab22d740"><td class="memItemLeft" align="right" valign="top"><a id="aa268d7246e062c7c8fb2eb2eab22d740" name="aa268d7246e062c7c8fb2eb2eab22d740"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RegoParseError</b> = &quot;rego_parse_error&quot;</td></tr>
-<tr class="separator:aa268d7246e062c7c8fb2eb2eab22d740"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a344ac8175e07936c6e2494f5cabf37" id="r_a0a344ac8175e07936c6e2494f5cabf37"><td class="memItemLeft" align="right" valign="top"><a id="a0a344ac8175e07936c6e2494f5cabf37" name="a0a344ac8175e07936c6e2494f5cabf37"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RegoCompileError</b> = &quot;rego_compile_error&quot;</td></tr>
-<tr class="separator:a0a344ac8175e07936c6e2494f5cabf37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57f80679873478b96a96a1d190734fb9" id="r_a57f80679873478b96a96a1d190734fb9"><td class="memItemLeft" align="right" valign="top"><a id="a57f80679873478b96a96a1d190734fb9" name="a57f80679873478b96a96a1d190734fb9"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>EvalConflictError</b> = &quot;eval_conflict_error&quot;</td></tr>
-<tr class="separator:a57f80679873478b96a96a1d190734fb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7fad6f7c8c12e52f098a60600666788" id="r_ab7fad6f7c8c12e52f098a60600666788"><td class="memItemLeft" align="right" valign="top"><a id="ab7fad6f7c8c12e52f098a60600666788" name="ab7fad6f7c8c12e52f098a60600666788"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>WellFormedError</b> = &quot;wellformed_error&quot;</td></tr>
-<tr class="separator:ab7fad6f7c8c12e52f098a60600666788"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd67f85c49656a3cf266f74985b67479" id="r_afd67f85c49656a3cf266f74985b67479"><td class="memItemLeft" align="right" valign="top"><a id="afd67f85c49656a3cf266f74985b67479" name="afd67f85c49656a3cf266f74985b67479"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RuntimeError</b> = &quot;runtime_error&quot;</td></tr>
-<tr class="separator:afd67f85c49656a3cf266f74985b67479"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7ef95a4b84a5a454bc2087a1cd1e85a" id="r_af7ef95a4b84a5a454bc2087a1cd1e85a"><td class="memItemLeft" align="right" valign="top"><a id="af7ef95a4b84a5a454bc2087a1cd1e85a" name="af7ef95a4b84a5a454bc2087a1cd1e85a"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RecursionError</b> = &quot;rego_recursion_error&quot;</td></tr>
-<tr class="separator:af7ef95a4b84a5a454bc2087a1cd1e85a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2dc1aae60824425a0c24d320fbbcd413" id="r_a2dc1aae60824425a0c24d320fbbcd413"><td class="memItemLeft" align="right" valign="top"><a id="a2dc1aae60824425a0c24d320fbbcd413" name="a2dc1aae60824425a0c24d320fbbcd413"></a>
-const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultVersion</b> = &quot;v0&quot;</td></tr>
-<tr class="separator:a2dc1aae60824425a0c24d320fbbcd413"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2122607d68346526c684a75156375a3a" id="r_a2122607d68346526c684a75156375a3a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2122607d68346526c684a75156375a3a">to_key</a> (const trieste::Node &amp;node, bool set_as_array=false, bool sort_arrays=false, const char *list_delim=&quot;,&quot;)</td></tr>
+<tr class="memdesc:a2122607d68346526c684a75156375a3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a node to a unique key representation that can be used for comparison.  <br /></td></tr>
+<tr class="separator:a2122607d68346526c684a75156375a3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ca2132aca3ab01c45776cdbe2c1d389" id="r_a8ca2132aca3ab01c45776cdbe2c1d389"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#aa75ac8997598027145dd773e048f29c5">LogLevel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8ca2132aca3ab01c45776cdbe2c1d389">log_level_from_string</a> (const std::string &amp;value)</td></tr>
+<tr class="memdesc:a8ca2132aca3ab01c45776cdbe2c1d389"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a string to a log level (case insensitive).  <br /></td></tr>
+<tr class="separator:a8ca2132aca3ab01c45776cdbe2c1d389"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5abad81a4f9196508421c02ad4099d0a" id="r_a5abad81a4f9196508421c02ad4099d0a"><td class="memItemLeft" align="right" valign="top">Reader&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5abad81a4f9196508421c02ad4099d0a">file_to_rego</a> ()</td></tr>
+<tr class="memdesc:a5abad81a4f9196508421c02ad4099d0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses Rego queries and virtual documents.  <br /></td></tr>
+<tr class="separator:a5abad81a4f9196508421c02ad4099d0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7c6572577e378bd4978d46fd3598175" id="r_aa7c6572577e378bd4978d46fd3598175"><td class="memItemLeft" align="right" valign="top"><a id="aa7c6572577e378bd4978d46fd3598175" name="aa7c6572577e378bd4978d46fd3598175"></a>
+Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_input</b> ()</td></tr>
+<tr class="memdesc:aa7c6572577e378bd4978d46fd3598175"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites a Query AST to an input term. <br /></td></tr>
+<tr class="separator:aa7c6572577e378bd4978d46fd3598175"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2b413cb1e43bf8e87ae1fa602660bec" id="r_ab2b413cb1e43bf8e87ae1fa602660bec"><td class="memItemLeft" align="right" valign="top"><a id="ab2b413cb1e43bf8e87ae1fa602660bec" name="ab2b413cb1e43bf8e87ae1fa602660bec"></a>
+Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>json_to_rego</b> (bool as_term=false)</td></tr>
+<tr class="memdesc:ab2b413cb1e43bf8e87ae1fa602660bec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites a JSON AST to a Rego data input AST. <br /></td></tr>
+<tr class="separator:ab2b413cb1e43bf8e87ae1fa602660bec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af022974e97f2bbf82d638ae75b978530" id="r_af022974e97f2bbf82d638ae75b978530"><td class="memItemLeft" align="right" valign="top"><a id="af022974e97f2bbf82d638ae75b978530" name="af022974e97f2bbf82d638ae75b978530"></a>
+Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_json</b> ()</td></tr>
+<tr class="memdesc:af022974e97f2bbf82d638ae75b978530"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites a Rego binding term to a JSON AST. <br /></td></tr>
+<tr class="separator:af022974e97f2bbf82d638ae75b978530"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee333a7f099c37dfcdb63104647da918" id="r_aee333a7f099c37dfcdb63104647da918"><td class="memItemLeft" align="right" valign="top"><a id="aee333a7f099c37dfcdb63104647da918" name="aee333a7f099c37dfcdb63104647da918"></a>
+Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_yaml</b> ()</td></tr>
+<tr class="memdesc:aee333a7f099c37dfcdb63104647da918"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites a Rego binding term to a YAML AST. <br /></td></tr>
+<tr class="separator:aee333a7f099c37dfcdb63104647da918"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50adf51fff70075ec08d169b0d3a2052" id="r_a50adf51fff70075ec08d169b0d3a2052"><td class="memItemLeft" align="right" valign="top"><a id="a50adf51fff70075ec08d169b0d3a2052" name="a50adf51fff70075ec08d169b0d3a2052"></a>
+Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>json_to_bundle</b> ()</td></tr>
+<tr class="memdesc:a50adf51fff70075ec08d169b0d3a2052"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites an OPA bundle JSON to a Bundle AST. <br /></td></tr>
+<tr class="separator:a50adf51fff70075ec08d169b0d3a2052"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64b262be4f4e2ee348dd1c6d999a5efc" id="r_a64b262be4f4e2ee348dd1c6d999a5efc"><td class="memItemLeft" align="right" valign="top"><a id="a64b262be4f4e2ee348dd1c6d999a5efc" name="a64b262be4f4e2ee348dd1c6d999a5efc"></a>
+Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>bundle_to_json</b> ()</td></tr>
+<tr class="memdesc:a64b262be4f4e2ee348dd1c6d999a5efc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites a Bundle AST to a JSON AST in OPA bundle JSON format. <br /></td></tr>
+<tr class="separator:a64b262be4f4e2ee348dd1c6d999a5efc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ca743501c524ed9f7fbdbc2fd159487" id="r_a6ca743501c524ed9f7fbdbc2fd159487"><td class="memItemLeft" align="right" valign="top"><a id="a6ca743501c524ed9f7fbdbc2fd159487" name="a6ca743501c524ed9f7fbdbc2fd159487"></a>
+Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b> (BuiltIns builtins=<a class="el" href="classrego_1_1BuiltInsDef.html#a09cea6708193a4bf56a7ca03a31510a6">BuiltInsDef::create</a>())</td></tr>
+<tr class="memdesc:a6ca743501c524ed9f7fbdbc2fd159487"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites a Rego AST to a Bundle AST. <br /></td></tr>
+<tr class="separator:a6ca743501c524ed9f7fbdbc2fd159487"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This namespace provides the C++ API for the library. It includes all the token types for nodes in the AST, the well-formedness definitions for each pass, the built-in system and custom types for handling various kinds of data (e.g. the <a class="el" href="classrego_1_1BigInt.html">BigInt</a> class). </p>
-</div><h2 class="groupheader">Typedef Documentation</h2>
-<a id="a7bf2dbac7de0eac9f50204f836687e44" name="a7bf2dbac7de0eac9f50204f836687e44"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bf2dbac7de0eac9f50204f836687e44">&#9670;&#160;</a></span>BuiltIn</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="#a7bf2dbac7de0eac9f50204f836687e44">rego::BuiltIn</a> = std::shared_ptr&lt;<a class="el" href="structrego_1_1BuiltInDef.html">BuiltInDef</a>&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>A pointer to a <a class="el" href="structrego_1_1BuiltInDef.html">BuiltInDef</a>. </p>
-
-</div>
-</div>
-<a id="a8a3fb6eaba58722d3c636ececd00f075" name="a8a3fb6eaba58722d3c636ececd00f075"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a3fb6eaba58722d3c636ececd00f075">&#9670;&#160;</a></span>BuiltInBehavior</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="#a8a3fb6eaba58722d3c636ececd00f075">rego::BuiltInBehavior</a> = std::function&lt;Node(const Nodes&amp;)&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The function pointer to the behavior of the built-in. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Enumeration Type Documentation</h2>
-<a id="adac8d274e73c31ba9551c9953d72eb3f" name="adac8d274e73c31ba9551c9953d72eb3f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adac8d274e73c31ba9551c9953d72eb3f">&#9670;&#160;</a></span>LogLevel</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum class <a class="el" href="#adac8d274e73c31ba9551c9953d72eb3f">rego::LogLevel</a> : char</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>The logging level. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="acb14b7e890342dc422ffbdb7dc0721bb" name="acb14b7e890342dc422ffbdb7dc0721bb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb14b7e890342dc422ffbdb7dc0721bb">&#9670;&#160;</a></span>array()</h2>
+<div class="textblock"><p>This namespace provides the C++ API for the library. It includes all the token types for nodes in the AST, the well-formedness definitions for each pass, the built-in system and custom types for handling various kinds of data (e.g. the <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> class). </p>
+</div><h2 class="groupheader">Function Documentation</h2>
+<a id="a2e058120d57c0fd619adeaca901c5b97" name="a2e058120d57c0fd619adeaca901c5b97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e058120d57c0fd619adeaca901c5b97">&#9670;&#160;</a></span>array()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -610,12 +277,13 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         <tr>
           <td class="memname">Node rego::array </td>
           <td>(</td>
-          <td class="paramtype">const Nodes &amp;</td>          <td class="paramname"><span class="paramname"><em>array_members</em></span></td><td>)</td>
+          <td class="paramtype">const std::initializer_list&lt; Node &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>array_members</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to an array node.</p>
+
+<p>Converts the value to an array node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">array_members</td><td>The members of the array. </td></tr>
@@ -649,7 +317,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Generates an error node.</p>
+
+<p>Generates an error node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node for which the error occurred. </td></tr>
@@ -658,6 +327,7 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>The generated error node. </dd></dl>
 
 </div>
 </div>
@@ -684,7 +354,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Generates an error node.</p>
+
+<p>Generates an error node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">r</td><td>The range of nodes over which the error occurred. </td></tr>
@@ -693,24 +364,27 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>The generated error node. </dd></dl>
 
 </div>
 </div>
-<a id="a7e26d5e5315c437e28a882b76e47f475" name="a7e26d5e5315c437e28a882b76e47f475"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e26d5e5315c437e28a882b76e47f475">&#9670;&#160;</a></span>from_json()</h2>
+<a id="a5abad81a4f9196508421c02ad4099d0a" name="a5abad81a4f9196508421c02ad4099d0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5abad81a4f9196508421c02ad4099d0a">&#9670;&#160;</a></span>file_to_rego()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">Rewriter rego::from_json </td>
+          <td class="memname">Reader rego::file_to_rego </td>
           <td>(</td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>as_term</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span></td><td>)</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Rewrites a JSON AST to a Rego data input AST. </p>
+
+<p>Parses Rego queries and virtual documents. </p>
+<p>Bundle </p>
 
 </div>
 </div>
@@ -728,7 +402,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Extracts the value of a node as a boolean.</p>
+
+<p>Extracts the value of a node as a boolean. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
@@ -753,7 +428,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Extracts the value of a node as a double.</p>
+
+<p>Extracts the value of a node as an double. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
@@ -778,7 +454,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Extracts the value of a node as an integer.</p>
+
+<p>Extracts the value of a node as an integer. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
@@ -803,8 +480,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Extracts the value of a node as a string.</p>
-<p>The resulting string will have any enclosing quotes removed.</p>
+
+<p>Extracts the value of a node as a string. The resulting string will have any enclosing quotes removed. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
@@ -815,8 +492,34 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
 
 </div>
 </div>
-<a id="a36de4cee872e31852a0243669f862d0d" name="a36de4cee872e31852a0243669f862d0d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36de4cee872e31852a0243669f862d0d">&#9670;&#160;</a></span>object()</h2>
+<a id="a8ca2132aca3ab01c45776cdbe2c1d389" name="a8ca2132aca3ab01c45776cdbe2c1d389"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ca2132aca3ab01c45776cdbe2c1d389">&#9670;&#160;</a></span>log_level_from_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#aa75ac8997598027145dd773e048f29c5">LogLevel</a> rego::log_level_from_string </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts a string to a log level (case insensitive). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>One of <code>Error</code>, <code>Warn</code>, <code>Output</code>, <code>Info</code>, <code>Debug</code>, <code>Trace</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the corresponding log level, or LogLevel::Unsupported. </dd></dl>
+
+</div>
+</div>
+<a id="af28fe19f8db04140ea018db797d5c89d" name="af28fe19f8db04140ea018db797d5c89d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af28fe19f8db04140ea018db797d5c89d">&#9670;&#160;</a></span>object()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -824,15 +527,16 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         <tr>
           <td class="memname">Node rego::object </td>
           <td>(</td>
-          <td class="paramtype">const Nodes &amp;</td>          <td class="paramname"><span class="paramname"><em>object_items</em></span></td><td>)</td>
+          <td class="paramtype">const std::initializer_list&lt; Node &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>object_items</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to an object node.</p>
+
+<p>Converts the value to an object node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">object_items</td><td>The object items of the object </td></tr>
+    <tr><td class="paramname">object_items</td><td>The object items of the object. </td></tr>
   </table>
   </dd>
 </dl>
@@ -858,7 +562,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the key and val terms to an object item.</p>
+
+<p>Converts the key and val terms to an object item. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">key_term</td><td>The key term. </td></tr>
@@ -867,24 +572,6 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The object item node (object_item (key_term) (val_term)) </dd></dl>
-
-</div>
-</div>
-<a id="a64fd7394df010f7fb989a4d8321a2b78" name="a64fd7394df010f7fb989a4d8321a2b78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64fd7394df010f7fb989a4d8321a2b78">&#9670;&#160;</a></span>reader()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Reader rego::reader </td>
-          <td>(</td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>v1_compatible</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Parses Rego queries and virtual documents. </p>
 
 </div>
 </div>
@@ -902,13 +589,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to a scalar node.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
-  </table>
-  </dd>
-</dl>
+
+<p>Creates a null scalar. </p>
 <dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (NULL))) </dd></dl>
 
 </div>
@@ -927,7 +609,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to a scalar node.</p>
+
+<p>Converts the value to a scalar node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
@@ -953,7 +636,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to a scalar node.</p>
+
+<p>Converts the value to a scalar node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
@@ -978,7 +662,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to a scalar node.</p>
+
+<p>Converts the value to a scalar node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
@@ -1004,7 +689,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to a scalar node.</p>
+
+<p>Converts the value to a scalar node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
@@ -1030,7 +716,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to a scalar node.</p>
+
+<p>Converts the value to a scalar node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
@@ -1042,8 +729,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
 
 </div>
 </div>
-<a id="a33a98122316fbfa443bc71f963fe299f" name="a33a98122316fbfa443bc71f963fe299f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a33a98122316fbfa443bc71f963fe299f">&#9670;&#160;</a></span>set()</h2>
+<a id="ab112bb642e883e9b9e0d1044d1240c03" name="ab112bb642e883e9b9e0d1044d1240c03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab112bb642e883e9b9e0d1044d1240c03">&#9670;&#160;</a></span>set()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1051,12 +738,13 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         <tr>
           <td class="memname">Node rego::set </td>
           <td>(</td>
-          <td class="paramtype">const Nodes &amp;</td>          <td class="paramname"><span class="paramname"><em>set_members</em></span></td><td>)</td>
+          <td class="paramtype">const std::initializer_list&lt; Node &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>set_members</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts the value to a set node.</p>
+
+<p>Converts the value to a set node. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">set_members</td><td>The members of the set. </td></tr>
@@ -1067,118 +755,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
 
 </div>
 </div>
-<a id="a0172944422e39c3ea5d0465ddfa96c35" name="a0172944422e39c3ea5d0465ddfa96c35"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0172944422e39c3ea5d0465ddfa96c35">&#9670;&#160;</a></span>set_log_level()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void rego::set_log_level </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="#adac8d274e73c31ba9551c9953d72eb3f">LogLevel</a></td>          <td class="paramname"><span class="paramname"><em>level</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Sets the logging level for the library.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">level</td><td>The logging level. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="afd3736683aa702ee8564bc2ef7c82e51" name="afd3736683aa702ee8564bc2ef7c82e51"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afd3736683aa702ee8564bc2ef7c82e51">&#9670;&#160;</a></span>set_log_level_from_string()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string rego::set_log_level_from_string </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>level</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Sets the logging level for the library.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">level</td><td>The logging level. One of "None", "Error", "Output", "Warn", "Info", "Debug", or "Trace". </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Error message if the level is invalid, otherwise empty string. </dd></dl>
-
-</div>
-</div>
-<a id="a64ccad2271e663ee21529368de6c176b" name="a64ccad2271e663ee21529368de6c176b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64ccad2271e663ee21529368de6c176b">&#9670;&#160;</a></span>set_tzdata_path()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void rego::set_tzdata_path </td>
-          <td>(</td>
-          <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Sets the location where rego-cpp will look for timezone database information.</p>
-<p>The timezone database will be interpreted as one obtained from the IANA (<a href="https://www.iana.org/time-zones">https://www.iana.org/time-zones</a>) which has been downloaded and unpacked into at the path provided. If the library was built without manual tzdata support, this function will throw an exception.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">path</td><td>The path to the timezone database. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a4289f092e732dbfad5758787d09c3b04" name="a4289f092e732dbfad5758787d09c3b04"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4289f092e732dbfad5758787d09c3b04">&#9670;&#160;</a></span>to_input()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Rewriter rego::to_input </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Rewrites a Query AST to an input term. </p>
-
-</div>
-</div>
-<a id="ae2aca737556fd1ad1fbbd9c1ef7aa5ba" name="ae2aca737556fd1ad1fbbd9c1ef7aa5ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2aca737556fd1ad1fbbd9c1ef7aa5ba">&#9670;&#160;</a></span>to_json()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Rewriter rego::to_json </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Rewrites a Rego binding term to a JSON AST. </p>
-
-</div>
-</div>
-<a id="a95d5445fa2f7ca535236568ead7ef44b" name="a95d5445fa2f7ca535236568ead7ef44b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a95d5445fa2f7ca535236568ead7ef44b">&#9670;&#160;</a></span>to_key()</h2>
+<a id="a2122607d68346526c684a75156375a3a" name="a2122607d68346526c684a75156375a3a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2122607d68346526c684a75156375a3a">&#9670;&#160;</a></span>to_key()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1196,36 +774,27 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>sort_arrays</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>sort_arrays</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>list_delim</em></span><span class="paramdefsep"> = </span><span class="paramdefval">&quot;,&quot;</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Converts a node to a unique key representation.</p>
+
+<p>Converts a node to a unique key representation that can be used for comparison. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node to convert. </td></tr>
     <tr><td class="paramname">set_as_array</td><td>Whether to represent sets as arrays. </td></tr>
+    <tr><td class="paramname">sort_arrays</td><td>Whether to sort array elements. </td></tr>
+    <tr><td class="paramname">list_delim</td><td>The delimiter to use when joining array elements. </td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a689b0b6620ac219a3de7dde49e423c35" name="a689b0b6620ac219a3de7dde49e423c35"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a689b0b6620ac219a3de7dde49e423c35">&#9670;&#160;</a></span>to_yaml()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Rewriter rego::to_yaml </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Rewrites a Rego binding term to a YAML AST. </p>
+<dl class="section return"><dt>Returns</dt><dd>The key representation of the node. </dd></dl>
 
 </div>
 </div>
@@ -1243,7 +812,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Attempts to extract the value of a node as an integer. In the case that the node is a double, it will check if the double is integral, i.e. 5.0 will be considered the integer 5.</p>
+
+<p>Attempts to extract the value of a node as an integer. In the case that the node is a double, it will check if the double is integral, i.e. 5.0 will be considered the integer 5. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
@@ -1272,7 +842,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Tries to get an item within an object using its key.</p>
+
+<p>Tries to get an item within an object using its key. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The object to search. </td></tr>
@@ -1280,24 +851,7 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a68f3f5fa5277d93d350fd90c82d67432" name="a68f3f5fa5277d93d350fd90c82d67432"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68f3f5fa5277d93d350fd90c82d67432">&#9670;&#160;</a></span>unify()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Rewriter rego::unify </td>
-          <td>(</td>
-          <td class="paramtype">BuiltIns</td>          <td class="paramname"><span class="paramname"><em>builtins</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="classrego_1_1BuiltInsDef.html#a09cea6708193a4bf56a7ca03a31510a6">BuiltInsDef::create</a>()</span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Unifies a set of base and virtual documents, an input term, and a query. </p>
+<dl class="section return"><dt>Returns</dt><dd>The item node if found, otherwise std::nullopt. </dd></dl>
 
 </div>
 </div>
@@ -1319,7 +873,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Attempts to unwrap an argument to one of the specified types.</p>
+
+<p>Attempts to unwrap an argument to a specified type. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">term</td><td>The term to unwrap. </td></tr>
@@ -1327,7 +882,7 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>An unwrap result. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An unwrap result or an appropriate error node. </dd></dl>
 
 </div>
 </div>
@@ -1349,7 +904,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Attempts to unwrap an argument to a specified type.</p>
+
+<p>Attempts to unwrap a node to a specified type. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">term</td><td>The term to unwrap. </td></tr>
@@ -1357,7 +913,7 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>An unwrap result. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An unwrap result or an appropriate error node. </dd></dl>
 
 </div>
 </div>
@@ -1379,7 +935,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Unwraps an argument from the provided vector of nodes.</p>
+
+<p>Unwraps an argument from the provided vector of nodes. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">args</td><td>The vector of nodes to unwrap from. </td></tr>
@@ -1405,7 +962,8 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns a node representing the version of the library.</p>
+
+<p>Returns a node representing the version of the library. </p>
 <p>The resulting node will be an object containing:</p><ul>
 <li>The Git commit hash ("commit")</li>
 <li>The library version ("regocpp_version")</li>
@@ -1413,130 +971,6 @@ const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>DefaultV
 <li>The environment variables ("env") </li>
 </ul>
 
-</div>
-</div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="a93979cd609d81b8b2d389200308d0c0a" name="a93979cd609d81b8b2d389200308d0c0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a93979cd609d81b8b2d389200308d0c0a">&#9670;&#160;</a></span>AnyArity</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::size_t rego::AnyArity = std::numeric_limits&lt;std::size_t&gt;::max()</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>This constant indicates that a built-in can receive any number of arguments. </p>
-
-</div>
-</div>
-<a id="abee096b0018b43b96f12f8b6dc076af2" name="abee096b0018b43b96f12f8b6dc076af2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abee096b0018b43b96f12f8b6dc076af2">&#9670;&#160;</a></span>Import</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const auto rego::Import</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    TokenDef(<span class="stringliteral">&quot;rego-import&quot;</span>, flag::lookdown | flag::lookup | flag::shadowing)</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a59f6e5b339b933082d6c1e36e5dd9176" name="a59f6e5b339b933082d6c1e36e5dd9176"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a59f6e5b339b933082d6c1e36e5dd9176">&#9670;&#160;</a></span>wf_bool_op</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const auto rego::wf_bool_op</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= Equals | NotEquals | LessThan |</div>
-<div class="line">    LessThanOrEquals | GreaterThan | GreaterThanOrEquals | Not</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a9bd80de105a52ed7fe7c4ba477edfce8" name="a9bd80de105a52ed7fe7c4ba477edfce8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9bd80de105a52ed7fe7c4ba477edfce8">&#9670;&#160;</a></span>wf_exprs</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const auto rego::wf_exprs</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    Term | ExprCall | ExprInfix | ExprEvery | ExprParens | UnaryExpr</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="ab612b6c065e0a30480be3efa0dda034a" name="ab612b6c065e0a30480be3efa0dda034a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab612b6c065e0a30480be3efa0dda034a">&#9670;&#160;</a></span>wf_result</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const auto rego::wf_result</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">    (Top &lt;&lt;= Results | Undefined)</div>
-<div class="line">    | (Results &lt;&lt;= Result++[1])</div>
-<div class="line">    | (Result &lt;&lt;= Terms * Bindings)</div>
-<div class="line">    | (Terms &lt;&lt;= Term++)</div>
-<div class="line">    | (Bindings &lt;&lt;= Binding++)</div>
-<div class="line">    | (Binding &lt;&lt;= (Key &gt;&gt;= Var) * (Val &gt;&gt;= Term))[Key]</div>
-<div class="line">    | (Term &lt;&lt;= Scalar | Array | Object | Set)</div>
-<div class="line">    | (Array &lt;&lt;= Term++)</div>
-<div class="line">    | (Set &lt;&lt;= Term++)</div>
-<div class="line">    | (Object &lt;&lt;= ObjectItem++)</div>
-<div class="line">    | (ObjectItem &lt;&lt;= (Key &gt;&gt;= Term) * (Val &gt;&gt;= Term))</div>
-<div class="line">    | (Scalar &lt;&lt;= JSONString | Int | Float | True | False | Null)</div>
-<div class="line">    | (Error &lt;&lt;= ErrorMsg * ErrorAst * ErrorCode)</div>
-</div><!-- fragment -->
 </div>
 </div>
 </div><!-- contents -->

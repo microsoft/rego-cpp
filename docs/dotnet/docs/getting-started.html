@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Getting Started | Rego </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Getting Started | Rego ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/docs/getting-started.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/rego_icon.svg" alt="Rego">
+            Rego
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="getting-started">Getting Started</h1>
+
+<p>Here are some examples of usage to help you get started.</p>
+<h2 id="querying-and-accessing-results">Querying and Accessing Results</h2>
+<p>Here we see some exa</p>
+<pre><code class="lang-csharp">using System.Collections;
+using Rego;
+
+// You can run simple queries without any input or data.
+Interpreter rego = new();
+var output = rego.Query(&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5&quot;);
+Console.WriteLine(output);
+// {&quot;expressions&quot;:[true, true, 10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}
+
+// You can access bound results using the Binding method
+Console.WriteLine(&quot;x = {0}&quot;, output.Binding(&quot;x&quot;));
+
+// You can also access expressions by index
+Console.WriteLine(output.Expressions()[2]);
+</code></pre>
+<h2 id="incorporating-base-and-virtual-documents">Incorporating Base and Virtual Documents</h2>
+<p>Most policies are built up from a combination of Base Documents (static
+JSON data) and Virtual Documents (Rego modules). Here we see a typical
+usage example incorporating all the different components of a Rego policy:</p>
+<pre><code class="lang-csharp">// We can add base documents using .NET objects, which will be converted
+// to JSON and then added.
+Interpreter rego = new();
+var data0 = new Dictionary&lt;string, object&gt;{
+    {&quot;one&quot;, new Dictionary&lt;string, object&gt;{
+        {&quot;bar&quot;, &quot;Foo&quot;},
+        {&quot;baz&quot;, 5},
+        {&quot;be&quot;, true},
+        {&quot;bop&quot;, 23.4}}},
+    {&quot;two&quot;, new Dictionary&lt;string, object&gt;{
+        {&quot;bar&quot;, &quot;Bar&quot;},
+        {&quot;baz&quot;, 12.3},
+        {&quot;be&quot;, false},
+        {&quot;bop&quot;, 42}}}};
+rego.AddData(data0);
+
+// You can also provide JSON directly.
+rego.AddDataJson(&quot;&quot;&quot;
+    {
+        &quot;three&quot;: {
+            &quot;bar&quot;: &quot;Baz&quot;,
+            &quot;baz&quot;: 15,
+            &quot;be&quot;: true,
+            &quot;bop&quot;: 4.23
+        }
+    }
+    &quot;&quot;&quot;);
+
+// The Rego code can be written out in-source like this or loaded from disk.
+var objectsSource = &quot;&quot;&quot;
+    package objects
+
+    rect := {&quot;width&quot;: 2, &quot;height&quot;: 4}
+    cube := {&quot;width&quot;: 3, &quot;height&quot;: 4, &quot;depth&quot;: 5}
+    a := 42
+    b := false
+    c := null
+    d := {&quot;a&quot;: a, &quot;x&quot;: [b, c]}
+    index := 1
+    shapes := [rect, cube]
+    names := [&quot;prod&quot;, &quot;smoke1&quot;, &quot;dev&quot;]
+    sites := [{&quot;name&quot;: &quot;prod&quot;}, {&quot;name&quot;: names[index]}, {&quot;name&quot;: &quot;dev&quot;}]
+    e := {
+        a: &quot;foo&quot;,
+        &quot;three&quot;: c,
+        names[2]: b,
+        &quot;four&quot;: d,
+    }
+    f := e[&quot;dev&quot;]
+    &quot;&quot;&quot;;
+rego.AddModule(&quot;objects.rego&quot;, objectsSource);
+
+// inputs can be either JSON or Rego, and provided as objects (which will
+// be converted to JSON) or as text.
+rego.SetInputTerm(&quot;&quot;&quot;
+    {
+        &quot;a&quot;: 10,
+        &quot;b&quot;: &quot;20&quot;,
+        &quot;c&quot;: 30.0,
+        &quot;d&quot;: true
+    }
+    &quot;&quot;&quot;);
+
+Console.WriteLine(rego.Query(&quot;[data.one, input.b, data.objects.sites[1]] = x&quot;));
+// {&quot;bindings&quot;:{&quot;x&quot;:[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]}}
+</code></pre>
+<h2 id="bundles">Bundles</h2>
+<p>If you want to run the same set of queries against a policy with different
+inputs, you can create a bundle and use that to save the cost of compilation.</p>
+<pre><code class="lang-csharp">Interpreter rego_build = new();
+
+rego_build.AddDataJson(&quot;&quot;&quot;
+{&quot;a&quot;: 7,
+&quot;b&quot;: 13}
+&quot;&quot;&quot;);
+
+rego_build.AddModule(&quot;example.rego&quot;, &quot;&quot;&quot;
+    package example
+
+    foo := data.a * input.x + data.b * input.y
+    bar := data.b * input.x + data.a * input.y
+&quot;&quot;&quot;);
+
+// We can specify both a default query, and specific entry points into the policy
+// that should be made available to use later.
+var bundle = rego_build.Build(&quot;x=data.example.foo + data.example.bar&quot;,
+                              [&quot;example/foo&quot;, &quot;example/bar&quot;]);
+
+// we can now save the bundle to the disk
+rego_build.SaveBundle(&quot;bundle&quot;, bundle);
+
+// and load it again
+Interpreter rego_run = new();
+rego_run.LoadBundle(&quot;bundle&quot;);
+
+// the most efficient way to provide input to a policy is by constructing it
+// manually, without the need for parsing JSON or Rego.
+
+var input = Input.Create(new Dictionary&lt;string, int&gt;
+        {
+            {&quot;x&quot;, 104 },
+            {&quot;y&quot;, 119 }
+        });
+
+rego_run.SetInput(input);
+
+// We can query the bundle, which will use the entrypoint of the default query
+// provided at build
+Console.WriteLine(&quot;query: {0}&quot;,rego_run.QueryBundle(bundle));
+// Query: {&quot;expressions&quot;:[true], &quot;bindings&quot;:{&quot;x&quot;:4460}}
+
+// or we can query specific entrypoints
+Console.WriteLine(&quot;example/foo: {0}&quot;, rego_run.QueryBundle(bundle, &quot;example/foo&quot;));
+// example/foo: {&quot;expressions&quot;:[2275]}
+</code></pre>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/docs/getting-started.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

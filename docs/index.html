@@ -35,7 +35,7 @@
                         language
                         interpreter in C++ with wrappers for C, Rust, and Python.</p>
                     <p class="text-body-secondary mb-0">
-                        Currently <strong>v0.4.5</strong><span class="px-1">·</span><a
+                        Currently <strong>v1.0.0</strong><span class="px-1">·</span><a
                             href="https://github.com/microsoft/rego-cpp/releases">All releases</a>
                     </p>
                 </div>
@@ -57,8 +57,10 @@
                         Primarily, the interpreter is only accessible via the command line or a web server.
                         Further, the only option for using the language in-process is via an interface in Go.</p>
 
-                    <p>The rego-cpp project provides the ability to integrate Rego natively into a wider range of languages.
-                        We currrently support C, C++, Rust, and Python, and are largely compatible with v0.68.0 of the language.
+                    <p>The rego-cpp project provides the ability to integrate Rego natively into a wider range of
+                        languages.
+                        We currrently support C, C++, dotnet, Python, and Rust, and are largely compatible with v1.8.0 of the
+                        language.
                         You can learn more about our implementation <a
                             href="https://github.com/microsoft/rego-cpp">here</a>.</p>
                 </div>
@@ -83,10 +85,10 @@
                         </a>
 
                         <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
-                            href="#rust-example">
-                            <img class="d-block mb-2" src="images/rust-logo-blk.svg" alt="" width="80" height="80"
+                            href="#dotnet-example">
+                            <img class="d-block mb-2" src="images/dotnet-logo.svg" alt="" width="53" height="64"
                                 loading="lazy">
-                            <span class="text-body-secondary">Rust</span>
+                            <span class="text-body-secondary">dotnet</span>
                         </a>
 
                         <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
@@ -94,6 +96,13 @@
                             <img class="d-block mb-2" src="images/python-logo-only.svg" alt="" width="53" height="64"
                                 loading="lazy">
                             <span class="text-body-secondary">Python</span>
+                        </a>
+
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#rust-example">
+                            <img class="d-block mb-2" src="images/rust-logo-blk.svg" alt="" width="80" height="80"
+                                loading="lazy">
+                            <span class="text-body-secondary">Rust</span>
                         </a>
                     </div>
                 </div>
@@ -186,9 +195,11 @@ f := e["dev"])");
                 </div>
 
             </section>
+
             <section id="c-example" class="col-lg-8 mb-5">
                 <img class="d-inline-block mb-3" src="images/c-logo.svg" alt="C" width="72" height="72" loading="lazy">
-                <p class="lead fw-normal">You can also compile rego-cpp directly into your C program. The C API provides most
+                <p class="lead fw-normal">You can also compile rego-cpp directly into your C program. The C API provides
+                    most
                     of the functionality of the full C++ API while providing a stable interface which is amenable to
                     FFI. We recommend using CMake FetchContent to add rego-cpp to your project.</p>
                 <p class="d-flex justify-content-start lead fw-normal">
@@ -280,6 +291,236 @@ exit:
 
             </section>
 
+            <section id="dotnet-example" class="col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="images/dotnet-logo.svg" alt="dotnet" width="60" height="72"
+                    loading="lazy">
+                <p class="lead fw-normal">We provide a Nuget package called <a
+                        href="https://pypi.org/project/regopy/">Rego</a> which exposes the C API to dotnet languages.
+                </p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="dotnet/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the dotnet API
+                        <img class="bi" src="images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-bash">$ dotnet add Rego</code></pre>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-csharp">using System.Collections;
+using Rego;
+
+//////////////////////
+///// Query only /////
+//////////////////////
+
+Console.WriteLine("Query Only");
+
+// You can run simple queries without any input or data.
+Interpreter rego = new();
+var output = rego.Query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5");
+Console.WriteLine(output);
+// {"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}
+
+// You can access bound results using the Binding method
+Console.WriteLine("x = {0}", output.Binding("x"));
+
+// You can also access expressions by index
+Console.WriteLine(output.Expressions()[2]);
+
+Console.WriteLine();
+
+////////////////////////
+//// Input and Data ////
+////////////////////////
+
+Console.WriteLine("Input and Data");
+
+// If you provide an object, it will be converted to JSON before
+// being added to the state.
+var data0 = new Dictionary<string, object>{
+    {"one", new Dictionary<string, object>{
+        {"bar", "Foo"},
+        {"baz", 5},
+        {"be", true},
+        {"bop", 23.4}}},
+    {"two", new Dictionary<string, object>{
+        {"bar", "Bar"},
+        {"baz", 12.3},
+        {"be", false},
+        {"bop", 42}}}};
+rego.AddData(data0);
+
+// You can also provide JSON directly.
+rego.AddDataJson("""
+    {
+        "three": {
+            "bar": "Baz",
+            "baz": 15,
+            "be": true,
+            "bop": 4.23
+        }
+    }
+    """);
+
+var objectsSource = """
+    package objects
+
+    rect := {"width": 2, "height": 4}
+    cube := {"width": 3, "height": 4, "depth": 5}
+    a := 42
+    b := false
+    c := null
+    d := {"a": a, "x": [b, c]}
+    index := 1
+    shapes := [rect, cube]
+    names := ["prod", "smoke1", "dev"]
+    sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
+    e := {
+        a: "foo",
+        "three": c,
+        names[2]: b,
+        "four": d,
+    }
+    f := e["dev"]
+    """;
+rego.AddModule("objects.rego", objectsSource);
+
+// inputs can be either JSON or Rego, and provided
+// as objects (which will be converted to JSON) or as
+// text.
+rego.SetInputTerm("""
+    {
+        "a": 10,
+        "b": "20",
+        "c": 30.0,
+        "d": true
+    }
+    """);
+
+Console.WriteLine(rego.Query("[data.one, input.b, data.objects.sites[1]] = x"));
+// {"bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]}}
+
+///////////////////
+///// Bundles  ////
+///////////////////
+
+Console.WriteLine();
+Console.WriteLine("Bundles");
+
+// If you want to run the same set of queries against a policy with different
+// inputs, you can create a bundle and use that to save the cost of compilation.
+
+Interpreter rego_build = new();
+
+rego_build.AddDataJson("""
+{"a": 7,
+"b": 13}
+""");
+
+rego_build.AddModule("example.rego", """
+    package example
+
+    foo := data.a * input.x + data.b * input.y
+    bar := data.b * input.x + data.a * input.y
+""");
+
+// We can specify both a default query, and specific entry points into the policy
+// that should be made available to use later.
+var bundle = rego_build.Build("x=data.example.foo + data.example.bar", ["example/foo", "example/bar"]);
+
+// we can now save the bundle to the disk
+rego_build.SaveBundle("bundle", bundle);
+
+// and load it again
+Interpreter rego_run = new();
+rego_run.LoadBundle("bundle");
+
+// the most efficient way to provide input to a policy is by constructing it
+// manually, without the need for parsing JSON or Rego.
+
+var input = Input.Create(new Dictionary<string, int>
+        {
+            {"x", 104 },
+            {"y", 119 }
+        });
+
+rego_run.SetInput(input);
+
+// We can query the bundle, which will use the entrypoint of the default query
+// provided at build
+Console.WriteLine("query: {0}",rego_run.QueryBundle(bundle));
+// Query: {"expressions":[true], "bindings":{"x":4460}}
+
+// or we can query specific entrypoints
+Console.WriteLine("example/foo: {0}", rego_run.QueryBundle(bundle, "example/foo"));
+// example/foo: {"expressions":[2275]}</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/dotnet/Program.cs">Program.cs</a>
+                </div>
+            </section>
+            
+            <section id="python-example" class="col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="images/python-logo-only.svg" alt="Python" width="60" height="72"
+                    loading="lazy">
+                <p class="lead fw-normal">We provide a Python wheel called <a
+                        href="https://pypi.org/project/regopy/">regopy</a> which exposes the C API in a pythonic way.
+                </p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="python/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the Python API
+                        <img class="bi" src="images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-bash">$ pip install regopy</code></pre>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-python">from regopy import Interpreter
+
+rego = Interpreter()
+with open("examples/objects.rego") as f:
+    rego.add_module("objects", f.read())
+
+rego.add_data({
+    "one": {
+        "bar": "Foo",
+        "baz": 5,
+        "be": True,
+        "bop": 23.4
+    },
+    "two": {
+        "bar": "Bar",
+        "baz": 12.3,
+        "be": False,
+        "bop": 42
+    }
+})
+
+rego.add_data({
+    "three": {
+        "bar": "Baz",
+        "baz": 15,
+        "be": True,
+        "bop": 4.23
+    }
+})
+
+rego.set_input({
+    "a": 10,
+    "b": "20",
+    "c": 30.0,
+    "d": True
+})
+
+print(rego.query("[data.one, input.b, data.objects.sites[1]] = x"))</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/python/example.py">example.py</a>
+                </div>
+            </section>
+
             <section id="rust-example" class="col-lg-8 mb-5">
                 <img class="d-inline-block mb-3" src="images/rust-logo-blk.svg" alt="Rust" width="80" height="80"
                     loading="lazy">
@@ -342,104 +583,47 @@ fn main() {
                     <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/rust/src/main.rs">main.rs</a>
                 </div>
             </section>
-            <section id="python-example" class="col-lg-8 mb-5">
-                <img class="d-inline-block mb-3" src="images/python-logo-only.svg" alt="Python" width="60" height="72"
-                    loading="lazy">
-                <p class="lead fw-normal">We provide a Python wheel called <a
-                        href="https://pypi.org/project/regopy/">regopy</a> which exposes the C API in a pythonic way.
-                </p>
-                <p class="d-flex justify-content-start lead fw-normal">
-                    <a href="python/index.html" class="icon-link icon-link-hover fw-semibold">
-                        Learn more about the Python API
-                        <img class="bi" src="images/arrow-right.svg">
-                    </a>
-                </p>
-                <div>
-                    <pre>
-                        <code class="language-bash">$ pip install regopy</code></pre>
-                </div>
-                <div>
-                    <pre>
-                        <code class="language-python">from regopy import Interpreter
 
-rego = Interpreter()
-with open("examples/objects.rego") as f:
-    rego.add_module("objects", f.read())
 
-rego.add_data({
-    "one": {
-        "bar": "Foo",
-        "baz": 5,
-        "be": True,
-        "bop": 23.4
-    },
-    "two": {
-        "bar": "Bar",
-        "baz": 12.3,
-        "be": False,
-        "bop": 42
-    }
-})
-
-rego.add_data({
-    "three": {
-        "bar": "Baz",
-        "baz": 15,
-        "be": True,
-        "bop": 4.23
-    }
-})
-
-rego.set_input({
-    "a": 10,
-    "b": "20",
-    "c": 30.0,
-    "d": True
-})
-
-print(rego.query("[data.one, input.b, data.objects.sites[1]] = x"))</code></pre>
-                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/python/example.py">example.py</a>
-                </div>
-        </div>
-
-        <footer class="rc-footer py-4 py-md-5 mt-5 bg-body-tertiary">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-3 mb-3">
-                        <a class="d-inline-flex align-items-center mb-2 text-body-emphasis text-decoration-none"
-                            href="/" aria-label="rego-cpp">
-                            <img src="images/regocpp-logo.svg" class="d-block me-2" width="32" height="32"
-                                alt="rego-cpp">
-                            <span class="fs-5">rego-cpp</span>
-                        </a>
-                        <ul class="list-unstyled small">
-                            <li class="mb-2">Designed and built by the rego-cpp team.</li>
-                            <li class="mb-2">&copy; Microsoft 2024.</li>
-                            <li class="mb-2">Code licensed MIT, docs CC BY 3.0</li>
-                            <li class="mb-2">Currently v0.4.5</li>
-                        </ul>
-                    </div>
-                    <div class="col-6 col-lg-2 offset-lg-1 mb-3">
-                        <h5>Links</h5>
-                        <ul class="list-unstyled">
-                            <li class="mb2"><a href="cpp/index.html">C++ API</a></li>
-                            <li class="mb2"><a href="cpp/rego__c_8h.html">C API</a></li>
-                            <li class="mb2"><a href="rust/regorust/index.html">Rust API</a></li>
-                            <li class="mb2"><a href="python/index.html">Python API</a></li>
-                            <li class="mb2"><a href="https://github.com/microsoft/rego-cpp">Github</a></li>
-                        </ul>
+            <footer class="rc-footer py-4 py-md-5 mt-5 bg-body-tertiary">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <a class="d-inline-flex align-items-center mb-2 text-body-emphasis text-decoration-none"
+                                href="/" aria-label="rego-cpp">
+                                <img src="images/regocpp-logo.svg" class="d-block me-2" width="32" height="32"
+                                    alt="rego-cpp">
+                                <span class="fs-5">rego-cpp</span>
+                            </a>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2">Designed and built by the rego-cpp team.</li>
+                                <li class="mb-2">&copy; Microsoft 2024.</li>
+                                <li class="mb-2">Code licensed MIT, docs CC BY 3.0</li>
+                                <li class="mb-2">Currently v0.4.5</li>
+                            </ul>
+                        </div>
+                        <div class="col-6 col-lg-2 offset-lg-1 mb-3">
+                            <h5>Links</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb2"><a href="cpp/index.html">C++ API</a></li>
+                                <li class="mb2"><a href="cpp/rego__c_8h.html">C API</a></li>
+                                <li class="mb2"><a href="rust/regorust/index.html">Rust API</a></li>
+                                <li class="mb2"><a href="python/index.html">Python API</a></li>
+                                <li class="mb2"><a href="https://github.com/microsoft/rego-cpp">Github</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </footer>
+            </footer>
 
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-            integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-            crossorigin="anonymous"></script>
-        <script src="scripts/highlight/highlight.min.js"></script>
-        <script>hljs.highlightAll();</script>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+                integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+                crossorigin="anonymous">
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+                crossorigin="anonymous"></script>
+            <script src="scripts/highlight/highlight.min.js"></script>
+            <script>hljs.highlightAll();</script>
     </main>
 </body>
 
