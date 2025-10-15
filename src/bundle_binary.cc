@@ -49,10 +49,24 @@ namespace
     return ~crcu32;
   }
 
+#if __cpp_lib_endian >= 201907L
+#define LITTLEENDIAN constexpr(std::endian::native == std::endian::little)
+#else
+  inline bool is_littleendian()
+  {
+    const int value{0x01};
+    const void* address = static_cast<const void*>(&value);
+    const unsigned char* least_significant_address =
+      static_cast<const unsigned char*>(address);
+    return (*least_significant_address == 0x01);
+  }
+#define LITTLEENDIAN (is_littleendian())
+#endif
+
   template <size_t LEN, typename Char>
   void write_endian(std::basic_ostream<Char>& stream, const uint8_t* ptr)
   {
-    if constexpr (std::endian::native == std::endian::little)
+    if LITTLEENDIAN
     {
       stream.write(reinterpret_cast<const Char*>(ptr), LEN);
       return;
@@ -68,7 +82,7 @@ namespace
   template <size_t LEN, typename Char>
   void read_endian(std::basic_istream<Char>& stream, uint8_t* ptr)
   {
-    if constexpr (std::endian::native == std::endian::little)
+    if LITTLEENDIAN
     {
       stream.read(reinterpret_cast<Char*>(ptr), LEN);
       return;

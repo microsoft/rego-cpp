@@ -1140,8 +1140,9 @@ impl Interpreter {
     /// `data.json` (which contains the base documents merged into a single JSON hierarchy).
     /// Module source files will also be copied into the directory.
     ///
-    /// The second mode is binary serialization. This uses the Rego Binary Bundle format
-    /// (TODO URL) to create a single file which contains all the bundle information.
+    /// The second mode is binary serialization. This uses the
+    /// [Rego Binary Bundle format](https://microsoft.github.io/rego-cpp/cpp/rbb.html)
+    /// to create a single file which contains all the bundle information.
     ///
     /// # Example
     ///

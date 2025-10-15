@@ -32,7 +32,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -60,7 +60,7 @@
 
   <Target Name="Clone" BeforeTargets="PrepareForBuild">
     <Exec Condition="!Exists('rego-cpp')" Command="git clone $(REGOCPP_REPO)" />
-    <Exec Condition="Exists('rego-cpp')" Command="git checkout $(REGOCPP_TAG)" WorkingDirectory="rego-cpp" />
+    <Exec Condition="!Exists('$(RegoCPPLibraryPath') AND Exists('rego-cpp')" Command="git checkout $(REGOCPP_TAG)" WorkingDirectory="rego-cpp" />
   </Target>
 
   <Target Name="CMakeConfig" DependsOnTargets="Clone" BeforeTargets="PrepareForBuild">

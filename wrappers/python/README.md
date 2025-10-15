@@ -13,19 +13,18 @@ wrapper we try to provide idiomatic Python interfaces to the Rego query engine.
 We hope the project is of use to those wishing to leverage the power of Rego
 within a Python context.
 
-> **Warning**
+> **Note**
 > While this project has progressed to the point that we support full Rego language
 > (see [Language Support](#language-support) below) we do not support all built-ins.
-> That said, we have verified compliance with the OPA Rego test suite. Even so, it
-> should still be considered experimental software and used with discretion.
+> That said, we have verified compliance with the OPA Rego test suite.
 
 ## Example Usage
 
 ```python
 from regopy import Interpreter
 rego = Interpreter()
-print(rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4"))
-# {"bindings":{"x":5, "y":9.5}}
+print(rego.query("x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5"))
+# {"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}
 input0 = {
     "a": 10,
     "b": "20",
@@ -80,7 +79,7 @@ rego.add_data(data0)
 rego.add_data(data1)
 rego.add_module("objects", module)
 print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
-# {"bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]}}
+# {"expressions":[true], "bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]}}
 ```
 
 ## Language Support
@@ -135,9 +134,6 @@ set             = empty-set | non-empty-set
 non-empty-set   = "{" term { "," term } "}"
 empty-set       = "set(" ")"
 ```
-
-> [!NOTE]
-> This grammar corresponds to Rego with `rego.v1` enabled (See [OPA v1.0](https://www.openpolicyagent.org/docs/latest/opa-1) for more info).
 
 Definitions:
 ```
@@ -200,5 +196,4 @@ At present, we are **NOT** passing the following test suites in full:
 - `json*`  (except `jsonbuiltins`)
 - `jwt*`
 - `net*`
-- `planner-ir`
 - `providers-aws`

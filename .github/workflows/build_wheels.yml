@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python: [cp37, cp38, cp39, cp310, cp311, cp312]
+        python: [cp39, cp310, cp311, cp312, cp313]
 
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.1
+        uses: pypa/cibuildwheel@v3.2.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-win*
           CIBW_ENVIRONMENT: >
@@ -37,7 +37,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python: [cp310, cp311, cp312]
+        python: [cp310, cp311, cp312, cp313]
 
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/setup-python@v5
         id: python
         with:
-          python-version: "3.10 - 3.12"
+          python-version: "3.10 - 3.13"
           update-environment: false
       
       - name: Git config for fetching pull requests
@@ -57,12 +57,11 @@ jobs:
           export PATH=$(python3 -m site --user-base)/bin:$PATH
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.1
+        uses: pypa/cibuildwheel@v3.2.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: arm64
           CIBW_ENVIRONMENT_MACOS : >
-            MACOSX_DEPLOYMENT_TARGET=11.0
             REGOCPP_REPO=https://github.com/${{github.repository}}
             REGOCPP_TAG=${{github.sha}}
         with:
@@ -77,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [cp37, cp38, cp39, cp310, cp311, cp312, pp39, pp310]
+        python: [cp39, cp310, cp311, cp312, cp313]
 
     steps:
       - uses: actions/checkout@v4
@@ -87,10 +86,10 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.1
+        uses: pypa/cibuildwheel@v3.2.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-manylinux*
-          CIBW_BEFORE_ALL: yum makecache && yum -y install devtoolset-10-libatomic-devel
+          CIBW_BEFORE_ALL: yum makecache
           CIBW_ENVIRONMENT: >
             REGOCPP_REPO=https://github.com/${{github.repository}}
             REGOCPP_TAG=${{github.sha}}
@@ -107,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [cp37, cp38, cp39, cp310, cp311, cp312]
+        python: [cp39, cp310, cp311, cp312, cp313]
 
     steps:
       - uses: actions/checkout@v4
@@ -117,7 +116,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.1
+        uses: pypa/cibuildwheel@v3.2.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-musllinux*
           CIBW_ENVIRONMENT: >

@@ -507,8 +507,8 @@ class Interpreter:
         will also be copied into the directory.
 
         The second mode is binary serialization. This uses the Rego Bundle Binary
-        format (TODO URL) to create a single file which contains all the bundle
-        information.
+        format (https://microsoft.github.io/rego-cpp/cpp/rbb.html) to create a single
+        file which contains all the bundle information.
 
         Example:
             >>> from regopy import Interpreter
@@ -527,13 +527,15 @@ class Interpreter:
             >>> print(output.binding("a"))
             1
         """
-        match format:
-            case BundleFormat.JSON:
-                rego_bundle_save(self._impl, path, bundle._impl)
-            case BundleFormat.Binary:
-                rego_bundle_save_binary(self._impl, path, bundle._impl)
-            case _:
-                raise NotImplementedError()
+        if format == BundleFormat.JSON:
+            rego_bundle_save(self._impl, path, bundle._impl)
+            return
+        
+        if format == BundleFormat.Binary:
+            rego_bundle_save_binary(self._impl, path, bundle._impl)
+            return
+
+        raise NotImplementedError()
 
     def load_bundle(self, path: str, format=BundleFormat.JSON) -> Bundle:
         """Loads a bundle from the disk.

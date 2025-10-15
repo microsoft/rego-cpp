@@ -9,18 +9,17 @@ designed to make it straightforward to wrap for other languages. To see some
 examples, look at the [wrappers directory](../wrappers).
 
 ## C++
-The best way to get started with the C++ API is to look at the
-[rego](../tools/main.cc) tool. It exercises most of the API and is a good
-starting point for understanding how to use the library.
+You can begin by looking at [`example.cc`](./cpp/example.cc) to see some sample
+usage of the API. [`custom_builtin.cc`](./cpp/custom_builtin.cc) shows how to
+add your own custom builtins (only supported in C++ at this point in time).
 
-A more in-depth example which performs node matching and other more complex
-operations can be see in the [`TestCase`](../tests/test_case.cc) class from the
-test driver.
-
-TODO there are C++ examples now
+From there, the best way to get a more in-depth understanding of the C++ API
+is to look at the [rego](../tools/main.cc) tool.
 
 ## C
-The C example is a [simple command line tool](c/main.c) that takes one or more
+There are two C examples. The first, [example.c](c/example.c) exercises the C API,
+showing all the various ways it can be used. The second C example is a
+[command line tool](c/main.c) that takes one or more
 Rego data, module, and input files and evaluates a query against them.
 
 To build it on Linux:
@@ -47,7 +46,7 @@ The resulting executable can be called from within the `dist` directory:
 ```bash
 a@host:build$ cd dist
 a@host:dist$ ./bin/regoc -d examples/scalars.rego -q data.scalars.greeting
-"Hello"
+{"expressions":["Hello"]}
 ```
 
 ## Python
@@ -58,21 +57,20 @@ Examples:
 
 ```bash
 a@host:python$ pip install regopy
-a@host:python$ python rego.py -d examples/scalars.rego data.scalars.greeting
-"Hello"
+a@host:python$ python rego.py eval -d examples/scalars.rego data.scalars.greeting
+{"expressions":["Hello"]}
 
-a@host:python$ python rego.py -d examples/objects.rego data.objects.sites[1].name
-"smoke1"
+a@host:python$ python rego.py eval -d examples/objects.rego data.objects.sites[1].name
+{"expressions":["smoke1"]}
 
-a@host:python$ python rego.py -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json "[data.one, input.b, data.objects.sites[1]]"
-[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]
+a@host:python$ python rego.py eval -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json "[data.one, input.b, data.objects.sites[1]]"
+{"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]]}
 
-a@host:python$ python rego.py "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4"
-x = 5
-y = 9.4
+a@host:python$ python rego.py eval "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5"
+{"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}
 
-a@host:python$ python rego.py -d examples/bodies.rego -i examples/input1.json data.bodies.e
-{"one":15, "two": 15}
+a@host:python$ python rego.py eval -d examples/bodies.rego -i examples/input1.json data.bodies.e
+{"expressions":[{"one":15, "two":15}]}
 ```
 
 
@@ -83,21 +81,20 @@ Rego data, module, and input files and evaluates a query against them.
 Examples:
 
 ```bash
-a@host:rust$ cargo run -- -d examples/scalars.rego data.scalars.greeting
-"Hello"
+a@host:rust$ cargo run -- eval -d examples/scalars.rego data.scalars.greeting
+{"expressions":["Hello"]}
 
-a@host:rust$ cargo run -- -d examples/objects.rego data.objects.sites[1].name
-"smoke1"
+a@host:rust$ cargo run -- eval -d examples/objects.rego data.objects.sites[1].name
+{"expressions":["smoke1"]}
 
-a@host:rust$ cargo run -- -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json "[data.one, input.b, data.objects.sites[1]]"
-[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]
+a@host:rust$ cargo run -- eval -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json "[data.one, input.b, data.objects.sites[1]]"
+{"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]]}
 
-a@host:rust$ cargo run -- "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4"
-x = 5
-y = 9.4
+a@host:rust$ cargo run -- eval "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4;5 * 2"
+{"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}
 
-a@host:rust$ cargo run -- -d examples/bodies.rego -i examples/input1.json data.bodies.e
-{"one":15, "two": 15}
+a@host:rust$ cargo run -- eval -d examples/bodies.rego -i examples/input1.json data.bodies.e
+{"expressions":[{"one":15, "two":15}]}
 ```
 
 ## dotnet
@@ -118,5 +115,3 @@ Bundles
 query: {"expressions":[true], "bindings":{"x":4460}}
 example/foo: {"expressions":[2275]}
 ```
-
-TODO update all of these to reflect the actual output

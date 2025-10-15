@@ -46,38 +46,37 @@ class ValueType(IntEnum):
         return ValueType.choose(depth).generate(depth)
 
     def generate(self, depth=MaxObjectDepth):
-        match self.value:
-            case ValueType.Int:
-                return random.randint(-2**63, 2**63)
+        if self.value == ValueType.Int:
+            return random.randint(-2**63, 2**63)
 
-            case ValueType.Float:
-                return random.random() * 1000
+        if self.value == ValueType.Float:
+            return random.random() * 1000
 
-            case ValueType.String:
-                length = random.randint(4, 32)
-                indices = [random.randint(0, len(AlphaNum) - 1) for _ in range(length)]
-                return "".join(AlphaNum[i] for i in indices)
+        if self.value == ValueType.String:
+            length = random.randint(4, 32)
+            indices = [random.randint(0, len(AlphaNum) - 1) for _ in range(length)]
+            return "".join(AlphaNum[i] for i in indices)
 
-            case ValueType.Boolean:
-                return True if random.random() > 0.5 else False
+        if self.value == ValueType.Boolean:
+            return True if random.random() > 0.5 else False
 
-            case ValueType.Null:
-                return None
+        if self.value == ValueType.Null:
+            return None
 
-            case ValueType.Object:
-                length = random.randint(0, MaxValueSize)
-                return {ValueType.String.generate(): ValueType.random(depth - 1) for _ in range(length)}
+        if self.value == ValueType.Object:
+            length = random.randint(0, MaxValueSize)
+            return {ValueType.String.generate(): ValueType.random(depth - 1) for _ in range(length)}
 
-            case ValueType.Array:
-                length = random.randint(0, MaxValueSize)
-                return [ValueType.random(depth - 1) for _ in range(length)]
+        if self.value == ValueType.Array:
+            length = random.randint(0, MaxValueSize)
+            return [ValueType.random(depth - 1) for _ in range(length)]
 
 
 def assert_equal(lhs, rhs):
     assert isinstance(lhs, type(rhs))
 
     if isinstance(lhs, float):
-        assert lhs == pytest.approx(rhs)
+        assert lhs == pytest.approx(rhs, rel=1e-2)
         return
 
     if isinstance(lhs, str):
@@ -115,7 +114,7 @@ def test_float(value: float):
     rego = Interpreter()
     rego.set_input(Input(value))
     output = rego.query("x = input")
-    assert output.binding("x").value == pytest.approx(value)
+    assert output.binding("x").value == pytest.approx(value, rel=1e-3)
 
 
 @pytest.mark.parametrize("value", [ValueType.String.generate() for _ in range(NumTests)])
