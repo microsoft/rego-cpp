@@ -23,7 +23,7 @@
     <PlatformArch Condition="'$(IsLinux)'=='true'">linux-x64</PlatformArch>
     <PlatformArch Condition="'$(IsOSX)'=='true' and '$(IsArm64)'=='true'">osx-arm64</PlatformArch>
     <PlatformArch Condition="'$(IsOSX)'=='true' and '$(IsArm64)'=='false'">osx-x64</PlatformArch>
-    <PackageId>Rego-$(PlatformArch)</PackageId>
+    <PackageId>Rego</PackageId>
     <PackageTags>Rego;Microsoft;Policy;OPA</PackageTags>
     <PackageIcon>rego_icon.png</PackageIcon>
     <PackageProjectUrl>https://microsoft.github.io/rego-cpp</PackageProjectUrl>
@@ -32,14 +32,16 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(Multitarget)' == 'true' ">net8.0;net9.0</TargetFrameworks>
+    <TargetFramework Condition=" '$(Multitarget)' != 'true' ">net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <REGOCPP_REPO Condition=" '$(REGOCPP_REPO)' == '' ">https://github.com/microsoft/rego-cpp.git</REGOCPP_REPO>
     <REGOCPP_TAG Condition=" '$(REGOCPP_TAG)' == '' ">main</REGOCPP_TAG>
-    <RegoCPPBuildDir>rego-cpp/build</RegoCPPBuildDir>
-    <RegoCPPInstallDir>rego-cpp/build/install</RegoCPPInstallDir>    
+    <RegoCPPSourceDir>MSBuildProjectDirectory/../../../..</RegoCPPSourceDir>
+    <RegoCPPBuildDir>rego-cpp/</RegoCPPBuildDir>
+    <RegoCPPInstallDir>rego-cpp/install</RegoCPPInstallDir>
     <DefaultItemExcludes>$(DefaultItemExcludes);rego-cpp/**;</DefaultItemExcludes>
   </PropertyGroup>
 
@@ -58,17 +60,22 @@
     <RegoCPPLibraryPath>$(RegoCPPBuildDir)/src/$(RegoCPPLibraryName)</RegoCPPLibraryPath>
   </PropertyGroup>
 
-  <Target Name="Clone" BeforeTargets="PrepareForBuild">
-    <Exec Condition="!Exists('rego-cpp')" Command="git clone $(REGOCPP_REPO)" />
-    <Exec Condition="!Exists('$(RegoCPPLibraryPath') AND Exists('rego-cpp')" Command="git checkout $(REGOCPP_TAG)" WorkingDirectory="rego-cpp" />
-  </Target>
-
-  <Target Name="CMakeConfig" DependsOnTargets="Clone" BeforeTargets="PrepareForBuild">
-    <Exec Condition="!Exists('$(RegoCPPLibraryPath)')" Command="cmake -S rego-cpp -B $(RegoCPPBuildDir) -DCMAKE_INSTALL_PREFIX=$(RegoCPPInstallDir) -DREGOCPP_BUILD_SHARED=ON -DCMAKE_BUILD_TYPE=Release -DSNMALLOC_ENABLE_DYNAMIC_LOADING=ON" />
-  </Target>
-
-  <Target Name="CMakeBuild" DependsOnTargets="CMakeConfig" BeforeTargets="PrepareForBuild">
+  <Target Name="BuildNativeDLL">
+    <Message Condition="!Exists('$(RegoCPPLibraryPath)')" Importance="High" Text="Building Native DLL" />
+    <Exec Condition="!Exists('$(RegoCPPLibraryPath)')" Command="cmake -S $(RegoCPPSourceDir) -B $(RegoCPPBuildDir) -DCMAKE_INSTALL_PREFIX=$(RegoCPPInstallDir) -DREGOCPP_BUILD_SHARED=ON -DCMAKE_BUILD_TYPE=Release -DSNMALLOC_ENABLE_DYNAMIC_LOADING=ON" />
     <Exec Condition="!Exists('$(RegoCPPLibraryPath)')" Command="cmake --build $(RegoCPPBuildDir) --config Release --target rego_shared" />
+  </Target>
+
+  <Target Name="BuildNativeDLLBeforeOuterBuild"
+        DependsOnTargets="BuildNativeDLL"
+        BeforeTargets="DispatchToInnerBuilds"
+        />
+
+  <Target Name="BuildNativeDLLBeforeInnerBuild"
+        BeforeTargets="BeforeBuild">
+   <MSBuild Projects="$(MSBuildProjectFullPath)"
+         Targets="BuildNativeDLL"
+         RemoveProperties="TargetFramework" />
   </Target>
 
   <ItemGroup>
