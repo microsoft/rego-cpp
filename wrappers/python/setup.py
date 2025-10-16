@@ -123,7 +123,6 @@ setup(
     package_data={"regopy": ["*.dll", "*.so", "*.dylib"]},
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License"
     ],
     project_urls={
         "Documentation": "https://microsoft.github.io/rego-cpp/",
@@ -135,7 +134,6 @@ setup(
     extras_require={
         "dev": REQUIRES_DEV,
     },
-    tests_require=["pytest"],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 )

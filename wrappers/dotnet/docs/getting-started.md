@@ -4,8 +4,6 @@ Here are some examples of usage to help you get started.
 
 ## Querying and Accessing Results
 
-Here we see some exa
-
 ```csharp
 using System.Collections;
 using Rego;

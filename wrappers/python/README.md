@@ -80,6 +80,22 @@ rego.add_data(data1)
 rego.add_module("objects", module)
 print(rego.query("x=[data.one, input.b, data.objects.sites[1]]"))
 # {"expressions":[true], "bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]}}
+
+bundle = rego.build("[data.one, input.b, data.objects.sites[1]] = x", ["objects/sites"])
+
+rego = Interpreter()
+rego.set_input({
+    "a": 10,
+    "b": "foo",
+    "c": 30.0,
+    "d": True
+})
+
+print(rego.query_bundle(bundle))
+# {"expressions":[true], "bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"foo",{"name":"smoke1"}]}}
+
+print(rego.query_bundle_entrypoint(bundle, "objects/sites"))
+# {"expressions":[[{"name":"prod"},{"name":"smoke1"},{"name":"dev"}]]}
 ```
 
 ## Language Support
