@@ -1,5 +1,62 @@
 # Changelog
 
+## 2025-10-12 - Version 1.0.0
+Major version adding VM-based execution of bundles.
+
+This is a massive, breaking change (in the spirit of the Rego v1 change) with a 
+wide range of beneficial but impactful repercussions. We will do our best to
+summarise them here, but for a full sense of impact you should carefully look
+at the new API, the new code samples, and other artifacts to ensure everthing
+still works as you expect.
+
+**New Features**
+- Bundle support. The `Interpreter` can now compile Rego documents into bundles,
+  and then save those bundles to disk in the OPA Rego bundle format. It can then
+  load those bundles and execute them against new inputs.
+- We introduce a new Rego Bundle binary format for compact storage and optimised
+  loading from disk. Read [this document](binary.md) for details.
+- `regoInput*` C API methods for in-memory input creation.
+- `regoBundle*` C API methods for working with bundles.
+- The `BuiltInDef` API has changed to support full built-in metadata during creation.
+  See the [Custom Built-In](examples/cpp/custom_builtin.cc) example for details.
+  The old API remains but has been deprecated and will be removed in a future
+  release.
+
+**Improvements**
+- The entire backend has been rewritten. All code is compiled and run as bundles,
+  which run on an optimised virtual machine. Policies should execute an order of
+  magnitude faster or more.
+- OPA Rego compatibility has been upgraded to 1.8.0
+- Interpreter logging. Interpreters running on separate threads can have their own
+  logging levels.
+- `output_to_string` is now part of the public API
+- Apple Silicon (ARM64) is working again
+- `Interpreter` will only load Trieste passes on an as-needed basis, which makes
+  it far cheaper to construct.
+- All builtins now have associated metadata which document their behaviour
+
+**Breaking Changes**
+- Support for v0 Rego has been dropped.
+- All TZData related methods have been removed. Platforms which do not support
+  `cpp_lib_chrono >= 201907L` will be missing builtins which require timezone
+  functionality.
+- Any code which relied upon specifics of the backend implementation will no longer
+  work. That is all gone.
+- The deprecated `set_input_json` method has been removed
+- The exposed Trieste passes have had their names changed for increased clarity.
+- The remaining C API methods which exposed raw `const char*` internals have been
+  replaced with external-buffer-based APIs:
+  * `regoBuildInfo` => `regoBuildInfoSize`/`regoBuildInfo`
+  * `regoVersion` => `regoVersionSize`/`regoVersion`
+  * `regoGetError` => `regoErrorSize`/`regoError`
+  * `regoNodeTypeName` => `regoNodeTypeNameSize`/`regoNodeTypeName`
+  * `regoOutputString` => removed. Use `regoOutputJSON` instead.
+- `regoSetLogLevel` => `regoSetDefaultLogLevel`
+- `regoSetLogLevelFromString` => `regoLogLevelFromString`
+- `regoNewV1` has been removed. `regoNew` will always return a V1 interpreter.
+- The deprecated `regoSetInputJSON` method has been removed
+- `regoIsBuiltin` => `regoIsAvailableBuiltin`
+
 ## 2024-12-10 - Version 0.4.6
 Point release adding a dotnet wrapper.
 

@@ -5,6 +5,7 @@ namespace
 {
   using namespace rego;
   using namespace trieste::utf8;
+  namespace bi = rego::builtins;
 
   Node count(const Nodes& args)
   {
@@ -24,6 +25,22 @@ namespace
 
     return Resolver::scalar(BigInt(collection->size()));
   }
+
+  const Node count_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg
+            << (bi::Name ^ "collection")
+            << (bi::Description ^ "the set/array/object/string to be counted")
+            << (bi::Type
+                << (bi::TypeSeq
+                    << (bi::Type << bi::String)
+                    << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Any)))
+                    << (bi::Type << (bi::Set << (bi::Type << bi::Any)))))))
+    << (bi::Result << (bi::Name ^ "n")
+                   << (bi::Description ^
+                       "the count of elements, key/val pairs, or characters, "
+                       "respectively.")
+                   << (bi::Type << bi::Number));
 
   Node max(const Nodes& args)
   {
@@ -47,6 +64,21 @@ namespace
     return *it;
   }
 
+  const Node max_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg
+                     << (bi::Name ^ "collection")
+                     << (bi::Description ^ "the set or array to be searched")
+                     << (bi::Type
+                         << (bi::TypeSeq
+                             << (bi::Type
+                                 << (bi::DynamicArray << (bi::Type << bi::Any)))
+                             << (bi::Type
+                                 << (bi::Set << (bi::Type << bi::Any)))))))
+             << (bi::Result << (bi::Name ^ "n")
+                            << (bi::Description ^ "the maximum of all elements")
+                            << (bi::Type << bi::Any));
+
   Node min(const Nodes& args)
   {
     Node collection =
@@ -68,6 +100,21 @@ namespace
 
     return *it;
   }
+
+  const Node min_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg
+                     << (bi::Name ^ "collection")
+                     << (bi::Description ^ "the set or array to be searched")
+                     << (bi::Type
+                         << (bi::TypeSeq
+                             << (bi::Type
+                                 << (bi::DynamicArray << (bi::Type << bi::Any)))
+                             << (bi::Type
+                                 << (bi::Set << (bi::Type << bi::Any)))))))
+             << (bi::Result << (bi::Name ^ "n")
+                            << (bi::Description ^ "the minimum of all elements")
+                            << (bi::Type << bi::Any));
 
   Node sort(const Nodes& args)
   {
@@ -91,6 +138,21 @@ namespace
     return collection->type() << NodeRange{items.begin(), items.end()};
   }
 
+  const Node sort_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg
+                     << (bi::Name ^ "collection")
+                     << (bi::Description ^ "the array or set to be sorted")
+                     << (bi::Type
+                         << (bi::TypeSeq
+                             << (bi::Type
+                                 << (bi::DynamicArray << (bi::Type << bi::Any)))
+                             << (bi::Type
+                                 << (bi::Set << (bi::Type << bi::Any)))))))
+             << (bi::Result
+                 << (bi::Name ^ "n") << (bi::Description ^ "the sorted array")
+                 << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Any))));
+
   Node sum(const Nodes& args)
   {
     Node collection =
@@ -108,6 +170,22 @@ namespace
         return Resolver::arithinfix(Add ^ "+", a, b);
       });
   }
+
+  const Node sum_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg
+                     << (bi::Name ^ "collection")
+                     << (bi::Description ^ "the set or array of numbers to sum")
+                     << (bi::Type
+                         << (bi::TypeSeq
+                             << (bi::Type
+                                 << (bi::DynamicArray
+                                     << (bi::Type << bi::Number)))
+                             << (bi::Type
+                                 << (bi::Set << (bi::Type << bi::Number)))))))
+             << (bi::Result << (bi::Name ^ "n")
+                            << (bi::Description ^ "the sum of all elements")
+                            << (bi::Type << bi::Number));
 
   Node product(const Nodes& args)
   {
@@ -129,58 +207,19 @@ namespace
     return Term << (Scalar << sum);
   }
 
-  Node any(const Nodes& args)
-  {
-    Node collection =
-      unwrap_arg(args, UnwrapOpt(0).func("any").types({Array, Set}));
-    if (collection->type() == Error)
-    {
-      return collection;
-    }
-
-    for (const Node& item : *collection)
-    {
-      auto maybe_boolean = unwrap(item, {True, False});
-      if (maybe_boolean.success)
-      {
-        if (maybe_boolean.node->type() == True)
-        {
-          return True ^ "true";
-        }
-      }
-    }
-
-    return False ^ "false";
-  }
-
-  Node all(const Nodes& args)
-  {
-    Node collection =
-      unwrap_arg(args, UnwrapOpt(0).func("all").types({Array, Set}));
-    if (collection->type() == Error)
-    {
-      return collection;
-    }
-
-    for (const Node& item : *collection)
-    {
-      auto maybe_boolean = unwrap(item, {True, False});
-      if (maybe_boolean.success)
-      {
-        if (maybe_boolean.node->type() == False)
-        {
-          return False ^ "false";
-        }
-      }
-      else
-      {
-        return False ^ "false";
-      }
-    }
-
-    return True ^ "true";
-  }
-
+  const Node product_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg
+            << (bi::Name ^ "collection")
+            << (bi::Description ^ "the set or array of numbers to multiply")
+            << (bi::Type
+                << (bi::TypeSeq
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::Number)))
+                    << (bi::Type << (bi::Set << (bi::Type << bi::Number)))))))
+    << (bi::Result << (bi::Name ^ "n")
+                   << (bi::Description ^ "the product of all elements")
+                   << (bi::Type << bi::Number));
 }
 
 namespace rego
@@ -190,14 +229,12 @@ namespace rego
     std::vector<BuiltIn> aggregates()
     {
       return std::vector<BuiltIn>{
-        BuiltInDef::create(Location("all"), 1, all),
-        BuiltInDef::create(Location("any"), 1, any),
-        BuiltInDef::create(Location("count"), 1, count),
-        BuiltInDef::create(Location("max"), 1, max),
-        BuiltInDef::create(Location("min"), 1, min),
-        BuiltInDef::create(Location("product"), 1, product),
-        BuiltInDef::create(Location("sort"), 1, sort),
-        BuiltInDef::create(Location("sum"), 1, sum),
+        BuiltInDef::create(Location("count"), count_decl, count),
+        BuiltInDef::create(Location("max"), max_decl, max),
+        BuiltInDef::create(Location("min"), min_decl, min),
+        BuiltInDef::create(Location("product"), product_decl, product),
+        BuiltInDef::create(Location("sort"), sort_decl, sort),
+        BuiltInDef::create(Location("sum"), sum_decl, sum),
       };
     }
   }

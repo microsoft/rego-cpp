@@ -8,6 +8,7 @@
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   Node base64_encode_(const Nodes& args)
   {
@@ -22,6 +23,15 @@ namespace
     return JSONString ^ encoded;
   }
 
+  const Node base64_encode_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "string to encode")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^ "base64 serialization of `x`")
+                            << (bi::Type << bi::String));
+
   Node base64_decode_(const Nodes& args)
   {
     Node x_string_node = unwrap_arg(args, UnwrapOpt(0).type(JSONString));
@@ -34,6 +44,16 @@ namespace
     std::string decoded = ::base64_decode(x_string);
     return JSONString ^ decoded;
   }
+
+  const Node base64_decode_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "string to decode")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "base64 deserialization of `x`")
+                 << (bi::Type << bi::String));
 
   Node base64_is_valid(const Nodes& args)
   {
@@ -53,6 +73,16 @@ namespace
     return True ^ "true";
   }
 
+  const Node base64_is_valid_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg << (bi::Name ^ "x") << (bi::Description ^ "string to check")
+                    << (bi::Type << bi::String)))
+    << (bi::Result
+        << (bi::Name ^ "y")
+        << (bi::Description ^
+            "`true` if `x` is valid base64 encoded value, `false` otherwise")
+        << (bi::Type << bi::Boolean));
+
   Node base64url_encode(const Nodes& args)
   {
     Node x_string_node = unwrap_arg(args, UnwrapOpt(0).type(JSONString));
@@ -65,6 +95,16 @@ namespace
     std::string encoded = ::base64_encode(x_string, true);
     return JSONString ^ encoded;
   }
+
+  const Node base64url_encode_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "string to encode")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "base64url serialization of `x`")
+                 << (bi::Type << bi::String));
 
   Node base64url_encode_no_pad(const Nodes& args)
   {
@@ -83,6 +123,16 @@ namespace
     return JSONString ^ encoded;
   }
 
+  const Node base64url_encode_no_pad_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "string to encode")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "base64url serialization of `x`")
+                 << (bi::Type << bi::String));
+
   Node base64url_decode(const Nodes& args)
   {
     Node x_string_node = unwrap_arg(args, UnwrapOpt(0).type(JSONString));
@@ -95,6 +145,16 @@ namespace
     std::string decoded = ::base64_decode(x_string);
     return JSONString ^ decoded;
   }
+
+  const Node base64url_decode_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "string to decode")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "base64url deserialization of `x`")
+                 << (bi::Type << bi::String));
 
   Node hex_encode(const Nodes& args)
   {
@@ -112,6 +172,16 @@ namespace
     }
     return JSONString ^ encoded.str();
   }
+
+  const Node hex_encode_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "string to encode")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^
+                                "serialization of `x` using hex-encoding")
+                            << (bi::Type << bi::String));
 
   std::optional<int> hexdigit(char hex)
   {
@@ -167,6 +237,15 @@ namespace
     return JSONString ^ decoded.str();
   }
 
+  const Node hex_decode_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "a hex-encoded string")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^ "deserialized from `x`")
+                            << (bi::Type << bi::String));
+
   Node json_marshal(const Nodes& args)
   {
     Node x = Resolver::to_term(args[0]);
@@ -175,7 +254,7 @@ namespace
       return x;
     }
 
-    auto result = to_json().wf_check_enabled(true).rewrite(Top << x);
+    auto result = rego_to_json().wf_check_enabled(true).rewrite(Top << x);
     if (!result.ok)
     {
       logging::Error log;
@@ -184,8 +263,18 @@ namespace
     }
 
     std::string json = json::to_string(result.ast);
-    return JSONString ^ ('"' + json::escape(json) + '"');
+    return JSONString ^ add_quotes(json::escape(json));
   }
+
+  const Node json_marshal_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "the term to serialize")
+                             << (bi::Type << bi::Any)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "the JSON string representation of `x`")
+                 << (bi::Type << bi::String));
 
   Node json_marshal_with_options(const Nodes& args)
   {
@@ -248,7 +337,7 @@ namespace
 
     bool pretty = maybe_pretty.value_or(false);
 
-    auto result = to_json().wf_check_enabled(true).rewrite(Top << x);
+    auto result = rego_to_json().wf_check_enabled(true).rewrite(Top << x);
     if (!result.ok)
     {
       logging::Error log;
@@ -274,8 +363,35 @@ namespace
       json = prefixed.str();
     }
 
-    return JSONString ^ ('"' + json::escape(json) + '"');
+    return JSONString ^ add_quotes(json::escape(json));
   }
+
+  const Node json_marshal_with_options_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "the term to serialize")
+                             << (bi::Type << bi::Any))
+                 << (bi::Arg
+                     << (bi::Name ^ "opts")
+                     << (bi::Description ^ "encoding options")
+                     << (bi::Type
+                         << (bi::HybridObject
+                             << (bi::DynamicObject << (bi::Type << bi::String)
+                                                   << (bi::Type << bi::Any))
+                             << (bi::StaticObject
+                                 << (bi::ObjectItem << (bi::Name ^ "indent")
+                                                    << (bi::Type << bi::String))
+                                 << (bi::ObjectItem << (bi::Name ^ "prefix")
+                                                    << (bi::Type << bi::String))
+                                 << (bi::ObjectItem
+                                     << (bi::Name ^ "pretty")
+                                     << (bi::Type << bi::Boolean)))))))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^
+                     "the JSON string representation of `x`, with configured "
+                     "prefix/indent string(s) as appropriate")
+                 << (bi::Type << bi::String));
 
   Node json_unmarshal(const Nodes& args)
   {
@@ -287,8 +403,8 @@ namespace
 
     std::string x_json = get_string(x);
     std::string x_raw = json::unescape(strip_quotes(x_json));
-    auto result =
-      json::reader().synthetic(x_raw).wf_check_enabled(true) >> from_json(true);
+    auto result = json::reader().synthetic(x_raw).wf_check_enabled(true) >>
+      json_to_rego(true);
     if (!result.ok)
     {
       logging::Error log;
@@ -298,6 +414,16 @@ namespace
 
     return result.ast->front();
   }
+
+  const Node json_unmarshal_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "a JSON string")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "the term deserialized from `x`")
+                 << (bi::Type << bi::Any));
 
   Node json_is_valid(const Nodes& args)
   {
@@ -312,6 +438,17 @@ namespace
     auto result = json::reader().synthetic(x_raw).wf_check_enabled(true).read();
     return result.ok ? True ^ "true" : False ^ "false";
   }
+
+  const Node json_is_valid_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "a JSON string")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^
+                     "`true` if `x` is valid JSON, `false` otherwise")
+                 << (bi::Type << bi::Boolean));
 
   Node yaml_marshal(const Nodes& args)
   {
@@ -332,7 +469,7 @@ namespace
       }
     }
 
-    auto result = to_yaml().wf_check_enabled(true).rewrite(Top << term);
+    auto result = rego_to_yaml().wf_check_enabled(true).rewrite(Top << term);
     if (!result.ok)
     {
       logging::Error log;
@@ -341,8 +478,18 @@ namespace
     }
 
     std::string yaml = yaml::to_string(result.ast);
-    return JSONString ^ ('"' + json::escape(yaml) + '"');
+    return JSONString ^ add_quotes(json::escape(yaml));
   }
+
+  const Node yaml_marshal_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "the term to serialize")
+                             << (bi::Type << bi::Any)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "the YAML string representation of `x`")
+                 << (bi::Type << bi::String));
 
   Node yaml_unmarshal(const Nodes& args)
   {
@@ -355,7 +502,7 @@ namespace
     std::string x_json = get_string(x);
     std::string x_raw = json::unescape(strip_quotes(x_json));
     auto result = yaml::reader().synthetic(x_raw).wf_check_enabled(true) >>
-      yaml::to_json() >> from_json(true);
+      yaml::to_json() >> json_to_rego(true);
     if (!result.ok)
     {
       logging::Error log;
@@ -365,6 +512,16 @@ namespace
 
     return result.ast->front();
   }
+
+  const Node yaml_unmarshal_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "a YAML string")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "the term deserialized from `x`")
+                 << (bi::Type << bi::Any));
 
   Node yaml_is_valid(const Nodes& args)
   {
@@ -379,6 +536,17 @@ namespace
     auto result = yaml::reader().synthetic(x_raw).wf_check_enabled(true).read();
     return result.ok ? True ^ "true" : False ^ "false";
   }
+
+  const Node yaml_is_valid_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "a YAML string")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^
+                     "`true` if `x` is valid YAML, `false` otherwise")
+                 << (bi::Type << bi::Boolean));
 
   void do_urlquery_encode(std::ostringstream& encoded, Node x)
   {
@@ -409,8 +577,18 @@ namespace
     std::ostringstream encoded;
     do_urlquery_encode(encoded, x);
 
-    return JSONString ^ ('"' + json::escape(encoded.str()) + '"');
+    return JSONString ^ add_quotes(json::escape(encoded.str()));
   }
+
+  const Node urlquery_encode_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "the string to encode")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "URL-encoding serialization of `x`")
+                 << (bi::Type << bi::String));
 
   Node urlquery_encode_object(const Nodes& args)
   {
@@ -474,8 +652,30 @@ namespace
       }
     }
 
-    return JSONString ^ ('"' + json::escape(encoded.str()) + '"');
+    return JSONString ^ add_quotes(json::escape(encoded.str()));
   }
+
+  const Node urlquery_encode_object_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg
+                     << (bi::Name ^ "object")
+                     << (bi::Description ^ "the string to encode")
+                     << (bi::Type
+                         << (bi::DynamicObject
+                             << (bi::Type << bi::String)
+                             << (bi::Type
+                                 << (bi::TypeSeq
+                                     << (bi::Type << bi::String)
+                                     << (bi::Type
+                                         << (bi::DynamicArray
+                                             << (bi::Type << bi::String)))
+                                     << (bi::Type
+                                         << (bi::Set
+                                             << (bi::Type << bi::String)))))))))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "URL-encoding serialization of `object`")
+                 << (bi::Type << bi::String));
 
   std::optional<std::string> maybe_urlquery_decode(const std::string& encoded)
   {
@@ -522,11 +722,21 @@ namespace
     auto maybe_result = maybe_urlquery_decode(x_raw);
     if (maybe_result.has_value())
     {
-      return JSONString ^ ('"' + json::escape(maybe_result.value()) + '"');
+      return JSONString ^ add_quotes(json::escape(maybe_result.value()));
     }
 
     return err(x, "invalid URL query string", EvalBuiltInError);
   }
+
+  const Node urlquery_decode_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "the URL-encoded string")
+                             << (bi::Type << bi::String)))
+             << (bi::Result
+                 << (bi::Name ^ "y")
+                 << (bi::Description ^ "URL-encoding deserialization of `x`")
+                 << (bi::Type << bi::String));
 
   Node urlquery_decode_object(const Nodes& args)
   {
@@ -552,7 +762,7 @@ namespace
       }
 
       std::string key = maybe_key.value();
-      if (!contains(items, key))
+      if (!items.contains(key))
       {
         items[key] = Nodes();
       }
@@ -567,7 +777,7 @@ namespace
         }
 
         items[key].push_back(
-          JSONString ^ ('"' + json::escape(maybe_value.value()) + '"'));
+          JSONString ^ add_quotes(json::escape(maybe_value.value())));
       }
       else
       {
@@ -582,15 +792,29 @@ namespace
       }
     }
 
-    Node argseq = NodeDef::create(ArgSeq);
+    Node argseq = NodeDef::create(Seq);
     for (auto& [key, value] : items)
     {
-      argseq->push_back(JSONString ^ ('"' + json::escape(key) + '"'));
-      argseq->push_back(Resolver::array(ArgSeq << value));
+      argseq->push_back(JSONString ^ add_quotes(json::escape(key)));
+      argseq->push_back(Resolver::array(Seq << value));
     }
 
-    return Resolver::object(argseq, false);
+    return Resolver::object(argseq);
   }
+
+  const Node urlquery_decode_object_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "the URL-encoded string")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^ "the resulting object")
+                            << (bi::Type
+                                << (bi::DynamicObject
+                                    << (bi::Type << bi::String)
+                                    << (bi::Type
+                                        << (bi::DynamicArray
+                                            << (bi::Type << bi::String))))));
 }
 
 namespace rego
@@ -600,29 +824,54 @@ namespace rego
     std::vector<BuiltIn> encoding()
     {
       return {
-        BuiltInDef::create(Location("base64.encode"), 1, base64_encode_),
-        BuiltInDef::create(Location("base64.decode"), 1, base64_decode_),
-        BuiltInDef::create(Location("base64.is_valid"), 1, base64_is_valid),
-        BuiltInDef::create(Location("base64url.encode"), 1, base64url_encode),
         BuiltInDef::create(
-          Location("base64url.encode_no_pad"), 1, base64url_encode_no_pad),
-        BuiltInDef::create(Location("base64url.decode"), 1, base64url_decode),
-        BuiltInDef::create(Location("hex.decode"), 1, hex_decode),
-        BuiltInDef::create(Location("hex.encode"), 1, hex_encode),
-        BuiltInDef::create(Location("json.marshal"), 1, json_marshal),
+          Location("base64.encode"), base64_encode_decl, base64_encode_),
         BuiltInDef::create(
-          Location("json.marshal_with_options"), 2, json_marshal_with_options),
-        BuiltInDef::create(Location("json.unmarshal"), 1, json_unmarshal),
-        BuiltInDef::create(Location("json.is_valid"), 1, json_is_valid),
-        BuiltInDef::create(Location("urlquery.decode"), 1, urlquery_decode),
+          Location("base64.decode"), base64_decode_decl, base64_decode_),
         BuiltInDef::create(
-          Location("urlquery.decode_object"), 1, urlquery_decode_object),
-        BuiltInDef::create(Location("urlquery.encode"), 1, urlquery_encode),
+          Location("base64.is_valid"), base64_is_valid_decl, base64_is_valid),
         BuiltInDef::create(
-          Location("urlquery.encode_object"), 1, urlquery_encode_object),
-        BuiltInDef::create(Location("yaml.marshal"), 1, yaml_marshal),
-        BuiltInDef::create(Location("yaml.unmarshal"), 1, yaml_unmarshal),
-        BuiltInDef::create(Location("yaml.is_valid"), 1, yaml_is_valid),
+          Location("base64url.encode"),
+          base64url_encode_decl,
+          base64url_encode),
+        BuiltInDef::create(
+          Location("base64url.encode_no_pad"),
+          base64url_encode_no_pad_decl,
+          base64url_encode_no_pad),
+        BuiltInDef::create(
+          Location("base64url.decode"),
+          base64url_decode_decl,
+          base64url_decode),
+        BuiltInDef::create(Location("hex.decode"), hex_decode_decl, hex_decode),
+        BuiltInDef::create(Location("hex.encode"), hex_encode_decl, hex_encode),
+        BuiltInDef::create(
+          Location("json.marshal"), json_marshal_decl, json_marshal),
+        BuiltInDef::create(
+          Location("json.marshal_with_options"),
+          json_marshal_with_options_decl,
+          json_marshal_with_options),
+        BuiltInDef::create(
+          Location("json.unmarshal"), json_unmarshal_decl, json_unmarshal),
+        BuiltInDef::create(
+          Location("json.is_valid"), json_is_valid_decl, json_is_valid),
+        BuiltInDef::create(
+          Location("urlquery.decode"), urlquery_decode_decl, urlquery_decode),
+        BuiltInDef::create(
+          Location("urlquery.decode_object"),
+          urlquery_decode_object_decl,
+          urlquery_decode_object),
+        BuiltInDef::create(
+          Location("urlquery.encode"), urlquery_encode_decl, urlquery_encode),
+        BuiltInDef::create(
+          Location("urlquery.encode_object"),
+          urlquery_encode_object_decl,
+          urlquery_encode_object),
+        BuiltInDef::create(
+          Location("yaml.marshal"), yaml_marshal_decl, yaml_marshal),
+        BuiltInDef::create(
+          Location("yaml.unmarshal"), yaml_unmarshal_decl, yaml_unmarshal),
+        BuiltInDef::create(
+          Location("yaml.is_valid"), yaml_is_valid_decl, yaml_is_valid),
       };
     }
   }

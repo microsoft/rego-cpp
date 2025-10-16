@@ -9,42 +9,42 @@ a := {
     "bar": 2,
 }
 
-b := x + y {
+b := x + y if {
     some x, y
     [1, x] = tuples[i]
     {"foo": y, "bar": 2} = a
     i != 0
 }
 
-c {
+c if {
     i != 0
     x = tuples[i]
     i = x[1] - 1
 }
 
-d {
+d if {
 	tuple := tuples[i]
     tuple[0] >= 3
     tuple[1] >= 5
 }
 
-e := key {
+e := key if {
     target = 2
     some key
 	a[key] = target
 }
 
-f := x + y {
+f := x + y if {
     letters[["a", x]]
     letters[["c", y]]
 }
 
-g := j {
+g := j if {
 	x = mixed[i]
     x[j] = 6
 }
 
-h := j {
+h := j if {
 	x = mixed[i]
     x[j] = 7
 }

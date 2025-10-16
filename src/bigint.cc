@@ -1,5 +1,7 @@
 #include "internal.hh"
 
+#include <stdexcept>
+
 namespace rego
 {
   Location BigInt::Zero = Location("0");
@@ -533,14 +535,30 @@ namespace rego
     return m_loc.view() == "0";
   }
 
-  std::int64_t BigInt::to_int() const
+  std::optional<std::int64_t> BigInt::to_int() const
   {
-    return std::stoll(std::string(m_loc.view()));
+    try
+    {
+      return std::stoll(std::string(m_loc.view()));
+    }
+    catch (const std::out_of_range&)
+    {
+      logging::Error() << m_loc.view() << " is out of range for a int64_t";
+      return std::nullopt;
+    }
   }
 
-  std::size_t BigInt::to_size() const
+  std::optional<std::size_t> BigInt::to_size() const
   {
-    return std::stoul(std::string(m_loc.view()));
+    try
+    {
+      return std::stoul(std::string(m_loc.view()));
+    }
+    catch (const std::out_of_range&)
+    {
+      logging::Error() << m_loc.view() << " is out of range for a size_t";
+      return std::nullopt;
+    }
   }
 
   std::ostream& operator<<(std::ostream& os, const BigInt& bigint)
@@ -576,7 +594,7 @@ namespace rego
 
     for (; it != end; ++it)
     {
-      if (!contains(digits, *it))
+      if (!digits.contains(*it))
       {
         return false;
       }

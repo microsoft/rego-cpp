@@ -1,0 +1,13 @@
+{
+    "phdr": {
+        "alg": -37,
+        "cty": "application/json+cose-hash-v",
+        "cwt": {
+            "iat": 1724186280,
+            "iss": "did:x509:0:sha256:HnwZ4lezuxq_GVcl_Sk7YWW170qAD0DZBLXilXet0jg::eku:1.3.6.1.4.1.311.10.3.13",
+            "sub": "Test",
+            "svn": 0
+        }
+    },
+    "profile": 0
+}

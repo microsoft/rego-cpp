@@ -1,8 +1,10 @@
 #include "builtins.h"
+#include "rego.hh"
 
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   Node concat(const Nodes& args)
   {
@@ -23,6 +25,20 @@ namespace
     z->insert(z->end(), y->begin(), y->end());
     return z;
   }
+
+  Node concat_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg << (bi::Name ^ "x") << (bi::Description ^ "the first array")
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::Any))))
+        << (bi::Arg << (bi::Name ^ "y")
+                    << (bi::Description ^ "the second array")
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::Any)))))
+    << (bi::Result << (bi::Name ^ "z")
+                   << (bi::Description ^ "the concatenation of `x` and `y`")
+                   << (bi::Type
+                       << (bi::DynamicArray << (bi::Type << bi::Any))));
 
   Node reverse(const Nodes& args)
   {
@@ -47,6 +63,18 @@ namespace
     return rev;
   }
 
+  Node reverse_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg << (bi::Name ^ "arr")
+                    << (bi::Description ^ "the array to be reverse")
+                    << (bi::Type
+                        << (bi::DynamicArray << (bi::Type << bi::Any)))))
+    << (bi::Result
+        << (bi::Name ^ "rev")
+        << (bi::Description ^
+            "an array containing the elements of `arr` in reverse order")
+        << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Any))));
+
   Node slice(const Nodes& args)
   {
     Node arr = unwrap_arg(args, UnwrapOpt(0).func("array.slice").type(Array));
@@ -55,8 +83,26 @@ namespace
     Node end_number =
       unwrap_arg(args, UnwrapOpt(2).func("array.slice").type(Int));
 
-    std::int64_t raw_start = BigInt(start_number->location()).to_int();
-    std::int64_t raw_end = BigInt(end_number->location()).to_int();
+    auto maybe_raw_start = BigInt(start_number->location()).to_int();
+    if (!maybe_raw_start.has_value())
+    {
+      return err(
+        start_number,
+        "array.slice: start index is not a valid integer",
+        EvalBuiltInError);
+    }
+    std::int64_t raw_start = maybe_raw_start.value();
+
+    auto maybe_raw_end = BigInt(end_number->location()).to_int();
+    if (!maybe_raw_end.has_value())
+    {
+      return err(
+        end_number,
+        "array.slice: end index is not a valid integer",
+        EvalBuiltInError);
+    }
+    std::int64_t raw_end = maybe_raw_end.value();
+
     std::size_t start, end;
     if (raw_start < 0)
     {
@@ -93,6 +139,30 @@ namespace
 
     return array;
   }
+
+  Node slice_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg
+                       << (bi::Name ^ "arr")
+                       << (bi::Description ^ "the array to be reverse")
+                       << (bi::Type
+                           << (bi::DynamicArray << (bi::Type << bi::Any))))
+                   << (bi::Arg << (bi::Name ^ "start")
+                               << (bi::Description ^
+                                   "the start index of the returned slice; if "
+                                   "less than zero, it's clamped to 0")
+                               << (bi::Type << bi::Number))
+                   << (bi::Arg
+                       << (bi::Name ^ "stop")
+                       << (bi::Description ^
+                           "the stop index of the returned slice; if larger "
+                           "than `count(arr)`, it's clamped to `count(arr)`")
+                       << (bi::Type << bi::Number)))
+    << (bi::Result << (bi::Name ^ "slice")
+                   << (bi::Description ^
+                       "the subslice of `array`, from `start` to `end`, "
+                       "including `arr[start]`, but excluding `arr[end]`")
+                   << (bi::Type
+                       << (bi::DynamicArray << (bi::Type << bi::Any))));
 }
 
 namespace rego
@@ -102,9 +172,9 @@ namespace rego
     std::vector<BuiltIn> arrays()
     {
       return {
-        BuiltInDef::create(Location("array.concat"), 2, concat),
-        BuiltInDef::create(Location("array.reverse"), 1, reverse),
-        BuiltInDef::create(Location("array.slice"), 3, slice),
+        BuiltInDef::create(Location("array.concat"), concat_decl, concat),
+        BuiltInDef::create(Location("array.reverse"), reverse_decl, reverse),
+        BuiltInDef::create(Location("array.slice"), slice_decl, slice),
       };
     }
   }

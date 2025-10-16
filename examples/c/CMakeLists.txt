@@ -30,7 +30,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   cargs
   GIT_REPOSITORY https://github.com/likle/cargs
-  GIT_TAG        v1.0.3
+  GIT_TAG        v1.2.0
 )
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 

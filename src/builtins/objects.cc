@@ -1,8 +1,10 @@
 #include "builtins.h"
+#include "rego.hh"
 
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   std::vector<std::string> get_keys(const Node& collection)
   {
@@ -56,7 +58,7 @@ namespace
     for (auto& item : *object)
     {
       std::string key_str = to_key(item / Key);
-      if (contains(keys, key_str))
+      if (keys.contains(key_str))
       {
         filtered->push_back(item->clone());
       }
@@ -64,6 +66,30 @@ namespace
 
     return filtered;
   }
+
+  Node filter_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg << (bi::Name ^ "object")
+                    << (bi::Description ^ "object to filter keys")
+                    << (bi::Type
+                        << (bi::DynamicObject << (bi::Type << bi::Any)
+                                              << (bi::Type << bi::Any))))
+        << (bi::Arg << (bi::Name ^ "keys")
+                    << (bi::Description ^ "keys to keep in `object`")
+                    << (bi::Type
+                        << (bi::TypeSeq
+                            << (bi::Type
+                                << (bi::DynamicArray << (bi::Type << bi::Any)))
+                            << (bi::Type
+                                << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                      << (bi::Type << bi::Any)))
+                            << (bi::Type
+                                << (bi::Set << (bi::Type << bi::Any)))))))
+    << (bi::Result
+        << (bi::Name ^ "filtered")
+        << (bi::Description ^
+            "remaining data from `object` with only keys specified in `keys`")
+        << (bi::Type << bi::Any));
 
   std::optional<Node> get_key(
     const Node& node, const Node& keys, std::size_t index)
@@ -101,7 +127,12 @@ namespace
       }
 
       Node key = maybe_key.node;
-      std::size_t i = BigInt(key->location()).to_size();
+      auto maybe_i = BigInt(key->location()).to_size();
+      if (!maybe_i.has_value())
+      {
+        return std::nullopt;
+      }
+      std::size_t i = maybe_i.value();
       return get_key(collection->at(i), keys, index + 1);
     }
 
@@ -132,6 +163,26 @@ namespace
     return args[2]->clone();
   }
 
+  Node get_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg
+                     << (bi::Name ^ "object")
+                     << (bi::Description ^ "object to get `key` from")
+                     << (bi::Type
+                         << (bi::DynamicObject << (bi::Type << bi::Any)
+                                               << (bi::Type << bi::Any))))
+                 << (bi::Arg << (bi::Name ^ "key")
+                             << (bi::Description ^ "key to lookup in `object`")
+                             << (bi::Type << bi::Any))
+                 << (bi::Arg
+                     << (bi::Name ^ "default")
+                     << (bi::Description ^ "default to use when lookup fails")
+                     << (bi::Type << bi::Any)))
+             << (bi::Result << (bi::Name ^ "value")
+                            << (bi::Description ^
+                                "`object[key]` if present, otherwise `default`")
+                            << (bi::Type << bi::Any));
+
   Node keys(const Nodes& args)
   {
     Node object =
@@ -149,6 +200,19 @@ namespace
 
     return value;
   }
+
+  Node keys_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg
+                     << (bi::Name ^ "object")
+                     << (bi::Description ^ "object to get keys from")
+                     << (bi::Type
+                         << (bi::DynamicObject << (bi::Type << bi::Any)
+                                               << (bi::Type << bi::Any)))))
+             << (bi::Result
+                 << (bi::Name ^ "value")
+                 << (bi::Description ^ "set of `object`'s keys")
+                 << (bi::Type << (bi::Set << (bi::Type << bi::Any))));
 
   Node remove_(const Nodes& args)
   {
@@ -171,7 +235,7 @@ namespace
     for (auto& item : *object)
     {
       std::string key_str = to_key(item / Key);
-      if (!contains(keys, key_str))
+      if (!keys.contains(key_str))
       {
         output->push_back(item->clone());
       }
@@ -179,6 +243,29 @@ namespace
 
     return output;
   }
+
+  Node remove_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg << (bi::Name ^ "object")
+                    << (bi::Description ^ "object to remove keys from")
+                    << (bi::Type
+                        << (bi::DynamicObject << (bi::Type << bi::Any)
+                                              << (bi::Type << bi::Any))))
+        << (bi::Arg << (bi::Name ^ "keys")
+                    << (bi::Description ^ "keys to remove from `object`")
+                    << (bi::Type
+                        << (bi::TypeSeq
+                            << (bi::Type
+                                << (bi::DynamicArray << (bi::Type << bi::Any)))
+                            << (bi::Type
+                                << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                      << (bi::Type << bi::Any)))
+                            << (bi::Type
+                                << (bi::Set << (bi::Type << bi::Any)))))))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "result of removing the specified `keys` from `object`")
+                   << (bi::Type << bi::Any));
 
   std::map<std::string, Node> to_map(Node object)
   {
@@ -191,9 +278,8 @@ namespace
     return map;
   }
 
-  /** This function checks if sub appears contiguously in order within super,
-   *  and also does not attempt to recurse.
-   */
+  /// This function checks if sub appears contiguously in order within super,
+  /// and also does not attempt to recurse.
   bool array_subset(Node& super, Node& sub)
   {
     if (super->size() < sub->size())
@@ -234,9 +320,8 @@ namespace
     return false;
   }
 
-  /** This function checks if every element of sub is a member of super,
-   *  but does not attempt to recurse
-   */
+  /// This function checks if every element of sub is a member of super,
+  ///  but does not attempt to recurse
   bool set_subset(Node& super, Node& sub)
   {
     if (super->size() < sub->size())
@@ -247,7 +332,7 @@ namespace
     auto sub_keys = get_key_set(sub);
     for (auto& key : sub_keys)
     {
-      if (!contains(super_keys, key))
+      if (!super_keys.contains(key))
       {
         return false;
       }
@@ -256,9 +341,8 @@ namespace
     return true;
   }
 
-  /** This function checks if super contains every element of sub with
-   *  no consideration of ordering, and also does not attempt to recurse.
-   */
+  /// This function checks if super contains every element of sub with
+  ///  no consideration of ordering, and also does not attempt to recurse.
   bool set_array_subset(Node& super, Node& sub)
   {
     if (super->size() < sub->size())
@@ -269,7 +353,7 @@ namespace
     auto sub_keys = get_key_set(sub);
     for (auto& key : sub_keys)
     {
-      if (!contains(super_keys, key))
+      if (!super_keys.contains(key))
       {
         return false;
       }
@@ -316,12 +400,11 @@ namespace
     return false;
   }
 
-  /** Object sub is a subset of object super if and only if every
-   *  key in sub is also in super, and for all keys which sub and
-   *  super share, they have the same value. The  operation is recursive,
-   *  e.g. {"c": {"x": {10, 15, 20}} is a subset of {"a": "b", "c":
-   *  {"x": {10, 15, 20, 25}, "y": "z"}
-   */
+  /// Object sub is a subset of object super if and only if every
+  /// key in sub is also in super, and for all keys which sub and
+  /// super share, they have the same value. The  operation is recursive,
+  /// e.g. {"c": {"x": {10, 15, 20}} is a subset of {"a": "b", "c":
+  /// {"x": {10, 15, 20, 25}, "y": "z"}
   bool object_subset(Node& super, Node& sub)
   {
     if (super->size() < sub->size())
@@ -334,7 +417,7 @@ namespace
 
     for (auto& [key, value] : sub_map)
     {
-      if (!contains(super_map, key))
+      if (!super_map.contains(key))
       {
         return false;
       }
@@ -373,6 +456,33 @@ namespace
     return False ^ "false";
   }
 
+  Node subset_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg
+            << (bi::Name ^ "super")
+            << (bi::Description ^ "object to test if sub is a subset of")
+            << (bi::Type
+                << (bi::TypeSeq
+                    << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Any)))
+                    << (bi::Type
+                        << (bi::DynamicObject << (bi::Type << bi::Any)
+                                              << (bi::Type << bi::Any)))
+                    << (bi::Type << (bi::Set << (bi::Type << bi::Any))))))
+        << (bi::Arg
+            << (bi::Name ^ "sub")
+            << (bi::Description ^ "object to test if super is a superset of")
+            << (bi::Type
+                << (bi::TypeSeq
+                    << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Any)))
+                    << (bi::Type
+                        << (bi::DynamicObject << (bi::Type << bi::Any)
+                                              << (bi::Type << bi::Any)))
+                    << (bi::Type << (bi::Set << (bi::Type << bi::Any)))))))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^
+                       "`true` if `sub` is a subset of `super`")
+                   << (bi::Type << bi::Boolean));
+
   Node object_union(const Node& lhs, const Node& rhs)
   {
     Node output = rhs->clone();
@@ -380,7 +490,7 @@ namespace
     for (auto& item : *lhs)
     {
       std::string key_str = to_key(item / Key);
-      if (!contains(rhs_keys, key_str))
+      if (!rhs_keys.contains(key_str))
       {
         output->push_back(item->clone());
       }
@@ -406,6 +516,28 @@ namespace
     return object_union(a, b);
   }
 
+  Node union_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg
+                       << (bi::Name ^ "a")
+                       << (bi::Description ^ "left-hand object")
+                       << (bi::Type
+                           << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                 << (bi::Type << bi::Any))))
+                   << (bi::Arg
+                       << (bi::Name ^ "b")
+                       << (bi::Description ^ "right-hand object")
+                       << (bi::Type
+                           << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                 << (bi::Type << bi::Any)))))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "a new object which is the result of an asymmetric "
+                       "union of two objects where conflicts are resolved by "
+                       "choosing the key from the right-hand object `b`")
+                   << (bi::Type
+                       << (bi::DynamicObject << (bi::Type << bi::Any)
+                                             << (bi::Type << bi::Any))));
+
   Node union_n(const Nodes& args)
   {
     Node objects =
@@ -430,6 +562,26 @@ namespace
 
     return output;
   }
+
+  Node union_n_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "objects")
+                             << (bi::Description ^ "list of objects to merge")
+                             << (bi::Type
+                                 << (bi::DynamicArray
+                                     << (bi::Type
+                                         << (bi::DynamicObject
+                                             << (bi::Type << bi::Any)
+                                             << (bi::Type << bi::Any)))))))
+             << (bi::Result
+                 << (bi::Name ^ "output")
+                 << (bi::Description ^
+                     "asymmetric recursive union of all objects in `objects`, "
+                     "merged from left to right, where conflicts are resolved "
+                     "by choosing the key from the right-hand object")
+                 << (bi::Type
+                     << (bi::DynamicObject << (bi::Type << bi::Any)
+                                           << (bi::Type << bi::Any))));
 }
 
 namespace rego
@@ -439,13 +591,13 @@ namespace rego
     std::vector<BuiltIn> objects()
     {
       return {
-        BuiltInDef::create(Location("object.filter"), 2, filter),
-        BuiltInDef::create(Location("object.get"), 3, get),
-        BuiltInDef::create(Location("object.keys"), 1, keys),
-        BuiltInDef::create(Location("object.remove"), 2, remove_),
-        BuiltInDef::create(Location("object.subset"), 2, subset),
-        BuiltInDef::create(Location("object.union"), 2, union_),
-        BuiltInDef::create(Location("object.union_n"), 1, union_n)};
+        BuiltInDef::create(Location("object.filter"), filter_decl, filter),
+        BuiltInDef::create(Location("object.get"), get_decl, get),
+        BuiltInDef::create(Location("object.keys"), keys_decl, keys),
+        BuiltInDef::create(Location("object.remove"), remove_decl, remove_),
+        BuiltInDef::create(Location("object.subset"), subset_decl, subset),
+        BuiltInDef::create(Location("object.union"), union_decl, union_),
+        BuiltInDef::create(Location("object.union_n"), union_n_decl, union_n)};
     }
   }
 }

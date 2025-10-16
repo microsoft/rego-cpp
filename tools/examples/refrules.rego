@@ -7,7 +7,7 @@ fruit.apple.colors = {"red", "green"}
 fruit["orange"].size = 5.3
 fruit.orange.name = "orange"
 fruit["apple"]["color.count"] = count(fruit.apple["colors"])
-fruit["color.name"](fruit, color) := name {
+fruit["color.name"](fruit, color) := name if {
 	fruit.colors[color]
   name := concat(" ", [color, fruit.name])
 }

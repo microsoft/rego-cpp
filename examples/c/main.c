@@ -8,10 +8,18 @@
 #define MAX_DATA_FILES 128
 #define MAX_VALUE_LENGTH 256
 
-/**
- * This is the main configuration of all options available.
- */
+#define MODE_EVAL 0
+#define MODE_BUILD 1
+#define MODE_RUN 2
+
+/// This is the main configuration of all options available.
 static struct cag_option options[] = {
+  {.identifier = 'm',
+   .access_letters = "m",
+   .access_name = "mode",
+   .value_name = "VALUE",
+   .description = "Mode (eval (default), build, run)"},
+
   {.identifier = 'l',
    .access_letters = "l",
    .access_name = "log_level",
@@ -42,24 +50,44 @@ static struct cag_option options[] = {
    .value_name = "VALUE",
    .description = "Data/Policy Files"},
 
+  {.identifier = 'b',
+   .access_letters = "b",
+   .access_name = "bundle",
+   .value_name = "VALUE",
+   .description = "Path to bundle file"},
+
+  {.identifier = 'f',
+   .access_letters = "f",
+   .access_name = "format",
+   .value_name = "VALUE",
+   .description = "Format to use for bundle file (one of 'json', 'binary')"},
+
+  {.identifier = 'e',
+   .access_letters = "e",
+   .access_name = "entrypoint",
+   .value_name = "VALUE",
+   .description = "Query entrypoint"},
+
   {.identifier = 'h',
    .access_letters = "h",
    .access_name = "help",
    .value_name = NULL,
    .description = "Shows the command help"}};
 
-/**
- * This is a custom project configuration structure where you can store the
- * parsed information.
- */
+/// This is a custom project configuration structure where you can store the
+/// parsed information.
 struct regoc_configuration
 {
+  int mode;
   char log_level;
-  bool use_raw_query;
+  bool use_query_node;
   const char* data_files[MAX_DATA_FILES];
   unsigned int data_files_count;
   const char* input_file;
   const char* query;
+  const char* bundle;
+  bool binary_format;
+  const char* entrypoint;
 };
 
 bool is_json(const char* file)
@@ -67,9 +95,7 @@ bool is_json(const char* file)
   size_t len;
 
   len = strlen(file);
-  if (
-    file[len - 1] != 'n' || file[len - 2] != 'o' || file[len - 3] != 's' ||
-    file[len - 4] != 'j' || file[len - 5] != '.')
+  if (strcmp(file + len - 5, ".json") != 0)
   {
     return false;
   }
@@ -119,6 +145,8 @@ void print_node(regoNode* node, unsigned int indent)
   regoSize i;
   regoSize size;
   regoEnum type;
+  regoEnum err;
+  char* buf;
 
   for (i = 0; i < indent; ++i)
   {
@@ -160,7 +188,18 @@ void print_node(regoNode* node, unsigned int indent)
       return;
 
     default:
-      printf("(%s", regoNodeTypeName(node));
+      size = regoNodeTypeNameSize(node);
+      buf = malloc(size);
+      err = regoNodeTypeName(node, buf, size);
+      if (err == REGO_OK)
+      {
+        printf("(%s", buf);
+      }
+      else
+      {
+        printf("(<error>");
+      }
+      free(buf);
       break;
   }
 
@@ -179,6 +218,57 @@ void print_node(regoNode* node, unsigned int indent)
   }
 }
 
+int print_output(regoOutput* output)
+{
+  regoEnum err = REGO_OK;
+  regoSize size = 0;
+  char* buf = NULL;
+
+  size = regoOutputJSONSize(output);
+  if (size == 0)
+  {
+    return REGO_ERROR;
+  }
+
+  buf = (char*)malloc(size);
+  err = regoOutputJSON(output, buf, size);
+  if (err != REGO_OK)
+  {
+    free(buf);
+    return err;
+  }
+
+  printf("%s\n", buf);
+  free(buf);
+  return REGO_OK;
+}
+
+int print_error(regoInterpreter* rego)
+{
+  regoEnum err = REGO_OK;
+  regoSize size = 0;
+  char* buf = NULL;
+
+  size = regoErrorSize(rego);
+  if (size == 0)
+  {
+    return REGO_ERROR;
+  }
+
+  buf = malloc(size);
+  err = regoError(rego, buf, size);
+  if (err == REGO_OK)
+  {
+    printf("%s\n", buf);
+    free(buf);
+    return REGO_OK;
+  }
+
+  free(buf);
+  printf("Unknown error: Unable to obtain error message\n");
+  return err;
+}
+
 int main(int argc, char** argv)
 {
   printf(
@@ -191,14 +281,19 @@ int main(int argc, char** argv)
   char identifier;
   cag_option_context context;
   struct regoc_configuration config = {
+    .mode = MODE_EVAL,
     .log_level = 'n',
-    .use_raw_query = false,
+    .use_query_node = false,
     .data_files_count = 0,
     .input_file = NULL,
-    .query = NULL};
+    .query = NULL,
+    .bundle = "bundle",
+    .binary_format = false,
+    .entrypoint = NULL};
   unsigned int data_index;
   regoInterpreter* rego = NULL;
   regoOutput* output = NULL;
+  regoBundle* bundle = NULL;
   int rc = EXIT_SUCCESS;
   regoEnum err;
 
@@ -208,12 +303,25 @@ int main(int argc, char** argv)
     identifier = cag_option_get(&context);
     switch (identifier)
     {
+      case 'm': {
+        const char* mode = cag_option_get_value(&context);
+        if (strcmp(mode, "build") == 0)
+        {
+          config.mode = MODE_BUILD;
+        }
+        else if (strcmp(mode, "run") == 0)
+        {
+          config.mode = MODE_RUN;
+        }
+        break;
+      }
+
       case 'l':
         config.log_level = cag_option_get_value(&context)[0];
         break;
 
-      case 'r':
-        config.use_raw_query = true;
+      case 'n':
+        config.use_query_node = true;
         break;
 
       case 'd':
@@ -230,6 +338,23 @@ int main(int argc, char** argv)
         config.query = cag_option_get_value(&context);
         break;
 
+      case 'b':
+        config.bundle = cag_option_get_value(&context);
+        break;
+
+      case 'f': {
+        const char* format = cag_option_get_value(&context);
+        if (strcmp(format, "binary"))
+        {
+          config.binary_format = true;
+        }
+        break;
+      }
+
+      case 'e':
+        config.entrypoint = cag_option_get_value(&context);
+        break;
+
       case 'h':
         printf("Usage: regoc [OPTION]...\n");
         printf("A C rego interpreter.\n\n");
@@ -238,14 +363,14 @@ int main(int argc, char** argv)
     }
   }
 
-  if (config.query == NULL)
+  if (config.query == NULL && config.mode != MODE_RUN)
   {
     if (context.index < argc)
     {
       config.query = argv[context.index];
     }
 
-    if (config.query == NULL)
+    if (config.query == NULL && config.entrypoint == NULL)
     {
       printf("No query provided.\n");
       return EXIT_FAILURE;
@@ -254,21 +379,52 @@ int main(int argc, char** argv)
 
   rego = regoNew();
 
-  for (data_index = 0; data_index < config.data_files_count; data_index++)
+  if (config.mode == MODE_RUN)
   {
-    const char* file = config.data_files[data_index];
-    if (is_json(file))
+    if (config.binary_format)
     {
-      err = regoAddDataJSONFile(rego, file);
+      bundle = regoBundleLoadBinary(rego, config.bundle);
     }
     else
     {
-      err = regoAddModuleFile(rego, file);
+      bundle = regoBundleLoad(rego, config.bundle);
     }
-    if (err == REGO_ERROR)
+  }
+  else
+  {
+    for (data_index = 0; data_index < config.data_files_count; data_index++)
     {
-      goto error;
+      const char* file = config.data_files[data_index];
+      if (is_json(file))
+      {
+        err = regoAddDataJSONFile(rego, file);
+      }
+      else
+      {
+        err = regoAddModuleFile(rego, file);
+      }
+      if (err == REGO_ERROR)
+      {
+        goto error;
+      }
     }
+
+    if (config.query != NULL)
+    {
+      regoSetQuery(rego, config.query);
+    }
+
+    if (config.entrypoint)
+    {
+      regoAddEntrypoint(rego, config.entrypoint);
+    }
+
+    bundle = regoBuild(rego);
+  }
+
+  if (!regoBundleOk(bundle))
+  {
+    goto error;
   }
 
   if (config.input_file != NULL)
@@ -280,30 +436,65 @@ int main(int argc, char** argv)
     }
   }
 
-  output = regoQuery(rego, config.query);
-  if (output == NULL)
+  if (config.mode == MODE_BUILD)
+  {
+    if (config.binary_format)
+    {
+      err = regoBundleSaveBinary(rego, config.bundle, bundle);
+    }
+    else
+    {
+      err = regoBundleSave(rego, config.bundle, bundle);
+    }
+
+    if (err != REGO_OK)
+    {
+      goto error;
+    }
+
+    printf("Bundle built successfully\n");
+
+    goto exit;
+  }
+
+  if (config.entrypoint)
+  {
+    output = regoBundleQueryEntrypoint(rego, bundle, config.entrypoint);
+  }
+  else
+  {
+    output = regoBundleQuery(rego, bundle);
+  }
+
+  if (!regoOutputOk(output))
   {
     goto error;
   }
-  if (config.use_raw_query)
+
+  if (config.use_query_node)
   {
     print_node(regoOutputNode(output), 0);
     goto exit;
   }
   else
   {
-    printf("%s\n", regoOutputString(output));
+    print_output(output);
     goto exit;
   }
 
 error:
-  printf("%s\n", regoGetError(rego));
+  print_error(rego);
   rc = EXIT_FAILURE;
 
 exit:
   if (output != NULL)
   {
     regoFreeOutput(output);
+  }
+
+  if (bundle != NULL)
+  {
+    regoFreeBundle(bundle);
   }
 
   if (rego != NULL)

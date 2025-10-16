@@ -13,11 +13,10 @@ wrapper we try to provide idiomatic Rust interfaces to the Rego query engine.
 We hope the project is of use to those wishing to leverage the power of Rego
 within a Rust context.
 
-> **Warning**
+> **Note**
 > While this project has progressed to the point that we support full Rego language
 > (see [Language Support](#language-support) below) we do not support all built-ins.
-> That said, we have verified compliance with the OPA Rego test suite. Even so, it
-> should still be considered experimental software and used with discretion.
+> That said, we have verified compliance with the OPA Rego test suite.
 
 ## Example Usage
 
@@ -128,10 +127,10 @@ fn main() {
 
 ## Language Support
 
-We support v0.68.0 of Rego as defined by OPA, with the following grammar:
+We support v1.8.0 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
-module          = package { import } policy
+mmodule          = package { import } policy
 package         = "package" ref
 import          = "import" ref [ "as" var ]
 policy          = { rule }
@@ -178,9 +177,6 @@ set             = empty-set | non-empty-set
 non-empty-set   = "{" term { "," term } "}"
 empty-set       = "set(" ")"
 ```
-
-> [!NOTE]
-> This grammar corresponds to Rego with `rego.v1` enabled (See [OPA v1.0](https://www.openpolicyagent.org/docs/latest/opa-1) for more info).
 
 Definitions:
 ```
@@ -243,5 +239,4 @@ At present, we are **NOT** passing the following test suites in full:
 - `json*`  (except `jsonbuiltins`)
 - `jwt*`
 - `net*`
-- `planner-ir`
 - `providers-aws`

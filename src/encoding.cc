@@ -1,5 +1,5 @@
+#include "internal.hh"
 #include "trieste/json.h"
-#include "unify.hh"
 
 #include <sstream>
 #include <string_view>
@@ -102,7 +102,11 @@ namespace
 
 namespace rego
 {
-  std::string to_key(const Node& node, bool set_as_array, bool sort_arrays)
+  std::string to_key(
+    const Node& node,
+    bool set_as_array,
+    bool sort_arrays,
+    const char* list_delim)
   {
     std::ostringstream buf;
     if (node->type() == Int)
@@ -124,15 +128,7 @@ namespace rego
     }
     else if (node->type() == JSONString)
     {
-      std::string str = std::string(node->location().view());
-      if (!starts_with(str, '"'))
-      {
-        buf << '"' << str << '"';
-      }
-      else
-      {
-        buf << str;
-      }
+      buf << add_quotes(node->location().view());
     }
     else if (node->type() == True)
     {
@@ -152,9 +148,9 @@ namespace rego
     }
     else if (node->type() == Key)
     {
-      buf << '"' << node->location().view() << '"';
+      buf << add_quotes(node->location().view());
     }
-    else if (node->type() == Array || node->type() == DataArray)
+    else if (node->in({Array, DataArray}))
     {
       std::vector<std::string> items;
       if (sort_arrays)
@@ -168,14 +164,14 @@ namespace rego
         std::sort(keys.begin(), keys.end());
         std::transform(
           keys.begin(), keys.end(), std::back_inserter(items), [&](auto& key) {
-            return to_key(key.node, set_as_array, sort_arrays);
+            return to_key(key.node, set_as_array, sort_arrays, list_delim);
           });
       }
       else
       {
         for (const auto& child : *node)
         {
-          items.push_back(to_key(child, set_as_array, sort_arrays));
+          items.push_back(to_key(child, set_as_array, sort_arrays, list_delim));
         }
       }
 
@@ -184,15 +180,14 @@ namespace rego
         buf,
         items.begin(),
         items.end(),
-        ", ",
+        list_delim,
         [](std::ostream& stream, const std::string& item) {
           stream << item;
           return true;
         });
       buf << "]";
     }
-    else if (
-      node->type() == Set || node->type() == DataSet || node == DynamicSet)
+    else if (node == Set)
     {
       std::vector<NodeKey> node_keys;
       for (const auto& child : *node)
@@ -215,10 +210,11 @@ namespace rego
         buf,
         node_keys.begin(),
         node_keys.end(),
-        ", ",
-        [set_as_array,
-         sort_arrays](std::ostream& stream, const NodeKey& node_key) {
-          stream << to_key(node_key.node, set_as_array, sort_arrays);
+        list_delim,
+        [set_as_array, sort_arrays, list_delim](
+          std::ostream& stream, const NodeKey& node_key) {
+          stream << to_key(
+            node_key.node, set_as_array, sort_arrays, list_delim);
           return true;
         });
 
@@ -231,21 +227,21 @@ namespace rego
         buf << ">";
       }
     }
-    else if (
-      node == Object || node == DataObject || node == DynamicObject ||
-      node == Bindings)
+    else if (node->in({Object, DataObject, Bindings}))
     {
       std::map<std::string, std::string> items;
       for (const auto& child : *node)
       {
         auto key = child / Key;
         auto value = child / Val;
-        std::string key_str = to_key(key, set_as_array, sort_arrays);
+        std::string key_str =
+          to_key(key, set_as_array, sort_arrays, list_delim);
         if (!is_quoted(key_str))
         {
-          key_str = '"' + json::escape(key_str) + '"';
+          key_str = add_quotes(json::escape(key_str));
         }
-        items.insert({key_str, to_key(value, set_as_array, sort_arrays)});
+        items.insert(
+          {key_str, to_key(value, set_as_array, sort_arrays, list_delim)});
       }
 
       buf << "{";
@@ -260,11 +256,9 @@ namespace rego
         });
       buf << "}";
     }
-    else if (
-      node->type() == Scalar || node->type() == Term ||
-      node->type() == DataTerm)
+    else if (node->in({Scalar, Term, DataTerm}))
     {
-      return to_key(node->front(), set_as_array, sort_arrays);
+      return to_key(node->front(), set_as_array, sort_arrays, list_delim);
     }
     else if (node == Result)
     {
@@ -274,7 +268,7 @@ namespace rego
       if (!terms->empty())
       {
         buf << '"' << "expressions" << '"' << ":"
-            << to_key(terms, set_as_array, sort_arrays);
+            << to_key(terms, set_as_array, sort_arrays, list_delim);
         if (!bindings->empty())
         {
           buf << ", ";
@@ -284,7 +278,7 @@ namespace rego
       if (!bindings->empty())
       {
         buf << '"' << "bindings" << '"' << ":"
-            << to_key(bindings, set_as_array, sort_arrays);
+            << to_key(bindings, set_as_array, sort_arrays, list_delim);
       }
 
       buf << "}";
@@ -297,8 +291,9 @@ namespace rego
         node->begin(),
         node->end(),
         ", ",
-        [set_as_array, sort_arrays](std::ostream& stream, const Node& n) {
-          stream << to_key(n, set_as_array, sort_arrays);
+        [set_as_array, sort_arrays, list_delim](
+          std::ostream& stream, const Node& n) {
+          stream << to_key(n, set_as_array, sort_arrays, list_delim);
           return true;
         });
       buf << ']';
@@ -307,38 +302,15 @@ namespace rego
     {
       buf << node->location().view();
     }
-    else if (node->type() == TermSet)
-    {
-      buf << "termset{";
-      join(
-        buf,
-        node->begin(),
-        node->end(),
-        ", ",
-        [set_as_array, sort_arrays](std::ostream& stream, const Node& n) {
-          stream << to_key(n, set_as_array, sort_arrays);
-          return true;
-        });
-      buf << "}";
-    }
-    else if (node->type() == BuiltInHook)
-    {
-      buf << "builtin(" << node->location().view() << ")";
-    }
     else if (node->type() == Error)
     {
       buf << node;
-    }
-    else if (contains(RuleTypes, node->type()))
-    {
-      buf << node->type().str() << "(" << (node / Var)->location().view() << ":"
-          << static_cast<void*>(node.get()) << ")";
     }
     else if (node == Results)
     {
       if (node->size() == 1)
       {
-        return to_key(node->front(), set_as_array, sort_arrays);
+        return to_key(node->front(), set_as_array, sort_arrays, list_delim);
       }
 
       buf << '[';
@@ -347,8 +319,9 @@ namespace rego
         node->begin(),
         node->end(),
         ", ",
-        [set_as_array, sort_arrays](std::ostream& stream, const Node& n) {
-          stream << to_key(n, set_as_array, sort_arrays);
+        [set_as_array, sort_arrays, list_delim](
+          std::ostream& stream, const Node& n) {
+          stream << to_key(n, set_as_array, sort_arrays, list_delim);
           return true;
         });
       buf << ']';

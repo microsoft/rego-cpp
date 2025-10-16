@@ -7,11 +7,10 @@ in C++ can interpret Rego programs natively. To achieve this we are building our
 interpreter on top of the experimental term rewriter
 [Trieste](https://github.com/microsoft/trieste).
 
-> **Warning**
+> **Note**
 > While this project has progressed to the point that we support full Rego language
 > (see [Language Support](#language-support) below) we do not support all built-ins.
-> That said, we have verified compliance with the OPA Rego test suite. Even so, it
-> should still be considered experimental software and used with discretion.
+> That said, we have verified compliance with the OPA Rego test suite.
 
 ## Getting Started
 
@@ -50,19 +49,19 @@ The interpreter tool will be located at `build/dist/bin/rego`. Here are
 some example commands using the provided example files and run from the suggested
 `dist` install directory:
 
-    ./bin/rego -d examples/scalars.rego -q data.scalars.greeting
+    ./bin/rego eval -d examples/scalars.rego -q data.scalars.greeting
     {"expressions":["Hello"]}
 
-    ./bin/rego -d examples/objects.rego -q data.objects.sites[1].name
+    ./bin/rego eval -d examples/objects.rego -q data.objects.sites[1].name
     {"expressions":["smoke1"]}
 
-    ./bin/rego -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
-    {"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]]}
+    ./bin/rego eval -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
+    {"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]]}
 
-    ./bin/rego -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
-    {"bindings":{"x":5, "y":9.4}}
+    ./bin/rego eval -q "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4"
+    {"expressions":[true, true], "bindings":{"x":5, "y":9.4}}
 
-    ./bin/rego -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
+    ./bin/rego eval -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
     {"expressions":[{"one":15, "two":15}]}
 
 You can run the test driver from the same directory:
@@ -74,9 +73,9 @@ You can run the test driver from the same directory:
 See the [examples](examples/README.md) directory for examples of how to use the
 library from different langauages.
 
-## Language Support
+## Language Support {#language-support}
 
-We support v0.68.0 of Rego as defined by OPA, with the following grammar:
+We support v1.8.0 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
 module          = package { import } policy
@@ -126,9 +125,6 @@ set             = empty-set | non-empty-set
 non-empty-set   = "{" term { "," term } "}"
 empty-set       = "set(" ")"
 ```
-
-> [!NOTE]
-> This grammar corresponds to Rego with `rego.v1` enabled (See [OPA v1.0](https://www.openpolicyagent.org/docs/latest/opa-1) for more info).
 
 Definitions:
 ```
@@ -191,7 +187,6 @@ At present, we are **NOT** passing the following test suites in full:
 - `json*` (except `jsonbuiltins`)
 - `jwt*`
 - `net*`
-- `planner-ir`
 - `providers-aws`
 
 ## Contributing

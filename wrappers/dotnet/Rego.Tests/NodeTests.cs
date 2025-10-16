@@ -13,11 +13,12 @@ public class NodeTests
         Assert.NotNull(result);
         var x = result.Binding("x");
         Assert.NotNull(x);
-        Assert.Equal("{\"a\":10, \"b\":\"20\", \"c\":[30, 60], \"d\":true, \"e\":null}", x.ToJson());
-        Assert.Equal(10, x["a"].Value);
-        Assert.Equal("\"20\"", x["b"].Value);
+        Assert.Equal("{\"a\":10, \"b\":\"20\", \"c\":[30,60], \"d\":true, \"e\":null}", x.ToJson());
+        Assert.Equal(10L, x["a"].Value);
+        Assert.Equal("20", x["b"].Value);
         Assert.Equal(30.0, x["c"][0].Value);
-        Assert.Equal(60, x["c"][1].Value);
+        Assert.Equal(60L, x["c"][1].Value);
+        Assert.IsType<Boolean>(x["d"].Value);
         Assert.True((bool)x["d"].Value);
         Assert.IsType<RegoNull>(x["e"].Value);
     }

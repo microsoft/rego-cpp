@@ -1,8 +1,10 @@
 #include "builtins.h"
+#include "rego.hh"
 
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   const BigInt kb = static_cast<std::size_t>(1024);
   std::map<std::string, BigInt> bytes = {
@@ -34,39 +36,12 @@ namespace
 
   std::string strip_escaped_quotes(const std::string& s)
   {
-    if (starts_with(s, "\\\"") && ends_with(s, "\\\""))
+    if (s.starts_with("\\\"") && s.ends_with("\\\""))
     {
       return s.substr(2, s.size() - 4);
     }
 
     return s;
-  }
-
-  int is_number(const Location& loc)
-  {
-    std::set<char> digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-    auto it = loc.view().begin();
-    auto end = loc.view().end();
-    if (*it == '-')
-    {
-      ++it;
-    }
-
-    int num_decimals = 0;
-
-    for (; it != end; ++it)
-    {
-      if (*it == '.')
-      {
-        num_decimals++;
-      }
-      else if (!contains(digits, *it))
-      {
-        return -1;
-      }
-    }
-
-    return num_decimals;
   }
 
   struct UnitsErrors
@@ -84,23 +59,54 @@ namespace
       return err(x, errors.no_amount, EvalBuiltInError);
     }
 
-    int num_decimals = is_number(num_str);
-    if (num_decimals == -1)
+    auto it = num_str.begin();
+    auto end = num_str.end();
+    if (*it == '-' || *it == '+')
     {
-      return err(x, errors.no_amount, EvalBuiltInError);
+      ++it;
     }
 
-    if (num_decimals == 0)
+    const std::set<char> digits = {
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    int num_decimals = 0;
+    int num_exponent = 0;
+
+    for (; it != end; ++it)
     {
-      return Int ^ num_str;
+      if (*it == '.')
+      {
+        num_decimals++;
+      }
+      else if (*it == 'e' || *it == 'E')
+      {
+        num_exponent++;
+        if (it + 1 == end)
+        {
+          return err(x, errors.no_amount, EvalBuiltInError);
+        }
+
+        if (it[1] == '+' || it[1] == '-')
+        {
+          ++it;
+        }
+      }
+      else if (!digits.contains(*it))
+      {
+        return err(x, errors.no_amount, EvalBuiltInError);
+      }
     }
 
-    if (num_decimals == 1)
+    if (num_exponent > 1 || num_decimals > 1)
+    {
+      return err(x, errors.parse, EvalBuiltInError);
+    }
+
+    if (num_decimals == 1 || num_exponent == 1)
     {
       return Float ^ num_str;
     }
 
-    return err(x, errors.parse, EvalBuiltInError);
+    return Int ^ num_str;
   }
 
   Node scale(const Node& num, const BigInt& scale, bool round)
@@ -113,7 +119,12 @@ namespace
 
     if (num->type() == Float)
     {
-      double result = get_double(num) * scale.to_int();
+      auto maybe_scale_int = scale.to_int();
+      if (!maybe_scale_int.has_value())
+      {
+        return err(num, "scale: scale too big", EvalBuiltInError);
+      }
+      double result = get_double(num) * maybe_scale_int.value();
       if (round)
       {
         result = std::round(result);
@@ -164,7 +175,7 @@ namespace
 
     for (auto [unit, value] : bytes)
     {
-      if (ends_with(lower, unit))
+      if (lower.ends_with(unit))
       {
         std::string num_str = lower.substr(0, lower.size() - unit.size());
         Node num = parse_number(errors, x, num_str);
@@ -181,9 +192,9 @@ namespace
     {
       for (auto [unit, value] : small_units)
       {
-        if (ends_with(lower, unit))
+        if (lower.ends_with(unit))
         {
-          if (unit == "m" && ends_with(x_str, "M"))
+          if (unit == "m" && x_str.ends_with("M"))
           {
             break;
           }
@@ -201,7 +212,7 @@ namespace
 
     for (auto [unit, value] : big_units)
     {
-      if (ends_with(lower, unit))
+      if (lower.ends_with(unit))
       {
         std::string num_str = lower.substr(0, lower.size() - unit.size());
         Node num = parse_number(errors, x, num_str);
@@ -237,6 +248,15 @@ namespace
       false);
   }
 
+  Node parse_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "the unit to parse")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^ "the parsed number")
+                            << (bi::Type << bi::Number));
+
   Node parse_bytes(const Nodes& args)
   {
     Node x =
@@ -247,7 +267,7 @@ namespace
     }
 
     std::string x_str = strip_escaped_quotes(get_string(x));
-    if (ends_with(x_str, "b") || ends_with(x_str, "B"))
+    if (x_str.ends_with("b") || x_str.ends_with("B"))
     {
       x_str = x_str.substr(0, x_str.size() - 1);
     }
@@ -260,6 +280,15 @@ namespace
       false,
       true);
   }
+
+  Node parse_bytes_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "x")
+                             << (bi::Description ^ "the byte unit to parse")
+                             << (bi::Type << bi::String)))
+             << (bi::Result << (bi::Name ^ "y")
+                            << (bi::Description ^ "the parsed number")
+                            << (bi::Type << bi::Number));
 }
 
 namespace rego
@@ -269,8 +298,9 @@ namespace rego
     std::vector<BuiltIn> units()
     {
       return {
-        BuiltInDef::create(Location("units.parse"), 1, parse),
-        BuiltInDef::create(Location("units.parse_bytes"), 1, parse_bytes)};
+        BuiltInDef::create(Location("units.parse"), parse_decl, parse),
+        BuiltInDef::create(
+          Location("units.parse_bytes"), parse_bytes_decl, parse_bytes)};
     }
   }
 }

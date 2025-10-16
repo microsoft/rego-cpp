@@ -1,0 +1,34 @@
+name: Build NuGet Packages for Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux-nuget:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Use dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Pack NuGet
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: dotnet pack -v n
+        env:
+          REGOCPP_REPO: https://github.com/${{github.repository}}
+          REGOCPP_TAG: ${{github.sha}}
+
+      - uses: action/upload-artifact@v4
+        with:
+          name: nuget-linux
+          path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg

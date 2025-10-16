@@ -5,7 +5,7 @@ cases:
   - |
     package test
 
-    x = c {
+    x = c if {
       a = b
       b = c
       a = 12
@@ -18,7 +18,7 @@ cases:
   - |
     package test
 
-    x = y {
+    x = y if {
       a = [1, 2, 3]
       y = {z | z = a[_]}
     }
@@ -33,7 +33,7 @@ cases:
   - |
     package test
 
-    x = y {
+    x = y if {
       y = [z |
         z = a[_]
         a = [1, 2, 3]
@@ -72,15 +72,11 @@ cases:
       - [3, 6]
 
 - note: regocpp/bug110
-  query: "[1, 2, 3][_] = x"
+  query: "[1, 2, 3][_] = x;"
   want_result:
     - x: 1
     - x: 2
     - x: 3
-- note: regocpp/bug111
-  query: "not data.foo = x"
-  want_result:
-    - x: true
 - note: regocpp/bug112
   modules:
   - |
@@ -176,7 +172,7 @@ cases:
   - |
     package test
 
-    a = y {
+    a = y if {
       y = {1}
       | {2}
     }
@@ -230,9 +226,7 @@ cases:
   - |
     package compr_context
 
-    import future.keywords.in
-
-    output := a {
+    output := a if {
       a := {x: a |
         some x in [0, 1, 2]
         a = x * 2
@@ -271,16 +265,14 @@ cases:
     package test
 
     disallow := allow == false
-    allow { not disallow }
+    allow if { not disallow }
   query: "data.test = x"
-  want_error: "Recursion detected in rule body: data.test.allow"
+  want_error: "Recursion detected in rule body: data.test.disallow"
   want_error_code: rego_recursion_error
 - note: regocpp/bug156
   modules:
   - |
     package test
-
-    import future.keywords
 
     allow := input.x if { not input.x }
     else := 5

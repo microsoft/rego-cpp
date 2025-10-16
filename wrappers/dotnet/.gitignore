@@ -290,3 +290,5 @@ __pycache__/
 
 # MISC
 rego-cpp
+_site
+api

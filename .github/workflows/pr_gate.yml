@@ -43,8 +43,6 @@ jobs:
 
       - name: CMake config
         run: cmake -B ${{github.workspace}}/build --preset release-opa -G Ninja
-        env:
-          CXX: g++-14
 
       - name: CMake build
         working-directory: ${{github.workspace}}/build
@@ -97,7 +95,6 @@ jobs:
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
-          CXX: g++-14
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -114,9 +111,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get dependencies
-        run: |
-          sudo apt-get install dotnet-sdk-8.0
+      - name: Use dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
 
       - name: Git config for fetching pull requests
         run: |
@@ -125,12 +125,11 @@ jobs:
       - name: dotnet test
         working-directory: ${{github.workspace}}/wrappers/dotnet/
         run: |
-          dotnet build -v n
+          dotnet build -v n -f net8.0
           dotnet test -v n
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
-          CXX: g++-14
 
   linux-wrappers-rust:
     runs-on: ubuntu-latest
@@ -153,13 +152,12 @@ jobs:
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
-          CXX: g++-14
 
   linux-wrappers-python:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ["3.9", "3.10", "3.11", "3.12"]
+        python_version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -183,7 +181,6 @@ jobs:
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
-          CXX: g++-14
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
@@ -274,6 +271,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Use dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch "+refs/pull/*/merge:refs/remotes/pull/*"
@@ -281,7 +285,7 @@ jobs:
       - name: dotnet test
         working-directory: ${{github.workspace}}/wrappers/dotnet/
         run: |
-          dotnet build -v n
+          dotnet build -v n -f net8.0
           dotnet test -v n
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
@@ -309,7 +313,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python_version: ["3.9", "3.10", "3.11", "3.12"]
+        python_version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -352,9 +356,6 @@ jobs:
 
       - name: CMake config
         run: cmake -B ${{github.workspace}}/build --preset release-opa -G Ninja
-        env:
-          CXX: g++-14
-          CC: gcc-14
 
       - name: CMake build
         working-directory: ${{github.workspace}}/build
@@ -385,8 +386,6 @@ jobs:
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
-          CXX: g++-14
-          CC: gcc-14
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -403,9 +402,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get dependencies
-        run: |
-          brew update && brew install dotnet@8
+      - name: Use dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
 
       - name: Git config for fetching pull requests
         run: |
@@ -414,13 +416,11 @@ jobs:
       - name: dotnet test
         working-directory: ${{github.workspace}}/wrappers/dotnet/
         run: |
-          dotnet build -v n
+          dotnet build -v n -f net8.0
           dotnet test -v n
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
-          CXX: g++-14
-          CC: gcc-14
 
   macos-wrappers-rust:
     runs-on: macos-latest
@@ -448,7 +448,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python_version: ["3.10", "3.11", "3.12"]
+        python_version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -472,11 +472,7 @@ jobs:
         env:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
-          CXX: g++-12
-          CC: gcc-12
-          MACOSX_DEPLOYMENT_TARGET: 11.0
 
       - name: Python test
-        continue-on-error: true # TODO remove this once apple silicon builds have been fixed
         working-directory: ${{github.workspace}}/wrappers/python/ 
         run: pytest -vv

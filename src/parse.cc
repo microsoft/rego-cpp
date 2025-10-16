@@ -1,4 +1,5 @@
 #include "internal.hh"
+#include "rego.hh"
 
 namespace
 {
@@ -6,35 +7,52 @@ namespace
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const std::string numeric = "0123456789";
   const std::string alphanumeric = alpha + numeric;
-  const std::size_t max_string_length = 10;
+  const std::string whitespace = " \t";
+  const std::string quoted = alphanumeric + whitespace + "\n";
 
   template <typename T>
-  std::string rand_string(T& rnd)
+  std::string rand_int(T& rnd, int min = -50, int max = 50)
   {
-    // TODO add valid non-alphanum characters
+    int range = max - min;
     std::ostringstream buf;
-    buf << '"';
-    std::size_t length = rnd() % max_string_length;
-    for (std::size_t i = 0; i < length; ++i)
-    {
-      buf << alphanumeric[rnd() % alphanumeric.size()];
-    }
-    buf << '"';
+    buf << rnd() % range + min;
     return buf.str();
   }
 
   template <typename T>
-  std::string rand_raw_string(T& rnd)
+  std::string rand_float(T& rnd)
   {
-    // TODO add valid non-alphanum characters
     std::ostringstream buf;
-    buf << '`';
-    std::size_t length = rnd() % max_string_length;
+    std::uniform_real_distribution<> dist(-10.0, 10.0);
+    buf << dist(rnd);
+    return buf.str();
+  }
+
+  template <typename T>
+  std::string rand_string(
+    T& rnd, std::size_t min_length = 0, std::size_t max_length = 10)
+  {
+    std::ostringstream buf;
+    std::size_t length = rnd() % (max_length - min_length) + min_length;
     for (std::size_t i = 0; i < length; ++i)
     {
       buf << alphanumeric[rnd() % alphanumeric.size()];
     }
-    buf << '`';
+    return buf.str();
+  }
+
+  template <typename T>
+  std::string rand_quoted(
+    T& rnd, char quote, std::size_t min_length = 0, std::size_t max_length = 10)
+  {
+    std::ostringstream buf;
+    std::size_t length = rnd() % (max_length - min_length) + min_length;
+    buf << quote;
+    for (std::size_t i = 0; i < length; ++i)
+    {
+      buf << quoted[rnd() % quoted.size()];
+    }
+    buf << quote;
     return buf.str();
   }
 
@@ -108,6 +126,14 @@ namespace rego
         R"(null\b)" >> [](auto& m) { m.add(Null); },
 
         R"(as\b)" >> [](auto& m) { m.add(As); },
+
+        R"(if\b)" >> [](auto& m) { m.add(If); },
+
+        R"(in\b)" >> [](auto& m) { m.add(IsIn); },
+
+        R"(contains\b)" >> [](auto& m) { m.add(Contains); },
+
+        R"(every\b)" >> [](auto& m) { m.add(Every); },
 
         R"(set\(\))" >> [](auto& m) { m.add(EmptySet); },
 
@@ -235,17 +261,25 @@ namespace rego
     p.done([](auto& m) { m.term({Module, Query}); });
 
     p.gen({
-      Int >> [](auto& rnd) { return std::to_string(rnd() % 100); },
-      Float >>
-        [](auto& rnd) {
-          std::uniform_real_distribution<> dist(-10.0, 10.0);
-          return std::to_string(dist(rnd));
-        },
+      Int >> [](auto& rnd) { return rand_int(rnd); },
+      Int32 >> [](auto& rnd) { return rand_int(rnd); },
+      Int64 >> [](auto& rnd) { return rand_int(rnd); },
+      LocalIndex >> [](auto& rnd) { return rand_int(rnd, 0, 100); },
+      StringIndex >> [](auto& rnd) { return rand_int(rnd, 0, 40); },
+      Float >> [](auto& rnd) { return rand_float(rnd); },
       True >> [](auto&) { return "true"; },
       False >> [](auto&) { return "false"; },
       Null >> [](auto&) { return "null"; },
-      JSONString >> [](auto& rnd) { return rand_string(rnd); },
-      RawString >> [](auto& rnd) { return rand_raw_string(rnd); },
+      Boolean >> [](auto& rnd) { return rnd() % 2 ? "true" : "false"; },
+      builtins::Name >> [](auto& rnd) { return rand_string(rnd); },
+      builtins::Description >> [](auto& rnd) { return rand_string(rnd); },
+      IRString >> [](auto& rnd) { return rand_string(rnd); },
+      JSONString >> [](auto& rnd) { return rand_quoted(rnd, '"'); },
+      RawString >> [](auto& rnd) { return rand_quoted(rnd, '`'); },
+      Version >>
+        [](auto&) {
+          return DefaultVersion;
+        }, // TODO ensure this returns all supported versions in the future
     });
 
     return p;

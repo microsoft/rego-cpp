@@ -127,8 +127,8 @@ cases:
     val := -1
     a := 5
     b := 3
-    c := a + b { a; b; a > b }
-    d := val {
+    c := a + b if { a; b; a > b }
+    d := val if {
       input.a < a
       val := a + data.bodies.b
     } {
@@ -136,7 +136,7 @@ cases:
       val := a - b
     }
     
-    e := {"one": x, "two": y + z} {
+    e := {"one": x, "two": y + z} if {
       x := a * b
       c
       y := d
@@ -145,16 +145,16 @@ cases:
     
     default f := false
     
-    f {
+    f if {
       b < a
       not d
     }
     
-    f {
+    f if {
       input.c > d
     }
     
-    g {
+    g if {
       d == a + b
       a < b
     }
@@ -176,8 +176,8 @@ cases:
     val := -1
     a := 5
     b := 3
-    c := a + b { a; b; a > b }
-    d := val {
+    c := a + b if { a; b; a > b }
+    d := val if {
       input.a < a
       val := a + data.bodies.b
     } {
@@ -185,7 +185,7 @@ cases:
       val := a - b
     }
     
-    e := {"one": x, "two": y + z} {
+    e := {"one": x, "two": y + z} if {
       x := a * b
       c
       y := d
@@ -194,16 +194,16 @@ cases:
     
     default f := false
     
-    f {
+    f if {
       b < a
       not d
     }
     
-    f {
+    f if {
       input.c > d
     }
     
-    g {
+    g if {
       d == a + b
       a < b
     }
@@ -227,7 +227,7 @@ cases:
     e := "one"
     f := "one"
     g := "two"
-    h := "three" {
+    h := "three" if {
       d > c
       c > b
       b >= a
@@ -245,7 +245,7 @@ cases:
     
     empty_set := set()
     
-    m {
+    m if {
       data.sets.int_set[1]
       string_set["one"]
       data.sets.obj_set[{"foo": 1}]
@@ -271,7 +271,7 @@ cases:
     
     empty_set := set()
     
-    m {
+    m if {
       data.sets.obj_set[{"foo": 1}]
     }
   query: data.sets.m = x
@@ -311,7 +311,7 @@ cases:
 
     default a := 0
 
-    a := val {
+    a := val if {
         input.a > 0
         input.a < 10
         input.a % 2 == 1
@@ -323,7 +323,7 @@ cases:
         val := input.a * 10 + 1
     }
     
-    a := input.a / 10 {
+    a := input.a / 10 if {
         input.a >= 10
     }
   query: data.multi.a = x
@@ -338,7 +338,7 @@ cases:
 
     default a := 0
 
-    a := val {
+    a := val if {
         input.a > 0
         input.a < 10
         input.a % 2 == 1
@@ -350,7 +350,7 @@ cases:
         val := input.a * 10 + 1
     }
     
-    a := input.a / 10 {
+    a := input.a / 10 if {
         input.a >= 10
     }
   query: data.multi.a = x
@@ -365,7 +365,7 @@ cases:
 
     default a := 0
 
-    a := val {
+    a := val if {
         input.a > 0
         input.a < 10
         input.a % 2 == 1
@@ -377,7 +377,7 @@ cases:
         val := input.a * 10 + 1
     }
     
-    a := input.a / 10 {
+    a := input.a / 10 if {
         input.a >= 10
     }
   query: data.multi.a = x
@@ -390,31 +390,31 @@ cases:
   - |
     package functions
 
-    f(a, b, c) := sum {
-      b != -1
+    f(a, b, c) := sum if {
+        b != -1
         g(input.key)
         sum := a + b + c
     }
 
-    f(a, -1, c) := sum {
+    f(a, -1, c) := sum if {
         g(input.key)
         sum := a + c
     }
 
-    f(a, b, c) := prod {
+    f(a, b, c) := prod if {
         not g(input.key)
         prod := a * b * c
     }
 
-    g("sum") {
+    g("sum") if {
         true
     }
 
-    g("prod") {
+    g("prod") if {
         false
     }
 
-    h(a, b) := result {
+    h(a, b) := result if {
         result := {
             "a": a,
             "b": b
@@ -432,31 +432,31 @@ cases:
   - |
     package functions
 
-    f(a, b, c) := sum {
+    f(a, b, c) := sum if {
       b != -1
         g(input.key)
         sum := a + b + c
     }
 
-    f(a, -1, c) := sum {
+    f(a, -1, c) := sum if {
         g(input.key)
         sum := a + c
     }
 
-    f(a, b, c) := prod {
+    f(a, b, c) := prod if {
         not g(input.key)
         prod := a * b * c
     }
 
-    g("sum") {
+    g("sum") if {
         true
     }
 
-    g("prod") {
+    g("prod") if {
         false
     }
 
-    h(a, b) := result {
+    h(a, b) := result if {
         result := {
             "a": a,
             "b": b
@@ -472,31 +472,31 @@ cases:
   - |
     package functions
 
-    f(a, b, c) := sum {
+    f(a, b, c) := sum if {
       b != -1
         g(input.key)
         sum := a + b + c
     }
 
-    f(a, -1, c) := sum {
+    f(a, -1, c) := sum if {
         g(input.key)
         sum := a + c
     }
 
-    f(a, b, c) := prod {
+    f(a, b, c) := prod if {
         not g(input.key)
         prod := a * b * c
     }
 
-    g("sum") {
+    g("sum") if {
         true
     }
 
-    g("prod") {
+    g("prod") if {
         false
     }
 
-    h(a, b) := result {
+    h(a, b) := result if {
         result := {
             "a": a,
             "b": b
@@ -521,42 +521,42 @@ cases:
       "bar": 2,
     }
 
-    b := x + y {
+    b := x + y if {
       some x, y
       [1, x] = tuples[i]
       {"foo": y, "bar": 2} = a
       i != 0
     }
 
-    c {
+    c if {
       i != 0
       x = tuples[i]
       i = x[1] - 1
     }
 
-    d {
+    d if {
       tuple := tuples[i]
       tuple[0] >= 3
       tuple[1] >= 5
     }
 
-    e := key {
+    e := key if {
       target = 2
       some key
       a[key] = target
     }
 
-    f := x + y {
+    f := x + y if {
       letters[["a", x]]
       letters[["c", y]]
     }
 
-    g := j {
+    g := j if {
       x = mixed[i]
       x[j] = 6
     }
 
-    h := j {
+    h := j if {
       x = mixed[i]
       x[j] = 7
     }
@@ -635,7 +635,6 @@ cases:
   - |
     package keywords
 
-    import future.keywords
     import data.apps as apps
     import data.sites as sites
 
@@ -675,7 +674,7 @@ cases:
     f["a"] := a
     f["b"] := b
     f["c"] := true if c
-    f["sum"] := sum {
+    f["sum"] := sum if {
         sum := a + b
     }
 
@@ -747,8 +746,8 @@ cases:
     val := -1
     a := 5
     b := 3
-    c := a + b { a; b; a > b }
-    d := val {
+    c := a + b if { a; b; a > b }
+    d := val if {
       input.a < a
       val := a + data.bodies.b
     } {
@@ -756,7 +755,7 @@ cases:
       val := a - b
     }
 
-    e := {"one": x, "two": y + z} {
+    e := {"one": x, "two": y + z} if {
       x := a * b
       c
       y := d
@@ -765,31 +764,30 @@ cases:
 
     default f := false
 
-    f {
+    f if {
       b < a
       not d
     }
 
-    f {
+    f if {
       input.c > d
     }
 
-    g {
+    g if {
       d == a + b
       a < b
     }
   - |
     package bodies
 
-    import future.keywords.if
-    import future.keywords.in
-
-    d_sum := result {
+    d_sum := result if {
         result := d with input.a as a - 1
     }
 
-    d_diff := result {
+    d_diff := result if {
         result := d with input.a as a + 1
+                    with b as data.bodies.a
+                    with data.bodies.a as val
     }
 
     inner := [x, y] if {
@@ -811,11 +809,11 @@ cases:
     mock_count(x) := 0 if "x" in x
     mock_count(x) := count(x) if not "x" in x
 
-    use_count := result {
+    use_count := result if {
         result := mycount([1, 2, 3]) with count as mock_count
     }
 
-    use_mock := result {
+    use_mock := result if {
         result := mycount(["x", "y", "z"]) with count as mock_count
     }
 
@@ -824,7 +822,7 @@ cases:
   want_result:
     - x:
       - 8
-      - 2
+      - -6
       - [[100, 300], {"bar": 300, "foo": 200}]
       - 3
       - 0
@@ -864,10 +862,8 @@ cases:
       name: cranky_euclid
   modules:
   - |
-    package every
+    package test_every
 
-    import future.keywords.every
-    import future.keywords.if
     import data.sites as sites
 
     names_with_dev if {
@@ -908,15 +904,15 @@ cases:
         not larger_than_one(x)
     }
 
-    output {
+    output if {
       names_with_dev
-        array_domain
-        object_domain
-        set_domain
-        rule_every
-        not_less_or_equal_one
+      array_domain
+      object_domain
+      set_domain
+      rule_every
+      not_less_or_equal_one
     }
-  query: data.every.output = x
+  query: data.test_every.output = x
   want_result:
     - x: true
 - note: regocpp/compr
@@ -957,7 +953,6 @@ cases:
   - |
     package compr
 
-    import future.keywords.if
     import data.apps as apps
     import data.sites as sites
 
@@ -976,7 +971,7 @@ cases:
     a := [1, 2, 3, 4, 3, 4, 3, 4, 5]
     b := {x | x = a[_]}
 
-    output {
+    output if {
         names == ["smoke", "dev"]
         app_to_hostnames == {
           "mongodb": ["oxygen"],
@@ -993,8 +988,6 @@ cases:
   - |
     package setops
 
-    import future.keywords.in
-
     a := {1, 2, 3, 4}
     b := {3, 4, 5}
     c := {4, 5, 6}
@@ -1006,8 +999,10 @@ cases:
     i := { a: b | c }
     j := { a: b, c: d | e}
     k := a - d
+    l := intersection({a, b, c})
+    m := union({a, b, c})
 
-    output {
+    output if {
       e == {1, 2, 3, 4, 5}
         f == {2, 3, 4, 5}
         g == [a]
@@ -1022,6 +1017,8 @@ cases:
         k == {1}
         1 in a | b
         3 in a & b | c & d
+        l == {4}
+        m == {1, 2, 3, 4, 5, 6}
     }
   query: data.setops.output = x
   want_result:
@@ -1031,12 +1028,10 @@ cases:
   - |
     package enumerate
 
-    import future.keywords.in
-
     numbers := [1, 2, 3, 4, 5]
     letters := ["1", "2", "3", "4", "5"]
 
-    a := item {
+    a := item if {
         some n in numbers
         some l in letters
         to_number(l) == n
@@ -1044,7 +1039,7 @@ cases:
         item[0] == 3
     }
 
-    b[[i, x]] {
+    b contains [i, x] if {
         some i, x in numbers
         x > 2
     }
@@ -1070,7 +1065,7 @@ cases:
     fruit["orange"].size = 5.3
     fruit.orange.name = "orange"
     fruit["apple"]["color.count"] = count(fruit.apple["colors"])
-    fruit["color.name"](fruit, color) := name {
+    fruit["color.name"](fruit, color) := name if {
       sep := [" "]
       fruit.colors[color]
       name := concat(sep[0], [color, fruit.name])
@@ -1093,12 +1088,10 @@ cases:
   - |
     package every_some
 
-    import future.keywords.every
-
     a := [2, 4, 6, 8, 10, 12]
     b := [2, 4]
 
-    output {
+    output if {
       every x in a {
         some m in b
         x % m == 0
@@ -1120,7 +1113,7 @@ cases:
     default foo1 := false
     default foo2 := false
 
-    foo1
+    foo1 if
         {
         port = 77;
         a = [port | ips_by_port[port][_] == "2.2.2.1" ];
@@ -1128,7 +1121,7 @@ cases:
         a = b
         }
 
-    foo2
+    foo2 if
         {
         a = [port | ips_by_port[port][_] == "2.2.2.1" ];
         b = [port | ips_by_port[port][_] == "1.1.1.1" ];
@@ -1144,7 +1137,6 @@ cases:
   modules:
   - |
     package test
-    import rego.v1
 
     a := uuid.rfc4122("x")
     b := uuid.rfc4122("x")
@@ -1160,3 +1152,74 @@ cases:
   want_result:
     - x: true
   strict_error: true
+- note: regocpp/bindings
+  query: "[1, 2, 3][_] = x; y = x * 2; x + y"
+  want_result:
+    - x: 1
+      y: 2
+    - x: 2
+      y: 4
+    - x: 3
+      y: 6
+- note: regocpp/scan-infix
+  modules:
+  - |
+    package test
+
+    forward := [1, 2, 3, 4]
+    backward := [4, 3, 2, 1]
+
+    is_reverse(a, b) if {
+      length := count(a)
+      count(b) == length
+      every i, x in a {
+        b[(length - i) - 1] == x
+      }
+    }
+
+    output := is_reverse(forward, backward)
+  query: "data.test.output = x"
+  want_result:
+    - x: true
+- note: regocpp/missing-rule
+  modules:
+  - |
+    package test0
+
+    a := data.test1.b
+  - |
+    package test1
+
+    default b := 0
+    b := 1 if {
+      data.test0.c
+    }
+  query: "data.test1.b = x"
+  want_result:
+    - x: 0
+- note: regocpp/constrained-lookdown
+  modules:
+  - |
+    package test0
+
+    a := 0
+    b := 0
+  - |
+    package test1
+
+    b := 1
+    c := 1
+  - |
+    package test2
+
+    a := 2
+    c := 2
+  - |
+    package test
+
+    d := data[input.namespace].a
+  input:
+    namespace: test0
+  query: "data.test.d = x"
+  want_result:
+    - x: 0

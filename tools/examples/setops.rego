@@ -1,7 +1,5 @@
 package setops
 
-import future.keywords.in
-
 a := {1, 2, 3, 4}
 b := {3, 4, 5}
 c := {4, 5, 6}
@@ -14,7 +12,7 @@ i := { a: b | c }
 j := { a: b, c: d | e}
 k := a - d
 
-output {
+output if {
 	e == {1, 2, 3, 4, 5}
     f == {2, 3, 4, 5}
     g == [a]

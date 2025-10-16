@@ -1,0 +1,890 @@
+{
+    "bundle": {
+        "funcs": {
+            "funcs": [
+                {
+                    "blocks": [
+                        {
+                            "stmts": [
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 4,
+                                        "target": 3
+                                    },
+                                    "type": "ResetLocalStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "Index": 2,
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 4,
+                                        "target": 4
+                                    },
+                                    "type": "MakeNumberRefStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 4,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 4
+                                        },
+                                        "target": 3
+                                    },
+                                    "type": "AssignVarOnceStmt"
+                                }
+                            ]
+                        },
+                        {
+                            "stmts": [
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 4,
+                                        "source": 3
+                                    },
+                                    "type": "IsDefinedStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 4,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 3
+                                        },
+                                        "target": 2
+                                    },
+                                    "type": "AssignVarOnceStmt"
+                                }
+                            ]
+                        },
+                        {
+                            "stmts": [
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 4,
+                                        "source": 2
+                                    },
+                                    "type": "ReturnLocalStmt"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "g0.data.maths.x",
+                    "params": [
+                        0,
+                        1
+                    ],
+                    "path": [
+                        "g0",
+                        "maths",
+                        "x"
+                    ],
+                    "return": 2
+                },
+                {
+                    "blocks": [
+                        {
+                            "stmts": [
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 5,
+                                        "target": 3
+                                    },
+                                    "type": "ResetLocalStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "Index": 4,
+                                        "col": 15,
+                                        "file": 0,
+                                        "row": 5,
+                                        "target": 4
+                                    },
+                                    "type": "MakeNumberRefStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "Index": 5,
+                                        "col": 15,
+                                        "file": 0,
+                                        "row": 5,
+                                        "target": 5
+                                    },
+                                    "type": "MakeNumberRefStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "args": [
+                                            {
+                                                "type": "local",
+                                                "value": 4
+                                            },
+                                            {
+                                                "type": "local",
+                                                "value": 5
+                                            }
+                                        ],
+                                        "col": 15,
+                                        "file": 0,
+                                        "func": "mul",
+                                        "result": 6,
+                                        "row": 5
+                                    },
+                                    "type": "CallStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 15,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 6
+                                        },
+                                        "target": 7
+                                    },
+                                    "type": "AssignVarStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "Index": 6,
+                                        "col": 11,
+                                        "file": 0,
+                                        "row": 5,
+                                        "target": 8
+                                    },
+                                    "type": "MakeNumberRefStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "args": [
+                                            {
+                                                "type": "local",
+                                                "value": 8
+                                            },
+                                            {
+                                                "type": "local",
+                                                "value": 7
+                                            }
+                                        ],
+                                        "col": 11,
+                                        "file": 0,
+                                        "func": "minus",
+                                        "result": 9,
+                                        "row": 5
+                                    },
+                                    "type": "CallStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 11,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 9
+                                        },
+                                        "target": 10
+                                    },
+                                    "type": "AssignVarStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "Index": 7,
+                                        "col": 11,
+                                        "file": 0,
+                                        "row": 5,
+                                        "target": 11
+                                    },
+                                    "type": "MakeNumberRefStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "args": [
+                                            {
+                                                "type": "local",
+                                                "value": 10
+                                            },
+                                            {
+                                                "type": "local",
+                                                "value": 11
+                                            }
+                                        ],
+                                        "col": 11,
+                                        "file": 0,
+                                        "func": "mul",
+                                        "result": 12,
+                                        "row": 5
+                                    },
+                                    "type": "CallStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 11,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 12
+                                        },
+                                        "target": 13
+                                    },
+                                    "type": "AssignVarStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "args": [
+                                            {
+                                                "type": "local",
+                                                "value": 0
+                                            },
+                                            {
+                                                "type": "local",
+                                                "value": 1
+                                            }
+                                        ],
+                                        "col": 6,
+                                        "file": 0,
+                                        "func": "g0.data.maths.x",
+                                        "result": 14,
+                                        "row": 5
+                                    },
+                                    "type": "CallStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 6,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 14
+                                        },
+                                        "target": 15
+                                    },
+                                    "type": "AssignVarStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "args": [
+                                            {
+                                                "type": "local",
+                                                "value": 15
+                                            },
+                                            {
+                                                "type": "local",
+                                                "value": 13
+                                            }
+                                        ],
+                                        "col": 6,
+                                        "file": 0,
+                                        "func": "plus",
+                                        "result": 16,
+                                        "row": 5
+                                    },
+                                    "type": "CallStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 6,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 16
+                                        },
+                                        "target": 17
+                                    },
+                                    "type": "AssignVarStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "Index": 8,
+                                        "col": 6,
+                                        "file": 0,
+                                        "row": 5,
+                                        "target": 18
+                                    },
+                                    "type": "MakeNumberRefStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "args": [
+                                            {
+                                                "type": "local",
+                                                "value": 17
+                                            },
+                                            {
+                                                "type": "local",
+                                                "value": 18
+                                            }
+                                        ],
+                                        "col": 6,
+                                        "file": 0,
+                                        "func": "plus",
+                                        "result": 19,
+                                        "row": 5
+                                    },
+                                    "type": "CallStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 6,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 19
+                                        },
+                                        "target": 20
+                                    },
+                                    "type": "AssignVarStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 20
+                                        },
+                                        "target": 3
+                                    },
+                                    "type": "AssignVarOnceStmt"
+                                }
+                            ]
+                        },
+                        {
+                            "stmts": [
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": 3
+                                    },
+                                    "type": "IsDefinedStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 3
+                                        },
+                                        "target": 2
+                                    },
+                                    "type": "AssignVarOnceStmt"
+                                }
+                            ]
+                        },
+                        {
+                            "stmts": [
+                                {
+                                    "stmt": {
+                                        "col": 1,
+                                        "file": 0,
+                                        "row": 5,
+                                        "source": 2
+                                    },
+                                    "type": "ReturnLocalStmt"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "g0.data.maths.y",
+                    "params": [
+                        0,
+                        1
+                    ],
+                    "path": [
+                        "g0",
+                        "maths",
+                        "y"
+                    ],
+                    "return": 2
+                }
+            ]
+        },
+        "plans": {
+            "plans": [
+                {
+                    "blocks": [
+                        {
+                            "stmts": [
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0,
+                                        "target": 2
+                                    },
+                                    "type": "MakeObjectStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "blocks": [
+                                            {
+                                                "stmts": [
+                                                    {
+                                                        "stmt": {
+                                                            "args": [
+                                                                {
+                                                                    "type": "local",
+                                                                    "value": 0
+                                                                },
+                                                                {
+                                                                    "type": "local",
+                                                                    "value": 1
+                                                                }
+                                                            ],
+                                                            "col": 0,
+                                                            "file": 0,
+                                                            "func": "g0.data.maths.x",
+                                                            "result": 3,
+                                                            "row": 0
+                                                        },
+                                                        "type": "CallStmt"
+                                                    },
+                                                    {
+                                                        "stmt": {
+                                                            "col": 0,
+                                                            "file": 0,
+                                                            "key": {
+                                                                "type": "string_index",
+                                                                "value": 1
+                                                            },
+                                                            "object": 2,
+                                                            "row": 0,
+                                                            "value": {
+                                                                "type": "local",
+                                                                "value": 3
+                                                            }
+                                                        },
+                                                        "type": "ObjectInsertStmt"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0
+                                    },
+                                    "type": "BlockStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "blocks": [
+                                            {
+                                                "stmts": [
+                                                    {
+                                                        "stmt": {
+                                                            "args": [
+                                                                {
+                                                                    "type": "local",
+                                                                    "value": 0
+                                                                },
+                                                                {
+                                                                    "type": "local",
+                                                                    "value": 1
+                                                                }
+                                                            ],
+                                                            "col": 0,
+                                                            "file": 0,
+                                                            "func": "g0.data.maths.y",
+                                                            "result": 4,
+                                                            "row": 0
+                                                        },
+                                                        "type": "CallStmt"
+                                                    },
+                                                    {
+                                                        "stmt": {
+                                                            "col": 0,
+                                                            "file": 0,
+                                                            "key": {
+                                                                "type": "string_index",
+                                                                "value": 3
+                                                            },
+                                                            "object": 2,
+                                                            "row": 0,
+                                                            "value": {
+                                                                "type": "local",
+                                                                "value": 4
+                                                            }
+                                                        },
+                                                        "type": "ObjectInsertStmt"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0
+                                    },
+                                    "type": "BlockStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "blocks": [
+                                            {
+                                                "stmts": [
+                                                    {
+                                                        "stmt": {
+                                                            "blocks": [
+                                                                {
+                                                                    "stmts": [
+                                                                        {
+                                                                            "stmt": {
+                                                                                "col": 0,
+                                                                                "file": 0,
+                                                                                "key": {
+                                                                                    "type": "string_index",
+                                                                                    "value": 9
+                                                                                },
+                                                                                "row": 0,
+                                                                                "source": {
+                                                                                    "type": "local",
+                                                                                    "value": 1
+                                                                                },
+                                                                                "target": 6
+                                                                            },
+                                                                            "type": "DotStmt"
+                                                                        },
+                                                                        {
+                                                                            "stmt": {
+                                                                                "a": 6,
+                                                                                "b": 2,
+                                                                                "col": 0,
+                                                                                "file": 0,
+                                                                                "row": 0,
+                                                                                "target": 5
+                                                                            },
+                                                                            "type": "ObjectMergeStmt"
+                                                                        },
+                                                                        {
+                                                                            "stmt": {
+                                                                                "col": 0,
+                                                                                "file": 0,
+                                                                                "index": 1,
+                                                                                "row": 0
+                                                                            },
+                                                                            "type": "BreakStmt"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "col": 0,
+                                                            "file": 0,
+                                                            "row": 0
+                                                        },
+                                                        "type": "BlockStmt"
+                                                    },
+                                                    {
+                                                        "stmt": {
+                                                            "col": 0,
+                                                            "file": 0,
+                                                            "row": 0,
+                                                            "source": {
+                                                                "type": "local",
+                                                                "value": 2
+                                                            },
+                                                            "target": 5
+                                                        },
+                                                        "type": "AssignVarStmt"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0
+                                    },
+                                    "type": "BlockStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 5
+                                        },
+                                        "target": 7
+                                    },
+                                    "type": "AssignVarStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0,
+                                        "target": 8
+                                    },
+                                    "type": "MakeObjectStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "key": {
+                                            "type": "string_index",
+                                            "value": 0
+                                        },
+                                        "object": 8,
+                                        "row": 0,
+                                        "value": {
+                                            "type": "local",
+                                            "value": 7
+                                        }
+                                    },
+                                    "type": "ObjectInsertStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0,
+                                        "value": 8
+                                    },
+                                    "type": "ResultSetAddStmt"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "maths"
+                },
+                {
+                    "blocks": [
+                        {
+                            "stmts": [
+                                {
+                                    "stmt": {
+                                        "args": [
+                                            {
+                                                "type": "local",
+                                                "value": 0
+                                            },
+                                            {
+                                                "type": "local",
+                                                "value": 1
+                                            }
+                                        ],
+                                        "col": 0,
+                                        "file": 0,
+                                        "func": "g0.data.maths.y",
+                                        "result": 9,
+                                        "row": 0
+                                    },
+                                    "type": "CallStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0,
+                                        "source": {
+                                            "type": "local",
+                                            "value": 9
+                                        },
+                                        "target": 10
+                                    },
+                                    "type": "AssignVarStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0,
+                                        "target": 11
+                                    },
+                                    "type": "MakeObjectStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "key": {
+                                            "type": "string_index",
+                                            "value": 0
+                                        },
+                                        "object": 11,
+                                        "row": 0,
+                                        "value": {
+                                            "type": "local",
+                                            "value": 10
+                                        }
+                                    },
+                                    "type": "ObjectInsertStmt"
+                                },
+                                {
+                                    "stmt": {
+                                        "col": 0,
+                                        "file": 0,
+                                        "row": 0,
+                                        "value": 11
+                                    },
+                                    "type": "ResultSetAddStmt"
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "maths/y"
+                }
+            ]
+        },
+        "static": {
+            "builtin_funcs": [
+                {
+                    "decl": {
+                        "args": [
+                            {
+                                "name": "x",
+                                "of": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "of": {
+                                            "type": "any"
+                                        },
+                                        "type": "set"
+                                    }
+                                ],
+                                "type": "any"
+                            },
+                            {
+                                "name": "y",
+                                "of": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "of": {
+                                            "type": "any"
+                                        },
+                                        "type": "set"
+                                    }
+                                ],
+                                "type": "any"
+                            }
+                        ],
+                        "result": {
+                            "description": "the difference of `x` and `y`",
+                            "name": "z",
+                            "of": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "of": {
+                                        "type": "any"
+                                    },
+                                    "type": "set"
+                                }
+                            ],
+                            "type": "any"
+                        },
+                        "type": "function"
+                    },
+                    "name": "minus"
+                },
+                {
+                    "decl": {
+                        "args": [
+                            {
+                                "name": "x",
+                                "type": "number"
+                            },
+                            {
+                                "name": "y",
+                                "type": "number"
+                            }
+                        ],
+                        "result": {
+                            "description": "the product of `x` and `y`",
+                            "name": "z",
+                            "type": "number"
+                        },
+                        "type": "function"
+                    },
+                    "name": "mul"
+                },
+                {
+                    "decl": {
+                        "args": [
+                            {
+                                "name": "x",
+                                "type": "number"
+                            },
+                            {
+                                "name": "y",
+                                "type": "number"
+                            }
+                        ],
+                        "result": {
+                            "description": "the sum of `x` and `y`",
+                            "name": "z",
+                            "type": "number"
+                        },
+                        "type": "function"
+                    },
+                    "name": "plus"
+                }
+            ],
+            "files": [
+                {
+                    "value": "maths.rego"
+                }
+            ],
+            "strings": [
+                {
+                    "value": "result"
+                },
+                {
+                    "value": "x"
+                },
+                {
+                    "value": "5"
+                },
+                {
+                    "value": "y"
+                },
+                {
+                    "value": "4"
+                },
+                {
+                    "value": "0.25"
+                },
+                {
+                    "value": "2"
+                },
+                {
+                    "value": "-3"
+                },
+                {
+                    "value": "7.4"
+                },
+                {
+                    "value": "maths"
+                }
+            ]
+        }
+    }
+}

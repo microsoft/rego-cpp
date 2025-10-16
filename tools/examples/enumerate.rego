@@ -5,7 +5,7 @@ import future.keywords.in
 numbers := [1, 2, 3, 4, 5]
 letters := ["1", "2", "3", "4", "5"]
 
-a := item[1] {
+a := item[1] if {
     some n in numbers
     some l in letters
     to_number(l) == n

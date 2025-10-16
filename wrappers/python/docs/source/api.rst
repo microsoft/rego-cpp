@@ -13,6 +13,17 @@ Interpreter
 .. autoclass:: Interpreter
     :members:
 
+.. autoclass:: Bundle
+    :members:
+
+.. autoclass:: Input
+    :members:
+
+.. autoenum:: BundleFormat
+
+.. autoenum:: LogLevel
+
+
 Output
 ------
 
@@ -26,9 +37,3 @@ Node
     :members:
 
 .. autoenum:: NodeKind
-
-Logging
--------
-
-.. autoenum:: LogLevel
-.. autofunction:: set_log_level

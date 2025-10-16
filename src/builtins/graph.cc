@@ -3,6 +3,7 @@
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   using NodeIndex = std::map<std::string, Node>;
   using Graph = std::map<std::string_view, std::set<std::string_view>>;
@@ -10,7 +11,7 @@ namespace
   std::string_view lookup(NodeIndex& index, Node node)
   {
     std::string key = to_key(node);
-    if (!contains(index, key))
+    if (!index.contains(key))
     {
       index[key] = node;
     }
@@ -97,7 +98,7 @@ namespace
     {
       std::string_view current = frontier.back();
       frontier.pop_back();
-      if (contains(visited, current))
+      if (visited.contains(current))
       {
         continue;
       }
@@ -112,14 +113,43 @@ namespace
         frontier.end(), graph[current].begin(), graph[current].end());
     }
 
-    Node argseq = NodeDef::create(ArgSeq);
+    Node argseq = NodeDef::create(Seq);
     for (auto& key : visited)
     {
       argseq->push_back(nodes[std::string(key)]);
     }
 
-    return Resolver::set(argseq, false);
+    return Resolver::set(argseq);
   }
+
+  Node reachable_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg
+            << (bi::Name ^ "graph")
+            << (bi::Description ^
+                "object containing a set or array of neighboring vertices")
+            << (bi::Type
+                << (bi::DynamicObject
+                    << (bi::Type << bi::Any)
+                    << (bi::Type
+                        << (bi::TypeSeq
+                            << (bi::Type
+                                << (bi::DynamicArray << (bi::Type << bi::Any)))
+                            << (bi::Type
+                                << (bi::Set << (bi::Type << bi::Any))))))))
+        << (bi::Arg << (bi::Name ^ "initial")
+                    << (bi::Description ^ "set or array of root vertices")
+                    << (bi::Type
+                        << (bi::TypeSeq
+                            << (bi::Type
+                                << (bi::DynamicArray << (bi::Type << bi::Any)))
+                            << (bi::Type
+                                << (bi::Set << (bi::Type << bi::Any)))))))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "set of vertices from the `initial` vertices in the "
+                       "directed `graph`")
+                   << (bi::Type << (bi::Set << (bi::Type << bi::Any))));
 
   class Path
   {
@@ -179,7 +209,7 @@ namespace
 
     Node to_node(const NodeIndex& index) const
     {
-      Node argseq = NodeDef::create(ArgSeq);
+      Node argseq = NodeDef::create(Seq);
       for (auto& key : m_order)
       {
         std::string key_str(key);
@@ -255,7 +285,7 @@ namespace
         unvisited.begin(),
         unvisited.end(),
         std::back_inserter(neighbors),
-        [&graph](std::string_view key) { return contains(graph, key); });
+        [&graph](std::string_view key) { return graph.contains(key); });
 
       if (neighbors.empty())
       {
@@ -271,14 +301,47 @@ namespace
       }
     }
 
-    Node argseq = NodeDef::create(ArgSeq);
+    Node argseq = NodeDef::create(Seq);
     for (auto& path : paths)
     {
       argseq->push_back(path.to_node(nodes));
     }
 
-    return Resolver::set(argseq, false);
+    return Resolver::set(argseq);
   }
+
+  Node reachable_paths_decl = bi::Decl
+    << (bi::ArgSeq
+        << (bi::Arg
+            << (bi::Name ^ "graph")
+            << (bi::Description ^
+                "object containing a set or array of neighboring vertices")
+            << (bi::Type
+                << (bi::DynamicObject
+                    << (bi::Type << bi::Any)
+                    << (bi::Type
+                        << (bi::TypeSeq
+                            << (bi::Type
+                                << (bi::DynamicArray << (bi::Type << bi::Any)))
+                            << (bi::Type
+                                << (bi::Set << (bi::Type << bi::Any))))))))
+        << (bi::Arg << (bi::Name ^ "initial")
+                    << (bi::Description ^ "set or array of root vertices")
+                    << (bi::Type
+                        << (bi::TypeSeq
+                            << (bi::Type
+                                << (bi::DynamicArray << (bi::Type << bi::Any)))
+                            << (bi::Type
+                                << (bi::Set << (bi::Type << bi::Any)))))))
+    << (bi::Result << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "set of vertices from the `initial` vertices in the "
+                       "directed `graph`")
+                   << (bi::Type
+                       << (bi::Set
+                           << (bi::Type
+                               << (bi::DynamicArray
+                                   << (bi::Type << bi::Any))))));
 }
 
 namespace rego
@@ -288,9 +351,12 @@ namespace rego
     std::vector<BuiltIn> graph()
     {
       return {
-        BuiltInDef::create(Location("graph.reachable"), 2, reachable),
         BuiltInDef::create(
-          Location("graph.reachable_paths"), 2, reachable_paths),
+          Location("graph.reachable"), reachable_decl, reachable),
+        BuiltInDef::create(
+          Location("graph.reachable_paths"),
+          reachable_paths_decl,
+          reachable_paths),
       };
     }
   }

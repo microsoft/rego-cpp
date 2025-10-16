@@ -1,8 +1,10 @@
 #include "builtins.h"
+#include "rego.hh"
 
 namespace
 {
   using namespace rego;
+  namespace bi = rego::builtins;
 
   struct SemVer
   {
@@ -169,6 +171,18 @@ namespace
     return Int ^ "0";
   }
 
+  Node compare_decl = bi::Decl
+    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "a")
+                               << (bi::Description ^ "first version string")
+                               << (bi::Type << bi::String))
+                   << (bi::Arg << (bi::Name ^ "b")
+                               << (bi::Description ^ "second version string")
+                               << (bi::Type << bi::String)))
+    << (bi::Result << (bi::Name ^ "result")
+                   << (bi::Description ^
+                       "`-1` if `a < b`; `1` if `a > b`; `0` if `a == b`")
+                   << (bi::Type << bi::Number));
+
   Node is_valid(const Nodes& args)
   {
     auto vsn = unwrap(args[0], JSONString);
@@ -186,6 +200,17 @@ namespace
 
     return False ^ "false";
   }
+
+  Node is_valid_decl =
+    bi::Decl << (bi::ArgSeq
+                 << (bi::Arg << (bi::Name ^ "vsn")
+                             << (bi::Description ^ "input to validate")
+                             << (bi::Type << bi::Any)))
+             << (bi::Result
+                 << (bi::Name ^ "result")
+                 << (bi::Description ^
+                     "`true` if `vsn` is a valid SemVer; `false` otherwise")
+                 << (bi::Type << bi::Boolean));
 }
 
 namespace rego
@@ -195,8 +220,9 @@ namespace rego
     std::vector<BuiltIn> semver()
     {
       return {
-        BuiltInDef::create(Location("semver.compare"), 2, compare),
-        BuiltInDef::create(Location("semver.is_valid"), 1, is_valid)};
+        BuiltInDef::create(Location("semver.compare"), compare_decl, compare),
+        BuiltInDef::create(
+          Location("semver.is_valid"), is_valid_decl, is_valid)};
     }
   }
 }
