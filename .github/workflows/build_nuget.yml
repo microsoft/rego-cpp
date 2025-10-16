@@ -21,14 +21,94 @@ jobs:
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
-      - name: Pack NuGet
+      - name: Build
         working-directory: ${{github.workspace}}/wrappers/dotnet/
-        run: dotnet pack -v n
-        env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+        run: |
+          dotnet build -v n /p:Multitarget=true
 
-      - uses: action/upload-artifact@v4
+      - name: Test
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet test -v n /p:Multitarget=true
+
+      - name: Pack
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet pack -v n /p:Multitarget=true
+
+      - uses: actions/upload-artifact@v4
         with:
           name: nuget-linux
+          path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
+  build-windows-nuget:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Use dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Build
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet build -v n /p:Multitarget=true
+
+      - name: Test
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet test -v n /p:Multitarget=true
+
+      - name: Pack
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet pack -v n /p:Multitarget=true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-windows
+          path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
+  build-macos-nuget:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Use dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Build
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet build -v n /p:Multitarget=true
+
+      - name: Test
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet test -v n /p:Multitarget=true
+
+      - name: Pack
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet pack -v n /p:Multitarget=true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-macos
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
