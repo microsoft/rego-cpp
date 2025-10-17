@@ -272,6 +272,18 @@ namespace rego_test
     return "";
   }
 
+  std::filesystem::path TestCase::get_path(
+    const Node& mapping, const std::string& name)
+  {
+    auto maybe_string = maybe_get_string(mapping, name);
+    if (maybe_string.has_value())
+    {
+      return std::filesystem::path(maybe_string.value());
+    }
+
+    return std::filesystem::path();
+  }
+
   Node TestCase::get_node(const Node& mapping, const std::string& name)
   {
     Location loc(name);
@@ -604,7 +616,9 @@ namespace rego_test
 
       test_case.filename(filename)
         .modules(get_modules(filename.parent_path(), test_case_obj))
+        .data_path(get_path(test_case_obj, "data_path"))
         .input_term(get_string(test_case_obj, "input_term"))
+        .input_path(get_path(test_case_obj, "input_path"))
         .want_defined(get_bool(test_case_obj, "want_defined"))
         .want_result(get_node(test_case_obj, "want_result"))
         .want_error_code(get_string(test_case_obj, "want_error_code"))
@@ -693,7 +707,7 @@ namespace rego_test
       .log_level(log_level);
 
     std::ostringstream error;
-    Node actual;
+    Node actual = nullptr;
     for (std::size_t i = 0; i < m_modules.size(); ++i)
     {
       std::string name = "module" + std::to_string(i) + ".rego";
@@ -705,14 +719,19 @@ namespace rego_test
       }
     }
 
-    if (m_data != nullptr)
+    if (!m_data_path.empty())
+    {
+      actual = interpreter.add_data_json_file(m_data_path);
+    }
+    else if (m_data != nullptr)
     {
       actual = interpreter.add_data(m_data);
-      if (actual != nullptr)
-      {
-        error << actual;
-        return {false, error.str()};
-      }
+    }
+
+    if (actual != nullptr)
+    {
+      error << actual;
+      return {false, error.str()};
     }
 
     actual = interpreter.set_query(m_query);
@@ -760,7 +779,11 @@ namespace rego_test
       std::filesystem::remove(temp_path);
     }
 
-    if (m_input_term.size() > 0)
+    if (!m_input_path.empty())
+    {
+      actual = interpreter.set_input_json_file(m_input_path);
+    }
+    else if (!m_input_term.empty())
     {
       actual = interpreter.set_input_term(m_input_term);
     }
@@ -962,6 +985,17 @@ namespace rego_test
     return *this;
   }
 
+  const std::filesystem::path& TestCase::data_path() const
+  {
+    return m_data_path;
+  }
+
+  TestCase& TestCase::data_path(const std::filesystem::path& path)
+  {
+    m_data_path = path;
+    return *this;
+  }
+
   const Node& TestCase::input() const
   {
     return m_input;
@@ -981,6 +1015,17 @@ namespace rego_test
   TestCase& TestCase::input_term(const std::string& input_term)
   {
     m_input_term = input_term;
+    return *this;
+  }
+
+  const std::filesystem::path& TestCase::input_path() const
+  {
+    return m_input_path;
+  }
+
+  TestCase& TestCase::input_path(const std::filesystem::path& path)
+  {
+    m_input_path = path;
     return *this;
   }
 

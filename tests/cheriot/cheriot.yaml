@@ -1,0 +1,10 @@
+cases:
+- note: cheriot/compartment_allow_list
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: data.json
+  input_path: input.json
+  query: x=data.compartment.compartment_allow_list("allocator_test", {"test_runner", "allocator_test"})
+  want_result:
+    x: true
