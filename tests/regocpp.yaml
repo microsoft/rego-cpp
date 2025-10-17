@@ -1223,3 +1223,91 @@ cases:
   query: "data.test.d = x"
   want_result:
     - x: 0
+- note: regocpp/multi-compr-call
+  input:
+    nodes:
+      a:
+        imports:
+        - key: x0
+        - key: x1
+        exports:
+        - key: a0
+          kind: function
+        - key: a1
+          kind: variable
+      b:
+        imports:
+        - key: x0
+        - key: y0
+        exports: []
+      c:
+        imports:
+        - key: y0
+        - key: z0
+        exports:
+        - key: c0
+          kind: variable
+      x:
+        imports: []
+        exports:
+        - key: x0
+          kind: function
+        - key: x1
+          kind: function
+      y:
+        imports: []
+        exports:
+        - key: y0
+          kind: function
+      z:
+        imports: []
+        exports:
+        - key: z0
+          kind: function
+  modules:
+  - |
+    package test
+
+    check_export(exports, import_entry, name) if {
+        exports[import_entry.key] == name
+    }
+
+    nodes_calling(callee) := nodes if {
+      some key_map
+      key_map = { entry.key : n | entry = input.nodes[n].exports[_] ; entry.kind = "function"}
+      nodes = {c | i = input.nodes[c].imports[_]; check_export(key_map, i, callee)}
+    }
+  query: x=data.test.nodes_calling("x")
+  want_result:
+    - x:
+      - a
+      - b
+- note: regocpp/compr-expr-module
+  input:
+    lookup:
+      foo:
+        in: aleph
+        out: one
+      bar:
+        in: beth
+        out: two
+      baz:
+        in: gimel
+        out: one
+  modules:
+  - |
+    package test
+
+    a := 1
+    b := 2
+
+    check_valid(a, b) if b.out = a
+
+    c(x) := values if {
+      values := {test: y | z = input.lookup[test]; check_valid(x, z); y = z.in}
+    }
+  query: x=data.test.c("one")
+  want_result:
+    - x:
+        baz: gimel
+        foo: aleph

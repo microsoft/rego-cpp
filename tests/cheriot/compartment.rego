@@ -72,7 +72,7 @@ shared_object_imports_for_compartment(compartment) = entry if {
 }
 
 compartment_imports_shared_object(compartment, object) if {
-    count([d | d = shared_object_imports_for_compartment(compartment)[_] ; d.shared_object = object)]) > 0
+    count([d | d = shared_object_imports_for_compartment(compartment)[_] ; d.shared_object = object]) > 0
 }
 
 compartment_imports_shared_object_writeable(compartment, object) if {
@@ -93,7 +93,7 @@ compartment_export_matching_symbol(compartmentName, symbol) = export if {
     some compartment
     compartment = input.compartments[compartmentName]
     some exports
-    exports = [e | e = compartment.exports[_]; re_match(symbol, export_entry_demangle(compartmentName, e.export_symbol))]
+    exports = [e | e = compartment.exports[_]; regex.match(symbol, export_entry_demangle(compartmentName, e.export_symbol))]
     count(exports) == 1
     export := exports[0]
 }

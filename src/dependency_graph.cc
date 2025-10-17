@@ -87,6 +87,11 @@ namespace rego
       Node current = frontier.back();
       frontier.pop_back();
 
+      if (current == Term)
+      {
+        current = current->front();
+      }
+
       if (current == UnifyVar)
       {
         names.insert(std::string(current->location().view()));
@@ -122,7 +127,7 @@ namespace rego
       if (current->in({ArrayCompr, ObjectCompr, SetCompr}))
       {
         Node query = current / Query;
-        DependencyGraph subgraph(m_scope, {query->begin(), query->end()});
+        DependencyGraph subgraph(current, {query->begin(), query->end()});
         names.insert(subgraph.captures().begin(), subgraph.captures().end());
         continue;
       }
@@ -173,15 +178,35 @@ namespace rego
 
     if (expr == ExprScan)
     {
-      std::string indexname((expr / Key)->front()->location().view());
-      std::string valuename((expr / Val)->front()->location().view());
-      std::string indexname_empty = indexname + "#empty";
-      std::string valuename_empty = valuename + "#empty";
-      node.in_edges.insert(indexname_empty);
-      node.in_edges.insert(valuename_empty);
-      node.out_edges.insert(indexname);
-      node.out_edges.insert(valuename);
       add_locals(node.in_edges, expr / Expr);
+      Node query = expr->back();
+      if (query != Query)
+      {
+        // this is the first time this scan has been seen
+        std::string indexname((expr / Key)->front()->location().view());
+        std::string valuename((expr / Val)->front()->location().view());
+        std::string indexname_empty = indexname + "#empty";
+        std::string valuename_empty = valuename + "#empty";
+        node.in_edges.insert(indexname_empty);
+        node.in_edges.insert(valuename_empty);
+        node.out_edges.insert(indexname);
+        node.out_edges.insert(valuename);
+      }
+      else
+      {
+        // the scan has already been processed and turned into a valid subgraph
+        DependencyGraph subgraph(m_scope, {query->begin(), query->end()});
+        for (auto name : subgraph.captures())
+        {
+          if (name.starts_with("scanindex$") || name.starts_with("scanvalue$"))
+          {
+            continue;
+          }
+
+          node.in_edges.insert(name);
+        }
+      }
+
       return;
     }
 

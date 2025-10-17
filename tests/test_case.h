@@ -9,6 +9,8 @@ namespace rego_test
   using BindingMap = std::map<std::string, std::string>;
   using BindingMaps = std::map<std::string, BindingMap>;
 
+  std::vector<BuiltIn> custom_builtins(const std::string& note);
+
   struct Result
   {
     bool passed;
@@ -122,7 +124,10 @@ namespace rego_test
     static std::optional<std::string> maybe_get_string(
       const Node& mapping, const std::string& name);
     static std::string get_string(const Node& mapping, const std::string& name);
-    static std::filesystem::path get_path(const Node& mapping, const std::string& name);
+    static std::filesystem::path get_path(
+      const std::filesystem::path& dir,
+      const Node& mapping,
+      const std::string& name);
     static Node get_node(const Node& mapping, const std::string& name);
     static bool get_bool(const Node& mapping, const std::string& name);
     static std::vector<std::string> get_modules(
