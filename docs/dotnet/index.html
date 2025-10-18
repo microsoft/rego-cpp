@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="">
       
       
-      <meta name="docfx:docurl" content="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/index.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/matajoh/rego-cpp/blob/main/wrappers/dotnet/index.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -89,8 +89,8 @@
 
 <p>Evaluate <a href="https://www.openpolicyagent.org/docs/latest/policy-language/">Rego</a> natively
 in .NET programs easily using this library.</p>
-<h1 id="integrating-a-policy">Integrating a Policy</h1>
-<p>In this section we will write a <code>Policy</code> class that uses Rego to determine room
+<h2 id="creating-a-project">Creating a Project</h2>
+<p>In this section we will write a policy class that uses Rego to determine room
 access in a building.</p>
 <blockquote>
 <p>Prerequisites</p>
@@ -99,14 +99,174 @@ access in a building.</p>
 </ul>
 </blockquote>
 <p>Make sure you have <a href="https://dotnet.microsoft.com/en-us/download">.NET SDK</a>
-installed, then open a terminal and enter the following command to install
-the latest version of Rego:</p>
-<p><strong>WIP</strong></p>
+installed, then open a terminal and enter the following commands to create a new
+project and install the latest version of Rego:</p>
+<pre><code>dotnet new console -n MyPolicy
+cd MyPolicy
+dotnet add package Rego --version 1.0.0
+</code></pre>
+<h2 id="adding-a-policy-class">Adding a Policy Class</h2>
+<p>Begin by added the following C# class to your new project:</p>
+<p><code>RoomAccess.cs</code></p>
+<pre><code class="lang-csharp">using Rego;
+
+class RoomAccess
+{
+    /// &lt;summary&gt;
+    /// This is a Rego policy for room access
+    /// &lt;/summary&gt;
+    const string Policy = &quot;&quot;&quot;
+    package room
+
+    default allow := false
+
+    allow if {
+        input.room in data.users[input.name].clearance
+    }
+
+    allow if {
+        data.users[input.name].security_staff
+        input.room in data.rooms
+    }
+
+    errors contains &quot;unknown room&quot; if {
+        not input.room in data.rooms
+    }
+
+    errors contains &quot;unknown user&quot; if {
+        not data.users[input.name]
+    }
+
+    errors contains &quot;user does not have access to room&quot; if {
+        user := data.users[input.name]
+        not user.security_staff
+        input.room in data.rooms
+        not input.room in user.rooms
+    }
+    &quot;&quot;&quot;;
+
+    /// &lt;summary&gt;
+    /// The interpreter object applies policy to inputs
+    /// &lt;/summary&gt;
+    private Interpreter m_interpreter;
+
+    /// &lt;summary&gt;
+    /// A bundle is a compiled policy that can be reused with different inputs
+    /// &lt;/summary&gt;
+    private Bundle m_bundle;
+
+    /// &lt;summary&gt;
+    /// The constructor takes a JSON string representing the room access database. This
+    /// will contain a list of user objects specifying clearance or security staff status,
+    /// and a list of rooms.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;database_json&quot;&gt;JSON database&lt;/param&gt;
+    public RoomAccess(string database_json)
+    {
+        m_interpreter = new Interpreter();
+        m_interpreter.AddModule(&quot;room.rego&quot;, Policy);
+        m_interpreter.AddDataJson(database_json);
+
+        // when compilng this policy, we will specify two entrypoints for later evaluation
+        m_bundle = m_interpreter.Build([&quot;room/allow&quot;, &quot;room/errors&quot;]);
+    }
+
+    /// &lt;summary&gt;
+    /// Checks whether `name` can access `room`.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;name&quot;&gt;The user name&lt;/param&gt;
+    /// &lt;param name=&quot;room&quot;&gt;The room ID&lt;/param&gt;
+    /// &lt;returns&gt;Whether the user is allowed to access the room&lt;/returns&gt;
+    public bool Check(string name, string room)
+    {
+        // First, we set the input of the interpreter with the new data
+        m_interpreter.SetInput(Input.Create(new Dictionary&lt;string, object&gt;
+        {
+            {&quot;name&quot;, name },
+            {&quot;room&quot;, room }
+        }));
+
+        // Now we query the bundle.
+        var output = m_interpreter.QueryBundle(m_bundle, &quot;room/allow&quot;);
+        if ((bool)output.Expressions()[0].Value)
+        {
+            // Access is granted
+            Console.WriteLine(&quot;{0} is allowed in room {1}&quot;, name, room);
+            return true;
+        }
+
+        // The user was denied, so we query the policy to find out why
+        Console.WriteLine(&quot;{0} is denied access to room {1}&quot;, name, room);
+        output = m_interpreter.QueryBundle(m_bundle, &quot;room/errors&quot;);
+        Console.Error.WriteLine(output);
+        return false;
+    }
+}
+</code></pre>
+<p>This class will allow us to apply Rego policy to inputs.</p>
+<h2 id="putting-it-all-together">Putting it All Together</h2>
+<p>Now that we have a policy class, we can exercise it to see how it performs.
+Add the following file to your project:</p>
+<p><code>Program.cs</code></p>
+<pre><code class="lang-csharp">RoomAccess roomAccess = new RoomAccess(&quot;&quot;&quot;
+{
+    &quot;users&quot;: {
+        &quot;alice&quot;: {
+            &quot;clearance&quot;: [&quot;alpha&quot;, &quot;gamma&quot;]
+        },
+        &quot;bob&quot;: {
+            &quot;clearance&quot;: [&quot;beta&quot;, &quot;gamma&quot;]
+        },
+        &quot;charlie&quot;: {
+            &quot;security_staff&quot;: true
+        }
+    },
+    &quot;rooms&quot;: [&quot;alpha&quot;, &quot;beta&quot;, &quot;gamma&quot;]
+}
+&quot;&quot;&quot;);
+
+roomAccess.Check(&quot;alice&quot;, &quot;alpha&quot;);
+// alice is allowed in room alpha
+roomAccess.Check(&quot;bob&quot;, &quot;alpha&quot;);
+// bob is denied access to room alpha
+// {&quot;expressions&quot;:[[&quot;user does not have access to room&quot;]]}
+roomAccess.Check(&quot;charlie&quot;, &quot;gamma&quot;);
+// charlie is allowed in room gamma
+roomAccess.Check(&quot;doug&quot;, &quot;alpha&quot;);
+// doug is denied access to room alpha
+// {&quot;expressions&quot;:[[&quot;unknown user&quot;]]}
+roomAccess.Check(&quot;charlie&quot;, &quot;epsilon&quot;);
+// charlie is denied access to room epsilon
+// {&quot;expressions&quot;:[[&quot;unknown room&quot;]]}
+</code></pre>
+<p>Now we can run our program:</p>
+<pre><code>dotnet run
+</code></pre>
+<p>The output should be:</p>
+<pre><code class="lang-bash">alice is allowed in room alpha
+
+bob is denied access to room alpha
+{&quot;expressions&quot;:[[&quot;user does not have access to room&quot;]]}
+
+charlie is allowed in room gamma
+
+doug is denied access to room alpha
+{&quot;expressions&quot;:[[&quot;unknown user&quot;]]}
+
+charlie is denied access to room epsilon
+{&quot;expressions&quot;:[[&quot;unknown room&quot;]]}
+</code></pre>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><a href="docs/getting-started.html">Getting Started</a></li>
+<li><a class="xref" href="api/Rego.Interpreter.html" title="Interpreter Class">Interpreter</a></li>
+<li><a class="xref" href="api/Rego.html" title="API">API</a></li>
+</ul>
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/matajoh/rego-cpp/blob/compile/wrappers/dotnet/index.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/matajoh/rego-cpp/blob/main/wrappers/dotnet/index.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>
