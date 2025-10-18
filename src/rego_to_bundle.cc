@@ -1454,6 +1454,14 @@ namespace
             return NoChange;
           }
 
+          Node compr_every =
+            _(Var)->parent({ExprEvery, ObjectCompr, ArrayCompr, SetCompr});
+          if (compr_every != nullptr)
+          {
+            // this variable is not at the rule level
+            return NoChange;
+          }
+
           Node rule = _(Var)->parent(Rule);
           if (rule_locals->find(rule) == rule_locals->end())
           {
@@ -1505,7 +1513,19 @@ namespace
   Nodes lookup_var(Node var)
   {
     // check if something already exists in scope
-    Nodes results = var->lookup();
+    Node ruleheadquery = var->parent(RuleHeadQuery);
+    Node module = var->parent(Module);
+    Nodes results;
+    if (ruleheadquery == nullptr)
+    {
+      results = var->lookup(module);
+    }
+    else
+    {
+      // the query is not restricted by module
+      results = var->lookup();
+    }
+
     if (!results.empty())
     {
       return results;
@@ -1513,7 +1533,6 @@ namespace
 
     // check if this name exists in a different module with the same package
     // name
-    Node module = var->parent(Module);
     Node ident = module / Ident;
     Nodes modules = ident->lookup();
     if (modules.size() < 2)
@@ -2641,6 +2660,17 @@ namespace
           return UnifyVar ^ _(Var);
         },
 
+        In(Literal) *
+            (T(ExprUnify)
+             << ((T(Expr)[Lhs] << T(ExprInfix, ExprCall, UnaryExpr)) *
+                 (T(Expr)[Rhs] << T(ExprInfix, ExprCall, UnaryExpr)))) >>
+          [](Match& _) {
+            return Expr
+              << (ExprInfix << _(Lhs)
+                            << (InfixOperator << (BoolOperator << Equals))
+                            << _(Rhs));
+          },
+
         In(ExprUnify) * T(FuncArgVar)[Var] >>
           [](Match& _) { return Expr << (Term << (Var ^ _(Var))); },
 
@@ -3520,12 +3550,16 @@ namespace
               rule_locals->at(rule).push_back(_(Val));
 
               Node ruleheadquery = _(Query)->parent(RuleHeadQuery);
+              Node compr_every = _(Query)->parent(
+                {ObjectCompr, SetCompr, ArrayCompr, ExprEvery});
+              bool add_resultexpr =
+                ruleheadquery != nullptr && compr_every == nullptr;
 
               Node block = NodeDef::create(Block);
               for (Node literal : *_(Query))
               {
                 add_literal_to_block(block, literal);
-                if (ruleheadquery)
+                if (add_resultexpr)
                 {
                   Node expr = literal->front();
                   if (expr == OpBlock)

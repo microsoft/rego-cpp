@@ -1,0 +1,83 @@
+cases:
+- note: cheriot/compartment_allow_list
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=data.compartment.compartment_allow_list("allocator_test", {"test_runner", "allocator_test"})
+  want_result:
+    - x: true
+- note: cheriot/compartment_callers
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=data.compartment.compartments_calling("allocator_test")
+  want_result:
+    - x:
+      - allocator_test
+      - test_runner
+- note: cheriot/compartment_check
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=data.compartment.compartment_call_allow_list("allocator_test", `test_allocator\(\)`, {"test_runner"})
+  want_result:
+    - x: true
+- note: cheriot/demangle_compartment_call
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=export_entry_demangle("alloc", input.compartments.allocator.exports[6].export_symbol)
+  want_result:
+    - x: heap_free(SObjStruct*, void*)
+- note: cheriot/demangle_libcall
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=export_entry_demangle("token_library", input.compartments.token_library.exports[0].export_symbol)
+  want_result:
+    - x: token_obj_unseal(SKeyStruct*, SObjStruct*)
+- note: cheriot/mmio_check
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=data.compartment.mmio_allow_list("clint", {"scheduler"})
+  want_result:
+    - x: true
+- note: cheriot/sum_quotas
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=sum([ data.rtos.decode_allocator_capability(c).quota | c = input.compartments[_].imports[_] ; data.rtos.is_allocator_capability(c) ])
+  want_result:
+    - x: 1078272
+- note: cheriot/invalid_hex
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=integer_from_hex_string("00010000", 3, 2)
+  want_defined: false
+- note: cheriot/valid_hex
+  modules:
+  - compartment.rego
+  - rtos.rego
+  data_path: sail.json
+  input_path: test-suite.json
+  query: x=integer_from_hex_string("00010000", 1, 2)
+  want_result:
+    - x: 1

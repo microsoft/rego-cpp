@@ -1,4 +1,4 @@
-add_executable(rego_test main.cc test_case.cc)
+add_executable(rego_test main.cc test_case.cc builtins.cc)
 target_link_libraries(rego_test
   PRIVATE 
   regocpp::rego)
@@ -29,6 +29,13 @@ set_property(TEST rego_invalid_input PROPERTY WILL_FAIL On)
 set_property(TEST rego_invalid_large PROPERTY WILL_FAIL On)
 set_property(TEST rego_test_aci PROPERTY TIMEOUT 300)
 
+if(MSVC)
+  message("cheriot tests are disabled on Windows due to lack of demangling support")
+else()
+  add_test(NAME rego_test_cheriot COMMAND rego_test cheriot/cheriot.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+endif()
+
+
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/regocpp.yaml $<TARGET_FILE_DIR:rego_test>/regocpp.yaml)
 add_custom_command(TARGET rego_test POST_BUILD
@@ -39,6 +46,8 @@ add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/aci $<TARGET_FILE_DIR:rego_test>/aci)
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/cts $<TARGET_FILE_DIR:rego_test>/cts)
+add_custom_command(TARGET rego_test POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/cheriot $<TARGET_FILE_DIR:rego_test>/cheriot)
 
 if(REGOCPP_OPA_TESTS)
   set( OPA_TEST_DIRS

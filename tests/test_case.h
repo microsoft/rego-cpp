@@ -9,6 +9,8 @@ namespace rego_test
   using BindingMap = std::map<std::string, std::string>;
   using BindingMaps = std::map<std::string, BindingMap>;
 
+  std::vector<BuiltIn> custom_builtins(const std::string& note);
+
   struct Result
   {
     bool passed;
@@ -61,6 +63,9 @@ namespace rego_test
     const Node& data() const;
     TestCase& data(const Node& data);
 
+    const std::filesystem::path& data_path() const;
+    TestCase& data_path(const std::filesystem::path& path);
+
     /// parsed input data to use
     const Node& input() const;
     TestCase& input(const Node& input);
@@ -68,6 +73,10 @@ namespace rego_test
     /// raw input data (serialized to a string, overrides input)
     const std::string& input_term() const;
     TestCase& input_term(const std::string& input_term);
+
+    /// path to input file (overrides input)
+    const std::filesystem::path& input_path() const;
+    TestCase& input_path(const std::filesystem::path& path);
 
     /// expect query result to be defined (or not)
     bool want_defined() const;
@@ -115,6 +124,10 @@ namespace rego_test
     static std::optional<std::string> maybe_get_string(
       const Node& mapping, const std::string& name);
     static std::string get_string(const Node& mapping, const std::string& name);
+    static std::filesystem::path get_path(
+      const std::filesystem::path& dir,
+      const Node& mapping,
+      const std::string& name);
     static Node get_node(const Node& mapping, const std::string& name);
     static bool get_bool(const Node& mapping, const std::string& name);
     static std::vector<std::string> get_modules(
@@ -130,7 +143,9 @@ namespace rego_test
     std::string m_query;
     std::vector<std::string> m_modules;
     Node m_data;
+    std::filesystem::path m_data_path;
     Node m_input;
+    std::filesystem::path m_input_path;
     std::string m_input_term;
     bool m_want_defined;
     Node m_want_result;

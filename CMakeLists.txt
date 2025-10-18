@@ -247,6 +247,7 @@ if (REGOCPP_BUILD_TESTS)
   install(DIRECTORY tests/aci DESTINATION tests)
   install(DIRECTORY tests/cts DESTINATION tests)
   install(DIRECTORY tests/opa DESTINATION tests)
+  install(DIRECTORY tests/cheriot DESTINATION tests)
 endif()
 
 export(EXPORT ${PROJECT_NAME}_Targets

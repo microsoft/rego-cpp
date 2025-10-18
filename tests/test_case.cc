@@ -6,79 +6,6 @@
 
 #include <filesystem>
 #include <stdexcept>
-#include <thread>
-
-namespace
-{
-  using namespace rego;
-  namespace bi = rego::builtins;
-
-  const std::size_t second_ns = 1000000000UL;
-  const std::size_t minute_ns = 60UL * second_ns;
-  const std::size_t hour_ns = 60UL * minute_ns;
-
-  const std::map<std::string, double> duration_units = {
-    {"ns", 1},
-    {"us", 1000},
-    {"µs", 1000},
-    {"ms", 1000000},
-    {"s", double(second_ns)},
-    {"m", double(minute_ns)},
-    {"h", double(hour_ns)}};
-
-  std::chrono::nanoseconds parse_duration(const std::string& duration)
-  {
-    const char* duration_re =
-      R"((-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?)((?:ns|us|µs|ms|s|m|h)))";
-    const RE2 re(duration_re);
-    assert(re.ok());
-
-    std::string number;
-    std::string unit;
-    std::int64_t ns = 0;
-    std::size_t start = 0;
-    while (start < duration.size())
-    {
-      re2::StringPiece input(duration.c_str() + start, duration.size() - start);
-      if (RE2::PartialMatch(input, re, &number, &unit))
-      {
-        double number_d = std::stod(number);
-        double unit_ns = duration_units.at(unit);
-        ns += std::int64_t(number_d * unit_ns);
-        start += number.size() + unit.size();
-      }
-      else
-      {
-        break;
-      }
-    }
-
-    return std::chrono::nanoseconds(ns);
-  }
-
-  Node test_sleep(const Nodes& args)
-  {
-    Node duration =
-      unwrap_arg(args, UnwrapOpt(0).type(JSONString).func("test.sleep"));
-    if (duration == Error)
-    {
-      return duration;
-    }
-
-    std::chrono::nanoseconds ns = parse_duration(get_string(duration));
-    std::this_thread::sleep_for(ns);
-
-    return Term << (Scalar << (True ^ "true"));
-  }
-
-  Node test_sleep_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "duration")
-                             << (bi::Description ^ "time in nanoseconds")
-                             << (bi::Type << bi::Number)))
-             << (bi::Result << (bi::Name ^ "void") << bi::Description
-                            << (bi::Type << bi::Boolean));
-}
 
 namespace rego_test
 {
@@ -270,6 +197,20 @@ namespace rego_test
     }
 
     return "";
+  }
+
+  std::filesystem::path TestCase::get_path(
+    const std::filesystem::path& dir,
+    const Node& mapping,
+    const std::string& name)
+  {
+    auto maybe_string = maybe_get_string(mapping, name);
+    if (maybe_string.has_value())
+    {
+      return dir / maybe_string.value();
+    }
+
+    return std::filesystem::path();
   }
 
   Node TestCase::get_node(const Node& mapping, const std::string& name)
@@ -604,7 +545,10 @@ namespace rego_test
 
       test_case.filename(filename)
         .modules(get_modules(filename.parent_path(), test_case_obj))
+        .data_path(get_path(filename.parent_path(), test_case_obj, "data_path"))
         .input_term(get_string(test_case_obj, "input_term"))
+        .input_path(
+          get_path(filename.parent_path(), test_case_obj, "input_path"))
         .want_defined(get_bool(test_case_obj, "want_defined"))
         .want_result(get_node(test_case_obj, "want_result"))
         .want_error_code(get_string(test_case_obj, "want_error_code"))
@@ -685,15 +629,14 @@ namespace rego_test
   {
     rego::Interpreter interpreter;
     interpreter.builtins()->strict_errors(m_strict_error);
-    interpreter.builtins()->register_builtin(
-      BuiltInDef::create(Location("test.sleep"), test_sleep_decl, test_sleep));
+    interpreter.builtins()->register_builtins(custom_builtins(m_note));
     interpreter.wf_check_enabled(wf_checks)
       .debug_enabled(!debug_path.empty())
       .debug_path(debug_path)
       .log_level(log_level);
 
     std::ostringstream error;
-    Node actual;
+    Node actual = nullptr;
     for (std::size_t i = 0; i < m_modules.size(); ++i)
     {
       std::string name = "module" + std::to_string(i) + ".rego";
@@ -705,14 +648,19 @@ namespace rego_test
       }
     }
 
-    if (m_data != nullptr)
+    if (!m_data_path.empty())
+    {
+      actual = interpreter.add_data_json_file(m_data_path);
+    }
+    else if (m_data != nullptr)
     {
       actual = interpreter.add_data(m_data);
-      if (actual != nullptr)
-      {
-        error << actual;
-        return {false, error.str()};
-      }
+    }
+
+    if (actual != nullptr)
+    {
+      error << actual;
+      return {false, error.str()};
     }
 
     actual = interpreter.set_query(m_query);
@@ -760,7 +708,11 @@ namespace rego_test
       std::filesystem::remove(temp_path);
     }
 
-    if (m_input_term.size() > 0)
+    if (!m_input_path.empty())
+    {
+      actual = interpreter.set_input_json_file(m_input_path);
+    }
+    else if (!m_input_term.empty())
     {
       actual = interpreter.set_input_term(m_input_term);
     }
@@ -962,6 +914,17 @@ namespace rego_test
     return *this;
   }
 
+  const std::filesystem::path& TestCase::data_path() const
+  {
+    return m_data_path;
+  }
+
+  TestCase& TestCase::data_path(const std::filesystem::path& path)
+  {
+    m_data_path = path;
+    return *this;
+  }
+
   const Node& TestCase::input() const
   {
     return m_input;
@@ -981,6 +944,17 @@ namespace rego_test
   TestCase& TestCase::input_term(const std::string& input_term)
   {
     m_input_term = input_term;
+    return *this;
+  }
+
+  const std::filesystem::path& TestCase::input_path() const
+  {
+    return m_input_path;
+  }
+
+  TestCase& TestCase::input_path(const std::filesystem::path& path)
+  {
+    m_input_path = path;
     return *this;
   }
 
