@@ -751,8 +751,9 @@ extern "C"
     assert(node_ptr->type() == rego::Results);
     trieste::WFContext context(rego::wf_result);
 
-    for (auto result : *node_ptr)
+    if (index >= node_ptr->size())
     {
+      return nullptr;
     }
 
     rego::Node result = node_ptr->at(index);
