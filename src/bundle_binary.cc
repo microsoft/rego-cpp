@@ -422,7 +422,7 @@ namespace
           }
 
           logging::Error() << "Invalid boolean id: " << boolean_id;
-          throw std::format_error("Invalid boolean id");
+          throw std::runtime_error("Invalid boolean id");
         }
 
         case NullId:
@@ -437,7 +437,7 @@ namespace
           if (!(subtype_id == IntStringId || subtype_id == FloatStringId))
           {
             logging::Error() << "Invalid binary subtype: " << subtype_id;
-            throw std::format_error("Invalid binary subtype");
+            throw std::runtime_error("Invalid binary subtype");
           }
           std::basic_string<Char> string;
           string.resize(size);
@@ -454,7 +454,7 @@ namespace
 
         default:
           logging::Error() << "Invalid element id: " << element_id;
-          throw std::format_error("Invalid element ID");
+          throw std::runtime_error("Invalid element ID");
       }
     }
 
@@ -1213,7 +1213,7 @@ namespace
       if (loc_id != 2)
       {
         logging::Error() << "Unexpected location id: " << loc_id;
-        throw std::format_error("Unexpected location id");
+        throw std::runtime_error("Unexpected location id");
       }
 
       size_t idx = read_size();
@@ -1247,7 +1247,7 @@ namespace
       int8_t actual = bson::read_sbyte(m_istream);
       if (actual != expected)
       {
-        throw std::format_error(error);
+        throw std::runtime_error(error);
       }
     }
 
@@ -1345,7 +1345,7 @@ namespace
 
         default:
           logging::Error() << "Unrecognized built-in type id: " << type_id;
-          throw std::format_error("Unrecognized built-in type id");
+          throw std::runtime_error("Unrecognized built-in type id");
       }
     }
 
