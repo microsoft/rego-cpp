@@ -2,6 +2,7 @@ from collections.abc import Mapping, Sequence, Set
 import ctypes
 from enum import IntEnum
 import os
+import platform
 from typing import Any
 
 
@@ -70,17 +71,20 @@ class RegoError(Exception):
 
 
 module_dir = os.path.dirname(__file__)
-if os.path.exists(os.path.join(module_dir, "rego_shared.dll")):
-    path = os.path.join(module_dir, "rego_shared.dll")
-elif os.path.exists(os.path.join(module_dir, "librego_shared.so")):
-    path = os.path.join(module_dir, "librego_shared.so")
-elif os.path.exists(os.path.join(module_dir, "librego_shared.dylib")):
-    path = os.path.join(module_dir, "librego_shared.dylib")
+
+win_path = os.path.join(module_dir, "rego_shared.dll")
+linux_path = os.path.join(module_dir, "librego_shared.so")
+mac_path = os.path.join(module_dir, "librego_shared.dylib")
+if platform.uname()[0] == "Windows" and os.path.exists(win_path):
+    path = win_path
+elif platform.uname()[0] == "Linux" and os.path.exists(linux_path):
+    path = linux_path
+elif platform.uname()[0] == "Darwin" and os.path.exists(mac_path):
+    path = mac_path
 else:
-    raise RegoError("Could not find rego_shared library")
+    raise RegoError(f"Could not find rego_shared library (platform={platform.uname()[0]})")
 
 rego = ctypes.cdll.LoadLibrary(path)
-
 
 rego.regoSetLogLevel.restype = ctypes.c_uint32
 rego.regoSetLogLevel.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
