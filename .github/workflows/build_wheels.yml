@@ -71,6 +71,45 @@ jobs:
         with:
           name: wheels-${{ matrix.python }}-mac
           path: ./wheelhouse/*.whl
+  build_mac_intel_wheels:
+    name: Build wheels on mac
+    runs-on: macos-15-intel
+    strategy:
+      matrix:
+        python: [cp310, cp311, cp312, cp313]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        id: python
+        with:
+          python-version: "3.10 - 3.13"
+          update-environment: false
+      
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Fix path
+        run: |
+          export PATH=$(python3 -m site --user-base)/bin:$PATH
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3.2.1
+        env:
+          CIBW_BUILD: ${{ matrix.python }}-macosx*
+          CIBW_ARCHS_MACOS: x86_64
+          CIBW_ENVIRONMENT_MACOS : >
+            REGOCPP_REPO=https://github.com/${{github.repository}}
+            REGOCPP_TAG=${{github.sha}}
+        with:
+          package-dir: ${{github.workspace}}/wrappers/python/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.python }}-mac-intel
+          path: ./wheelhouse/*.whl
   build_manylinux_wheels:
     name: Build wheels on manylinux
     runs-on: ubuntu-latest
@@ -134,6 +173,7 @@ jobs:
       needs:
         - build_windows_wheels
         - build_mac_wheels
+        - build_mac_intel_wheels
         - build_manylinux_wheels
         - build_musllinux_wheels
       runs-on: ubuntu-latest
