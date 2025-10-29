@@ -76,7 +76,7 @@ jobs:
         with:
           name: nuget-windows
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
-  build-macos-nuget:
+  build-macos-arm64-nuget:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -110,5 +110,41 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nuget-macos
+          name: nuget-macos-arm64
+          path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
+  build-macos-x86_64-nuget:
+    runs-on: macos-15-intel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Use dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Git config for fetching pull requests
+        run: |
+          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
+
+      - name: Build
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet build -v n /p:Multitarget=true
+
+      - name: Test
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet test -v n /p:Multitarget=true
+
+      - name: Pack
+        working-directory: ${{github.workspace}}/wrappers/dotnet/
+        run: |
+          dotnet pack -v n /p:Multitarget=true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-macos-x86_64
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
