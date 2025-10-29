@@ -33,7 +33,7 @@ jobs:
           name: wheels-${{ matrix.python }}-windows
           path: ./wheelhouse/*.whl
   build_mac_wheels:
-    name: Build wheels on mac
+    name: Build wheels on macos/arm64
     runs-on: macos-latest
     strategy:
       matrix:
@@ -69,10 +69,10 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.python }}-mac
+          name: wheels-${{ matrix.python }}-mac-arm64
           path: ./wheelhouse/*.whl
   build_mac_intel_wheels:
-    name: Build wheels on mac
+    name: Build wheels on macos/x86_64
     runs-on: macos-15-intel
     strategy:
       matrix:
@@ -100,6 +100,7 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: x86_64
+          MACOSX_DEPLOYMENT_TARGET: 14.8.1
           CIBW_ENVIRONMENT_MACOS : >
             REGOCPP_REPO=https://github.com/${{github.repository}}
             REGOCPP_TAG=${{github.sha}}
@@ -108,7 +109,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.python }}-mac-intel
+          name: wheels-${{ matrix.python }}-mac-x86_64
           path: ./wheelhouse/*.whl
   build_manylinux_wheels:
     name: Build wheels on manylinux

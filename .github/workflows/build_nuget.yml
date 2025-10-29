@@ -76,7 +76,7 @@ jobs:
         with:
           name: nuget-windows
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
-  build-macos-nuget:
+  build-macos-arm64-nuget:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -110,9 +110,9 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nuget-macos
+          name: nuget-macos-arm64
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
-  build-macos-intel-nuget:
+  build-macos-x86_64-nuget:
     runs-on: macos-15-intel
     steps:
       - name: Checkout
@@ -146,5 +146,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nuget-macos
+          name: nuget-macos-x86_64
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg

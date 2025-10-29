@@ -363,7 +363,7 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/python/ 
         run: pytest -vv
 
-  macos:
+  macos-arm64:
     runs-on: macos-latest
 
     steps:
@@ -385,7 +385,7 @@ jobs:
         working-directory: ${{github.workspace}}/build
         run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
 
-  macos-wrappers-c:
+  macos-arm64-wrappers-c:
     runs-on: macos-latest
 
     steps:
@@ -415,7 +415,7 @@ jobs:
         working-directory: ${{github.workspace}}/examples/c/build
         run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
 
-  macos-wrappers-dotnet:
+  macos-arm64-wrappers-dotnet:
     runs-on: macos-latest
 
     steps:
@@ -441,7 +441,7 @@ jobs:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
 
-  macos-wrappers-rust:
+  macos-arm64-wrappers-rust:
     runs-on: macos-latest
 
     steps:
@@ -463,7 +463,7 @@ jobs:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
 
-  macos-wrappers-python:
+  macos-arm64-wrappers-python:
     runs-on: macos-latest
     strategy:
       matrix:
@@ -496,7 +496,7 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/python/ 
         run: pytest -vv
 
-  macos-intel:
+  macos-x86_64:
     runs-on: macos-15-intel
 
     steps:
@@ -518,7 +518,7 @@ jobs:
         working-directory: ${{github.workspace}}/build
         run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
 
-  macos-intel-wrappers-dotnet:
+  macos-x86_64-wrappers-dotnet:
     runs-on: macos-15-intel
 
     steps:
@@ -544,7 +544,7 @@ jobs:
           REGOCPP_REPO: https://github.com/${{github.repository}}
           REGOCPP_TAG: ${{github.sha}}
 
-  macos-intel-wrappers-python:
+  macos-x86_64-wrappers-python:
     runs-on: macos-15-intel
     strategy:
       matrix:
