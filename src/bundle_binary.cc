@@ -279,7 +279,7 @@ namespace
         write_objectitem(bson_buf, objitem);
       }
 
-      write_document(stream, bson_buf.str());
+      write_document(stream, bson_buf.view());
     }
 
     template <typename Char>
@@ -291,7 +291,7 @@ namespace
         write_term(bson_buf, std::to_string(i), array->at(i));
       }
 
-      write_document(stream, bson_buf.str());
+      write_document(stream, bson_buf.view());
     }
 
     template <typename Char>
@@ -501,9 +501,9 @@ namespace
       update_header();
     }
 
-    std::string str()
+    std::string_view view()
     {
-      return m_ostream.str();
+      return m_ostream.view();
     }
 
   private:
@@ -545,7 +545,7 @@ namespace
       const int num_locs = 5;
       const int preamble_size =
         strlen(Magic) + 1 + 1 + 1 + NumReservedBytes + sizeof(uint32_t);
-      std::string bytes = m_ostream.str();
+      std::string_view bytes = m_ostream.view();
       uint64_t start = HeaderSize;
       uint64_t size = bytes.size() - start;
       const uint8_t* ptr =
@@ -1739,8 +1739,8 @@ namespace rego
   {
     oregostream stream;
     stream.write_bundle(*this);
-    std::string bytes = stream.str();
-    ostream.write(bytes.data(), bytes.size());
+    std::string_view view = stream.view();
+    ostream.write(view.data(), view.size());
   }
 
   Bundle BundleDef::load(std::istream& istream)
