@@ -97,9 +97,16 @@ class CMakeBuild(build_ext):
         if os.path.exists(os.path.join(output_dir, "Release")):
             output_dir = os.path.join(output_dir, "Release")
 
+        if platform.uname()[0] == "Windows":
+            dynamic_lib_ext = ".dll"
+        elif platform.uname()[0] == "Darwin":
+            dynamic_lib_ext = ".dylib"
+        else:
+            dynamic_lib_ext = ".so"
+
         os.makedirs(extdir, exist_ok=True)
         for name in os.listdir(output_dir):
-            if name.endswith(".dll") or name.endswith(".so") or name.endswith(".dylib"):
+            if name.endswith(dynamic_lib_ext):
                 ext_path = os.path.join(output_dir, name)
                 self.copy_file(ext_path, extdir)
 
