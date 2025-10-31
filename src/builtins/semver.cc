@@ -1,4 +1,4 @@
-#include "builtins.h"
+#include "builtins.hh"
 #include "rego.hh"
 
 namespace
@@ -171,17 +171,21 @@ namespace
     return Int ^ "0";
   }
 
-  Node compare_decl = bi::Decl
-    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "a")
-                               << (bi::Description ^ "first version string")
-                               << (bi::Type << bi::String))
-                   << (bi::Arg << (bi::Name ^ "b")
-                               << (bi::Description ^ "second version string")
-                               << (bi::Type << bi::String)))
-    << (bi::Result << (bi::Name ^ "result")
-                   << (bi::Description ^
-                       "`-1` if `a < b`; `1` if `a > b`; `0` if `a == b`")
-                   << (bi::Type << bi::Number));
+  BuiltIn compare_factory()
+  {
+    const Node compare_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "a")
+                                 << (bi::Description ^ "first version string")
+                                 << (bi::Type << bi::String))
+                     << (bi::Arg << (bi::Name ^ "b")
+                                 << (bi::Description ^ "second version string")
+                                 << (bi::Type << bi::String)))
+      << (bi::Result << (bi::Name ^ "result")
+                     << (bi::Description ^
+                         "`-1` if `a < b`; `1` if `a > b`; `0` if `a == b`")
+                     << (bi::Type << bi::Number));
+    return BuiltInDef::create({"semver.compare"}, compare_decl, compare);
+  }
 
   Node is_valid(const Nodes& args)
   {
@@ -201,28 +205,40 @@ namespace
     return False ^ "false";
   }
 
-  Node is_valid_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "vsn")
-                             << (bi::Description ^ "input to validate")
-                             << (bi::Type << bi::Any)))
-             << (bi::Result
-                 << (bi::Name ^ "result")
-                 << (bi::Description ^
-                     "`true` if `vsn` is a valid SemVer; `false` otherwise")
-                 << (bi::Type << bi::Boolean));
+  BuiltIn is_valid_factory()
+  {
+    const Node is_valid_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg << (bi::Name ^ "vsn")
+                               << (bi::Description ^ "input to validate")
+                               << (bi::Type << bi::Any)))
+               << (bi::Result
+                   << (bi::Name ^ "result")
+                   << (bi::Description ^
+                       "`true` if `vsn` is a valid SemVer; `false` otherwise")
+                   << (bi::Type << bi::Boolean));
+    return BuiltInDef::create({"semver.is_valid"}, is_valid_decl, is_valid);
+  }
 }
 
 namespace rego
 {
   namespace builtins
   {
-    std::vector<BuiltIn> semver()
+    BuiltIn semver(const Location& name)
     {
-      return {
-        BuiltInDef::create(Location("semver.compare"), compare_decl, compare),
-        BuiltInDef::create(
-          Location("semver.is_valid"), is_valid_decl, is_valid)};
+      assert(name.view().starts_with("semver."));
+      std::string_view view = name.view().substr(7); // skip "semver."
+      if (view == "compare")
+      {
+        return compare_factory();
+      }
+      if (view == "is_valid")
+      {
+        return is_valid_factory();
+      }
+
+      return nullptr;
     }
   }
 }

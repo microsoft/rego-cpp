@@ -11,9 +11,16 @@ namespace rego_test
 
   std::vector<BuiltIn> custom_builtins(const std::string& note);
 
-  struct Result
+  enum class Outcome
   {
-    bool passed;
+    Pass,
+    Fail,
+    Skip
+  };
+
+  struct TestResult
+  {
+    Outcome outcome;
     std::string error;
   };
 
@@ -34,7 +41,7 @@ namespace rego_test
 
     TestCase();
 
-    Result run(
+    TestResult run(
       const std::filesystem::path& debug_path,
       bool wf_checks,
       RoundTrip roundtrip,
@@ -136,6 +143,7 @@ namespace rego_test
       const std::string& actual, const std::string& wanted, std::ostream& os);
     static std::optional<TestCase> create_from_node(
       const std::filesystem::path& filename, const Node& test_case_map);
+    static bool all_builtins_available(Bundle bundle, BuiltIns builtins);
 
     std::filesystem::path m_filename;
     std::string m_note;

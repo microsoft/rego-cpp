@@ -1,4 +1,4 @@
-#include "builtins.h"
+#include "builtins.hh"
 
 namespace
 {
@@ -40,18 +40,20 @@ namespace
     return Resolver::scalar(BigInt(x_int & y_int));
   }
 
-  Node and_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "the first integer")
-                             << (bi::Type << bi::Number))
-                 << (bi::Arg << (bi::Name ^ "y")
-                             << (bi::Description ^ "the second integer")
-                             << (bi::Type << bi::Number)))
-             << (bi::Result
-                 << (bi::Name ^ "z")
-                 << (bi::Description ^ "the bitwise AND of `x` and `y`")
-                 << (bi::Type << bi::Number));
+  BuiltIn and_factory()
+  {
+    const Node and_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "x")
+                                 << (bi::Description ^ "the first integer")
+                                 << (bi::Type << bi::Number))
+                     << (bi::Arg << (bi::Name ^ "y")
+                                 << (bi::Description ^ "the second integer")
+                                 << (bi::Type << bi::Number)))
+      << (bi::Result << (bi::Name ^ "z")
+                     << (bi::Description ^ "the bitwise AND of `x` and `y`")
+                     << (bi::Type << bi::Number));
+    return BuiltInDef::create({"bits.and"}, and_decl, and_);
+  }
 
   Node lsh(const Nodes& args)
   {
@@ -93,20 +95,22 @@ namespace
     return Resolver::scalar(x_int * scale);
   }
 
-  Node lsh_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "the integer to shift")
-                             << (bi::Type << bi::Number))
-                 << (bi::Arg
-                     << (bi::Name ^ "s")
-                     << (bi::Description ^ "the number of bits to shift")
-                     << (bi::Type << bi::Number)))
-             << (bi::Result
-                 << (bi::Name ^ "z")
-                 << (bi::Description ^
-                     "the result of shifting `x` `s` bits to the left")
-                 << (bi::Type << bi::Number));
+  BuiltIn lsh_factory()
+  {
+    const Node lsh_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "x")
+                                 << (bi::Description ^ "the integer to shift")
+                                 << (bi::Type << bi::Number))
+                     << (bi::Arg
+                         << (bi::Name ^ "s")
+                         << (bi::Description ^ "the number of bits to shift")
+                         << (bi::Type << bi::Number)))
+      << (bi::Result << (bi::Name ^ "z")
+                     << (bi::Description ^
+                         "the result of shifting `x` `s` bits to the left")
+                     << (bi::Type << bi::Number));
+    return BuiltInDef::create({"bits.lsh"}, lsh_decl, lsh);
+  }
 
   Node negate(const Nodes& args)
   {
@@ -128,14 +132,19 @@ namespace
     return Resolver::scalar(BigInt(~x_int));
   }
 
-  Node negate_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "the integer to negate")
-                             << (bi::Type << bi::Number)))
-             << (bi::Result << (bi::Name ^ "z")
-                            << (bi::Description ^ "the bitwise negation of `x`")
-                            << (bi::Type << bi::Number));
+  BuiltIn negate_factory()
+  {
+    const Node negate_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg << (bi::Name ^ "x")
+                               << (bi::Description ^ "the integer to negate")
+                               << (bi::Type << bi::Number)))
+               << (bi::Result
+                   << (bi::Name ^ "z")
+                   << (bi::Description ^ "the bitwise negation of `x`")
+                   << (bi::Type << bi::Number));
+    return BuiltInDef::create({"bits.negate"}, negate_decl, negate);
+  }
 
   Node or_(const Nodes& args)
   {
@@ -172,18 +181,20 @@ namespace
     return Resolver::scalar(BigInt(x_int | y_int));
   }
 
-  Node or_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "the first integer")
-                             << (bi::Type << bi::Number))
-                 << (bi::Arg << (bi::Name ^ "y")
-                             << (bi::Description ^ "the second integer")
-                             << (bi::Type << bi::Number)))
-             << (bi::Result
-                 << (bi::Name ^ "z")
-                 << (bi::Description ^ "the bitwise OR of `x` and `y`")
-                 << (bi::Type << bi::Number));
+  BuiltIn or_factory()
+  {
+    const Node or_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "x")
+                                 << (bi::Description ^ "the first integer")
+                                 << (bi::Type << bi::Number))
+                     << (bi::Arg << (bi::Name ^ "y")
+                                 << (bi::Description ^ "the second integer")
+                                 << (bi::Type << bi::Number)))
+      << (bi::Result << (bi::Name ^ "z")
+                     << (bi::Description ^ "the bitwise OR of `x` and `y`")
+                     << (bi::Type << bi::Number));
+    return BuiltInDef::create({"bits.or"}, or_decl, or_);
+  }
 
   Node rsh(const Nodes& args)
   {
@@ -229,20 +240,22 @@ namespace
     return Resolver::scalar(BigInt(x_int >> s_int));
   }
 
-  Node rsh_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "the integer to shift")
-                             << (bi::Type << bi::Number))
-                 << (bi::Arg
-                     << (bi::Name ^ "s")
-                     << (bi::Description ^ "the number of bits to shift")
-                     << (bi::Type << bi::Number)))
-             << (bi::Result
-                 << (bi::Name ^ "z")
-                 << (bi::Description ^
-                     "the result of shifting `x` `s` bits to the right")
-                 << (bi::Type << bi::Number));
+  BuiltIn rsh_factory()
+  {
+    const Node rsh_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "x")
+                                 << (bi::Description ^ "the integer to shift")
+                                 << (bi::Type << bi::Number))
+                     << (bi::Arg
+                         << (bi::Name ^ "s")
+                         << (bi::Description ^ "the number of bits to shift")
+                         << (bi::Type << bi::Number)))
+      << (bi::Result << (bi::Name ^ "z")
+                     << (bi::Description ^
+                         "the result of shifting `x` `s` bits to the right")
+                     << (bi::Type << bi::Number));
+    return BuiltInDef::create({"bits.rsh"}, rsh_decl, rsh);
+  }
 
   Node xor_(const Nodes& args)
   {
@@ -279,33 +292,56 @@ namespace
     return Resolver::scalar(BigInt(x_int ^ y_int));
   }
 
-  Node xor_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "the first integer")
-                             << (bi::Type << bi::Number))
-                 << (bi::Arg << (bi::Name ^ "y")
-                             << (bi::Description ^ "the second integer")
-                             << (bi::Type << bi::Number)))
-             << (bi::Result
-                 << (bi::Name ^ "z")
-                 << (bi::Description ^ "the bitwise XOR of `x` and `y`")
-                 << (bi::Type << bi::Number));
+  BuiltIn xor_factory()
+  {
+    const Node xor_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "x")
+                                 << (bi::Description ^ "the first integer")
+                                 << (bi::Type << bi::Number))
+                     << (bi::Arg << (bi::Name ^ "y")
+                                 << (bi::Description ^ "the second integer")
+                                 << (bi::Type << bi::Number)))
+      << (bi::Result << (bi::Name ^ "z")
+                     << (bi::Description ^ "the bitwise XOR of `x` and `y`")
+                     << (bi::Type << bi::Number));
+    return BuiltInDef::create({"bits.xor"}, xor_decl, xor_);
+  }
 }
 
 namespace rego
 {
   namespace builtins
   {
-    std::vector<BuiltIn> bits()
+    BuiltIn bits(const Location& name)
     {
-      return {
-        BuiltInDef::create(Location("bits.and"), and_decl, and_),
-        BuiltInDef::create(Location("bits.lsh"), lsh_decl, lsh),
-        BuiltInDef::create(Location("bits.negate"), negate_decl, negate),
-        BuiltInDef::create(Location("bits.or"), or_decl, or_),
-        BuiltInDef::create(Location("bits.rsh"), rsh_decl, rsh),
-        BuiltInDef::create(Location("bits.xor"), xor_decl, xor_)};
+      assert(name.view().starts_with("bits."));
+      std::string_view view = name.view().substr(5); // skip "bits."
+      if (view == "and")
+      {
+        return and_factory();
+      }
+      if (view == "lsh")
+      {
+        return lsh_factory();
+      }
+      if (view == "negate")
+      {
+        return negate_factory();
+      }
+      if (view == "or")
+      {
+        return or_factory();
+      }
+      if (view == "rsh")
+      {
+        return rsh_factory();
+      }
+      if (view == "xor")
+      {
+        return xor_factory();
+      }
+
+      return nullptr;
     }
   }
 }

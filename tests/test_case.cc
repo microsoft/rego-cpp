@@ -621,7 +621,7 @@ namespace rego_test
     }
   }
 
-  Result TestCase::run(
+  TestResult TestCase::run(
     const std::filesystem::path& debug_path,
     bool wf_checks,
     RoundTrip roundtrip,
@@ -644,7 +644,7 @@ namespace rego_test
       if (actual != nullptr)
       {
         error << actual;
-        return {false, error.str()};
+        return {Outcome::Fail, error.str()};
       }
     }
 
@@ -660,21 +660,21 @@ namespace rego_test
     if (actual != nullptr)
     {
       error << actual;
-      return {false, error.str()};
+      return {Outcome::Fail, error.str()};
     }
 
     actual = interpreter.set_query(m_query);
     if (actual != nullptr)
     {
       error << actual;
-      return {false, error.str()};
+      return {Outcome::Fail, error.str()};
     }
 
     Node bundle_node = interpreter.build();
     if (bundle_node == ErrorSeq)
     {
       error << "Error when bundling: " << bundle_node;
-      return {false, error.str()};
+      return {Outcome::Fail, error.str()};
     }
 
     Bundle bundle = BundleDef::from_node(bundle_node);
@@ -687,14 +687,14 @@ namespace rego_test
       if (actual != nullptr)
       {
         error << "Error saving bundle: " << actual;
-        return {false, error.str()};
+        return {Outcome::Fail, error.str()};
       }
 
       bundle_node = interpreter.load_bundle(temp_dir);
       if (bundle_node == nullptr || bundle_node == ErrorSeq)
       {
         error << "Error loading bundle: " << bundle_node;
-        return {false, error.str()};
+        return {Outcome::Fail, error.str()};
       }
 
       std::filesystem::remove_all(temp_dir);
@@ -706,6 +706,11 @@ namespace rego_test
       bundle->save(temp_path);
       bundle = BundleDef::load(temp_path);
       std::filesystem::remove(temp_path);
+    }
+
+    if (!all_builtins_available(bundle, interpreter.builtins()))
+    {
+      return {Outcome::Skip, "built-in not supported"};
     }
 
     if (!m_input_path.empty())
@@ -724,7 +729,7 @@ namespace rego_test
     if (actual != nullptr)
     {
       error << actual;
-      return {false, error.str()};
+      return {Outcome::Fail, error.str()};
     }
 
     try
@@ -733,12 +738,12 @@ namespace rego_test
     }
     catch (const std::exception& e)
     {
-      return {false, e.what()};
+      return {Outcome::Fail, e.what()};
     }
 
     if (m_broken)
     {
-      return {true, ""};
+      return {Outcome::Skip, "Test Broken"};
     }
 
     if (actual->type() == ErrorSeq)
@@ -746,13 +751,13 @@ namespace rego_test
       if (actual->size() > 1)
       {
         error << "expected one error, actual: " << actual << std::endl;
-        return {false, error.str()};
+        return {Outcome::Fail, error.str()};
       }
 
       if (actual->size() == 0)
       {
         error << actual << std::endl;
-        return {false, error.str()};
+        return {Outcome::Fail, error.str()};
       }
 
       actual = actual->front();
@@ -765,7 +770,7 @@ namespace rego_test
       if (actual->type() != Error)
       {
         error << "wanted an error, actual: " << actual << std::endl;
-        return {false, error.str()};
+        return {Outcome::Fail, error.str()};
       }
       std::string actual_error =
         std::string((actual / ErrorMsg)->location().view());
@@ -775,11 +780,12 @@ namespace rego_test
       bool pass_code = true;
       if (m_want_error_code.length() == 0)
       {
-        return {pass_error, error.str()};
+        return {pass_error ? Outcome::Pass : Outcome::Fail, error.str()};
       }
 
       pass_code = compare(actual_code, m_want_error_code, error);
-      return {pass_error && pass_code, error.str()};
+      return {
+        pass_error && pass_code ? Outcome::Pass : Outcome::Fail, error.str()};
     }
 
     if (m_want_error_code.length() > 0)
@@ -787,12 +793,13 @@ namespace rego_test
       if (actual != Error)
       {
         error << "wanted an error code, actual: " << actual << std::endl;
-        return {false, error.str()};
+        return {Outcome::Fail, error.str()};
       }
 
       std::string actual_code =
         std::string((actual / ErrorCode)->location().view());
-      return {compare(actual_code, m_want_error_code, error), error.str()};
+      bool pass_error = compare(actual_code, m_want_error_code, error);
+      return {pass_error ? Outcome::Pass : Outcome::Fail, error.str()};
     }
 
     if (m_want_result)
@@ -806,7 +813,7 @@ namespace rego_test
                 << std::endl;
           error << "  code: " << (actual / ErrorCode)->location().view()
                 << std::endl;
-          return {false, error.str()};
+          return {Outcome::Fail, error.str()};
         }
         trieste::logging::Trace() << "====================" << std::endl
                                   << "actual: " << actual << std::endl
@@ -814,34 +821,53 @@ namespace rego_test
                                   << "wanted: " << m_want_result << std::endl
                                   << "====================" << std::endl;
 
-        return {compare(actual, m_want_result, error), error.str()};
+        bool pass_result = compare(actual, m_want_result, error);
+        return {pass_result ? Outcome::Pass : Outcome::Fail, error.str()};
       }
 
       if (m_want_result->size() == 0)
       {
-        return {true, ""};
+        return {Outcome::Pass, ""};
       }
 
-      return {false, "wanted a result, but was undefined"};
+      return {Outcome::Fail, "wanted a result, but was undefined"};
     }
 
     if (m_want_defined)
     {
       if (actual != Undefined)
       {
-        return {true, ""};
+        return {Outcome::Pass, ""};
       }
 
-      return {false, "wanted a defined result, but was undefined"};
+      return {Outcome::Fail, "wanted a defined result, but was undefined"};
     }
 
     if (actual == Undefined)
     {
-      return {true, ""};
+      return {Outcome::Pass, ""};
     }
 
     logging::Error() << actual << std::endl;
-    return {false, "wanted an undefined result, but was defined"};
+    return {Outcome::Fail, "wanted an undefined result, but was defined"};
+  }
+
+  bool TestCase::all_builtins_available(Bundle bundle, BuiltIns builtins)
+  {
+    for (auto [name, _] : bundle->builtin_functions)
+    {
+      if (!builtins->is_builtin(name))
+      {
+        return false;
+      }
+
+      if (!builtins->at(name)->available)
+      {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   const std::filesystem::path& TestCase::filename() const
@@ -982,11 +1008,12 @@ namespace rego_test
       return *this;
     }
 
-    auto maybe_array = unwrap(want_result, Array);
+    auto maybe_array = unwrap(want_result, {Array, Results});
     if (!maybe_array.success)
     {
       throw std::invalid_argument("want_result must be an array");
     }
+
     m_want_result = maybe_array.node;
     return *this;
   }

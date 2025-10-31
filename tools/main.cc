@@ -107,13 +107,11 @@ int main(int argc, char** argv)
   eval->add_flag("-t,--timing", timing, "Print timing information");
   run->add_flag("-t,--timing", timing, "Print timing information");
 
-#ifndef NDEBUG
-  if (timing)
-  {
-    trieste::logging::Warn()
-      << "Timing requested on a debug build!" << std::endl;
-  }
-#endif
+  size_t stmt_limit = 0;
+  eval->add_option(
+    "-s,--stmts", stmt_limit, "Maximum number of statements to execute");
+  run->add_option(
+    "-s,--stmts", stmt_limit, "Maximum number of statements to execute");
 
   try
   {
@@ -123,6 +121,14 @@ int main(int argc, char** argv)
   {
     return app.exit(e);
   }
+
+#ifndef NDEBUG
+  if (timing)
+  {
+    trieste::logging::Warn()
+      << "Timing requested on a debug build!" << std::endl;
+  }
+#endif
 
   if (version->parsed())
   {
@@ -150,6 +156,10 @@ int main(int argc, char** argv)
   {
     Timer timer("Interpreter creation", timing);
     interpreter = std::make_shared<rego::Interpreter>();
+    if (stmt_limit > 0)
+    {
+      interpreter->stmt_limit(stmt_limit);
+    }
   }
 
   interpreter->wf_check_enabled(wf_checks);

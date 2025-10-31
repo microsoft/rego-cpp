@@ -1,4 +1,4 @@
-#include "builtins.h"
+#include "builtins.hh"
 
 namespace
 {
@@ -122,34 +122,40 @@ namespace
     return Resolver::set(argseq);
   }
 
-  Node reachable_decl = bi::Decl
-    << (bi::ArgSeq
-        << (bi::Arg
-            << (bi::Name ^ "graph")
-            << (bi::Description ^
-                "object containing a set or array of neighboring vertices")
-            << (bi::Type
-                << (bi::DynamicObject
-                    << (bi::Type << bi::Any)
-                    << (bi::Type
-                        << (bi::TypeSeq
-                            << (bi::Type
-                                << (bi::DynamicArray << (bi::Type << bi::Any)))
-                            << (bi::Type
-                                << (bi::Set << (bi::Type << bi::Any))))))))
-        << (bi::Arg << (bi::Name ^ "initial")
-                    << (bi::Description ^ "set or array of root vertices")
-                    << (bi::Type
-                        << (bi::TypeSeq
-                            << (bi::Type
-                                << (bi::DynamicArray << (bi::Type << bi::Any)))
-                            << (bi::Type
-                                << (bi::Set << (bi::Type << bi::Any)))))))
-    << (bi::Result << (bi::Name ^ "output")
-                   << (bi::Description ^
-                       "set of vertices from the `initial` vertices in the "
-                       "directed `graph`")
-                   << (bi::Type << (bi::Set << (bi::Type << bi::Any))));
+  BuiltIn reachable_factory()
+  {
+    const Node reachable_decl = bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg
+              << (bi::Name ^ "graph")
+              << (bi::Description ^
+                  "object containing a set or array of neighboring vertices")
+              << (bi::Type
+                  << (bi::DynamicObject
+                      << (bi::Type << bi::Any)
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type
+                                  << (bi::DynamicArray
+                                      << (bi::Type << bi::Any)))
+                              << (bi::Type
+                                  << (bi::Set << (bi::Type << bi::Any))))))))
+          << (bi::Arg << (bi::Name ^ "initial")
+                      << (bi::Description ^ "set or array of root vertices")
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type
+                                  << (bi::DynamicArray
+                                      << (bi::Type << bi::Any)))
+                              << (bi::Type
+                                  << (bi::Set << (bi::Type << bi::Any)))))))
+      << (bi::Result << (bi::Name ^ "output")
+                     << (bi::Description ^
+                         "set of vertices from the `initial` vertices in the "
+                         "directed `graph`")
+                     << (bi::Type << (bi::Set << (bi::Type << bi::Any))));
+    return BuiltInDef::create({"graph.reachable"}, reachable_decl, reachable);
+  }
 
   class Path
   {
@@ -310,54 +316,65 @@ namespace
     return Resolver::set(argseq);
   }
 
-  Node reachable_paths_decl = bi::Decl
-    << (bi::ArgSeq
-        << (bi::Arg
-            << (bi::Name ^ "graph")
-            << (bi::Description ^
-                "object containing a set or array of neighboring vertices")
-            << (bi::Type
-                << (bi::DynamicObject
-                    << (bi::Type << bi::Any)
-                    << (bi::Type
-                        << (bi::TypeSeq
-                            << (bi::Type
-                                << (bi::DynamicArray << (bi::Type << bi::Any)))
-                            << (bi::Type
-                                << (bi::Set << (bi::Type << bi::Any))))))))
-        << (bi::Arg << (bi::Name ^ "initial")
-                    << (bi::Description ^ "set or array of root vertices")
-                    << (bi::Type
-                        << (bi::TypeSeq
-                            << (bi::Type
-                                << (bi::DynamicArray << (bi::Type << bi::Any)))
-                            << (bi::Type
-                                << (bi::Set << (bi::Type << bi::Any)))))))
-    << (bi::Result << (bi::Name ^ "output")
-                   << (bi::Description ^
-                       "set of vertices from the `initial` vertices in the "
-                       "directed `graph`")
-                   << (bi::Type
-                       << (bi::Set
-                           << (bi::Type
-                               << (bi::DynamicArray
-                                   << (bi::Type << bi::Any))))));
+  BuiltIn reachable_paths_factory()
+  {
+    const Node reachable_paths_decl = bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg
+              << (bi::Name ^ "graph")
+              << (bi::Description ^
+                  "object containing a set or array of neighboring vertices")
+              << (bi::Type
+                  << (bi::DynamicObject
+                      << (bi::Type << bi::Any)
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type
+                                  << (bi::DynamicArray
+                                      << (bi::Type << bi::Any)))
+                              << (bi::Type
+                                  << (bi::Set << (bi::Type << bi::Any))))))))
+          << (bi::Arg << (bi::Name ^ "initial")
+                      << (bi::Description ^ "set or array of root vertices")
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type
+                                  << (bi::DynamicArray
+                                      << (bi::Type << bi::Any)))
+                              << (bi::Type
+                                  << (bi::Set << (bi::Type << bi::Any)))))))
+      << (bi::Result << (bi::Name ^ "output")
+                     << (bi::Description ^
+                         "set of vertices from the `initial` vertices in the "
+                         "directed `graph`")
+                     << (bi::Type
+                         << (bi::Set
+                             << (bi::Type
+                                 << (bi::DynamicArray
+                                     << (bi::Type << bi::Any))))));
+    return BuiltInDef::create(
+      {"graph.reachable_paths"}, reachable_paths_decl, reachable_paths);
+  }
 }
 
 namespace rego
 {
   namespace builtins
   {
-    std::vector<BuiltIn> graph()
+    BuiltIn graph(const Location& name)
     {
-      return {
-        BuiltInDef::create(
-          Location("graph.reachable"), reachable_decl, reachable),
-        BuiltInDef::create(
-          Location("graph.reachable_paths"),
-          reachable_paths_decl,
-          reachable_paths),
-      };
+      assert(name.view().starts_with("graph."));
+      std::string_view view = name.view().substr(6); // skip "graph."
+      if (view == "reachable")
+      {
+        return reachable_factory();
+      }
+      if (view == "reachable_paths")
+      {
+        return reachable_paths_factory();
+      }
+
+      return nullptr;
     }
   }
 }

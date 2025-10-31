@@ -1,4 +1,4 @@
-#include "builtins.h"
+#include "builtins.hh"
 #include "trieste/xoroshiro.h"
 
 namespace
@@ -372,31 +372,23 @@ namespace
     }
   }
 
-  Node parse_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "uuid")
-                             << (bi::Description ^ "UUID string to parse")
-                             << (bi::Type << bi::String)))
-             << (bi::Result
-                 << (bi::Name ^ "result")
-                 << (bi::Description ^
-                     "Properties of UUID if valid (version, variant, etc). "
-                     "Undefined otherwise.")
-                 << (bi::Type
-                     << (bi::DynamicObject << (bi::Type << bi::String)
-                                           << (bi::Type << bi::Any))));
-
-  Node rfc4122_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "uuid")
-                             << (bi::Description ^ "UUID string to parse")
-                             << (bi::Type << bi::String)))
-             << (bi::Result
-                 << (bi::Name ^ "result")
-                 << (bi::Description ^
-                     "a version 4 UUID; for any given `k`, the output will be "
-                     "consistent throughout a query evaluation")
-                 << (bi::Type << bi::String));
+  BuiltIn parse_factory()
+  {
+    const Node parse_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg << (bi::Name ^ "uuid")
+                               << (bi::Description ^ "UUID string to parse")
+                               << (bi::Type << bi::String)))
+               << (bi::Result
+                   << (bi::Name ^ "result")
+                   << (bi::Description ^
+                       "Properties of UUID if valid (version, variant, etc). "
+                       "Undefined otherwise.")
+                   << (bi::Type
+                       << (bi::DynamicObject << (bi::Type << bi::String)
+                                             << (bi::Type << bi::Any))));
+    return BuiltInDef::create({"uuid.parse"}, parse_decl, parse);
+  }
 
   thread_local std::map<std::string, Node> cache;
   thread_local xoroshiro::p128r32 generator;
@@ -406,7 +398,17 @@ namespace
     UUIDRFC4122() :
       BuiltInDef(
         Location("uuid.rfc4122"),
-        rfc4122_decl,
+        bi::Decl
+          << (bi::ArgSeq
+              << (bi::Arg << (bi::Name ^ "uuid")
+                          << (bi::Description ^ "UUID string to parse")
+                          << (bi::Type << bi::String)))
+          << (bi::Result
+              << (bi::Name ^ "result")
+              << (bi::Description ^
+                  "a version 4 UUID; for any given `k`, the output will be "
+                  "consistent throughout a query evaluation")
+              << (bi::Type << bi::String)),
         [this](const Nodes& args) { return call(args); },
         true)
     {}
@@ -443,12 +445,19 @@ namespace rego
 {
   namespace builtins
   {
-    std::vector<BuiltIn> uuid()
+    BuiltIn uuid(const Location& name)
     {
-      return {
-        BuiltInDef::create(Location("uuid.parse"), parse_decl, parse),
-        std::make_shared<UUIDRFC4122>(),
-      };
+      assert(name.view().substr(0, 5) == "uuid.");
+      std::string_view view = name.view().substr(5); // skip "uuid."
+      if (view == "parse")
+      {
+        return parse_factory();
+      }
+      else if (view == "rfc4122")
+      {
+        return std::make_shared<UUIDRFC4122>();
+      }
+      throw std::runtime_error("unknown uuid builtin: " + std::string(view));
     }
   }
 }

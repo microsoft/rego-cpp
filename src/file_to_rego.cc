@@ -958,6 +958,11 @@ namespace
             Node query = _(Query);
             if (_(Not) != nullptr)
             {
+              if (query == SomeDecl)
+              {
+                return err(query, "not keyword only applies to expressions");
+              }
+
               query = NotExpr << query;
             }
 
@@ -991,6 +996,11 @@ namespace
             Node query = _(Query);
             if (_(Not) != nullptr)
             {
+              if (query == SomeDecl)
+              {
+                return err(query, "Not keyword only applies to expressions");
+              }
+
               query = NotExpr << query;
             }
             return Seq << _(If) << (Query << (Group << query));

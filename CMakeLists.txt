@@ -99,7 +99,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        67273a5e13b640dd8a9d0eb6a6a3953b543787f0
+  GIT_TAG        main
 )
 
 FetchContent_MakeAvailable(cmake_utils)
@@ -242,7 +242,7 @@ if (REGOCPP_COPY_EXAMPLES)
 endif()
 
 if (REGOCPP_BUILD_TESTS)
-  install(TARGETS rego_test rego_test_c_api RUNTIME)
+  install(TARGETS rego_test rego_test_c_api rego_test_cpp_api RUNTIME)
   install(FILES tests/regocpp.yaml tests/bigint.yaml tests/bugs.yaml tests/bad.json DESTINATION tests)
   install(DIRECTORY tests/aci DESTINATION tests)
   install(DIRECTORY tests/cts DESTINATION tests)

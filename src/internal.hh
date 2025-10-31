@@ -354,6 +354,15 @@ namespace rego
     Function node_to_function(Node function, std::shared_ptr<size_t> max_index);
     Plan node_to_plan(Node plan, std::shared_ptr<size_t> max_index);
   }
+
+  struct DebugKey
+  {
+    DebugKey(Node n) : n(n) {}
+
+    Node n;
+  };
+
+  std::ostream& operator<<(std::ostream& os, const DebugKey& node);
 }
 
 #ifdef REGOCPP_ACTION_METRICS

@@ -1,141 +1,14 @@
-#include "builtins/builtins.h"
+#include "builtins/builtins.hh"
 
-#include "internal.hh"
 #include "rego.hh"
 
+#include <iterator>
 #include <stdexcept>
 
 namespace
 {
   using namespace rego;
   namespace bi = rego::builtins;
-
-  Node opa_runtime(const Nodes&)
-  {
-    return version();
-  }
-
-  Node opa_runtime_decl = bi::Decl
-    << bi::ArgSeq
-    << (bi::Result
-        << (bi::Name ^ "output")
-        << (bi::Description ^
-            "includes a `config` key if OPA was started with a configuration "
-            "file; an `env` key containing the environment variables that the "
-            "OPA process was started with; includes `version` and `commit` "
-            "keys containing the version and build commit of OPA")
-        << (bi::Type
-            << (bi::DynamicObject << (bi::Type << bi::String)
-                                  << (bi::Type << bi::Any))));
-
-  Node print(const Nodes& args)
-  {
-    for (auto arg : args)
-    {
-      if (arg->type() == Undefined)
-      {
-        return Resolver::scalar(false);
-      }
-    }
-
-    join(
-      std::cout,
-      args.begin(),
-      args.end(),
-      " ",
-      [](std::ostream& stream, const Node& n) {
-        stream << to_key(n);
-        return true;
-      })
-      << std::endl;
-    return Resolver::scalar(true);
-  }
-
-  Node print_decl = bi::Decl << bi::VarArgs << bi::Void;
-
-  Node walk(const Nodes& args)
-  {
-    Node x = args[0];
-
-    Node result = NodeDef::create(Array);
-    std::deque<std::pair<Nodes, Node>> queue;
-    queue.push_back({{}, x});
-    while (!queue.empty())
-    {
-      auto [path_nodes, current] = queue.front();
-      queue.pop_front();
-
-      Node path_array = NodeDef::create(Array);
-      for (auto& node : path_nodes)
-      {
-        path_array->push_back(Resolver::to_term(node->clone()));
-      }
-
-      result
-        << (Term
-            << (Array << (Term << path_array)
-                      << Resolver::to_term(current->clone())));
-
-      auto maybe_node = unwrap(current, {Array, Set, Object});
-      if (!maybe_node.success)
-      {
-        continue;
-      }
-
-      current = maybe_node.node;
-      if (current == Array)
-      {
-        for (size_t i = 0; i < current->size(); i++)
-        {
-          Node index = Resolver::term(BigInt(i));
-          Nodes path(path_nodes);
-          path.push_back(index);
-          queue.push_back({path, current->at(i)});
-        }
-      }
-      else if (current == Set)
-      {
-        for (auto child : *current)
-        {
-          Nodes path(path_nodes);
-          path.push_back(child);
-          queue.push_back({path, child});
-        }
-      }
-      else if (current == Object)
-      {
-        for (auto child : *current)
-        {
-          Nodes path(path_nodes);
-          path.push_back(child / Key);
-          queue.push_back({path, child / Val});
-        }
-      }
-    }
-
-    return Term << result;
-  }
-
-  Node walk_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "value to walk")
-                             << (bi::Type << bi::Any)))
-             << (bi::Result
-                 << (bi::Name ^ "output")
-                 << (bi::Description ^
-                     "pairs of `path` and `value`: `path` is an array "
-                     "representing the pointer to `value` in `x`. If `path` is "
-                     "assigned a wildcard (`_`), the `walk` function will skip "
-                     "path creation entirely for faster evaluation.")
-                 << (bi::Type
-                     << (bi::DynamicArray
-                         << (bi::Type
-                             << (bi::StaticArray
-                                 << (bi::Type
-                                     << (bi::DynamicArray
-                                         << (bi::Type << bi::Any)))
-                                 << (bi::Type << bi::Any))))));
 
   struct NotAvailable : public BuiltInDef
   {
@@ -211,13 +84,19 @@ namespace rego
     return ptr;
   }
 
-  BuiltInsDef::BuiltInsDef() noexcept : m_strict_errors(false) {}
+  BuiltInsDef::BuiltInsDef() noexcept :
+    m_strict_errors(false),
+    m_lookup_behavior(BuiltInsDef::LookupBehavior::AllowAll)
+  {}
 
   void BuiltInsDef::clear()
   {
     for (auto& builtin : m_builtins)
     {
-      builtin.second->clear();
+      if (builtin.second != nullptr)
+      {
+        builtin.second->clear();
+      }
     }
   }
 
@@ -232,12 +111,12 @@ namespace rego
     return *this;
   }
 
-  bool BuiltInsDef::is_builtin(const Location& name) const
+  bool BuiltInsDef::is_builtin(const Location& name)
   {
-    return m_builtins.contains(name);
+    return at(name) != nullptr;
   }
 
-  Node BuiltInsDef::decl(const Location& name) const
+  Node BuiltInsDef::decl(const Location& name)
   {
     if (!is_builtin(name))
     {
@@ -287,7 +166,7 @@ namespace rego
       return err(args[0], err_buff.str(), RegoTypeError);
     }
 
-    auto& builtin = m_builtins.at(name);
+    auto& builtin = m_builtins[name];
     if (builtin->arity != bi::AnyArity && builtin->arity != args.size())
     {
       return err(args[0], "wrong number of arguments");
@@ -325,54 +204,271 @@ namespace rego
 
   BuiltInsDef& BuiltInsDef::register_standard_builtins()
   {
-    register_builtins<std::initializer_list<BuiltIn>>({
-      BuiltInDef::create(Location("print"), print_decl, ::print),
-      BuiltInDef::create(
-        Location("opa.runtime"), opa_runtime_decl, ::opa_runtime),
-      BuiltInDef::create(Location("walk"), walk_decl, ::walk),
-    });
-
-    register_builtins(builtins::aggregates());
-    register_builtins(builtins::arrays());
-    register_builtins(builtins::bits());
-    register_builtins(builtins::comparison());
-    register_builtins(builtins::conversions());
-    register_builtins(builtins::encoding());
-    register_builtins(builtins::graph());
-    register_builtins(builtins::internal());
-    register_builtins(builtins::numbers());
-    register_builtins(builtins::objects());
-    register_builtins(builtins::regex());
-    register_builtins(builtins::sets());
-    register_builtins(builtins::semver());
-    register_builtins(builtins::strings());
-    register_builtins(builtins::time());
-    register_builtins(builtins::types());
-    register_builtins(builtins::units());
-    register_builtins(builtins::uuid());
-
     return *this;
   }
 
   BuiltIns BuiltInsDef::create()
   {
     BuiltIns builtins = std::make_shared<BuiltInsDef>();
-    builtins->register_standard_builtins();
     return builtins;
   }
 
-  std::map<Location, BuiltIn>::const_iterator BuiltInsDef::begin() const
+  BuiltIn BuiltInsDef::at(const Location& name)
   {
-    return m_builtins.begin();
+    if (!m_builtins.contains(name))
+    {
+      logging::Debug() << "Built-in " << name.view()
+                       << " not found, looking up in standard library";
+      BuiltIn builtin = lookup(name);
+      switch (m_lookup_behavior)
+      {
+        case BuiltInsDef::LookupBehavior::Whitelist:
+          if (!m_list.contains(name))
+          {
+            logging::Debug()
+              << "Built-in " << name.view() << " not in whitelist";
+            builtin = std::make_shared<NotAvailable>(
+              name, builtin->decl, "Built-in not allowed by whitelist");
+          }
+          break;
+
+        case BuiltInsDef::LookupBehavior::Blacklist:
+          if (m_list.contains(name))
+          {
+            logging::Debug() << "Built-in " << name.view() << " in blacklist";
+            builtin = std::make_shared<NotAvailable>(
+              name, builtin->decl, "Built-in forbidden by blacklist");
+          }
+          break;
+
+        case BuiltInsDef::LookupBehavior::AllowAll:
+          break;
+
+        default:
+          throw std::runtime_error("Unsupported lookup behavior");
+      }
+
+      m_builtins[name] = builtin;
+    }
+
+    return m_builtins[name];
   }
 
-  std::map<Location, BuiltIn>::const_iterator BuiltInsDef::end() const
+  BuiltInsDef& BuiltInsDef::allow_all()
   {
-    return m_builtins.end();
+    m_lookup_behavior = BuiltInsDef::LookupBehavior::AllowAll;
+    m_builtins.clear();
+    return *this;
   }
 
-  const BuiltIn& BuiltInsDef::at(const Location& name) const
+  BuiltIn BuiltInsDef::lookup(const Location& name)
   {
-    return m_builtins.at(name);
+    std::string_view view = name.view();
+    auto it = view.find('.');
+    if (it == std::string::npos)
+    {
+      return builtins::core(name);
+    }
+
+    view = view.substr(0, it);
+    const size_t length = view.size();
+    const char first_char = view.front();
+    const char last_char = view.back();
+    // BEGIN auto-generated btree code
+    if (length > 4)
+    {
+      if (length > 6)
+      {
+        if (length > 7)
+        {
+          if (length > 8)
+          {
+            if (first_char > 'b')
+            {
+              if (view == "providers")
+              {
+                return builtins::aws(name);
+              }
+            }
+            if (view == "base64url")
+            {
+              return builtins::base64url(name);
+            }
+          }
+          if (first_char > 'i')
+          {
+            if (view == "urlquery")
+            {
+              return builtins::urlquery(name);
+            }
+          }
+          if (view == "internal")
+          {
+            return builtins::internal(name);
+          }
+        }
+        if (first_char > 'g')
+        {
+          if (first_char > 'n')
+          {
+            if (view == "strings")
+            {
+              return builtins::strings(name);
+            }
+          }
+          if (view == "numbers")
+          {
+            return builtins::numbers(name);
+          }
+        }
+        if (view == "graphql")
+        {
+          return builtins::graphql(name);
+        }
+      }
+      if (length > 5)
+      {
+        if (first_char > 'b')
+        {
+          if (first_char > 'c')
+          {
+            if (first_char > 'o')
+            {
+              if (view == "semver")
+              {
+                return builtins::semver(name);
+              }
+            }
+            if (view == "object")
+            {
+              return builtins::object(name);
+            }
+          }
+          if (view == "crypto")
+          {
+            return builtins::crypto(name);
+          }
+        }
+        if (view == "base64")
+        {
+          return builtins::base64(name);
+        }
+      }
+      if (first_char > 'a')
+      {
+        if (first_char > 'g')
+        {
+          if (first_char > 'r')
+          {
+            if (view == "units")
+            {
+              return builtins::units(name);
+            }
+          }
+          if (view == "regex")
+          {
+            return builtins::regex(name);
+          }
+        }
+        if (view == "graph")
+        {
+          return builtins::graph(name);
+        }
+      }
+      if (view == "array")
+      {
+        return builtins::array(name);
+      }
+    }
+    if (first_char > 'j')
+    {
+      if (first_char > 'r')
+      {
+        if (first_char > 't')
+        {
+          if (first_char > 'u')
+          {
+            if (view == "yaml")
+            {
+              return builtins::yaml(name);
+            }
+          }
+          if (view == "uuid")
+          {
+            return builtins::uuid(name);
+          }
+        }
+        if (view == "time")
+        {
+          return builtins::time(name);
+        }
+      }
+      if (length > 3)
+      {
+        if (last_char > 'd')
+        {
+          if (view == "rego")
+          {
+            return builtins::rego(name);
+          }
+        }
+        if (view == "rand")
+        {
+          return builtins::rand(name);
+        }
+      }
+      if (first_char > 'n')
+      {
+        if (view == "opa")
+        {
+          return builtins::opa(name);
+        }
+      }
+      if (view == "net")
+      {
+        return builtins::net(name);
+      }
+    }
+    if (last_char > 'o')
+    {
+      if (length > 3)
+      {
+        if (first_char > 'b')
+        {
+          if (view == "http")
+          {
+            return builtins::http(name);
+          }
+        }
+        if (view == "bits")
+        {
+          return builtins::bits(name);
+        }
+      }
+      if (view == "hex")
+      {
+        return builtins::hex(name);
+      }
+    }
+    if (length > 2)
+    {
+      if (first_char > 'g')
+      {
+        if (view == "json")
+        {
+          return builtins::json(name);
+        }
+      }
+      if (view == "glob")
+      {
+        return builtins::glob(name);
+      }
+    }
+    if (view == "io")
+    {
+      return builtins::jwt(name);
+    }
+    return nullptr;
+    // END auto-generated btree code
   }
 }

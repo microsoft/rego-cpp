@@ -1,4 +1,5 @@
 #include "internal.hh"
+#include "rego.hh"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -734,6 +735,17 @@ namespace rego
     }
 
     bundle.local_count = *max_index + 1;
+
+    logging::Debug() << "Built-In Functions:";
+    Node builtins = policy / Static / BuiltInFunctionSeq;
+
+    for (Node bi : *builtins)
+    {
+      Location name = (bi / Name)->location();
+      logging::Debug() << name.view();
+      bundle.builtin_functions[name] = bi / builtins::Decl;
+    }
+
     return std::make_shared<BundleDef>(std::move(bundle));
   }
 
