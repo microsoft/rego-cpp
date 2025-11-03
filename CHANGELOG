@@ -1,5 +1,55 @@
 # Changelog
 
+## 2025-10-31 - Version 1.1.0
+Minor version adding more json builtins and an improved built-in system.
+
+This change adds some json builtins and also completely refactors the built-in
+system to make it more efficient. It also adds some quality of life improvements
+to the C++ API. The C API remains stable, but the C++ API exposes additional
+methods to make handling outputs of queries a bit easier.
+
+**New Features**
+- `json.filter`, `json.patch`, and `json.remove` are now available
+- All built-ins are now accounted for in the built-in system, and those which
+  are not supported are explicitly marked as such.
+- There is now an `Output` class, which is returned from the new `query_output`
+  method on `Interpreter`. It provides methods which are similar to those available
+  in the C API for inspecting the output of a query.
+- There are now `try_get_double`, `try_get_string`, and `try_get_bool` methods
+  which will attempt to get raw C++ types from Node objects.
+- The `whitelist` and `blacklist` methods in `BuiltInsDef` provide fine-grained
+  control over which built-ins are allowed to be loaded.
+- The `stmt_limit` method on `Interpreter` provides a time-out mechanism (defined
+  as number of statements which the VM is allowed to execute)
+
+**Improvements**
+- The `Interpreter` object can now be created at almost no cost. A large portion
+  of its construction cost was the creation of the `BuiltIns` lookup structure,
+  which now is defined statically in-code.
+- The test driver can now run all the tests in the OPA test suite and will skip
+  those which use a built-in that is not available in the current implementation.
+  This means we do not have to cherry-pick tests anymore, and will pick up
+  new tests more cleanly.
+- New methods for creating scalar nodes have been added (`number`, `boolean`, 
+  `string`, `null`) and the existing `scalar` methods have been deprecated.
+
+**Breaking Changes**
+- The `get_string` method, which previously returned the raw string of the Trieste
+  node, now tries to get a string from a `JSONString` node and strips it of its
+  quotes (in line with the other `get_*` methods). The previous functionality is
+  available via `get_raw_string`.
+
+**Bug Fixes**
+- Fuzzer bug with `SomeDecl` in a `NotExpr`
+- An issue with built-ins not being written to binary bundles
+- A unification bug with variables in comprehensions that had the same name as their module
+- `regopy` now performs some additional checks to ensure it is loading the correct
+  shared library on all platforms
+- Ubuntu 22.04 builds are now working again and the image has been added back to the workflow
+- macos/x86_64 image has been added back to the workflow, and shared library builds
+  (for the Python and dotnet wrappers)
+- Unification bug with masking scopes and variables with comprehensions and every
+
 ## 2025-10-12 - Version 1.0.0
 Major version adding VM-based execution of bundles.
 

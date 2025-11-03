@@ -365,7 +365,7 @@ namespace
     template <typename Char>
     Node read_object(std::basic_istream<Char>& stream)
     {
-      size_t size = static_cast<size_t>(read_int32(stream));
+      size_t size = read_size(stream);
       uint64_t start = static_cast<uint64_t>(stream.tellg());
       uint64_t end = start + size + 1;
 
@@ -374,7 +374,7 @@ namespace
       while (element_id != 0 && !stream.eof() && stream.tellg() < end)
       {
         auto key = read_cstring(stream);
-        object << object_item(scalar(key), read_element(stream, element_id));
+        object << object_item(string(key), read_element(stream, element_id));
         element_id = read_sbyte(stream);
       }
 
@@ -386,7 +386,7 @@ namespace
     template <typename Char>
     Node read_array(std::basic_istream<Char>& stream)
     {
-      size_t size = static_cast<size_t>(read_int32(stream));
+      size_t size = read_size(stream);
       uint64_t start = static_cast<uint64_t>(stream.tellg());
       uint64_t end = start + size + 1;
 
@@ -413,12 +413,12 @@ namespace
           uint8_t boolean_id = read_byte(stream);
           if (boolean_id == TrueId)
           {
-            return scalar(true);
+            return boolean(true);
           }
 
           if (boolean_id == FalseId)
           {
-            return scalar(false);
+            return boolean(false);
           }
 
           logging::Error() << "Invalid boolean id: " << boolean_id;
@@ -426,13 +426,13 @@ namespace
         }
 
         case NullId:
-          return scalar();
+          return null();
 
         case StringId:
-          return scalar(read_string(stream));
+          return string(read_string(stream));
 
         case BinaryId: {
-          size_t size = static_cast<size_t>(read_int32(stream));
+          size_t size = read_size(stream);
           uint8_t subtype_id = read_byte(stream);
           if (!(subtype_id == IntStringId || subtype_id == FloatStringId))
           {
@@ -477,11 +477,11 @@ namespace
   const int8_t BITString = 3;
   const int8_t BITBoolean = 4;
   const int8_t BITNull = 5;
-  const int8_t BITArrayDynamic = 6;
-  const int8_t BITArrayStatic = 7;
-  const int8_t BITObjectDynamic = 8;
-  const int8_t BITObjectStatic = 9;
-  const int8_t BITObjectHybrid = 10;
+  const int8_t BITDynamicArray = 6;
+  const int8_t BITStaticArray = 7;
+  const int8_t BITDynamicObject = 8;
+  const int8_t BITStaticObject = 9;
+  const int8_t BITHybridObject = 10;
   const int8_t BITSet = 11;
   const int8_t BITTypeSeq = 12;
 
@@ -722,13 +722,18 @@ namespace
       write_byte(static_cast<uint8_t>(object->size()));
       for (const Node& item : *object)
       {
-        write_builtin_type(item / Key);
-        write_builtin_type(item / Val);
+        write_string((item / bi::Name)->location().view());
+        write_builtin_type(item / bi::Type);
       }
     }
 
-    void write_builtin_type(const Node& type)
+    void write_builtin_type(Node type)
     {
+      if (type == bi::Type)
+      {
+        type = type->front();
+      }
+
       if (type == bi::Any)
       {
         write_byte(BITAny);
@@ -761,12 +766,14 @@ namespace
 
       if (type == bi::DynamicArray)
       {
+        write_byte(BITDynamicArray);
         write_builtin_type(type->front());
         return;
       }
 
       if (type == bi::StaticArray)
       {
+        write_byte(BITStaticArray);
         write_byte(static_cast<uint8_t>(type->size()));
         for (auto& n : *type)
         {
@@ -777,6 +784,7 @@ namespace
 
       if (type == bi::DynamicObject)
       {
+        write_byte(BITDynamicObject);
         write_builtin_type(type / Key);
         write_builtin_type(type / Val);
         return;
@@ -784,25 +792,30 @@ namespace
 
       if (type == bi::StaticObject)
       {
+        write_byte(BITStaticObject);
         write_bkv_list(type);
         return;
       }
 
       if (type == bi::HybridObject)
       {
+        write_byte(BITHybridObject);
         write_builtin_type(type / bi::DynamicObject / Key);
         write_builtin_type(type / bi::DynamicObject / Val);
         write_bkv_list(type / bi::StaticObject);
+        return;
       }
 
       if (type == bi::Set)
       {
+        write_byte(BITSet);
         write_builtin_type(type->front());
         return;
       }
 
       if (type == bi::TypeSeq)
       {
+        write_byte(BITTypeSeq);
         write_byte(static_cast<uint8_t>(type->size()));
         for (auto& n : *type)
         {
@@ -824,6 +837,7 @@ namespace
 
     void write_builtin_decl(const Node& decl)
     {
+      WFContext ctx(builtins::wf_decl);
       Node args = decl / bi::Args;
       Node ret = decl / bi::Return;
 
@@ -1224,7 +1238,7 @@ namespace
 
     std::string read_string()
     {
-      size_t size = static_cast<size_t>(read_int32());
+      size_t size = read_size();
       std::string value;
       value.resize(size);
       m_istream.read(value.data(), size);
@@ -1233,7 +1247,7 @@ namespace
 
     void skip_string()
     {
-      size_t size = static_cast<size_t>(read_int32());
+      size_t size = read_size();
       m_istream.seekg(size, std::ios::cur);
     }
 
@@ -1277,8 +1291,9 @@ namespace
       Nodes nodes;
       for (size_t i = 0; i < size; ++i)
       {
-        nodes.push_back(
-          bi::ObjectItem << read_builtin_type() << read_builtin_type());
+        Node name = bi::Name ^ read_string();
+        Node type = read_builtin_type();
+        nodes.push_back(bi::ObjectItem << name << type);
       }
 
       return nodes;
@@ -1316,22 +1331,22 @@ namespace
         case BITNull:
           return bi::Type << (bi::Null ^ "null");
 
-        case BITArrayDynamic:
+        case BITDynamicArray:
           return bi::Type << (bi::DynamicArray << read_builtin_type());
 
-        case BITArrayStatic: {
+        case BITStaticArray: {
           return bi::Type << (bi::StaticArray << read_bt_list());
         }
 
-        case BITObjectDynamic:
+        case BITDynamicObject:
           return bi::Type
             << (bi::DynamicObject << read_builtin_type()
                                   << read_builtin_type());
 
-        case BITObjectStatic:
+        case BITStaticObject:
           return bi::Type << (bi::StaticObject << read_bkv_list());
 
-        case BITObjectHybrid:
+        case BITHybridObject:
           return bi::Type
             << (bi::HybridObject << (bi::DynamicObject << read_builtin_type()
                                                        << read_builtin_type())
@@ -1344,7 +1359,7 @@ namespace
           return bi::Type << (bi::TypeSeq << read_bt_list());
 
         default:
-          logging::Error() << "Unrecognized built-in type id: " << type_id;
+          logging::Error() << "Unrecognized built-in type id: " << int(type_id);
           throw std::runtime_error("Unrecognized built-in type id");
       }
     }
@@ -1451,7 +1466,7 @@ namespace
       size_t size = read_byte();
       for (size_t i = 0; i < size; ++i)
       {
-        path.push_back(static_cast<size_t>(read_int32()));
+        path.push_back(read_size());
       }
     }
 

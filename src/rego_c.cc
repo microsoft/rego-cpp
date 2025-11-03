@@ -29,9 +29,7 @@ namespace rego
 
   struct regoOutput
   {
-    Node node;
-    Nodes expressions;
-    std::string value;
+    Output output;
   };
 
   struct regoInput
@@ -450,14 +448,8 @@ extern "C"
     try
     {
       auto interpreter = reinterpret_cast<rego::Interpreter*>(rego);
-      rego::regoOutput* output = new rego::regoOutput();
-      output->node = interpreter->query_node(query_expr);
-      if (output->node == rego::Term)
-      {
-        output->node = output->node->front();
-      }
-
-      output->value = interpreter->output_to_string(output->node);
+      rego::regoOutput* output =
+        new rego::regoOutput{interpreter->query_node(query_expr)};
       auto ptr = reinterpret_cast<regoOutput*>(output);
       logging::Debug() << "regoQuery output: " << ptr;
       return ptr;
@@ -663,9 +655,8 @@ extern "C"
       }
 
       auto interpreter = reinterpret_cast<rego::Interpreter*>(rego);
-      rego::regoOutput* output = new rego::regoOutput();
-      output->node = interpreter->query_bundle(rb->bundle);
-      output->value = interpreter->output_to_string(output->node);
+      rego::regoOutput* output =
+        new rego::regoOutput{interpreter->query_bundle(rb->bundle)};
       auto ptr = reinterpret_cast<regoOutput*>(output);
       logging::Debug() << "regoBundleQuery output: " << ptr;
       return ptr;
@@ -691,9 +682,8 @@ extern "C"
       }
 
       auto interpreter = reinterpret_cast<rego::Interpreter*>(rego);
-      rego::regoOutput* output = new rego::regoOutput();
-      output->node = interpreter->query_bundle(rb->bundle, entrypoint);
-      output->value = interpreter->output_to_string(output->node);
+      rego::regoOutput* output =
+        new rego::regoOutput{interpreter->query_bundle(rb->bundle, entrypoint)};
       auto ptr = reinterpret_cast<regoOutput*>(output);
       logging::Debug() << "regoBundleQueryEntrypoint output: " << ptr;
       return ptr;
@@ -720,44 +710,20 @@ extern "C"
       return false;
     }
 
-    return reinterpret_cast<rego::regoOutput*>(output)->node->type() !=
-      rego::ErrorSeq;
+    return reinterpret_cast<rego::regoOutput*>(output)->output.ok();
   }
 
   regoSize regoOutputSize(regoOutput* output)
   {
     logging::Debug() << "regoOutputSize";
-    auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
-    auto node_ptr = reinterpret_cast<trieste::NodeDef*>(output_ptr->node.get());
-    if (node_ptr->type() == rego::ErrorSeq)
-    {
-      return 0;
-    }
-
-    assert(node_ptr->type() == rego::Results);
-    return static_cast<regoSize>(node_ptr->size());
+    return reinterpret_cast<rego::regoOutput*>(output)->output.size();
   }
 
   regoNode* regoOutputExpressionsAtIndex(regoOutput* output, regoSize index)
   {
     logging::Debug() << "regoOutputExpressionsAtIndex: " << index;
-    auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
-    auto node_ptr = reinterpret_cast<trieste::NodeDef*>(output_ptr->node.get());
-    if (node_ptr->type() == rego::ErrorSeq)
-    {
-      return nullptr;
-    }
-
-    assert(node_ptr->type() == rego::Results);
-    trieste::WFContext context(rego::wf_result);
-
-    if (index >= node_ptr->size())
-    {
-      return nullptr;
-    }
-
-    rego::Node result = node_ptr->at(index);
-    rego::Node terms = result / rego::Terms;
+    auto terms =
+      reinterpret_cast<rego::regoOutput*>(output)->output.expressions_at(index);
     return reinterpret_cast<regoNode*>(terms.get());
   }
 
@@ -771,35 +737,15 @@ extern "C"
   {
     logging::Debug() << "regoOutputNode";
     return reinterpret_cast<regoNode*>(
-      reinterpret_cast<rego::regoOutput*>(output)->node.get());
+      reinterpret_cast<rego::regoOutput*>(output)->output.node().get());
   }
 
   regoNode* regoOutputBindingAtIndex(
     regoOutput* output, regoSize index, const char* name)
   {
     logging::Debug() << "regoOutputBindingAtIndex: " << name;
-    auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
-    auto node_ptr = reinterpret_cast<trieste::NodeDef*>(output_ptr->node.get());
-    if (node_ptr->type() == rego::ErrorSeq)
-    {
-      return nullptr;
-    }
-
-    assert(node_ptr->type() == rego::Results);
-    trieste::WFContext context(rego::wf_result);
-    auto result = node_ptr->at(index);
-    auto defs = result->lookdown({name});
-    if (defs.empty())
-    {
-      return nullptr;
-    }
-
-    rego::Node val = defs[0] / rego::Val;
-    if (val == rego::Term)
-    {
-      val = val->front();
-    }
-
+    auto val = reinterpret_cast<rego::regoOutput*>(output)->output.binding_at(
+      index, name);
     return reinterpret_cast<regoNode*>(val.get());
   }
 
@@ -813,7 +759,7 @@ extern "C"
   {
     logging::Debug() << "regoOutputJSONSize";
     return static_cast<regoSize>(
-      reinterpret_cast<rego::regoOutput*>(output)->value.size() + 1);
+      reinterpret_cast<rego::regoOutput*>(output)->output.json().size() + 1);
   }
 
   regoEnum regoOutputJSON(regoOutput* output, char* buffer, regoSize size)
@@ -821,7 +767,7 @@ extern "C"
     logging::Debug() << "regoOutputJSON: " << (void*)buffer << "[" << size
                      << "]";
     auto output_ptr = reinterpret_cast<rego::regoOutput*>(output);
-    auto& value = output_ptr->value;
+    auto& value = output_ptr->output.json();
     if (size < value.size() + 1)
     {
       return REGO_ERROR_BUFFER_TOO_SMALL;

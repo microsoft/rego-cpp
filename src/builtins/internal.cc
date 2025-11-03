@@ -1,4 +1,4 @@
-#include "builtins.h"
+#include "builtins.hh"
 
 namespace
 {
@@ -12,15 +12,19 @@ namespace
     return Resolver::membership(item, itemseq);
   }
 
-  const Node member_2_decl = bi::Decl
-    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "item") << bi::Description
-                               << (bi::Type << bi::Any))
-                   << (bi::Arg << (bi::Name ^ "itemseq") << bi::Description
-                               << (bi::Type << bi::Any)))
-    << (bi::Result << (bi::Name ^ "result")
-                   << (bi::Description ^
-                       "true if `item` is a member of `itemseq`")
-                   << (bi::Type << bi::Boolean));
+  BuiltIn member_2_factory()
+  {
+    const Node member_2_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "item") << bi::Description
+                                 << (bi::Type << bi::Any))
+                     << (bi::Arg << (bi::Name ^ "itemseq") << bi::Description
+                                 << (bi::Type << bi::Any)))
+      << (bi::Result << (bi::Name ^ "result")
+                     << (bi::Description ^
+                         "true if `item` is a member of `itemseq`")
+                     << (bi::Type << bi::Boolean));
+    return BuiltInDef::create({"internal.member_2"}, member_2_decl, member_2);
+  }
 
   Node member_3(const Nodes& args)
   {
@@ -30,17 +34,21 @@ namespace
     return Resolver::membership(index, item, itemseq);
   }
 
-  const Node member_3_decl = bi::Decl
-    << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "index") << bi::Description
-                               << (bi::Type << bi::Any))
-                   << (bi::Arg << (bi::Name ^ "item") << bi::Description
-                               << (bi::Type << bi::Any))
-                   << (bi::Arg << (bi::Name ^ "itemseq") << bi::Description
-                               << (bi::Type << bi::Any)))
-    << (bi::Result << (bi::Name ^ "result")
-                   << (bi::Description ^
-                       "true if (`index`, `item`) is a member of `itemseq`")
-                   << (bi::Type << bi::Boolean));
+  BuiltIn member_3_factory()
+  {
+    const Node member_3_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg << (bi::Name ^ "index") << bi::Description
+                                 << (bi::Type << bi::Any))
+                     << (bi::Arg << (bi::Name ^ "item") << bi::Description
+                                 << (bi::Type << bi::Any))
+                     << (bi::Arg << (bi::Name ^ "itemseq") << bi::Description
+                                 << (bi::Type << bi::Any)))
+      << (bi::Result << (bi::Name ^ "result")
+                     << (bi::Description ^
+                         "true if (`index`, `item`) is a member of `itemseq`")
+                     << (bi::Type << bi::Boolean));
+    return BuiltInDef::create({"internal.member_3"}, member_3_decl, member_3);
+  }
 
   Node print(const Nodes& args)
   {
@@ -66,27 +74,41 @@ namespace
     return Resolver::scalar(true);
   }
 
-  const Node print_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << bi::Name << bi::Description
-                             << (bi::Type
-                                 << (bi::DynamicArray
-                                     << (bi::Type << (bi::Set << bi::Any))))))
-             << bi::Void;
+  BuiltIn print_factory()
+  {
+    const Node print_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg << bi::Name << bi::Description
+                               << (bi::Type
+                                   << (bi::DynamicArray
+                                       << (bi::Type << (bi::Set << bi::Any))))))
+               << bi::Void;
+    return BuiltInDef::create({"internal.print"}, print_decl, ::print);
+  }
 }
 
 namespace rego
 {
   namespace builtins
   {
-    std::vector<BuiltIn> internal()
+    BuiltIn internal(const Location& name)
     {
-      return {
-        BuiltInDef::create(
-          Location("internal.member_2"), member_2_decl, member_2),
-        BuiltInDef::create(
-          Location("internal.member_3"), member_3_decl, member_3),
-        BuiltInDef::create(Location("internal.print"), print_decl, ::print)};
+      assert(name.view().starts_with("internal."));
+      std::string_view view = name.view().substr(9); // skip "internal."
+      if (view == "member_2")
+      {
+        return member_2_factory();
+      }
+      else if (view == "member_3")
+      {
+        return member_3_factory();
+      }
+      else if (view == "print")
+      {
+        return print_factory();
+      }
+
+      return nullptr;
     }
   }
 }

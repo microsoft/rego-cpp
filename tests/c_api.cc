@@ -2,61 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const char* OBJECTS = R"(package objects
-
-rect := {`width`: 2, "height": 4}
-cube := {"width": 3, `height`: 4, "depth": 5}
-a := 42
-b := false
-c := null
-d := {"a": a, "x": [b, c]}
-index := 1
-shapes := [rect, cube]
-names := ["prod", `smoke1`, "dev"]
-sites := [{"name": "prod"}, {"name": names[index]}, {"name": "dev"}]
-e := {
-    a: "foo",
-    "three": c,
-    names[2]: b,
-    "four": d,
-}
-f := e["dev"]
-)";
-
-const char* DATA0 = R"({
-    "one": {
-        "bar": "Foo",
-        "baz": 5,
-        "be": true,
-        "bop": 23.4
-    },
-    "two": {
-        "bar": "Bar",
-        "baz": 12.3,
-        "be": false,
-        "bop": 42
-    }
-}
-)";
-
-const char* DATA1 = R"({
-    "three": {
-        "bar": "Baz",
-        "baz": 15,
-        "be": true,
-        "bop": 4.23
-    }
-}
-)";
-
-const char* INPUT0 = R"({
-    "a": 10,
-    "b": "20",
-    "c": 30.0,
-    "d": true
-}
-)";
-
 int print_output(const char* label, regoOutput* output)
 {
   regoSize size = 0;
@@ -81,10 +26,36 @@ int print_output(const char* label, regoOutput* output)
   return REGO_OK;
 }
 
-int main()
+int print_error(regoInterpreter* rego)
+{
+  regoEnum err = REGO_OK;
+  regoSize size = 0;
+  char* buf = NULL;
+
+  size = regoErrorSize(rego);
+  if (size == 0)
+  {
+    return REGO_ERROR;
+  }
+
+  buf = (char*)malloc(size);
+  err = regoError(rego, buf, size);
+  if (err == REGO_OK)
+  {
+    printf("%s\n", buf);
+    free(buf);
+    return REGO_OK;
+  }
+
+  free(buf);
+  printf("Unknown error: Unable to obtain error message\n");
+  return err;
+}
+
+int main(void)
 {
   regoEnum err;
-  int rc = REGO_OK;
+  int rc = EXIT_SUCCESS;
   regoOutput* output = NULL;
   regoNode* node = NULL;
   regoBundle* bundle = NULL;
@@ -99,25 +70,25 @@ int main()
   regoSetDebugPath(rego, "test");
   regoSetLogLevel(rego, regoLogLevelFromString("Debug"));
 
-  err = regoAddModule(rego, "objects.rego", OBJECTS);
+  err = regoAddModuleFile(rego, "examples/objects.rego");
   if (err != REGO_OK)
   {
     goto error;
   }
 
-  err = regoAddDataJSON(rego, DATA0);
+  err = regoAddDataJSONFile(rego, "examples/data0.json");
   if (err != REGO_OK)
   {
     goto error;
   }
 
-  err = regoAddDataJSON(rego, DATA1);
+  err = regoAddDataJSONFile(rego, "examples/data1.json");
   if (err != REGO_OK)
   {
     goto error;
   }
 
-  err = regoSetInputTerm(rego, INPUT0);
+  err = regoSetInputJSONFile(rego, "examples/input0.json");
   if (err != REGO_OK)
   {
     goto error;
@@ -184,8 +155,6 @@ int main()
   regoFreeOutput(output);
   output = NULL;
 
-  goto exit;
-
   err = regoSetQuery(rego, "[data.one, input.b, data.objects.sites[1]] = x");
 
   if (err != REGO_OK)
@@ -214,6 +183,9 @@ int main()
     goto error;
   }
 
+  regoFreeBundle(bundle);
+  bundle = NULL;
+
   bundle = regoBundleLoad(rego, bundle_dir);
 
   if (bundle == NULL || !regoBundleOk(bundle))
@@ -227,6 +199,9 @@ int main()
   {
     goto error;
   }
+
+  regoFreeBundle(bundle);
+  bundle = NULL;
 
   bundle = regoBundleLoadBinary(rego, bundle_path);
 
@@ -249,6 +224,12 @@ int main()
   regoInputBoolean(input, 1);
   regoInputObjectItem(input);
   regoInputObject(input, 4);
+  err = regoInputValidate(input);
+
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
 
   err = regoSetInput(rego, input);
 
@@ -286,32 +267,8 @@ int main()
   goto exit;
 
 error:
-  if (buf != NULL)
-  {
-    free(buf);
-    buf = NULL;
-  }
-
-  size = regoErrorSize(rego);
-  if (size != 0)
-  {
-    buf = (char*)malloc(size);
-    err = regoError(rego, buf, size);
-    if (err != REGO_OK)
-    {
-      printf("UNKNOWN ERROR");
-    }
-    else
-    {
-      printf("ERROR: %s\n", buf);
-    }
-  }
-  else
-  {
-    printf("UNKNOWN ERROR");
-  }
-
-  rc = REGO_ERROR;
+  print_error(rego);
+  rc = EXIT_FAILURE;
 
 exit:
   if (buf != NULL)
@@ -322,6 +279,11 @@ exit:
   if (output != NULL)
   {
     regoFreeOutput(output);
+  }
+
+  if (input != NULL)
+  {
+    regoFreeInput(input);
   }
 
   if (bundle != NULL)

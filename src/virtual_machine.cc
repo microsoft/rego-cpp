@@ -1,4 +1,5 @@
 #include "internal.hh"
+#include "rego.hh"
 
 #include <cstdint>
 #include <iterator>
@@ -19,18 +20,6 @@ namespace
   {
     os << std::setfill('0') << std::setw(2) << idx.n << "  ";
     return os;
-  }
-
-  struct DebugKey
-  {
-    DebugKey(Node n) : n(n) {}
-
-    Node n;
-  };
-
-  std::ostream& operator<<(std::ostream& os, const DebugKey& node)
-  {
-    return os << rego::to_key(node.n);
   }
 
   struct BlockIndent
@@ -56,7 +45,14 @@ namespace rego
 {
   namespace b = bundle;
 
-  VirtualMachine::VirtualMachine() : m_int_regex(R"(-?(?:0|[1-9][0-9]*))") {}
+  std::ostream& operator<<(std::ostream& os, const DebugKey& node)
+  {
+    return os << rego::to_key(node.n);
+  }
+
+  VirtualMachine::VirtualMachine() :
+    m_int_regex(R"(-?(?:0|[1-9][0-9]*))"), m_stmt_limit(10000000)
+  {}
 
   VirtualMachine& VirtualMachine::bundle(Bundle bundle)
   {
@@ -305,7 +301,19 @@ namespace rego
     throw std::runtime_error("Invalid operand");
   }
 
-  VirtualMachine::State::State(Node input, Node data, size_t num_locals)
+  size_t VirtualMachine::State::stmt_count() const
+  {
+    return m_stmt_count;
+  }
+
+  size_t VirtualMachine::State::inc_stmts()
+  {
+    m_stmt_count += 1;
+    return m_stmt_count;
+  }
+
+  VirtualMachine::State::State(Node input, Node data, size_t num_locals) :
+    m_with_count(0), m_break_count(0), m_stmt_count(0)
   {
     m_frame.resize(num_locals, nullptr);
     write_local(0, input->front());
@@ -486,6 +494,7 @@ namespace rego
           case Code::Undefined:
           case Code::Return:
           case Code::Error:
+          case Code::Timeout:
             break;
           case Code::Break:
             state.pop_break();
@@ -622,6 +631,13 @@ namespace rego
   VirtualMachine::Code VirtualMachine::run_stmt(
     State& state, size_t index, const b::Statement& stmt) const
   {
+    if (state.inc_stmts() >= m_stmt_limit)
+    {
+      state.add_error(err(
+        Line ^ stmt.location, "Maximum statement count reached", TimeoutError));
+      return Code::Timeout;
+    }
+
     logging::Debug() << DebugIdx(index) << stmt;
     switch (stmt.type)
     {
@@ -671,6 +687,7 @@ namespace rego
             case Code::Return:
             case Code::Error:
             case Code::Break:
+            case Code::Timeout:
               return code;
             default:
               logging::Error() << "Unexpected return code from block: "
@@ -1294,7 +1311,8 @@ namespace rego
         if (existing_key != new_key)
         {
           logging::Error()
-            << "key already exists but values do not match: existing="
+            << "key " << insert_key
+            << " already exists but values do not match: existing="
             << existing_key << " != new=" << new_key;
           return true;
         }
@@ -1331,5 +1349,16 @@ namespace rego
     }
 
     return err(value, "Not a term");
+  }
+
+  size_t VirtualMachine::stmt_limit() const
+  {
+    return m_stmt_limit;
+  }
+
+  VirtualMachine& VirtualMachine::stmt_limit(size_t stmt_limit)
+  {
+    m_stmt_limit = stmt_limit;
+    return *this;
   }
 }

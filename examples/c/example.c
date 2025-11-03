@@ -38,7 +38,7 @@ int print_error(regoInterpreter* rego)
     return REGO_ERROR;
   }
 
-  buf = malloc(size);
+  buf = (char*)malloc(size);
   err = regoError(rego, buf, size);
   if (err == REGO_OK)
   {
@@ -57,12 +57,13 @@ int main(void)
   regoEnum err;
   int rc = EXIT_SUCCESS;
   regoOutput* output = NULL;
+  regoNode* node = NULL;
   regoBundle* bundle = NULL;
   regoInput* input = NULL;
   regoInterpreter* rego = regoNew();
   regoSize size = 0;
   char* buf = NULL;
-  const char* bundle_dir = "bundle";
+  const char* bundle_dir = "example_bundle";
   const char* bundle_path = "example.rbb";
 
   err = regoAddModuleFile(rego, "examples/objects.rego");
@@ -101,6 +102,52 @@ int main(void)
     goto error;
   }
 
+  node = regoOutputBinding(output, "x");
+  if (node == NULL)
+  {
+    goto error;
+  }
+
+  size = regoNodeJSONSize(node);
+  if (size == 0)
+  {
+    goto error;
+  }
+
+  buf = (char*)malloc(size);
+  err = regoNodeJSON(node, buf, size);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  printf("x = %s\n", buf);
+  free(buf);
+  buf = NULL;
+
+  node = regoNodeGet(node, 1); // index
+  if (node == NULL)
+  {
+    goto error;
+  }
+
+  size = regoNodeValueSize(node);
+  if (size == 0)
+  {
+    goto error;
+  }
+
+  buf = (char*)malloc(size);
+  err = regoNodeValue(node, buf, size);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  printf("x[1] = `%s`\n", buf);
+  free(buf);
+  buf = NULL;
+
   regoFreeOutput(output);
   output = NULL;
 
@@ -132,6 +179,9 @@ int main(void)
     goto error;
   }
 
+  regoFreeBundle(bundle);
+  bundle = NULL;
+
   bundle = regoBundleLoad(rego, bundle_dir);
 
   if (bundle == NULL || !regoBundleOk(bundle))
@@ -145,6 +195,9 @@ int main(void)
   {
     goto error;
   }
+
+  regoFreeBundle(bundle);
+  bundle = NULL;
 
   bundle = regoBundleLoadBinary(rego, bundle_path);
 
@@ -214,9 +267,24 @@ error:
   rc = EXIT_FAILURE;
 
 exit:
+  if (buf != NULL)
+  {
+    free(buf);
+  }
+
   if (output != NULL)
   {
     regoFreeOutput(output);
+  }
+
+  if (input != NULL)
+  {
+    regoFreeInput(input);
+  }
+
+  if (bundle != NULL)
+  {
+    regoFreeBundle(bundle);
   }
 
   if (rego != NULL)

@@ -16,8 +16,6 @@ namespace rego
 
   BigInt::BigInt(const std::int64_t value) : BigInt(std::to_string(value)) {}
 
-  BigInt::BigInt(const std::size_t value) : BigInt(std::to_string(value)) {}
-
   const Location& BigInt::loc() const
   {
     return m_loc;

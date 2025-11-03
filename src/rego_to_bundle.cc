@@ -452,6 +452,7 @@ namespace
   {
     auto func_argnames =
       std::make_shared<std::map<std::string, std::vector<Location>>>();
+    auto assigned_vars = std::make_shared<NodeMap<std::set<Location>>>();
     PassDef pass = {
       "rules",
       wf_bundle_rules,
@@ -503,12 +504,27 @@ namespace
                  << ((T(Expr)[Lhs] << (T(Term) << T(Var)[Var])) *
                      (T(InfixOperator) << (T(AssignOperator) << T(Unify))) *
                      T(Expr)[Rhs]))) >>
-          [](Match& _) -> Node {
+          [assigned_vars](Match& _) -> Node {
           if (!is_constant(_(Rhs)) || is_func_arg(_(Var)))
           {
             return ExprUnify << _(Lhs) << _(Rhs);
           }
 
+          Node query = _(Lhs)->parent(Query);
+          if (!assigned_vars->contains(query))
+          {
+            assigned_vars->insert({query, {}});
+          }
+
+          if (assigned_vars->at(query).contains(_(Var)->location()))
+          {
+            return Expr
+              << (ExprInfix << _(Lhs)
+                            << (InfixOperator << (BoolOperator << Equals))
+                            << _(Rhs));
+          }
+
+          assigned_vars->at(query).insert(_(Var)->location());
           return ExprAssign << (AssignVar ^ _(Var)) << _(Rhs);
         },
 
@@ -518,12 +534,27 @@ namespace
                  << (T(Expr)[Lhs] *
                      (T(InfixOperator) << (T(AssignOperator) << T(Unify))) *
                      (T(Expr)[Rhs] << (T(Term) << T(Var)[Var]))))) >>
-          [](Match& _) -> Node {
+          [assigned_vars](Match& _) -> Node {
           if (!is_constant(_(Lhs)) || is_func_arg(_(Var)))
           {
             return ExprUnify << _(Lhs) << _(Rhs);
           }
 
+          Node query = _(Rhs)->parent(Query);
+          if (!assigned_vars->contains(query))
+          {
+            assigned_vars->insert({query, {}});
+          }
+
+          if (assigned_vars->at(query).contains(_(Var)->location()))
+          {
+            return Expr
+              << (ExprInfix << _(Lhs)
+                            << (InfixOperator << (BoolOperator << Equals))
+                            << _(Rhs));
+          }
+
+          assigned_vars->at(query).insert(_(Var)->location());
           return ExprAssign << (AssignVar ^ _(Var)) << _(Lhs);
         },
 
@@ -1418,6 +1449,12 @@ namespace
           return err(_(ExprEvery), "Invalid every expression");
         },
       }};
+
+    pass.pre([assigned_vars, func_argnames](Node) {
+      assigned_vars->clear();
+      func_argnames->clear();
+      return 0;
+    });
 
     return pass;
   }
@@ -4176,6 +4213,14 @@ namespace
               return err(scansource_ref, "Invalid scan source");
             }
 
+            Node scansource_block = _(OpBlock) / Block;
+            if (scansource_block->empty())
+            {
+              return Literal
+                << (ScanStmt << scansource_ref->clone() << _(Key) << _(Val)
+                             << _(Block));
+            }
+
             return Seq << (Literal << _(OpBlock))
                        << (Literal
                            << (ScanStmt << scansource_ref->clone() << _(Key)
@@ -4735,6 +4780,7 @@ namespace
 
             Node body_block = Block
               << (MakeArrayStmt << (Int32 ^ "1") << (LocalRef ^ result_name));
+
             for (Node literal : *_(Query))
             {
               add_literal_to_block(body_block, literal);

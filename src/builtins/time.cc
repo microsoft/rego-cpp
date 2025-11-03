@@ -1,4 +1,4 @@
-#include "builtins.h"
+#include "builtins.hh"
 #include "re2/stringpiece.h"
 #include "rego.hh"
 
@@ -18,19 +18,16 @@ namespace
   const std::size_t minute_ns = 60UL * second_ns;
   const std::size_t hour_ns = 60UL * minute_ns;
 
-  Node now_ns_decl = bi::Decl
-    << bi::ArgSeq
-    << (bi::Result << (bi::Name ^ "now")
-                   << (bi::Description ^ "nanoseconds since epoch")
-                   << (bi::Type << bi::Number));
-
   static thread_local Node cached = nullptr;
   struct NowNS : public BuiltInDef
   {
     NowNS() :
       BuiltInDef(
         Location("time.now_ns"),
-        now_ns_decl,
+        bi::Decl << bi::ArgSeq
+                 << (bi::Result << (bi::Name ^ "now")
+                                << (bi::Description ^ "nanoseconds since epoch")
+                                << (bi::Type << bi::Number)),
         [this](const Nodes&) { return call(); },
         true)
     {}
@@ -112,204 +109,231 @@ namespace
     return Undefined;
   }
 
-  Node parse_duration_ns_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg
-                     << (bi::Name ^ "duration")
-                     << (bi::Description ^
-                         "a duration like \"3m\"; see the [Go `time` package "
-                         "documentation](https://golang.org/pkg/time/"
-                         "#ParseDuration) for more details")
-                     << (bi::Type << bi::String)))
-             << (bi::Result
-                 << (bi::Name ^ "ns")
-                 << (bi::Description ^ "the `duration` in nanoseconds")
-                 << (bi::Type << bi::Number));
-
-  Node add_date_decl = bi::Decl
-    << (bi::ArgSeq << (bi::Arg
-                       << (bi::Name ^ "ns")
-                       << (bi::Description ^ "nanoseconds since the epoch")
-                       << (bi::Type << bi::Number))
-                   << (bi::Arg << (bi::Name ^ "years")
-                               << (bi::Description ^ "number of years to add")
-                               << (bi::Type << bi::Number))
-                   << (bi::Arg << (bi::Name ^ "months")
-                               << (bi::Description ^ "number of months to add")
-                               << (bi::Type << bi::Number))
-                   << (bi::Arg << (bi::Name ^ "days")
-                               << (bi::Description ^ "number of days to add")
-                               << (bi::Type << bi::Number)))
-    << (bi::Result << (bi::Name ^ "output")
-                   << (bi::Description ^
-                       "nanoseconds since the epoch representing the input "
-                       "time, with years, months and days added")
+  BuiltIn parse_duration_ns_factory()
+  {
+    const Node parse_duration_ns_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg
+                       << (bi::Name ^ "duration")
+                       << (bi::Description ^
+                           "a duration like \"3m\"; see the [Go `time` package "
+                           "documentation](https://golang.org/pkg/time/"
+                           "#ParseDuration) for more details")
+                       << (bi::Type << bi::String)))
+               << (bi::Result
+                   << (bi::Name ^ "ns")
+                   << (bi::Description ^ "the `duration` in nanoseconds")
                    << (bi::Type << bi::Number));
+    return BuiltInDef::create(
+      {"time.parse_duration_ns"}, parse_duration_ns_decl, parse_duration_ns);
+  }
 
-  Node clock_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg
-                     << (bi::Name ^ "x")
+  Node add_date_decl()
+  {
+    return bi::Decl
+      << (bi::ArgSeq << (bi::Arg
+                         << (bi::Name ^ "ns")
+                         << (bi::Description ^ "nanoseconds since the epoch")
+                         << (bi::Type << bi::Number))
+                     << (bi::Arg << (bi::Name ^ "years")
+                                 << (bi::Description ^ "number of years to add")
+                                 << (bi::Type << bi::Number))
+                     << (bi::Arg
+                         << (bi::Name ^ "months")
+                         << (bi::Description ^ "number of months to add")
+                         << (bi::Type << bi::Number))
+                     << (bi::Arg << (bi::Name ^ "days")
+                                 << (bi::Description ^ "number of days to add")
+                                 << (bi::Type << bi::Number)))
+      << (bi::Result << (bi::Name ^ "output")
                      << (bi::Description ^
-                         "a number representing the nanoseconds since the "
-                         "epoch (UTC); or a two-element array of the "
-                         "nanoseconds, and a timezone string")
-                     << (bi::Type
-                         << (bi::TypeSeq
-                             << (bi::Type << bi::Number)
-                             << (bi::Type
-                                 << (bi::StaticArray
-                                     << (bi::Type << bi::Number)
-                                     << (bi::Type << bi::String)))))))
-             << (bi::Result
-                 << (bi::Name ^ "output")
-                 << (bi::Description ^
-                     "the `hour`, `minute` (0-59), and `second` (0-59) "
-                     "representing the time of day for the nanoseconds since "
-                     "epoch in the supplied timezone (or UTC)")
-                 << (bi::Type
-                     << (bi::StaticArray << (bi::Type << bi::Number)
-                                         << (bi::Type << bi::Number)
-                                         << (bi::Type << bi::Number))));
+                         "nanoseconds since the epoch representing the input "
+                         "time, with years, months and days added")
+                     << (bi::Type << bi::Number));
+  }
 
-  Node date_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg
-                     << (bi::Name ^ "x")
+  Node clock_decl()
+  {
+    return bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "x")
+                      << (bi::Description ^
+                          "a number representing the nanoseconds since the "
+                          "epoch (UTC); or a two-element array of the "
+                          "nanoseconds, and a timezone string")
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type << bi::Number)
+                              << (bi::Type
+                                  << (bi::StaticArray
+                                      << (bi::Type << bi::Number)
+                                      << (bi::Type << bi::String)))))))
+      << (bi::Result
+          << (bi::Name ^ "output")
+          << (bi::Description ^
+              "the `hour`, `minute` (0-59), and `second` (0-59) "
+              "representing the time of day for the nanoseconds since "
+              "epoch in the supplied timezone (or UTC)")
+          << (bi::Type
+              << (bi::StaticArray << (bi::Type << bi::Number)
+                                  << (bi::Type << bi::Number)
+                                  << (bi::Type << bi::Number))));
+  }
+
+  Node date_decl()
+  {
+    return bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "x")
+                      << (bi::Description ^
+                          "a number representing the nanoseconds since the "
+                          "epoch (UTC); or a two-element array of the "
+                          "nanoseconds, and a timezone string")
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type << bi::Number)
+                              << (bi::Type
+                                  << (bi::StaticArray
+                                      << (bi::Type << bi::Number)
+                                      << (bi::Type << bi::String)))))))
+      << (bi::Result
+          << (bi::Name ^ "output")
+          << (bi::Description ^
+              "an array of `year`, `month` (1-12), and `day` (1-31))")
+          << (bi::Type
+              << (bi::StaticArray << (bi::Type << bi::Number)
+                                  << (bi::Type << bi::Number)
+                                  << (bi::Type << bi::Number))));
+  }
+
+  Node diff_decl()
+  {
+    return bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "ns1")
+                      << (bi::Description ^
+                          "nanoseconds since the epoch; or a two-element array "
+                          "of the nanoseconds, and a timezone string")
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type << bi::Number)
+                              << (bi::Type
+                                  << (bi::StaticArray
+                                      << (bi::Type << bi::Number)
+                                      << (bi::Type << bi::String))))))
+          << (bi::Arg << (bi::Name ^ "ns2")
+                      << (bi::Description ^
+                          "nanoseconds since the epoch; or a two-element array "
+                          "of the nanoseconds, and a timezone string")
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type << bi::Number)
+                              << (bi::Type
+                                  << (bi::StaticArray
+                                      << (bi::Type << bi::Number)
+                                      << (bi::Type << bi::String)))))))
+      << (bi::Result
+          << (bi::Name ^ "output")
+          << (bi::Description ^
+              "difference between `ns1` and `ns2` (in their supplied "
+              "timezones, if supplied, or UTC) as array of numbers: "
+              "`[years, months, days, hours, minutes, seconds]`")
+          << (bi::Type
+              << (bi::StaticArray
+                  << (bi::Type << bi::Number) << (bi::Type << bi::Number)
+                  << (bi::Type << bi::Number) << (bi::Type << bi::Number)
+                  << (bi::Type << bi::Number) << (bi::Type << bi::Number))));
+  }
+
+  Node format_decl()
+  {
+    return bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg
+              << (bi::Name ^ "x")
+              << (bi::Description ^
+                  "a number representing the nanoseconds since the epoch "
+                  "(UTC); "
+                  "or a two-element array of the nanoseconds, and a timezone "
+                  "string; or a three-element array of ns, timezone string and "
+                  "a "
+                  "layout string or golang defined formatting constant (see "
+                  "golang supported time formats)")
+              << (bi::Type
+                  << (bi::TypeSeq
+                      << (bi::Type << bi::Number)
+                      << (bi::Type
+                          << (bi::StaticArray << (bi::Type << bi::Number)
+                                              << (bi::Type << bi::String)))
+                      << (bi::Type
+                          << (bi::StaticArray << (bi::Type << bi::Number)
+                                              << (bi::Type << bi::String)
+                                              << (bi::Type << bi::String)))))))
+      << (bi::Result << (bi::Name ^ "formatted timestamp")
                      << (bi::Description ^
-                         "a number representing the nanoseconds since the "
-                         "epoch (UTC); or a two-element array of the "
-                         "nanoseconds, and a timezone string")
-                     << (bi::Type
-                         << (bi::TypeSeq
-                             << (bi::Type << bi::Number)
-                             << (bi::Type
-                                 << (bi::StaticArray
-                                     << (bi::Type << bi::Number)
-                                     << (bi::Type << bi::String)))))))
-             << (bi::Result
-                 << (bi::Name ^ "output")
-                 << (bi::Description ^
-                     "an array of `year`, `month` (1-12), and `day` (1-31))")
-                 << (bi::Type
-                     << (bi::StaticArray << (bi::Type << bi::Number)
-                                         << (bi::Type << bi::Number)
-                                         << (bi::Type << bi::Number))));
+                         "the formatted timestamp represented for the "
+                         "nanoseconds since the "
+                         "epoch in the supplied timezone (or UTC)")
+                     << (bi::Type << bi::String));
+  }
 
-  Node diff_decl = bi::Decl
-    << (bi::ArgSeq
-        << (bi::Arg << (bi::Name ^ "ns1")
-                    << (bi::Description ^
-                        "nanoseconds since the epoch; or a two-element array "
-                        "of the nanoseconds, and a timezone string")
-                    << (bi::Type
-                        << (bi::TypeSeq << (bi::Type << bi::Number)
-                                        << (bi::Type
-                                            << (bi::StaticArray
-                                                << (bi::Type << bi::Number)
-                                                << (bi::Type << bi::String))))))
-        << (bi::Arg << (bi::Name ^ "ns2")
-                    << (bi::Description ^
-                        "nanoseconds since the epoch; or a two-element array "
-                        "of the nanoseconds, and a timezone string")
-                    << (bi::Type
-                        << (bi::TypeSeq
-                            << (bi::Type << bi::Number)
-                            << (bi::Type
-                                << (bi::StaticArray
-                                    << (bi::Type << bi::Number)
-                                    << (bi::Type << bi::String)))))))
-    << (bi::Result << (bi::Name ^ "output")
-                   << (bi::Description ^
-                       "difference between `ns1` and `ns2` (in their supplied "
-                       "timezones, if supplied, or UTC) as array of numbers: "
-                       "`[years, months, days, hours, minutes, seconds]`")
-                   << (bi::Type
-                       << (bi::StaticArray << (bi::Type << bi::Number)
-                                           << (bi::Type << bi::Number)
-                                           << (bi::Type << bi::Number)
-                                           << (bi::Type << bi::Number)
-                                           << (bi::Type << bi::Number)
-                                           << (bi::Type << bi::Number))));
+  Node parse_ns_decl()
+  {
+    return bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "layout")
+                      << (bi::Description ^
+                          "format used for parsing, see the [Go `time` package "
+                          "documentation](https://golang.org/pkg/time/#Parse) "
+                          "for more details")
+                      << (bi::Type << bi::String))
+          << (bi::Arg << (bi::Name ^ "value")
+                      << (bi::Description ^
+                          "input to parse according to `layout`")
+                      << (bi::Type << bi::String)))
+      << (bi::Result << (bi::Name ^ "ns")
+                     << (bi::Description ^ "`value` in nanoseconds since epoch")
+                     << (bi::Type << bi::Number));
+  }
 
-  Node format_decl = bi::Decl
-    << (bi::ArgSeq
-        << (bi::Arg
-            << (bi::Name ^ "x")
-            << (bi::Description ^
-                "a number representing the nanoseconds since the epoch (UTC); "
-                "or a two-element array of the nanoseconds, and a timezone "
-                "string; or a three-element array of ns, timezone string and a "
-                "layout string or golang defined formatting constant (see "
-                "golang supported time formats)")
-            << (bi::Type
-                << (bi::TypeSeq
-                    << (bi::Type << bi::Number)
-                    << (bi::Type
-                        << (bi::StaticArray << (bi::Type << bi::Number)
-                                            << (bi::Type << bi::String)))
-                    << (bi::Type
-                        << (bi::StaticArray << (bi::Type << bi::Number)
-                                            << (bi::Type << bi::String)
-                                            << (bi::Type << bi::String)))))))
-    << (bi::Result
-        << (bi::Name ^ "formatted timestamp")
-        << (bi::Description ^
-            "the formatted timestamp represented for the nanoseconds since the "
-            "epoch in the supplied timezone (or UTC)")
-        << (bi::Type << bi::String));
+  Node parse_rfc3339_ns_decl()
+  {
+    return bi::Decl << (bi::ArgSeq
 
-  Node parse_ns_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg
-                     << (bi::Name ^ "layout")
-                     << (bi::Description ^
-                         "format used for parsing, see the [Go `time` package "
-                         "documentation](https://golang.org/pkg/time/#Parse) "
-                         "for more details")
-                     << (bi::Type << bi::String))
-                 << (bi::Arg << (bi::Name ^ "value")
-                             << (bi::Description ^
-                                 "input to parse according to `layout`")
-                             << (bi::Type << bi::String)))
-             << (bi::Result
-                 << (bi::Name ^ "ns")
-                 << (bi::Description ^ "`value` in nanoseconds since epoch")
-                 << (bi::Type << bi::Number));
+                        << (bi::Arg
+                            << (bi::Name ^ "value")
+                            << (bi::Description ^
+                                "input string to parse in RFC3339 format")
+                            << (bi::Type << bi::String)))
+                    << (bi::Result << (bi::Name ^ "ns")
+                                   << (bi::Description ^
+                                       "`value` in nanoseconds since epoch")
+                                   << (bi::Type << bi::Number));
+  }
 
-  Node parse_rfc3339_ns_decl =
-    bi::Decl << (bi::ArgSeq
-
-                 << (bi::Arg << (bi::Name ^ "value")
-                             << (bi::Description ^
-                                 "input string to parse in RFC3339 format")
-                             << (bi::Type << bi::String)))
-             << (bi::Result
-                 << (bi::Name ^ "ns")
-                 << (bi::Description ^ "`value` in nanoseconds since epoch")
-                 << (bi::Type << bi::Number));
-
-  Node weekday_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg
-                     << (bi::Name ^ "x")
-                     << (bi::Description ^
-                         "a number representing the nanoseconds since the "
-                         "epoch (UTC); or a two-element array of the "
-                         "nanoseconds, and a timezone string")
-                     << (bi::Type
-                         << (bi::TypeSeq
-                             << (bi::Type << bi::Number)
-                             << (bi::Type
-                                 << (bi::StaticArray
-                                     << (bi::Type << bi::Number)
-                                     << (bi::Type << bi::String)))))))
-             << (bi::Result
-                 << (bi::Name ^ "day")
-                 << (bi::Description ^
-                     "the weekday represented by `ns` nanoseconds since the "
-                     "epoch in the supplied timezone (or UTC)")
-                 << (bi::Type << bi::String));
+  Node weekday_decl()
+  {
+    return bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "x")
+                      << (bi::Description ^
+                          "a number representing the nanoseconds since the "
+                          "epoch (UTC); or a two-element array of the "
+                          "nanoseconds, and a timezone string")
+                      << (bi::Type
+                          << (bi::TypeSeq
+                              << (bi::Type << bi::Number)
+                              << (bi::Type
+                                  << (bi::StaticArray
+                                      << (bi::Type << bi::Number)
+                                      << (bi::Type << bi::String)))))))
+      << (bi::Result
+          << (bi::Name ^ "day")
+          << (bi::Description ^
+              "the weekday represented by `ns` nanoseconds since the "
+              "epoch in the supplied timezone (or UTC)")
+          << (bi::Type << bi::String));
+  }
 
 #if __cpp_lib_chrono >= 201907L
   const std::size_t milli_ns = 1000000UL;
@@ -474,6 +498,11 @@ namespace
     }
 
     return Resolver::term(time);
+  }
+
+  BuiltIn add_date_factory()
+  {
+    return BuiltInDef::create({"time.add_date"}, add_date_decl(), add_date);
   }
 
   std::optional<nanoseconds> get_timestamp(Node x)
@@ -775,6 +804,11 @@ namespace
                  << Resolver::term(BigInt(seconds_int));
   }
 
+  BuiltIn clock_factory()
+  {
+    return BuiltInDef::create({"time.clock"}, clock_decl(), clock_);
+  }
+
   Node date_(const Nodes& args)
   {
     TimeInfo info = process_arg(args, "time.date", 0);
@@ -803,6 +837,11 @@ namespace
     return Array << Resolver::term(BigInt(year))
                  << Resolver::term(BigInt(month))
                  << Resolver::term(BigInt(day));
+  }
+
+  BuiltIn date_factory()
+  {
+    return BuiltInDef::create({"time.date"}, date_decl(), date_);
   }
 
   Node diff(const Nodes& args)
@@ -870,6 +909,11 @@ namespace
                  << Resolver::term(BigInt(seconds_int));
   }
 
+  BuiltIn diff_factory()
+  {
+    return BuiltInDef::create({"time.diff"}, diff_decl(), diff);
+  }
+
   Node format(const Nodes& args)
   {
     TimeInfo info = process_arg(args, "time.format", 0);
@@ -879,6 +923,11 @@ namespace
     }
 
     return info_string(info);
+  }
+
+  BuiltIn format_factory()
+  {
+    return BuiltInDef::create({"time.format"}, format_decl(), format);
   }
 
   Node do_parse(const std::string& layout, const Node& value)
@@ -963,6 +1012,11 @@ namespace
     return do_parse(layout_str, value);
   }
 
+  BuiltIn parse_ns_factory()
+  {
+    return BuiltInDef::create({"time.parse_ns"}, parse_ns_decl(), parse_ns);
+  }
+
   Node parse_rfc3339_ns(const Nodes& args)
   {
     Node value = unwrap_arg(
@@ -973,6 +1027,12 @@ namespace
     }
 
     return do_parse("RFC3339Nano", value);
+  }
+
+  BuiltIn parse_rfc3339_ns_factory()
+  {
+    return BuiltInDef::create(
+      {"time.parse_rfc3339_ns"}, parse_rfc3339_ns_decl(), parse_rfc3339_ns);
   }
 
   Node weekday(const Nodes& args)
@@ -993,10 +1053,63 @@ namespace
     return info_string(info);
   }
 
+  BuiltIn weekday_factory()
+  {
+    return BuiltInDef::create({"time.weekday"}, weekday_decl(), weekday);
+  }
+
 #else
 
   const std::string PlaceholderMessage =
     "timezone support not available on this platform";
+
+  BuiltIn add_date_factory()
+  {
+    return BuiltInDef::placeholder(
+      {"time.add_date"}, add_date_decl(), PlaceholderMessage);
+  }
+
+  BuiltIn clock_factory()
+  {
+    return BuiltInDef::placeholder(
+      {"time.clock"}, clock_decl(), PlaceholderMessage);
+  }
+
+  BuiltIn date_factory()
+  {
+    return BuiltInDef::placeholder(
+      {"time.date"}, date_decl(), PlaceholderMessage);
+  }
+
+  BuiltIn diff_factory()
+  {
+    return BuiltInDef::placeholder(
+      {"time.diff"}, diff_decl(), PlaceholderMessage);
+  }
+
+  BuiltIn format_factory()
+  {
+    return BuiltInDef::placeholder(
+      {"time.format"}, format_decl(), PlaceholderMessage);
+  }
+
+  BuiltIn parse_ns_factory()
+  {
+    return BuiltInDef::placeholder(
+      {"time.parse_ns"}, parse_ns_decl(), PlaceholderMessage);
+  }
+
+  BuiltIn parse_rfc3339_ns_factory()
+  {
+    return BuiltInDef::placeholder(
+      {"time.parse_rfc3339_ns"}, parse_rfc3339_ns_decl(), PlaceholderMessage);
+  }
+
+  BuiltIn weekday_factory()
+  {
+    return BuiltInDef::placeholder(
+      {"time.weekday"}, weekday_decl(), PlaceholderMessage);
+  }
 
 #endif
 
@@ -1006,47 +1119,52 @@ namespace rego
 {
   namespace builtins
   {
-    std::vector<BuiltIn> time()
+    BuiltIn time(const Location& name)
     {
-      return {
-        std::make_shared<NowNS>(),
-        BuiltInDef::create(
-          Location("time.parse_duration_ns"),
-          parse_duration_ns_decl,
-          parse_duration_ns),
-#if __cpp_lib_chrono >= 201907L
-        BuiltInDef::create(Location("time.add_date"), add_date_decl, add_date),
-        BuiltInDef::create(Location("time.format"), format_decl, format),
-        BuiltInDef::create(Location("time.diff"), diff_decl, diff),
-        BuiltInDef::create(Location("time.parse_ns"), parse_ns_decl, parse_ns),
-        BuiltInDef::create(
-          Location("time.parse_rfc3339_ns"),
-          parse_rfc3339_ns_decl,
-          parse_rfc3339_ns),
-        BuiltInDef::create(Location("time.weekday"), weekday_decl, ::weekday),
-        BuiltInDef::create(Location("time.clock"), clock_decl, clock_),
-        BuiltInDef::create(Location("time.date"), date_decl, date_),
-#else
-        BuiltInDef::placeholder(
-          Location("time.add_date"), add_date_decl, PlaceholderMessage),
-        BuiltInDef::placeholder(
-          Location("time.format"), format_decl, PlaceholderMessage),
-        BuiltInDef::placeholder(
-          Location("time.diff"), diff_decl, PlaceholderMessage),
-        BuiltInDef::placeholder(
-          Location("time.parse_ns"), parse_ns_decl, PlaceholderMessage),
-        BuiltInDef::placeholder(
-          Location("time.parse_rfc3339_ns"),
-          parse_rfc3339_ns_decl,
-          PlaceholderMessage),
-        BuiltInDef::placeholder(
-          Location("time.weekday"), weekday_decl, PlaceholderMessage),
-        BuiltInDef::placeholder(
-          Location("time.clock"), clock_decl, PlaceholderMessage),
-        BuiltInDef::placeholder(
-          Location("time.date"), date_decl, PlaceholderMessage),
-#endif
-      };
+      assert(name.view().starts_with("time."));
+      std::string_view view = name.view().substr(5); // skip "time."
+      if (view == "now_ns")
+      {
+        return std::make_shared<NowNS>();
+      }
+      if (view == "parse_duration_ns")
+      {
+        return parse_duration_ns_factory();
+      }
+      if (view == "add_date")
+      {
+        return add_date_factory();
+      }
+      if (view == "clock")
+      {
+        return clock_factory();
+      }
+      if (view == "date")
+      {
+        return date_factory();
+      }
+      if (view == "diff")
+      {
+        return diff_factory();
+      }
+      if (view == "format")
+      {
+        return format_factory();
+      }
+      if (view == "parse_ns")
+      {
+        return parse_ns_factory();
+      }
+      if (view == "parse_rfc3339_ns")
+      {
+        return parse_rfc3339_ns_factory();
+      }
+      if (view == "weekday")
+      {
+        return weekday_factory();
+      }
+
+      return nullptr;
     }
   }
 }

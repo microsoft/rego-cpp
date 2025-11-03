@@ -246,43 +246,73 @@ namespace rego
 
   std::optional<BigInt> try_get_int(const Node& node)
   {
-    if (node == Int)
+    auto maybe_int = unwrap(node, {Int, Float});
+    if (!maybe_int.success)
     {
-      return ::get_int(node);
+      return std::nullopt;
     }
 
-    if (node == Float)
+    if (node == Int)
     {
-      double value = ::get_double(node);
-      double floor = std::floor(value);
-      if (value == floor)
-      {
-        return BigInt(static_cast<size_t>(floor));
-      }
+      return ::get_int(maybe_int.node);
+    }
+
+    double value = ::get_double(maybe_int.node);
+    double floor = std::floor(value);
+    if (value == floor)
+    {
+      return BigInt(static_cast<size_t>(floor));
     }
 
     return std::nullopt;
   }
 
+  std::optional<double> try_get_double(const Node& node)
+  {
+    auto maybe_float = unwrap(node, {Int, Float});
+    if (!maybe_float.success)
+    {
+      return std::nullopt;
+    }
+
+    return ::get_double(maybe_float.node);
+  }
+
   std::string get_string(const Node& node)
   {
+    assert(node == JSONString);
+    return strip_quotes(node->location().view());
+  }
+
+  std::string_view get_raw_string(const Node& node)
+  {
+    if (node->location().len > 0)
+    {
+      return node->location().view();
+    }
+
     Node value = node;
-    if (value->type() == Term)
+    while (value->size() == 1)
     {
       value = value->front();
+      if (value->location().len > 0)
+      {
+        return value->location().view();
+      }
     }
 
-    if (value->type() == Scalar)
+    return value->location().view();
+  }
+
+  std::optional<std::string> try_get_string(const Node& node)
+  {
+    auto maybe_string = unwrap(node, JSONString);
+    if (!maybe_string.success)
     {
-      value = value->front();
+      return std::nullopt;
     }
 
-    if (value->type() == JSONString)
-    {
-      return strip_quotes(value->location().view());
-    }
-
-    return std::string(value->location().view());
+    return get_string(maybe_string.node);
   }
 
   bool get_bool(const Node& node)
@@ -291,12 +321,28 @@ namespace rego
     return node->type() == True;
   }
 
+  std::optional<bool> try_get_bool(const Node& node)
+  {
+    auto maybe_bool = unwrap(node, {True, False});
+    if (!maybe_bool.success)
+    {
+      return std::nullopt;
+    }
+
+    return get_bool(maybe_bool.node);
+  }
+
   std::optional<Node> try_get_item(
     const Node& node, const std::string_view& key)
   {
-    assert(node == Object);
+    auto maybe_object = unwrap(node, Object);
+    if (!maybe_object.success)
+    {
+      return std::nullopt;
+    }
 
-    auto defs = Resolver::object_lookdown(node, key);
+    WFContext ctx(wf_result);
+    auto defs = Resolver::object_lookdown(maybe_object.node, key);
     if (defs.empty())
     {
       return std::nullopt;
@@ -444,7 +490,7 @@ namespace rego
           });
         error << "}";
       }
-      else if (m_types.empty())
+      else if (m_types.empty() && m_type.def != nullptr)
       {
         error << "must be " << type_name(m_type, m_specify_number);
       }
@@ -626,6 +672,31 @@ namespace rego
     return *this;
   }
 
+  Node number(double value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node boolean(bool value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node string(const char* value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node string(const std::string& value)
+  {
+    return Resolver::scalar(value);
+  }
+
+  Node null()
+  {
+    return Resolver::scalar();
+  }
+
   Node scalar(BigInt value)
   {
     return Resolver::scalar(value);
@@ -649,11 +720,6 @@ namespace rego
   Node scalar(const std::string& value)
   {
     return Resolver::scalar(value);
-  }
-
-  Node scalar()
-  {
-    return Resolver::scalar();
   }
 
   Node object_item(const Node& key_term, const Node& val_term)
@@ -779,7 +845,7 @@ namespace rego
     }
 
     Node value = term->front();
-    if (value->in({ArrayCompr, ObjectCompr, SetCompr, Ref, Var}))
+    if (value->in({ArrayCompr, ObjectCompr, SetCompr, Ref, Var, Membership}))
     {
       return nullptr;
     }

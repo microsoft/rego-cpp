@@ -16,7 +16,7 @@ project and install the latest version of Rego:
 
     dotnet new console -n MyPolicy
     cd MyPolicy
-    dotnet add package Rego --version 1.0.0
+    dotnet add package Rego --version 1.1.0
 
 ## Adding a Policy Class
 

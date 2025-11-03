@@ -38,6 +38,6 @@ int main()
 {
   Interpreter rego;
   rego.builtins()->register_builtin(
-    bi::BuiltInDef::create(Location("myadd"), add_decl, add));
+    BuiltInDef::create(Location("myadd"), add_decl, add));
   logging::Output() << rego.query("myadd(2, 3)");
 }

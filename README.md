@@ -7,11 +7,6 @@ in C++ can interpret Rego programs natively. To achieve this we are building our
 interpreter on top of the experimental term rewriter
 [Trieste](https://github.com/microsoft/trieste).
 
-> **Note**
-> While this project has progressed to the point that we support full Rego language
-> (see [Language Support](#language-support) below) we do not support all built-ins.
-> That said, we have verified compliance with the OPA Rego test suite.
-
 ## Getting Started
 
 Start by installing [CMake](https://cmake.org/) in the way appropriate for your
@@ -146,27 +141,24 @@ LF     Line Feed
 
 ### Builtins
 
-At the moment support the following builtins are available:
+We support the majority of the standard Rego built-ins, and provide a robust
+mechanism for including custom built-ins (via the CPP API). The following builtins
+are NOT supported at present, though some are scheduled for future releases.
 
-- `aggregates`
-- `arrays`
-- `bits`
-- `casts`
-- `encoding`
-- `graphs`
-- `numbers`
-- `objects`
-- `regex`
-- `semver`
-- `sets`
-- `strings`
-- `time`
-- `types`
-- `units`
-- `uuid`
-- miscellaneous
-    * `opa.runtime`
-    * `print`
+- `providers.aws.sign_req` - Not planned
+- `crypto.*` - Currently slated to be released in v1.2.0
+- `glob.*` - Not planned
+- `graphql.*` - Not planned
+- `http.send` - Not planned
+- `json.match_schema`/`json.verify_schema` - Not planned
+- `jwt.*` - Currently slated to be released in v1.3.0
+- `net.*` - Not planned
+- `regex.globs_match` - Not planned
+- `rego.metadata.chain`/`rego.metadata.rule`/`rego.parse_module` - Not planned
+- `strings.render_template` - Not planned
+- `time` - This is entirely platform dependent at the moment, depending on whether
+           there is a compiler on that platform which supports `__cpp_lib_chrono >= 201907L`.
+
 
 ### Compatibility with the OPA Rego Go implementation
 
@@ -178,16 +170,6 @@ the non-builtin specific test suites, which we clone from the
 To build with the OPA tests available for testing, use one of the following presets:
 - `release-clang-opa`
 - `release-opa`
-
-At present, we are **NOT** passing the following test suites in full:
-- `crypto*`
-- `glob*`
-- `graphql`
-- `invalidkeyerror`
-- `json*` (except `jsonbuiltins`)
-- `jwt*`
-- `net*`
-- `providers-aws`
 
 ## Contributing
 

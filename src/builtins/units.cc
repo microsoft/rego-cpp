@@ -1,4 +1,4 @@
-#include "builtins.h"
+#include "builtins.hh"
 #include "rego.hh"
 
 namespace
@@ -248,14 +248,18 @@ namespace
       false);
   }
 
-  Node parse_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "the unit to parse")
-                             << (bi::Type << bi::String)))
-             << (bi::Result << (bi::Name ^ "y")
-                            << (bi::Description ^ "the parsed number")
-                            << (bi::Type << bi::Number));
+  BuiltIn parse_factory()
+  {
+    const Node parse_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg << (bi::Name ^ "x")
+                               << (bi::Description ^ "the unit to parse")
+                               << (bi::Type << bi::String)))
+               << (bi::Result << (bi::Name ^ "y")
+                              << (bi::Description ^ "the parsed number")
+                              << (bi::Type << bi::Number));
+    return BuiltInDef::create({"units.parse"}, parse_decl, parse);
+  }
 
   Node parse_bytes(const Nodes& args)
   {
@@ -281,26 +285,38 @@ namespace
       true);
   }
 
-  Node parse_bytes_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "x")
-                             << (bi::Description ^ "the byte unit to parse")
-                             << (bi::Type << bi::String)))
-             << (bi::Result << (bi::Name ^ "y")
-                            << (bi::Description ^ "the parsed number")
-                            << (bi::Type << bi::Number));
+  BuiltIn parse_bytes_factory()
+  {
+    const Node parse_bytes_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg << (bi::Name ^ "x")
+                               << (bi::Description ^ "the byte unit to parse")
+                               << (bi::Type << bi::String)))
+               << (bi::Result << (bi::Name ^ "y")
+                              << (bi::Description ^ "the parsed number")
+                              << (bi::Type << bi::Number));
+    return BuiltInDef::create(
+      {"units.parse_bytes"}, parse_bytes_decl, parse_bytes);
+  }
 }
 
 namespace rego
 {
   namespace builtins
   {
-    std::vector<BuiltIn> units()
+    BuiltIn units(const Location& name)
     {
-      return {
-        BuiltInDef::create(Location("units.parse"), parse_decl, parse),
-        BuiltInDef::create(
-          Location("units.parse_bytes"), parse_bytes_decl, parse_bytes)};
+      assert(name.view().starts_with("units."));
+      std::string_view view = name.view().substr(6); // skip "units."
+      if (view == "parse")
+      {
+        return parse_factory();
+      }
+      if (view == "parse_bytes")
+      {
+        return parse_bytes_factory();
+      }
+      return nullptr;
     }
   }
 }

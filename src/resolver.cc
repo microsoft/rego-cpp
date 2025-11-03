@@ -229,7 +229,13 @@ namespace rego
     std::ostringstream oss;
     oss << std::setprecision(std::numeric_limits<double>::max_digits10 - 1)
         << std::noshowpoint << value;
-    return Float ^ oss.str();
+    std::string str = oss.str();
+    if (str.find('.') == std::string::npos)
+    {
+      return Int ^ str;
+    }
+
+    return Float ^ str;
   }
 
   Node Resolver::scalar()
@@ -647,6 +653,16 @@ namespace rego
       std::string key_str = to_key(key);
       if (key_str == query_str)
       {
+        terms.push_back((object_item / Val)->clone());
+        continue;
+      }
+
+      auto maybe_string = unwrap(key, JSONString);
+      if (
+        maybe_string.success &&
+        maybe_string.node->location().view() == query_str)
+      {
+        // the query string was provided without quotes
         terms.push_back((object_item / Val)->clone());
       }
     }

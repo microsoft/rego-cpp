@@ -1,4 +1,4 @@
-#include "builtins.h"
+#include "builtins.hh"
 #include "rego.hh"
 
 namespace
@@ -67,29 +67,33 @@ namespace
     return filtered;
   }
 
-  Node filter_decl = bi::Decl
-    << (bi::ArgSeq
-        << (bi::Arg << (bi::Name ^ "object")
-                    << (bi::Description ^ "object to filter keys")
-                    << (bi::Type
-                        << (bi::DynamicObject << (bi::Type << bi::Any)
-                                              << (bi::Type << bi::Any))))
-        << (bi::Arg << (bi::Name ^ "keys")
-                    << (bi::Description ^ "keys to keep in `object`")
-                    << (bi::Type
-                        << (bi::TypeSeq
-                            << (bi::Type
-                                << (bi::DynamicArray << (bi::Type << bi::Any)))
-                            << (bi::Type
-                                << (bi::DynamicObject << (bi::Type << bi::Any)
-                                                      << (bi::Type << bi::Any)))
-                            << (bi::Type
-                                << (bi::Set << (bi::Type << bi::Any)))))))
-    << (bi::Result
-        << (bi::Name ^ "filtered")
-        << (bi::Description ^
-            "remaining data from `object` with only keys specified in `keys`")
-        << (bi::Type << bi::Any));
+  BuiltIn filter_factory()
+  {
+    const Node filter_decl = bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "object")
+                      << (bi::Description ^ "object to filter keys")
+                      << (bi::Type
+                          << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                << (bi::Type << bi::Any))))
+          << (bi::Arg
+              << (bi::Name ^ "keys")
+              << (bi::Description ^ "keys to keep in `object`")
+              << (bi::Type
+                  << (bi::TypeSeq
+                      << (bi::Type
+                          << (bi::DynamicArray << (bi::Type << bi::Any)))
+                      << (bi::Type
+                          << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                << (bi::Type << bi::Any)))
+                      << (bi::Type << (bi::Set << (bi::Type << bi::Any)))))))
+      << (bi::Result
+          << (bi::Name ^ "filtered")
+          << (bi::Description ^
+              "remaining data from `object` with only keys specified in `keys`")
+          << (bi::Type << bi::Any));
+    return BuiltInDef::create({"object.filter"}, filter_decl, filter);
+  }
 
   std::optional<Node> get_key(
     const Node& node, const Node& keys, std::size_t index)
@@ -163,25 +167,27 @@ namespace
     return args[2]->clone();
   }
 
-  Node get_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg
-                     << (bi::Name ^ "object")
-                     << (bi::Description ^ "object to get `key` from")
-                     << (bi::Type
-                         << (bi::DynamicObject << (bi::Type << bi::Any)
-                                               << (bi::Type << bi::Any))))
-                 << (bi::Arg << (bi::Name ^ "key")
-                             << (bi::Description ^ "key to lookup in `object`")
-                             << (bi::Type << bi::Any))
-                 << (bi::Arg
-                     << (bi::Name ^ "default")
-                     << (bi::Description ^ "default to use when lookup fails")
-                     << (bi::Type << bi::Any)))
-             << (bi::Result << (bi::Name ^ "value")
-                            << (bi::Description ^
-                                "`object[key]` if present, otherwise `default`")
-                            << (bi::Type << bi::Any));
+  BuiltIn get_factory()
+  {
+    const Node get_decl = bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "object")
+                      << (bi::Description ^ "object to get `key` from")
+                      << (bi::Type
+                          << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                << (bi::Type << bi::Any))))
+          << (bi::Arg << (bi::Name ^ "key")
+                      << (bi::Description ^ "key to lookup in `object`")
+                      << (bi::Type << bi::Any))
+          << (bi::Arg << (bi::Name ^ "default")
+                      << (bi::Description ^ "default to use when lookup fails")
+                      << (bi::Type << bi::Any)))
+      << (bi::Result << (bi::Name ^ "value")
+                     << (bi::Description ^
+                         "`object[key]` if present, otherwise `default`")
+                     << (bi::Type << bi::Any));
+    return BuiltInDef::create({"object.get"}, get_decl, get);
+  }
 
   Node keys(const Nodes& args)
   {
@@ -201,18 +207,22 @@ namespace
     return value;
   }
 
-  Node keys_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg
-                     << (bi::Name ^ "object")
-                     << (bi::Description ^ "object to get keys from")
-                     << (bi::Type
-                         << (bi::DynamicObject << (bi::Type << bi::Any)
-                                               << (bi::Type << bi::Any)))))
-             << (bi::Result
-                 << (bi::Name ^ "value")
-                 << (bi::Description ^ "set of `object`'s keys")
-                 << (bi::Type << (bi::Set << (bi::Type << bi::Any))));
+  BuiltIn keys_factory()
+  {
+    const Node keys_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg
+                       << (bi::Name ^ "object")
+                       << (bi::Description ^ "object to get keys from")
+                       << (bi::Type
+                           << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                 << (bi::Type << bi::Any)))))
+               << (bi::Result
+                   << (bi::Name ^ "value")
+                   << (bi::Description ^ "set of `object`'s keys")
+                   << (bi::Type << (bi::Set << (bi::Type << bi::Any))));
+    return BuiltInDef::create({"object.keys"}, keys_decl, keys);
+  }
 
   Node remove_(const Nodes& args)
   {
@@ -244,28 +254,33 @@ namespace
     return output;
   }
 
-  Node remove_decl = bi::Decl
-    << (bi::ArgSeq
-        << (bi::Arg << (bi::Name ^ "object")
-                    << (bi::Description ^ "object to remove keys from")
-                    << (bi::Type
-                        << (bi::DynamicObject << (bi::Type << bi::Any)
-                                              << (bi::Type << bi::Any))))
-        << (bi::Arg << (bi::Name ^ "keys")
-                    << (bi::Description ^ "keys to remove from `object`")
-                    << (bi::Type
-                        << (bi::TypeSeq
-                            << (bi::Type
-                                << (bi::DynamicArray << (bi::Type << bi::Any)))
-                            << (bi::Type
-                                << (bi::DynamicObject << (bi::Type << bi::Any)
-                                                      << (bi::Type << bi::Any)))
-                            << (bi::Type
-                                << (bi::Set << (bi::Type << bi::Any)))))))
-    << (bi::Result << (bi::Name ^ "output")
-                   << (bi::Description ^
-                       "result of removing the specified `keys` from `object`")
-                   << (bi::Type << bi::Any));
+  BuiltIn remove_factory()
+  {
+    const Node remove_decl = bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "object")
+                      << (bi::Description ^ "object to remove keys from")
+                      << (bi::Type
+                          << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                << (bi::Type << bi::Any))))
+          << (bi::Arg
+              << (bi::Name ^ "keys")
+              << (bi::Description ^ "keys to remove from `object`")
+              << (bi::Type
+                  << (bi::TypeSeq
+                      << (bi::Type
+                          << (bi::DynamicArray << (bi::Type << bi::Any)))
+                      << (bi::Type
+                          << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                << (bi::Type << bi::Any)))
+                      << (bi::Type << (bi::Set << (bi::Type << bi::Any)))))))
+      << (bi::Result
+          << (bi::Name ^ "output")
+          << (bi::Description ^
+              "result of removing the specified `keys` from `object`")
+          << (bi::Type << bi::Any));
+    return BuiltInDef::create({"object.remove"}, remove_decl, remove_);
+  }
 
   std::map<std::string, Node> to_map(Node object)
   {
@@ -456,32 +471,38 @@ namespace
     return False ^ "false";
   }
 
-  Node subset_decl = bi::Decl
-    << (bi::ArgSeq
-        << (bi::Arg
-            << (bi::Name ^ "super")
-            << (bi::Description ^ "object to test if sub is a subset of")
-            << (bi::Type
-                << (bi::TypeSeq
-                    << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Any)))
-                    << (bi::Type
-                        << (bi::DynamicObject << (bi::Type << bi::Any)
-                                              << (bi::Type << bi::Any)))
-                    << (bi::Type << (bi::Set << (bi::Type << bi::Any))))))
-        << (bi::Arg
-            << (bi::Name ^ "sub")
-            << (bi::Description ^ "object to test if super is a superset of")
-            << (bi::Type
-                << (bi::TypeSeq
-                    << (bi::Type << (bi::DynamicArray << (bi::Type << bi::Any)))
-                    << (bi::Type
-                        << (bi::DynamicObject << (bi::Type << bi::Any)
-                                              << (bi::Type << bi::Any)))
-                    << (bi::Type << (bi::Set << (bi::Type << bi::Any)))))))
-    << (bi::Result << (bi::Name ^ "result")
-                   << (bi::Description ^
-                       "`true` if `sub` is a subset of `super`")
-                   << (bi::Type << bi::Boolean));
+  BuiltIn subset_factory()
+  {
+    const Node subset_decl = bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg
+              << (bi::Name ^ "super")
+              << (bi::Description ^ "object to test if sub is a subset of")
+              << (bi::Type
+                  << (bi::TypeSeq
+                      << (bi::Type
+                          << (bi::DynamicArray << (bi::Type << bi::Any)))
+                      << (bi::Type
+                          << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                << (bi::Type << bi::Any)))
+                      << (bi::Type << (bi::Set << (bi::Type << bi::Any))))))
+          << (bi::Arg
+              << (bi::Name ^ "sub")
+              << (bi::Description ^ "object to test if super is a superset of")
+              << (bi::Type
+                  << (bi::TypeSeq
+                      << (bi::Type
+                          << (bi::DynamicArray << (bi::Type << bi::Any)))
+                      << (bi::Type
+                          << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                << (bi::Type << bi::Any)))
+                      << (bi::Type << (bi::Set << (bi::Type << bi::Any)))))))
+      << (bi::Result << (bi::Name ^ "result")
+                     << (bi::Description ^
+                         "`true` if `sub` is a subset of `super`")
+                     << (bi::Type << bi::Boolean));
+    return BuiltInDef::create({"object.subset"}, subset_decl, subset);
+  }
 
   Node object_union(const Node& lhs, const Node& rhs)
   {
@@ -516,27 +537,31 @@ namespace
     return object_union(a, b);
   }
 
-  Node union_decl = bi::Decl
-    << (bi::ArgSeq << (bi::Arg
-                       << (bi::Name ^ "a")
-                       << (bi::Description ^ "left-hand object")
-                       << (bi::Type
-                           << (bi::DynamicObject << (bi::Type << bi::Any)
-                                                 << (bi::Type << bi::Any))))
-                   << (bi::Arg
-                       << (bi::Name ^ "b")
-                       << (bi::Description ^ "right-hand object")
-                       << (bi::Type
-                           << (bi::DynamicObject << (bi::Type << bi::Any)
-                                                 << (bi::Type << bi::Any)))))
-    << (bi::Result << (bi::Name ^ "output")
-                   << (bi::Description ^
-                       "a new object which is the result of an asymmetric "
-                       "union of two objects where conflicts are resolved by "
-                       "choosing the key from the right-hand object `b`")
-                   << (bi::Type
-                       << (bi::DynamicObject << (bi::Type << bi::Any)
-                                             << (bi::Type << bi::Any))));
+  BuiltIn union_factory()
+  {
+    const Node union_decl = bi::Decl
+      << (bi::ArgSeq << (bi::Arg
+                         << (bi::Name ^ "a")
+                         << (bi::Description ^ "left-hand object")
+                         << (bi::Type
+                             << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                   << (bi::Type << bi::Any))))
+                     << (bi::Arg
+                         << (bi::Name ^ "b")
+                         << (bi::Description ^ "right-hand object")
+                         << (bi::Type
+                             << (bi::DynamicObject << (bi::Type << bi::Any)
+                                                   << (bi::Type << bi::Any)))))
+      << (bi::Result << (bi::Name ^ "output")
+                     << (bi::Description ^
+                         "a new object which is the result of an asymmetric "
+                         "union of two objects where conflicts are resolved by "
+                         "choosing the key from the right-hand object `b`")
+                     << (bi::Type
+                         << (bi::DynamicObject << (bi::Type << bi::Any)
+                                               << (bi::Type << bi::Any))));
+    return BuiltInDef::create({"object.union"}, union_decl, union_);
+  }
 
   Node union_n(const Nodes& args)
   {
@@ -563,41 +588,69 @@ namespace
     return output;
   }
 
-  Node union_n_decl =
-    bi::Decl << (bi::ArgSeq
-                 << (bi::Arg << (bi::Name ^ "objects")
-                             << (bi::Description ^ "list of objects to merge")
-                             << (bi::Type
-                                 << (bi::DynamicArray
-                                     << (bi::Type
-                                         << (bi::DynamicObject
-                                             << (bi::Type << bi::Any)
-                                             << (bi::Type << bi::Any)))))))
-             << (bi::Result
-                 << (bi::Name ^ "output")
-                 << (bi::Description ^
-                     "asymmetric recursive union of all objects in `objects`, "
-                     "merged from left to right, where conflicts are resolved "
-                     "by choosing the key from the right-hand object")
-                 << (bi::Type
-                     << (bi::DynamicObject << (bi::Type << bi::Any)
-                                           << (bi::Type << bi::Any))));
+  BuiltIn union_n_factory()
+  {
+    const Node union_n_decl = bi::Decl
+      << (bi::ArgSeq
+          << (bi::Arg << (bi::Name ^ "objects")
+                      << (bi::Description ^ "list of objects to merge")
+                      << (bi::Type
+                          << (bi::DynamicArray
+                              << (bi::Type
+                                  << (bi::DynamicObject
+                                      << (bi::Type << bi::Any)
+                                      << (bi::Type << bi::Any)))))))
+      << (bi::Result
+          << (bi::Name ^ "output")
+          << (bi::Description ^
+              "asymmetric recursive union of all objects in `objects`, "
+              "merged from left to right, where conflicts are resolved "
+              "by choosing the key from the right-hand object")
+          << (bi::Type
+              << (bi::DynamicObject << (bi::Type << bi::Any)
+                                    << (bi::Type << bi::Any))));
+    return BuiltInDef::create({"object.union_n"}, union_n_decl, union_n);
+  }
 }
 
 namespace rego
 {
   namespace builtins
   {
-    std::vector<BuiltIn> objects()
+    BuiltIn object(const Location& name)
     {
-      return {
-        BuiltInDef::create(Location("object.filter"), filter_decl, filter),
-        BuiltInDef::create(Location("object.get"), get_decl, get),
-        BuiltInDef::create(Location("object.keys"), keys_decl, keys),
-        BuiltInDef::create(Location("object.remove"), remove_decl, remove_),
-        BuiltInDef::create(Location("object.subset"), subset_decl, subset),
-        BuiltInDef::create(Location("object.union"), union_decl, union_),
-        BuiltInDef::create(Location("object.union_n"), union_n_decl, union_n)};
+      assert(name.view().starts_with("object."));
+      std::string_view view = name.view().substr(7); // skip "object."
+      if (view == "filter")
+      {
+        return filter_factory();
+      }
+      if (view == "get")
+      {
+        return get_factory();
+      }
+      if (view == "keys")
+      {
+        return keys_factory();
+      }
+      if (view == "remove")
+      {
+        return remove_factory();
+      }
+      if (view == "subset")
+      {
+        return subset_factory();
+      }
+      if (view == "union")
+      {
+        return union_factory();
+      }
+      if (view == "union_n")
+      {
+        return union_n_factory();
+      }
+
+      return nullptr;
     }
   }
 }
