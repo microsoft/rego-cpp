@@ -1645,7 +1645,14 @@ namespace
       switch (verb.type)
       {
         case PrintVerbType::Value:
-          result << json::escape(to_key(node, false, false, ", "));
+          if (is_instance(node, {JSONString}))
+          {
+            result << get_raw_string(node);
+          }
+          else
+          {
+            result << json::escape(to_key(node, false, false, ", "));
+          }
           break;
 
         case PrintVerbType::Boolean:
