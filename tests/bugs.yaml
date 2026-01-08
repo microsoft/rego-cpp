@@ -320,3 +320,13 @@ cases:
   want_result:
   - x:
       p: 1
+- note: regocpp/bug201
+  modules:
+  - |
+    package test
+
+    msg = sprintf("%v %v", ["test", "{\"test\"}"])
+  query: "data.test = x"
+  want_result:
+  - x:
+      msg: "test {\"test\"}"
