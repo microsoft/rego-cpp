@@ -1426,6 +1426,11 @@ namespace
 
         // errors
 
+        In(RegoBundle) * (T(DataSeq) << (T(Data) * T(Data)[Data])) >>
+          [](Match& _) -> Node {
+          return err(_(Data), "unable to merge base documents");
+        },
+
         In(RegoBundle) * (T(DataSeq) << T(Data)[Data]) >> [](Match& _) -> Node {
           if (_(Data)->front()->front() == BaseObject)
           {
@@ -1433,11 +1438,6 @@ namespace
           }
 
           return err(_(Data), "Invalid data base document");
-        },
-
-        In(RegoBundle) * (T(DataSeq) << (T(Data) * T(Data)[Data])) >>
-          [](Match& _) -> Node {
-          return err(_(Data), "unable to merge base documents");
         },
 
         In(Expr) * T(ExprEvery)[ExprEvery] >> [](Match& _) -> Node {
@@ -2191,32 +2191,6 @@ namespace
           }
 
           scope_locals->at(scope).insert(name);
-          return NoChange;
-        },
-
-        In(Term) * T(Var)[Var] * In(ExprUnify)++ >>
-          [scope_locals](Match& _) -> Node {
-          Nodes results = lookup_var(_(Var));
-          if (!results.empty())
-          {
-            return NoChange;
-          }
-
-          Node scope = _(Var)->scope();
-          results = scope->look(_(Var)->location());
-          if (!results.empty())
-          {
-            return NoChange;
-          }
-
-          if (scope_locals->find(scope) == scope_locals->end())
-          {
-            scope_locals->insert({scope, {}});
-          }
-
-          scope_locals->at(scope).insert(
-            std::string(_(Var)->location().view()));
-
           return NoChange;
         },
 

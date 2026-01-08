@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-01-08 - Version 1.2.0
+Minor version fixing some bugs.
+
+**Bug Fixes**
+- When passing a value to `sprintf` using `%v` as the format specifier, the
+  interpreter would JSON-escape the result in all cases, even if the argument
+  already a valid JSON string. This could result in double-escaping strings in
+  some contexts, which was an unintended behavior and a discrepancy between with
+  the reference implementation. The interpreter will now pass JSON strings
+  unchanged to `sprintf` when used in this way.
+- Two rules in `rego_to_bundle` were being shadowed. This did not affect the
+  functionality of the compiler but had resulted in an incorrect error message
+  being generated and in another case a rule which would never be matched.
+
 ## 2025-10-31 - Version 1.1.0
 Minor version adding more json builtins and an improved built-in system.
 

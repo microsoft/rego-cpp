@@ -6,6 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Rego" Version="1.1.0" />
+    <PackageReference Include="Rego" Version="1.2.0" />
   </ItemGroup>
 </Project>
