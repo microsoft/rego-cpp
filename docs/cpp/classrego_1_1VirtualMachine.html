@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.2.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -123,6 +123,13 @@ Public Member Functions</h2></td></tr>
 <a class="el" href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">Bundle</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bundle</b> () const</td></tr>
 <tr class="memdesc:a7fdf132bd74e5c73836c17c0e45a1fa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the bundle used during execution. <br /></td></tr>
 <tr class="separator:a7fdf132bd74e5c73836c17c0e45a1fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad73d7b7fd8914803d0214cf58a7e778" id="r_aad73d7b7fd8914803d0214cf58a7e778"><td class="memItemLeft" align="right" valign="top"><a id="aad73d7b7fd8914803d0214cf58a7e778" name="aad73d7b7fd8914803d0214cf58a7e778"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>stmt_limit</b> () const</td></tr>
+<tr class="memdesc:aad73d7b7fd8914803d0214cf58a7e778"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the maximum number of statements that will execute before a timeout. <br /></td></tr>
+<tr class="separator:aad73d7b7fd8914803d0214cf58a7e778"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a423abb3af9a587beca15c4122549cb15" id="r_a423abb3af9a587beca15c4122549cb15"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1VirtualMachine.html">VirtualMachine</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a423abb3af9a587beca15c4122549cb15">stmt_limit</a> (size_t stmt_limit)</td></tr>
+<tr class="memdesc:a423abb3af9a587beca15c4122549cb15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the maximum number of statements that will execute before a timeout.  <br /></td></tr>
+<tr class="separator:a423abb3af9a587beca15c4122549cb15"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This class implements a virtual machine that can execute compiled Rego bundles. </p>
@@ -254,6 +261,32 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The result of executing the query. </dd></dl>
+
+</div>
+</div>
+<a id="a423abb3af9a587beca15c4122549cb15" name="a423abb3af9a587beca15c4122549cb15"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a423abb3af9a587beca15c4122549cb15">&#9670;&#160;</a></span>stmt_limit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1VirtualMachine.html">VirtualMachine</a> &amp; rego::VirtualMachine::stmt_limit </td>
+          <td>(</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>stmt_limit</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the maximum number of statements that will execute before a timeout. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stmt_limit</td><td>The statement limit </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to this virtual machine </dd></dl>
 
 </div>
 </div>

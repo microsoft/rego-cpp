@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.2.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -95,13 +95,16 @@ $(function(){ initResizable(false); });
 <li>add_data_json_file()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a1d52d74b87bab6834f12c885e4b608f5">rego::Interpreter</a></li>
 <li>add_module()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a098df3a7eafd17dbd8815e9eb2666f8e">rego::Interpreter</a></li>
 <li>add_module_file()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#afb54ee54aadd0c38d2448071e18c809e">rego::Interpreter</a></li>
-<li>at()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#ad7062419aa316c722204046853120d1b">rego::BuiltInsDef</a></li>
+<li>allow_all()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#a82777149bfa32e94be6b7cdf8e1f647c">rego::BuiltInsDef</a></li>
+<li>at()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#ab8cf8d1e7ca0aa2c3c807b6a8685469b">rego::BuiltInsDef</a></li>
 </ul>
 
 
 <h3><a id="index_b" name="index_b"></a>- b -</h3><ul>
-<li>begin()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#ad45bbe3d58d2ad9a96dbc65be88bed18">rego::BuiltInsDef</a></li>
 <li>BigInt()&#160;:&#160;<a class="el" href="classrego_1_1BigInt.html#abdca6d84b66a1f5b2d04ff1e9fc08a13">rego::BigInt</a></li>
+<li>binding()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#a660d60efca40125888761c219e4e043c">rego::Output</a></li>
+<li>binding_at()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#a2a8e83f1faa7beb18f327063d395e6d1">rego::Output</a></li>
+<li>blacklist()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#a51adc7d354c93228831e49cc3f894df8">rego::BuiltInsDef</a></li>
 <li>block()&#160;:&#160;<a class="el" href="structrego_1_1bundle_1_1StatementExt.html#a798e11c216f851870d4e2f30667260b2">rego::bundle::StatementExt</a></li>
 <li>blocks()&#160;:&#160;<a class="el" href="structrego_1_1bundle_1_1StatementExt.html#a7239389934789cf773ee50a710109575">rego::bundle::StatementExt</a></li>
 <li>build()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#ae2f575cb2f06a4d4cbc7ee4e8c3c1987">rego::Interpreter</a></li>
@@ -125,15 +128,17 @@ $(function(){ initResizable(false); });
 <h3><a id="index_d" name="index_d"></a>- d -</h3><ul>
 <li>debug_enabled()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#aedcf60964281f98971ce0275eea237e9">rego::Interpreter</a></li>
 <li>debug_path()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a06a450331c862e3f9952998fc1ebc1a3">rego::Interpreter</a></li>
-<li>decl()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#acdec4af9256b6424edd5c34668593cf9">rego::BuiltInsDef</a></li>
+<li>decl()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#adbe192e1bfe0c068c59cb34ba29e6c86">rego::BuiltInsDef</a></li>
 <li>decrement()&#160;:&#160;<a class="el" href="classrego_1_1BigInt.html#ad9f4dcbd625dcdcc095e13feaa8e5a53">rego::BigInt</a></li>
 </ul>
 
 
 <h3><a id="index_e" name="index_e"></a>- e -</h3><ul>
-<li>end()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#a915f791c2e4df7792450f1e006f493c9">rego::BuiltInsDef</a></li>
 <li>entrypoints()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a2f94715bf9cdde8df848cdcf5877eab0">rego::Interpreter</a></li>
+<li>errors()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#a484ed5d467d00a329f58b93056ae70a2">rego::Output</a></li>
 <li>exclude_got()&#160;:&#160;<a class="el" href="classrego_1_1UnwrapOpt.html#a00e29e9a765516050e125862419405e1">rego::UnwrapOpt</a></li>
+<li>expressions()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#a829236e166e05e18e5656bb1821c60b8">rego::Output</a></li>
+<li>expressions_at()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#a604b31b9b58148cd64e9ff7716a897fe">rego::Output</a></li>
 </ul>
 
 
@@ -151,12 +156,17 @@ $(function(){ initResizable(false); });
 <h3><a id="index_i" name="index_i"></a>- i -</h3><ul>
 <li>increment()&#160;:&#160;<a class="el" href="classrego_1_1BigInt.html#ab3ec89a61d32672a7598acd1e04970a6">rego::BigInt</a></li>
 <li>Interpreter()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a8e59175363a7ce01233abc4d9dcc37f3">rego::Interpreter</a></li>
-<li>is_builtin()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#ae44bb77a0da9a854e2446f4fac74cc0a">rego::BuiltInsDef</a></li>
+<li>is_builtin()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#a14df2b5181954b4301dcffc4a4be309b">rego::BuiltInsDef</a></li>
 <li>is_deprecated()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#a1d9d00b7b19cc83e17ddc81c4ed2d72b">rego::BuiltInsDef</a></li>
 <li>is_function()&#160;:&#160;<a class="el" href="structrego_1_1BundleDef.html#ae28d1c59e24ffa527cb31ad2fc7102b5">rego::BundleDef</a></li>
 <li>is_int()&#160;:&#160;<a class="el" href="classrego_1_1BigInt.html#a8dad6d5921ade73916c8302a318613ef">rego::BigInt</a></li>
 <li>is_negative()&#160;:&#160;<a class="el" href="classrego_1_1BigInt.html#a6ecf55e91a4e2481a501f6aa9f81df6d">rego::BigInt</a></li>
 <li>is_zero()&#160;:&#160;<a class="el" href="classrego_1_1BigInt.html#a9242f4f213ccb55219155e74fd059fac">rego::BigInt</a></li>
+</ul>
+
+
+<h3><a id="index_j" name="index_j"></a>- j -</h3><ul>
+<li>json()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#a3ffb29684f85f87593421acbac01dfbc">rego::Output</a></li>
 </ul>
 
 
@@ -175,11 +185,14 @@ $(function(){ initResizable(false); });
 
 <h3><a id="index_n" name="index_n"></a>- n -</h3><ul>
 <li>negate()&#160;:&#160;<a class="el" href="classrego_1_1BigInt.html#a6421692d24384f56ce0f90e3865c9e14">rego::BigInt</a></li>
+<li>node()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#a81cecee4760cdb5770b3bb4d74af84ad">rego::Output</a></li>
 </ul>
 
 
 <h3><a id="index_o" name="index_o"></a>- o -</h3><ul>
+<li>ok()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#ad65e16d927325b9dea9601f2a125e210">rego::Output</a></li>
 <li>Operand()&#160;:&#160;<a class="el" href="structrego_1_1bundle_1_1Operand.html#a7caa6b9645dcc07193e3f281d1d59d49">rego::bundle::Operand</a></li>
+<li>Output()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#ab1b3eaea84c375db2fec4ab2f436e58d">rego::Output</a></li>
 <li>output_to_string()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a76f978b939611c894383be66a0b84e76">rego::Interpreter</a></li>
 </ul>
 
@@ -194,6 +207,7 @@ $(function(){ initResizable(false); });
 <li>query()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a1c6a203e4301576a2386c96591648309">rego::Interpreter</a></li>
 <li>query_bundle()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a04170df975c3f4f515669ac2ba7b1945">rego::Interpreter</a></li>
 <li>query_node()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#ab22f190eb758289681882dddba13e5d3">rego::Interpreter</a></li>
+<li>query_output()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a631c38e13f296595a80fc8b25818214f">rego::Interpreter</a></li>
 </ul>
 
 
@@ -214,9 +228,11 @@ $(function(){ initResizable(false); });
 <li>set_input_json_file()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a2af0f7c0ff71f9e1a7587578e982426f">rego::Interpreter</a></li>
 <li>set_input_term()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#a1528fc5aa42944a7fbf795f21304816d">rego::Interpreter</a></li>
 <li>set_query()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#afbd3e53e404bf5f43512de163da4ca80">rego::Interpreter</a></li>
+<li>size()&#160;:&#160;<a class="el" href="classrego_1_1Output.html#a4cd3a2900f4112856048dcae846d648a">rego::Output</a></li>
 <li>specify_number()&#160;:&#160;<a class="el" href="classrego_1_1UnwrapOpt.html#a63e485df5c3626486194164aae2523d3">rego::UnwrapOpt</a></li>
 <li>Statement()&#160;:&#160;<a class="el" href="structrego_1_1bundle_1_1Statement.html#aed6dd31376e0045ccdd2bde34277a90e">rego::bundle::Statement</a></li>
 <li>StatementExt()&#160;:&#160;<a class="el" href="structrego_1_1bundle_1_1StatementExt.html#a3d354b73f009a8c36e7112fb9a46540a">rego::bundle::StatementExt</a></li>
+<li>stmt_limit()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#ae64980b8e2185083de6bb50f9bf9cfbf">rego::Interpreter</a>, <a class="el" href="classrego_1_1VirtualMachine.html#aad73d7b7fd8914803d0214cf58a7e778">rego::VirtualMachine</a></li>
 <li>strict_errors()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#a336db846bccf0689805db95e46e12017">rego::BuiltInsDef</a></li>
 </ul>
 
@@ -237,6 +253,7 @@ $(function(){ initResizable(false); });
 
 <h3><a id="index_w" name="index_w"></a>- w -</h3><ul>
 <li>wf_check_enabled()&#160;:&#160;<a class="el" href="classrego_1_1Interpreter.html#ac57631c42b02f86ae0f70800ab76aeb0">rego::Interpreter</a></li>
+<li>whitelist()&#160;:&#160;<a class="el" href="classrego_1_1BuiltInsDef.html#a97c7516e618af15020b77b8a945fcbf7">rego::BuiltInsDef</a></li>
 <li>with()&#160;:&#160;<a class="el" href="structrego_1_1bundle_1_1StatementExt.html#a09584f6a2e9d102518f5d86960c03efa">rego::bundle::StatementExt</a></li>
 </ul>
 </div><!-- contents -->

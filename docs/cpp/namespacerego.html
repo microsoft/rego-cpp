@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.2.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -118,6 +118,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class forms the main interface to the Rego library.  <a href="classrego_1_1Interpreter.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrego_1_1Output.html">Output</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encapsulates the output of a Rego query.  <a href="classrego_1_1Output.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrego_1_1UnwrapOpt.html">UnwrapOpt</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Options for unwrapping an argument.  <a href="classrego_1_1UnwrapOpt.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -138,6 +141,9 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>BuiltIn</b> = std::s
 using&#160;</td><td class="memItemRight" valign="bottom"><b>BuiltInBehavior</b> = std::function&lt;Node(const Nodes&amp;)&gt;</td></tr>
 <tr class="memdesc:a8a3fb6eaba58722d3c636ececd00f075"><td class="mdescLeft">&#160;</td><td class="mdescRight">The function pointer to the behavior of the built-in. <br /></td></tr>
 <tr class="separator:a8a3fb6eaba58722d3c636ececd00f075"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c5147c3753b8725fbbe09dade128f71" id="r_a6c5147c3753b8725fbbe09dade128f71"><td class="memItemLeft" align="right" valign="top"><a id="a6c5147c3753b8725fbbe09dade128f71" name="a6c5147c3753b8725fbbe09dade128f71"></a>
+typedef <a class="el" href="#a7bf2dbac7de0eac9f50204f836687e44">BuiltIn</a>(*&#160;</td><td class="memItemRight" valign="bottom"><b>BuiltInFactory</b>) ()</td></tr>
+<tr class="separator:a6c5147c3753b8725fbbe09dade128f71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a76add1d87091f574f02e5ea8f1c99ac0" id="r_a76add1d87091f574f02e5ea8f1c99ac0"><td class="memItemLeft" align="right" valign="top"><a id="a76add1d87091f574f02e5ea8f1c99ac0" name="a76add1d87091f574f02e5ea8f1c99ac0"></a>
 typedef std::shared_ptr&lt; <a class="el" href="structrego_1_1BundleDef.html">BundleDef</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>Bundle</b></td></tr>
 <tr class="memdesc:a76add1d87091f574f02e5ea8f1c99ac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to a <a class="el" href="structrego_1_1BundleDef.html" title="Represents a compiled Rego bundle.">BundleDef</a>. <br /></td></tr>
@@ -173,21 +179,33 @@ Functions</h2></td></tr>
 <tr class="memitem:a47722fa721bf328696deb469f70f3bcb" id="r_a47722fa721bf328696deb469f70f3bcb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1BigInt.html">BigInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a47722fa721bf328696deb469f70f3bcb">get_int</a> (const Node &amp;node)</td></tr>
 <tr class="memdesc:a47722fa721bf328696deb469f70f3bcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as an integer.  <br /></td></tr>
 <tr class="separator:a47722fa721bf328696deb469f70f3bcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a477a2c57792c1283ae69433e154a03ca" id="r_a477a2c57792c1283ae69433e154a03ca"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a477a2c57792c1283ae69433e154a03ca">get_double</a> (const Node &amp;node)</td></tr>
-<tr class="memdesc:a477a2c57792c1283ae69433e154a03ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as an double.  <br /></td></tr>
-<tr class="separator:a477a2c57792c1283ae69433e154a03ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a544dda4b515e8d19a951582ecbbdff26" id="r_a544dda4b515e8d19a951582ecbbdff26"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classrego_1_1BigInt.html">BigInt</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a544dda4b515e8d19a951582ecbbdff26">try_get_int</a> (const Node &amp;node)</td></tr>
 <tr class="memdesc:a544dda4b515e8d19a951582ecbbdff26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to extract the value of a node as an integer. In the case that the node is a double, it will check if the double is integral, i.e. 5.0 will be considered the integer 5.  <br /></td></tr>
 <tr class="separator:a544dda4b515e8d19a951582ecbbdff26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a477a2c57792c1283ae69433e154a03ca" id="r_a477a2c57792c1283ae69433e154a03ca"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a477a2c57792c1283ae69433e154a03ca">get_double</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a477a2c57792c1283ae69433e154a03ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as an double.  <br /></td></tr>
+<tr class="separator:a477a2c57792c1283ae69433e154a03ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14fa752bb1f611edde0f6af713ba87ba" id="r_a14fa752bb1f611edde0f6af713ba87ba"><td class="memItemLeft" align="right" valign="top">std::optional&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a14fa752bb1f611edde0f6af713ba87ba">try_get_double</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a14fa752bb1f611edde0f6af713ba87ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to extract the value of a node as an 64-bit floating point number.  <br /></td></tr>
+<tr class="separator:a14fa752bb1f611edde0f6af713ba87ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab76a283ff8f20682b941ec2678506512" id="r_ab76a283ff8f20682b941ec2678506512"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab76a283ff8f20682b941ec2678506512">get_string</a> (const Node &amp;node)</td></tr>
-<tr class="memdesc:ab76a283ff8f20682b941ec2678506512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as a string. The resulting string will have any enclosing quotes removed.  <br /></td></tr>
+<tr class="memdesc:ab76a283ff8f20682b941ec2678506512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as a string.  <br /></td></tr>
 <tr class="separator:ab76a283ff8f20682b941ec2678506512"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69b94dd58725b8efb8b4be360499b9cd" id="r_a69b94dd58725b8efb8b4be360499b9cd"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a69b94dd58725b8efb8b4be360499b9cd">try_get_string</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a69b94dd58725b8efb8b4be360499b9cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to extract the value of a node as a string.  <br /></td></tr>
+<tr class="separator:a69b94dd58725b8efb8b4be360499b9cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05d218180a81176738b35f95d2b75753" id="r_a05d218180a81176738b35f95d2b75753"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a05d218180a81176738b35f95d2b75753">get_bool</a> (const Node &amp;node)</td></tr>
 <tr class="memdesc:a05d218180a81176738b35f95d2b75753"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts the value of a node as a boolean.  <br /></td></tr>
 <tr class="separator:a05d218180a81176738b35f95d2b75753"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1402b7192626609ad494dddbece97248" id="r_a1402b7192626609ad494dddbece97248"><td class="memItemLeft" align="right" valign="top">std::optional&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1402b7192626609ad494dddbece97248">try_get_bool</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a1402b7192626609ad494dddbece97248"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to extract the value of a node as a boolean.  <br /></td></tr>
+<tr class="separator:a1402b7192626609ad494dddbece97248"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a086444fa1a578d4af81c941097db039c" id="r_a086444fa1a578d4af81c941097db039c"><td class="memItemLeft" align="right" valign="top">std::optional&lt; Node &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a086444fa1a578d4af81c941097db039c">try_get_item</a> (const Node &amp;node, const std::string_view &amp;key)</td></tr>
 <tr class="memdesc:a086444fa1a578d4af81c941097db039c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to get an item within an object using its key.  <br /></td></tr>
 <tr class="separator:a086444fa1a578d4af81c941097db039c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e1a2704aa918154d2033cda3be0af46" id="r_a7e1a2704aa918154d2033cda3be0af46"><td class="memItemLeft" align="right" valign="top">std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7e1a2704aa918154d2033cda3be0af46">get_raw_string</a> (const Node &amp;node)</td></tr>
+<tr class="memdesc:a7e1a2704aa918154d2033cda3be0af46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the raw location of the node from the source.  <br /></td></tr>
+<tr class="separator:a7e1a2704aa918154d2033cda3be0af46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2472135737157347c38796f6a17abbc" id="r_ae2472135737157347c38796f6a17abbc"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2472135737157347c38796f6a17abbc">scalar</a> (<a class="el" href="classrego_1_1BigInt.html">BigInt</a> value)</td></tr>
 <tr class="memdesc:ae2472135737157347c38796f6a17abbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
 <tr class="separator:ae2472135737157347c38796f6a17abbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -206,6 +224,21 @@ Functions</h2></td></tr>
 <tr class="memitem:a0f699011db385484155281fb1d9bc719" id="r_a0f699011db385484155281fb1d9bc719"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f699011db385484155281fb1d9bc719">scalar</a> ()</td></tr>
 <tr class="memdesc:a0f699011db385484155281fb1d9bc719"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a null scalar.  <br /></td></tr>
 <tr class="separator:a0f699011db385484155281fb1d9bc719"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91aec155fdd7b4757935ffed51a64ceb" id="r_a91aec155fdd7b4757935ffed51a64ceb"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91aec155fdd7b4757935ffed51a64ceb">number</a> (double value)</td></tr>
+<tr class="memdesc:a91aec155fdd7b4757935ffed51a64ceb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
+<tr class="separator:a91aec155fdd7b4757935ffed51a64ceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0941b1d975dd6eb01c60f26f5a206cf" id="r_af0941b1d975dd6eb01c60f26f5a206cf"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af0941b1d975dd6eb01c60f26f5a206cf">boolean</a> (bool value)</td></tr>
+<tr class="memdesc:af0941b1d975dd6eb01c60f26f5a206cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
+<tr class="separator:af0941b1d975dd6eb01c60f26f5a206cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a285fc7817d87c98f77476e3cb9e6c3" id="r_a9a285fc7817d87c98f77476e3cb9e6c3"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9a285fc7817d87c98f77476e3cb9e6c3">string</a> (const char *value)</td></tr>
+<tr class="memdesc:a9a285fc7817d87c98f77476e3cb9e6c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
+<tr class="separator:a9a285fc7817d87c98f77476e3cb9e6c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0020aaf2a6a2b2993b6016cf5a363549" id="r_a0020aaf2a6a2b2993b6016cf5a363549"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0020aaf2a6a2b2993b6016cf5a363549">string</a> (const std::string &amp;value)</td></tr>
+<tr class="memdesc:a0020aaf2a6a2b2993b6016cf5a363549"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the value to a scalar node.  <br /></td></tr>
+<tr class="separator:a0020aaf2a6a2b2993b6016cf5a363549"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f281306935e4b7d043620ec6c21ccaa" id="r_a1f281306935e4b7d043620ec6c21ccaa"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1f281306935e4b7d043620ec6c21ccaa">null</a> ()</td></tr>
+<tr class="memdesc:a1f281306935e4b7d043620ec6c21ccaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a null scalar.  <br /></td></tr>
+<tr class="separator:a1f281306935e4b7d043620ec6c21ccaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a24ac77f6b9db6cdf802fef2de7d95c94" id="r_a24ac77f6b9db6cdf802fef2de7d95c94"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a24ac77f6b9db6cdf802fef2de7d95c94">object_item</a> (const Node &amp;key_term, const Node &amp;val_term)</td></tr>
 <tr class="memdesc:a24ac77f6b9db6cdf802fef2de7d95c94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the key and val terms to an object item.  <br /></td></tr>
 <tr class="separator:a24ac77f6b9db6cdf802fef2de7d95c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -291,6 +324,32 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The array node (array (term) (term) ...) </dd></dl>
+
+</div>
+</div>
+<a id="af0941b1d975dd6eb01c60f26f5a206cf" name="af0941b1d975dd6eb01c60f26f5a206cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0941b1d975dd6eb01c60f26f5a206cf">&#9670;&#160;</a></span>boolean()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::boolean </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts the value to a scalar node. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (TRUE|FALSE))) </dd></dl>
 
 </div>
 </div>
@@ -466,6 +525,33 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
 
 </div>
 </div>
+<a id="a7e1a2704aa918154d2033cda3be0af46" name="a7e1a2704aa918154d2033cda3be0af46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e1a2704aa918154d2033cda3be0af46">&#9670;&#160;</a></span>get_raw_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string_view rego::get_raw_string </td>
+          <td>(</td>
+          <td class="paramtype">const Node &amp;</td>          <td class="paramname"><span class="paramname"><em>node</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the raw location of the node from the source. </p>
+<dl class="section note"><dt>Note</dt><dd>If this is a synthetic node (i.e., one generated by the compiler) then this may be an empty string. </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The raw string from the original source for this Node </dd></dl>
+
+</div>
+</div>
 <a id="ab76a283ff8f20682b941ec2678506512" name="ab76a283ff8f20682b941ec2678506512"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab76a283ff8f20682b941ec2678506512">&#9670;&#160;</a></span>get_string()</h2>
 
@@ -481,8 +567,8 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
       </table>
 </div><div class="memdoc">
 
-<p>Extracts the value of a node as a string. The resulting string will have any enclosing quotes removed. </p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Extracts the value of a node as a string. </p>
+<p>The resulting string will have any enclosing quotes removed. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
   </table>
@@ -510,11 +596,58 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
 <p>Converts a string to a log level (case insensitive). </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">value</td><td>One of <code>Error</code>, <code>Warn</code>, <code>Output</code>, <code>Info</code>, <code>Debug</code>, <code>Trace</code>. </td></tr>
+    <tr><td class="paramname">value</td><td>One of <code>Error</code>, <code>Warn</code>, <code><a class="el" href="classrego_1_1Output.html" title="Encapsulates the output of a Rego query.">Output</a></code>, <code>Info</code>, <code>Debug</code>, <code>Trace</code>. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>the corresponding log level, or LogLevel::Unsupported. </dd></dl>
+
+</div>
+</div>
+<a id="a1f281306935e4b7d043620ec6c21ccaa" name="a1f281306935e4b7d043620ec6c21ccaa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f281306935e4b7d043620ec6c21ccaa">&#9670;&#160;</a></span>null()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::null </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Creates a null scalar. </p>
+<dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (NULL))) </dd></dl>
+
+</div>
+</div>
+<a id="a91aec155fdd7b4757935ffed51a64ceb" name="a91aec155fdd7b4757935ffed51a64ceb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91aec155fdd7b4757935ffed51a64ceb">&#9670;&#160;</a></span>number()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::number </td>
+          <td>(</td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts the value to a scalar node. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (FLOAT </dd></dl>
+<p>))) </p>
 
 </div>
 </div>
@@ -591,6 +724,7 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
 </div><div class="memdoc">
 
 <p>Creates a null scalar. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000006">Deprecated</a></b></dt><dd>Use <a class="el" href="#a1f281306935e4b7d043620ec6c21ccaa" title="Creates a null scalar.">null()</a> instead </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (NULL))) </dd></dl>
 
 </div>
@@ -617,6 +751,7 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </table>
   </dd>
 </dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000001">Deprecated</a></b></dt><dd>Use <a class="el" href="#a91aec155fdd7b4757935ffed51a64ceb" title="Converts the value to a scalar node.">number()</a> instead </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (INT </dd></dl>
 <p>))) </p>
 
@@ -644,6 +779,7 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </table>
   </dd>
 </dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000003">Deprecated</a></b></dt><dd>Use <a class="el" href="#af0941b1d975dd6eb01c60f26f5a206cf" title="Converts the value to a scalar node.">boolean()</a> instead </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (TRUE|FALSE))) </dd></dl>
 
 </div>
@@ -670,6 +806,7 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </table>
   </dd>
 </dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000004">Deprecated</a></b></dt><dd>Use <a class="el" href="#a9a285fc7817d87c98f77476e3cb9e6c3" title="Converts the value to a scalar node.">string()</a> instead </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (STRING </dd></dl>
 <p>))) </p>
 
@@ -697,6 +834,7 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </table>
   </dd>
 </dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000005">Deprecated</a></b></dt><dd>Use <a class="el" href="#a9a285fc7817d87c98f77476e3cb9e6c3" title="Converts the value to a scalar node.">string()</a> instead </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (STRING </dd></dl>
 <p>))) </p>
 
@@ -724,6 +862,7 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </table>
   </dd>
 </dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000002">Deprecated</a></b></dt><dd>Use <a class="el" href="#a91aec155fdd7b4757935ffed51a64ceb" title="Converts the value to a scalar node.">number()</a> instead </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (FLOAT </dd></dl>
 <p>))) </p>
 
@@ -752,6 +891,60 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The set node (set (term) (term) ...) </dd></dl>
+
+</div>
+</div>
+<a id="a9a285fc7817d87c98f77476e3cb9e6c3" name="a9a285fc7817d87c98f77476e3cb9e6c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a285fc7817d87c98f77476e3cb9e6c3">&#9670;&#160;</a></span>string() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::string </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts the value to a scalar node. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (STRING </dd></dl>
+<p>))) </p>
+
+</div>
+</div>
+<a id="a0020aaf2a6a2b2993b6016cf5a363549" name="a0020aaf2a6a2b2993b6016cf5a363549"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0020aaf2a6a2b2993b6016cf5a363549">&#9670;&#160;</a></span>string() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node rego::string </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts the value to a scalar node. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The value to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The scalar node (scalar (STRING </dd></dl>
+<p>))) </p>
 
 </div>
 </div>
@@ -795,6 +988,58 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The key representation of the node. </dd></dl>
+
+</div>
+</div>
+<a id="a1402b7192626609ad494dddbece97248" name="a1402b7192626609ad494dddbece97248"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1402b7192626609ad494dddbece97248">&#9670;&#160;</a></span>try_get_bool()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; bool &gt; rego::try_get_bool </td>
+          <td>(</td>
+          <td class="paramtype">const Node &amp;</td>          <td class="paramname"><span class="paramname"><em>node</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Attempts to extract the value of a node as a boolean. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The boolean value of the node. </dd></dl>
+
+</div>
+</div>
+<a id="a14fa752bb1f611edde0f6af713ba87ba" name="a14fa752bb1f611edde0f6af713ba87ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14fa752bb1f611edde0f6af713ba87ba">&#9670;&#160;</a></span>try_get_double()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; double &gt; rego::try_get_double </td>
+          <td>(</td>
+          <td class="paramtype">const Node &amp;</td>          <td class="paramname"><span class="paramname"><em>node</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Attempts to extract the value of a node as an 64-bit floating point number. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The float value of the node </dd></dl>
 
 </div>
 </div>
@@ -852,6 +1097,32 @@ Rewriter&#160;</td><td class="memItemRight" valign="bottom"><b>rego_to_bundle</b
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The item node if found, otherwise std::nullopt. </dd></dl>
+
+</div>
+</div>
+<a id="a69b94dd58725b8efb8b4be360499b9cd" name="a69b94dd58725b8efb8b4be360499b9cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69b94dd58725b8efb8b4be360499b9cd">&#9670;&#160;</a></span>try_get_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; std::string &gt; rego::try_get_string </td>
+          <td>(</td>
+          <td class="paramtype">const Node &amp;</td>          <td class="paramname"><span class="paramname"><em>node</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Attempts to extract the value of a node as a string. </p>
+<p>The resulting string will have any enclosing quotes removed. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The node to extract from. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The string value of the node </dd></dl>
 
 </div>
 </div>

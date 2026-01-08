@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.2.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -91,9 +91,6 @@ $(function(){ initResizable(false); });
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_README"></a></p>
 <p>This project is an effort to create a C++ interpreter for the OPA policy language, <a href="https://www.openpolicyagent.org/docs/latest/policy-language/">Rego</a>. Our goal is to build both a standalone executable and a library such that programmers who are working in C++ can interpret Rego programs natively. To achieve this we are building our interpreter on top of the experimental term rewriter <a href="https://github.com/microsoft/trieste">Trieste</a>.</p>
-<blockquote class="doxtable">
-<p>&zwj;<b>Warning</b> While this project has progressed to the point that we support full Rego language (see <a class="el" href="#language-support">Language Support</a> below) we do not support all built-ins. That said, we have verified compliance with the OPA Rego test suite. Even so, it should still be considered experimental software and used with discretion. </p>
-</blockquote>
 <h1><a class="anchor" id="autotoc_md1"></a>
 Getting Started</h1>
 <p>Start by installing <a href="https://cmake.org/">CMake</a> in the way appropriate for your environment.</p>
@@ -113,19 +110,19 @@ cmake .. --preset release
 ctest -C Release
 </pre><h2><a class="anchor" id="autotoc_md4"></a>
 Using the <code>rego</code> CLI</h2>
-<p>The interpreter tool will be located at <code>build/dist/bin/rego</code>. Here are some example commands using the provided example files and run from the suggested <code>dist</code> install directory: </p><pre class="fragment">./bin/rego -d examples/scalars.rego -q data.scalars.greeting
+<p>The interpreter tool will be located at <code>build/dist/bin/rego</code>. Here are some example commands using the provided example files and run from the suggested <code>dist</code> install directory: </p><pre class="fragment">./bin/rego eval -d examples/scalars.rego -q data.scalars.greeting
 {"expressions":["Hello"]}
 
-./bin/rego -d examples/objects.rego -q data.objects.sites[1].name
+./bin/rego eval -d examples/objects.rego -q data.objects.sites[1].name
 {"expressions":["smoke1"]}
 
-./bin/rego -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
-{"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4}, "20", {"name":"smoke1"}]]}
+./bin/rego eval -d examples/data0.json examples/data1.json examples/objects.rego -i examples/input0.json  -q "[data.one, input.b, data.objects.sites[1]]"
+{"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]]}
 
-./bin/rego -q "5 + (2 - 4 * 0.25) * -3 + 7.4"
-{"bindings":{"x":5, "y":9.4}}
+./bin/rego eval -q "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4"
+{"expressions":[true, true], "bindings":{"x":5, "y":9.4}}
 
-./bin/rego -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
+./bin/rego eval -d examples/bodies.rego -i examples/input1.json -q data.bodies.e
 {"expressions":[{"one":15, "two":15}]}
 </pre><p>You can run the test driver from the same directory: </p><pre class="fragment">./bin/rego_test tests/regocpp.yaml
 </pre><h2><a class="anchor" id="autotoc_md5"></a>
@@ -180,8 +177,7 @@ Language Support</h1>
 <div class="line">set             = empty-set | non-empty-set</div>
 <div class="line">non-empty-set   = &quot;{&quot; term { &quot;,&quot; term } &quot;}&quot;</div>
 <div class="line">empty-set       = &quot;set(&quot; &quot;)&quot;</div>
-</div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>This grammar corresponds to Rego with <code>rego.v1</code> enabled (See <a href="https://www.openpolicyagent.org/docs/latest/opa-1">OPA v1.0</a> for more info).</dd></dl>
-<p>Definitions: </p><div class="fragment"><div class="line">[]     optional (zero or one instances)</div>
+</div><!-- fragment --><p>Definitions: </p><div class="fragment"><div class="line">[]     optional (zero or one instances)</div>
 <div class="line">{}     repetition (zero or more instances)</div>
 <div class="line">|      alternation (one of the instances)</div>
 <div class="line">()     grouping (order of expansion)</div>
@@ -197,46 +193,26 @@ Language Support</h1>
 <div class="line">LF     Line Feed</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
 Builtins</h2>
-<p>At the moment support the following builtins are available:</p>
+<p>We support the majority of the standard Rego built-ins, and provide a robust mechanism for including custom built-ins (via the CPP API). The following builtins are NOT supported at present, though some are scheduled for future releases.</p>
 <ul>
-<li><code>aggregates</code></li>
-<li><code>arrays</code></li>
-<li><code>bits</code></li>
-<li><code>casts</code></li>
-<li><code>encoding</code></li>
-<li><code>graphs</code></li>
-<li><code>numbers</code></li>
-<li><code>objects</code></li>
-<li><code>regex</code></li>
-<li><code>semver</code></li>
-<li><code>sets</code></li>
-<li><code>strings</code></li>
-<li><code>time</code></li>
-<li><code>types</code></li>
-<li><code>units</code></li>
-<li><code>uuid</code></li>
-<li>miscellaneous<ul>
-<li><code>opa.runtime</code></li>
-<li><code>print</code></li>
-</ul>
-</li>
+<li><code>providers.aws.sign_req</code> - Not planned</li>
+<li><code>crypto.*</code> - Currently slated to be released in v1.3.0</li>
+<li><code>glob.*</code> - Not planned</li>
+<li><code>graphql.*</code> - Not planned</li>
+<li><code>http.send</code> - Not planned</li>
+<li><code>json.match_schema</code>/<code>json.verify_schema</code> - Not planned</li>
+<li><code>jwt.*</code> - Currently slated to be released in v1.4.0</li>
+<li><code>net.*</code> - Not planned</li>
+<li><code>regex.globs_match</code> - Not planned</li>
+<li><code>rego.metadata.chain</code>/<code>rego.metadata.rule</code>/<code>rego.parse_module</code> - Not planned</li>
+<li><code>strings.render_template</code> - Not planned</li>
+<li><code>time</code> - This is entirely platform dependent at the moment, depending on whether there is a compiler on that platform which supports <code>__cpp_lib_chrono &gt;= 201907L</code>.</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md7"></a>
 Compatibility with the OPA Rego Go implementation</h2>
 <p>Our goal is to achieve and maintain full compatibility with the reference Go implementation. We have developed a test driver which runs the same tests and validates that we produce the same outputs. At this stage we pass all the non-builtin specific test suites, which we clone from the <a href="https://github.com/open-policy-agent/opa/tree/main/test/cases/testdata">OPA repository</a>. To build with the OPA tests available for testing, use one of the following presets:</p><ul>
 <li><code>release-clang-opa</code></li>
 <li><code>release-opa</code></li>
-</ul>
-<p>At present, we are <b>NOT</b> passing the following test suites in full:</p><ul>
-<li><code>crypto*</code></li>
-<li><code>glob*</code></li>
-<li><code>graphql</code></li>
-<li><code>invalidkeyerror</code></li>
-<li><code>json*</code> (except <code>jsonbuiltins</code>)</li>
-<li><code>jwt*</code></li>
-<li><code>net*</code></li>
-<li><code>planner-ir</code></li>
-<li><code>providers-aws</code></li>
 </ul>
 <h1><a class="anchor" id="autotoc_md8"></a>
 Contributing</h1>

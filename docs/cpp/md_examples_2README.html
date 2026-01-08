@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.2.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -94,12 +94,11 @@ $(function(){ initResizable(false); });
 <p>At the moment we support C, C++, Rust, Python, and dotnet. The C API has been designed to make it straightforward to wrap for other languages. To see some examples, look at the <a href="../wrappers">wrappers directory</a>.</p>
 <h1><a class="anchor" id="autotoc_md11"></a>
 C++</h1>
-<p>The best way to get started with the C++ API is to look at the <a href="../tools/main.cc">rego</a> tool. It exercises most of the API and is a good starting point for understanding how to use the library.</p>
-<p>A more in-depth example which performs node matching and other more complex operations can be see in the <a href="../tests/test_case.cc"><code>TestCase</code></a> class from the test driver.</p>
-<p>TODO there are C++ examples now</p>
+<p>You can begin by looking at <a href="./cpp/example.cc"><code>example.cc</code></a> to see some sample usage of the API. <a href="./cpp/custom_builtin.cc"><code>custom_builtin.cc</code></a> shows how to add your own custom builtins (only supported in C++ at this point in time).</p>
+<p>From there, the best way to get a more in-depth understanding of the C++ API is to look at the <a href="../tools/main.cc">rego</a> tool.</p>
 <h1><a class="anchor" id="autotoc_md12"></a>
 C</h1>
-<p>The C example is a <a href="c/main.c">simple command line tool</a> that takes one or more Rego data, module, and input files and evaluates a query against them.</p>
+<p>There are two C examples. The first, <a href="c/example.c">example.c</a> exercises the C API, showing all the various ways it can be used. The second C example is a <a href="c/main.c">command line tool</a> that takes one or more Rego data, module, and input files and evaluates a query against them.</p>
 <p>To build it on Linux: </p><div class="fragment"><div class="line">a@host:rego-cpp$ cd examples/c</div>
 <div class="line">a@host:c$ mkdir build</div>
 <div class="line">a@host:c$ cd build</div>
@@ -114,46 +113,44 @@ C</h1>
 </div><!-- fragment --><p>The resulting executable can be called from within the <code>dist</code> directory:</p>
 <div class="fragment"><div class="line">a@host:build$ cd dist</div>
 <div class="line">a@host:dist$ ./bin/regoc -d examples/scalars.rego -q data.scalars.greeting</div>
-<div class="line">&quot;Hello&quot;</div>
+<div class="line">{&quot;expressions&quot;:[&quot;Hello&quot;]}</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md13"></a>
 Python</h1>
 <p>The Python example is a <a href="python/rego.py">simple command line tool</a> that takes zero or more Rego data, module, and input files and evaluates a query against them.</p>
 <p>Examples:</p>
 <div class="fragment"><div class="line">a@host:python$ pip install regopy</div>
-<div class="line">a@host:python$ python rego.py -d examples/scalars.rego data.scalars.greeting</div>
-<div class="line">&quot;Hello&quot;</div>
+<div class="line">a@host:python$ python rego.py eval -d examples/scalars.rego data.scalars.greeting</div>
+<div class="line">{&quot;expressions&quot;:[&quot;Hello&quot;]}</div>
 <div class="line"> </div>
-<div class="line">a@host:python$ python rego.py -d examples/objects.rego data.objects.sites[1].name</div>
-<div class="line">&quot;smoke1&quot;</div>
+<div class="line">a@host:python$ python rego.py eval -d examples/objects.rego data.objects.sites[1].name</div>
+<div class="line">{&quot;expressions&quot;:[&quot;smoke1&quot;]}</div>
 <div class="line"> </div>
-<div class="line">a@host:python$ python rego.py -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json &quot;[data.one, input.b, data.objects.sites[1]]&quot;</div>
-<div class="line">[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]</div>
+<div class="line">a@host:python$ python rego.py eval -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json &quot;[data.one, input.b, data.objects.sites[1]]&quot;</div>
+<div class="line">{&quot;expressions&quot;:[[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4},&quot;20&quot;,{&quot;name&quot;:&quot;smoke1&quot;}]]}</div>
 <div class="line"> </div>
-<div class="line">a@host:python$ python rego.py &quot;x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4&quot;</div>
-<div class="line">x = 5</div>
-<div class="line">y = 9.4</div>
+<div class="line">a@host:python$ python rego.py eval &quot;x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5&quot;</div>
+<div class="line">{&quot;expressions&quot;:[true, true, 10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}</div>
 <div class="line"> </div>
-<div class="line">a@host:python$ python rego.py -d examples/bodies.rego -i examples/input1.json data.bodies.e</div>
-<div class="line">{&quot;one&quot;:15, &quot;two&quot;: 15}</div>
+<div class="line">a@host:python$ python rego.py eval -d examples/bodies.rego -i examples/input1.json data.bodies.e</div>
+<div class="line">{&quot;expressions&quot;:[{&quot;one&quot;:15, &quot;two&quot;:15}]}</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md14"></a>
 Rust</h1>
 <p>The Rust example is another <a href="rust/src/main.rs">simple command line tool</a> that takes zero or more Rego data, module, and input files and evaluates a query against them.</p>
 <p>Examples:</p>
-<div class="fragment"><div class="line">a@host:rust$ cargo run -- -d examples/scalars.rego data.scalars.greeting</div>
-<div class="line">&quot;Hello&quot;</div>
+<div class="fragment"><div class="line">a@host:rust$ cargo run -- eval -d examples/scalars.rego data.scalars.greeting</div>
+<div class="line">{&quot;expressions&quot;:[&quot;Hello&quot;]}</div>
 <div class="line"> </div>
-<div class="line">a@host:rust$ cargo run -- -d examples/objects.rego data.objects.sites[1].name</div>
-<div class="line">&quot;smoke1&quot;</div>
+<div class="line">a@host:rust$ cargo run -- eval -d examples/objects.rego data.objects.sites[1].name</div>
+<div class="line">{&quot;expressions&quot;:[&quot;smoke1&quot;]}</div>
 <div class="line"> </div>
-<div class="line">a@host:rust$ cargo run -- -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json &quot;[data.one, input.b, data.objects.sites[1]]&quot;</div>
-<div class="line">[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]</div>
+<div class="line">a@host:rust$ cargo run -- eval -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json &quot;[data.one, input.b, data.objects.sites[1]]&quot;</div>
+<div class="line">{&quot;expressions&quot;:[[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4},&quot;20&quot;,{&quot;name&quot;:&quot;smoke1&quot;}]]}</div>
 <div class="line"> </div>
-<div class="line">a@host:rust$ cargo run -- &quot;x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4&quot;</div>
-<div class="line">x = 5</div>
-<div class="line">y = 9.4</div>
+<div class="line">a@host:rust$ cargo run -- eval &quot;x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4;5 * 2&quot;</div>
+<div class="line">{&quot;expressions&quot;:[true, true, 10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}</div>
 <div class="line"> </div>
-<div class="line">a@host:rust$ cargo run -- -d examples/bodies.rego -i examples/input1.json data.bodies.e</div>
-<div class="line">{&quot;one&quot;:15, &quot;two&quot;: 15}</div>
+<div class="line">a@host:rust$ cargo run -- eval -d examples/bodies.rego -i examples/input1.json data.bodies.e</div>
+<div class="line">{&quot;expressions&quot;:[{&quot;one&quot;:15, &quot;two&quot;:15}]}</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md15"></a>
 dotnet</h1>
 <p>The <a href="dotnet/Program.cs">dotnet example</a> does not provide a full command-line tool, but it does show how use all the features of the wrapper:</p>
@@ -169,8 +166,7 @@ dotnet</h1>
 <div class="line">Bundles</div>
 <div class="line">query: {&quot;expressions&quot;:[true], &quot;bindings&quot;:{&quot;x&quot;:4460}}</div>
 <div class="line">example/foo: {&quot;expressions&quot;:[2275]}</div>
-</div><!-- fragment --><p>TODO update all of these to reflect the actual output </p>
-</div></div><!-- contents -->
+</div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- PageDoc -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.2.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -116,9 +116,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab8e140c25d662d4a16533b4dac943c33" id="r_ab8e140c25d662d4a16533b4dac943c33"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab8e140c25d662d4a16533b4dac943c33">BigInt</a> (std::int64_t value)</td></tr>
 <tr class="memdesc:ab8e140c25d662d4a16533b4dac943c33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a 64-bit integer.  <br /></td></tr>
 <tr class="separator:ab8e140c25d662d4a16533b4dac943c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a95f2457c9532052356cc1f51440c1f" id="r_a0a95f2457c9532052356cc1f51440c1f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a95f2457c9532052356cc1f51440c1f">BigInt</a> (std::size_t value)</td></tr>
-<tr class="memdesc:a0a95f2457c9532052356cc1f51440c1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a size_t integer.  <br /></td></tr>
-<tr class="separator:a0a95f2457c9532052356cc1f51440c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac25402904d935c77b571ede0cb689319" id="r_ac25402904d935c77b571ede0cb689319"><td class="memItemLeft" align="right" valign="top">const Location &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac25402904d935c77b571ede0cb689319">loc</a> () const</td></tr>
 <tr class="memdesc:ac25402904d935c77b571ede0cb689319"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the Location representing the integer string.  <br /></td></tr>
 <tr class="separator:ac25402904d935c77b571ede0cb689319"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -197,7 +194,7 @@ Friends</h2></td></tr>
 <p>using strings. In most circumstances this would be considerably slower than other approaches, but given the way in which Trieste nodes store their content as Location objects into a source document, and given how this class operates over those Locations, it is actually quite efficient when compared to parsing and serializing the Location into a vector of unsigned longs. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="abf327a4cacc9d98555ae56e4c0137f5b" name="abf327a4cacc9d98555ae56e4c0137f5b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf327a4cacc9d98555ae56e4c0137f5b">&#9670;&#160;</a></span>BigInt() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#abf327a4cacc9d98555ae56e4c0137f5b">&#9670;&#160;</a></span>BigInt() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -222,7 +219,7 @@ Friends</h2></td></tr>
 </div>
 </div>
 <a id="ab8e140c25d662d4a16533b4dac943c33" name="ab8e140c25d662d4a16533b4dac943c33"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab8e140c25d662d4a16533b4dac943c33">&#9670;&#160;</a></span>BigInt() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8e140c25d662d4a16533b4dac943c33">&#9670;&#160;</a></span>BigInt() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -240,31 +237,6 @@ Friends</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">value</td><td>The 64-bit integer to construct from. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a0a95f2457c9532052356cc1f51440c1f" name="a0a95f2457c9532052356cc1f51440c1f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0a95f2457c9532052356cc1f51440c1f">&#9670;&#160;</a></span>BigInt() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">rego::BigInt::BigInt </td>
-          <td>(</td>
-          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Constructs a <a class="el" href="classrego_1_1BigInt.html" title="Big Integer implemention based on strings.">BigInt</a> from a size_t integer. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">value</td><td>The size_t integer to construct from. </td></tr>
   </table>
   </dd>
 </dl>

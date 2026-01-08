@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="regocpp-logo-48.png"/></td>
   <td id="projectalign">
-   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.0.0</span>
+   <div id="projectname">rego-cpp<span id="projectnumber">&#160;1.2.0</span>
    </div>
    <div id="projectbrief">A C++ implementation of the Rego language and runtime</div>
   </td>
@@ -162,6 +162,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9b3d9acf9aa242868dd66ee3312997b3" id="r_a9b3d9acf9aa242868dd66ee3312997b3"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9b3d9acf9aa242868dd66ee3312997b3">query_node</a> ()</td></tr>
 <tr class="memdesc:a9b3d9acf9aa242868dd66ee3312997b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query against the interpreter.  <br /></td></tr>
 <tr class="separator:a9b3d9acf9aa242868dd66ee3312997b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a631c38e13f296595a80fc8b25818214f" id="r_a631c38e13f296595a80fc8b25818214f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Output.html">Output</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a631c38e13f296595a80fc8b25818214f">query_output</a> (const std::string &amp;query_expr)</td></tr>
+<tr class="memdesc:a631c38e13f296595a80fc8b25818214f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query against the interpreter.  <br /></td></tr>
+<tr class="separator:a631c38e13f296595a80fc8b25818214f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a953f8c8584afcf6af2b79ae9f46dc4ac" id="r_a953f8c8584afcf6af2b79ae9f46dc4ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Output.html">Output</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a953f8c8584afcf6af2b79ae9f46dc4ac">query_output</a> ()</td></tr>
+<tr class="memdesc:a953f8c8584afcf6af2b79ae9f46dc4ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query against the interpreter.  <br /></td></tr>
+<tr class="separator:a953f8c8584afcf6af2b79ae9f46dc4ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2f575cb2f06a4d4cbc7ee4e8c3c1987" id="r_ae2f575cb2f06a4d4cbc7ee4e8c3c1987"><td class="memItemLeft" align="right" valign="top">Node&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2f575cb2f06a4d4cbc7ee4e8c3c1987">build</a> ()</td></tr>
 <tr class="memdesc:ae2f575cb2f06a4d4cbc7ee4e8c3c1987"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a bundle from the current state of the interpreter.  <br /></td></tr>
 <tr class="separator:ae2f575cb2f06a4d4cbc7ee4e8c3c1987"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -216,6 +222,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7856d978980a29139f9d3e8b53e78bfa" id="r_a7856d978980a29139f9d3e8b53e78bfa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7856d978980a29139f9d3e8b53e78bfa">c_error</a> (const std::string &amp;error)</td></tr>
 <tr class="memdesc:a7856d978980a29139f9d3e8b53e78bfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the most recent error message.  <br /></td></tr>
 <tr class="separator:a7856d978980a29139f9d3e8b53e78bfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae64980b8e2185083de6bb50f9bf9cfbf" id="r_ae64980b8e2185083de6bb50f9bf9cfbf"><td class="memItemLeft" align="right" valign="top"><a id="ae64980b8e2185083de6bb50f9bf9cfbf" name="ae64980b8e2185083de6bb50f9bf9cfbf"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>stmt_limit</b> () const</td></tr>
+<tr class="memdesc:ae64980b8e2185083de6bb50f9bf9cfbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the maximum number of statements that will execute before a timeout. <br /></td></tr>
+<tr class="separator:ae64980b8e2185083de6bb50f9bf9cfbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24cb1d09d0cd08e95d3f8eaf753031fa" id="r_a24cb1d09d0cd08e95d3f8eaf753031fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a24cb1d09d0cd08e95d3f8eaf753031fa">stmt_limit</a> (size_t stmt_limit)</td></tr>
+<tr class="memdesc:a24cb1d09d0cd08e95d3f8eaf753031fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the maximum number of statements that will execute before a timeout.  <br /></td></tr>
+<tr class="separator:a24cb1d09d0cd08e95d3f8eaf753031fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This class forms the main interface to the Rego library. </p>
@@ -226,7 +239,7 @@ Public Member Functions</h2></td></tr>
 <div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.set_input_json_file(<span class="stringliteral">&quot;input0.json&quot;</span>);</div>
 <div class="line">std::cout &lt;&lt; <a class="code hl_namespace" href="namespacerego.html">rego</a>.query(<span class="stringliteral">&quot;[data.one, input.b, data.objects.sites[1]]&quot;</span>) &lt;&lt;</div>
 <div class="line">std::endl;</div>
-<div class="ttc" id="aclassrego_1_1Interpreter_html"><div class="ttname"><a href="classrego_1_1Interpreter.html">rego::Interpreter</a></div><div class="ttdoc">This class forms the main interface to the Rego library.</div><div class="ttdef"><b>Definition</b> rego.hh:1445</div></div>
+<div class="ttc" id="aclassrego_1_1Interpreter_html"><div class="ttname"><a href="classrego_1_1Interpreter.html">rego::Interpreter</a></div><div class="ttdoc">This class forms the main interface to the Rego library.</div><div class="ttdef"><b>Definition</b> rego.hh:1682</div></div>
 <div class="ttc" id="anamespacerego_html"><div class="ttname"><a href="namespacerego.html">rego</a></div><div class="ttdef"><b>Definition</b> rego.hh:18</div></div>
 </div><!-- fragment --> </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="aebadd6d41054c93f5ed71e574a7573cb" name="aebadd6d41054c93f5ed71e574a7573cb"></a>
@@ -386,20 +399,21 @@ Public Member Functions</h2></td></tr>
 <div class="line"><a class="code hl_typedef" href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">rego::Bundle</a> bundle = <a class="code hl_function" href="structrego_1_1BundleDef.html#a8ef288ececa06aaf680b73a17dfe3c12">rego::BundleDef::from_node</a>(bundle_node);</div>
 <div class="line"><span class="comment">// we can assemble the input term manually</span></div>
 <div class="line">rego::Node input = <a class="code hl_function" href="namespacerego.html#af28fe19f8db04140ea018db797d5c89d">rego::object</a>({</div>
-<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;a&quot;</span>), <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<a class="code hl_class" href="classrego_1_1BigInt.html">rego::BigInt</a>(10L))),</div>
-<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;b&quot;</span>), <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;20&quot;</span>)),</div>
-<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;c&quot;</span>), <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(30.0)),</div>
-<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="stringliteral">&quot;d&quot;</span>), <a class="code hl_function" href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a>(<span class="keyword">true</span>)),</div>
+<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a9a285fc7817d87c98f77476e3cb9e6c3">rego::string</a>(<span class="stringliteral">&quot;a&quot;</span>), <a class="code hl_function" href="namespacerego.html#a91aec155fdd7b4757935ffed51a64ceb">rego::number</a>(10)),</div>
+<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a9a285fc7817d87c98f77476e3cb9e6c3">rego::string</a>(<span class="stringliteral">&quot;b&quot;</span>), <a class="code hl_function" href="namespacerego.html#a9a285fc7817d87c98f77476e3cb9e6c3">rego::string</a>(<span class="stringliteral">&quot;20&quot;</span>)),</div>
+<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a9a285fc7817d87c98f77476e3cb9e6c3">rego::string</a>(<span class="stringliteral">&quot;c&quot;</span>), <a class="code hl_function" href="namespacerego.html#a91aec155fdd7b4757935ffed51a64ceb">rego::number</a>(30.0)),</div>
+<div class="line">  <a class="code hl_function" href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a>(<a class="code hl_function" href="namespacerego.html#a9a285fc7817d87c98f77476e3cb9e6c3">rego::string</a>(<span class="stringliteral">&quot;d&quot;</span>), <a class="code hl_function" href="namespacerego.html#af0941b1d975dd6eb01c60f26f5a206cf">rego::boolean</a>(<span class="keyword">true</span>)),</div>
 <div class="line">});</div>
 <div class="line"><a class="code hl_namespace" href="namespacerego.html">rego</a>.set_input(input);</div>
 <div class="line">std::cout &lt;&lt; <a class="code hl_namespace" href="namespacerego.html">rego</a>.output_to_string(<a class="code hl_namespace" href="namespacerego.html">rego</a>.query_bundle(bundle)) &lt;&lt; std::endl;</div>
 <div class="line"><span class="comment">// we can also query bundle entrypoints directly</span></div>
 <div class="line">std::cout &lt;&lt; <a class="code hl_namespace" href="namespacerego.html">rego</a>.output_to_string(<a class="code hl_namespace" href="namespacerego.html">rego</a>.query_bundle(bundle, <span class="stringliteral">&quot;objects/sites&quot;</span>))</div>
 <div class="line">          &lt;&lt; std::endl;</div>
-<div class="ttc" id="aclassrego_1_1BigInt_html"><div class="ttname"><a href="classrego_1_1BigInt.html">rego::BigInt</a></div><div class="ttdoc">Big Integer implemention based on strings.</div><div class="ttdef"><b>Definition</b> rego.hh:240</div></div>
-<div class="ttc" id="anamespacerego_html_a0f699011db385484155281fb1d9bc719"><div class="ttname"><a href="namespacerego.html#a0f699011db385484155281fb1d9bc719">rego::scalar</a></div><div class="ttdeci">Node scalar()</div><div class="ttdoc">Creates a null scalar.</div></div>
 <div class="ttc" id="anamespacerego_html_a24ac77f6b9db6cdf802fef2de7d95c94"><div class="ttname"><a href="namespacerego.html#a24ac77f6b9db6cdf802fef2de7d95c94">rego::object_item</a></div><div class="ttdeci">Node object_item(const Node &amp;key_term, const Node &amp;val_term)</div><div class="ttdoc">Converts the key and val terms to an object item.</div></div>
-<div class="ttc" id="anamespacerego_html_a76add1d87091f574f02e5ea8f1c99ac0"><div class="ttname"><a href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">rego::Bundle</a></div><div class="ttdeci">std::shared_ptr&lt; BundleDef &gt; Bundle</div><div class="ttdoc">A pointer to a BundleDef.</div><div class="ttdef"><b>Definition</b> rego.hh:1221</div></div>
+<div class="ttc" id="anamespacerego_html_a76add1d87091f574f02e5ea8f1c99ac0"><div class="ttname"><a href="namespacerego.html#a76add1d87091f574f02e5ea8f1c99ac0">rego::Bundle</a></div><div class="ttdeci">std::shared_ptr&lt; BundleDef &gt; Bundle</div><div class="ttdoc">A pointer to a BundleDef.</div><div class="ttdef"><b>Definition</b> rego.hh:1352</div></div>
+<div class="ttc" id="anamespacerego_html_a91aec155fdd7b4757935ffed51a64ceb"><div class="ttname"><a href="namespacerego.html#a91aec155fdd7b4757935ffed51a64ceb">rego::number</a></div><div class="ttdeci">Node number(double value)</div><div class="ttdoc">Converts the value to a scalar node.</div></div>
+<div class="ttc" id="anamespacerego_html_a9a285fc7817d87c98f77476e3cb9e6c3"><div class="ttname"><a href="namespacerego.html#a9a285fc7817d87c98f77476e3cb9e6c3">rego::string</a></div><div class="ttdeci">Node string(const char *value)</div><div class="ttdoc">Converts the value to a scalar node.</div></div>
+<div class="ttc" id="anamespacerego_html_af0941b1d975dd6eb01c60f26f5a206cf"><div class="ttname"><a href="namespacerego.html#af0941b1d975dd6eb01c60f26f5a206cf">rego::boolean</a></div><div class="ttdeci">Node boolean(bool value)</div><div class="ttdoc">Converts the value to a scalar node.</div></div>
 <div class="ttc" id="anamespacerego_html_af28fe19f8db04140ea018db797d5c89d"><div class="ttname"><a href="namespacerego.html#af28fe19f8db04140ea018db797d5c89d">rego::object</a></div><div class="ttdeci">Node object(const std::initializer_list&lt; Node &gt; &amp;object_items)</div><div class="ttdoc">Converts the value to an object node.</div></div>
 <div class="ttc" id="astructrego_1_1BundleDef_html_a8ef288ececa06aaf680b73a17dfe3c12"><div class="ttname"><a href="structrego_1_1BundleDef.html#a8ef288ececa06aaf680b73a17dfe3c12">rego::BundleDef::from_node</a></div><div class="ttdeci">static Bundle from_node(Node bundle)</div><div class="ttdoc">Constructs a bundle from an AST node.</div></div>
 </div><!-- fragment --> <dl class="section return"><dt>Returns</dt><dd>The bundle, or an error node. </dd></dl>
@@ -925,6 +939,46 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a953f8c8584afcf6af2b79ae9f46dc4ac" name="a953f8c8584afcf6af2b79ae9f46dc4ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a953f8c8584afcf6af2b79ae9f46dc4ac">&#9670;&#160;</a></span>query_output() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1Output.html">Output</a> rego::Interpreter::query_output </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Executes a query against the interpreter. </p>
+<p>This method calls <a class="el" href="#ab22f190eb758289681882dddba13e5d3" title="Executes a query against the interpreter.">Interpreter::query_node</a> and then wraps it in an <a class="el" href="classrego_1_1Output.html" title="Encapsulates the output of a Rego query.">Output</a> object. </p><dl class="section return"><dt>Returns</dt><dd>The result of the query. </dd></dl>
+
+</div>
+</div>
+<a id="a631c38e13f296595a80fc8b25818214f" name="a631c38e13f296595a80fc8b25818214f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a631c38e13f296595a80fc8b25818214f">&#9670;&#160;</a></span>query_output() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1Output.html">Output</a> rego::Interpreter::query_output </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>query_expr</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Executes a query against the interpreter. </p>
+<p>This method calls <a class="el" href="#ab22f190eb758289681882dddba13e5d3" title="Executes a query against the interpreter.">Interpreter::query_node</a> and then wraps it in an <a class="el" href="classrego_1_1Output.html" title="Encapsulates the output of a Rego query.">Output</a> object. </p><dl class="section return"><dt>Returns</dt><dd>The result of the query. </dd></dl>
+
+</div>
+</div>
 <a id="a38ab0705a7f66322fb593d0d1d3a4f4d" name="a38ab0705a7f66322fb593d0d1d3a4f4d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a38ab0705a7f66322fb593d0d1d3a4f4d">&#9670;&#160;</a></span>save_bundle()</h2>
 
@@ -1082,6 +1136,32 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>either an error node or a nullptr if the query expression is valid. </dd></dl>
+
+</div>
+</div>
+<a id="a24cb1d09d0cd08e95d3f8eaf753031fa" name="a24cb1d09d0cd08e95d3f8eaf753031fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24cb1d09d0cd08e95d3f8eaf753031fa">&#9670;&#160;</a></span>stmt_limit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classrego_1_1Interpreter.html">Interpreter</a> &amp; rego::Interpreter::stmt_limit </td>
+          <td>(</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>stmt_limit</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the maximum number of statements that will execute before a timeout. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stmt_limit</td><td>The statement limit </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to this <a class="el" href="classrego_1_1Interpreter.html" title="This class forms the main interface to the Rego library.">Interpreter</a> </dd></dl>
 
 </div>
 </div>

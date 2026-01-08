@@ -4,5 +4,7 @@ var searchData=
   ['name_5fto_5ffunc_1',['name_to_func',['../structrego_1_1BundleDef.html#a6ebfd3326de5b47a0a25a656ad4da199',1,'rego::BundleDef']]],
   ['name_5fto_5fplan_2',['name_to_plan',['../structrego_1_1BundleDef.html#a1531b600d885870a86270992265b5391',1,'rego::BundleDef']]],
   ['negate_3',['negate',['../classrego_1_1BigInt.html#a6421692d24384f56ce0f90e3865c9e14',1,'rego::BigInt']]],
-  ['node_4',['node',['../structrego_1_1UnwrapResult.html#a9ec5a75faea289471be116708295a0a8',1,'rego::UnwrapResult']]]
+  ['node_4',['node',['../structrego_1_1UnwrapResult.html#a9ec5a75faea289471be116708295a0a8',1,'rego::UnwrapResult::node'],['../classrego_1_1Output.html#a81cecee4760cdb5770b3bb4d74af84ad',1,'rego::Output::node()']]],
+  ['null_5',['null',['../namespacerego.html#a1f281306935e4b7d043620ec6c21ccaa',1,'rego']]],
+  ['number_6',['number',['../namespacerego.html#a91aec155fdd7b4757935ffed51a64ceb',1,'rego']]]
 ];
