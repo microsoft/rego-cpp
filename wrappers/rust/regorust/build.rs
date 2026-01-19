@@ -5,31 +5,40 @@ use std::process::Command;
 
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let regocpp_path = out_path.join("rego-cpp");
+    let mut regocpp_path = out_path.join("rego-cpp");
     let num_procs = std::thread::available_parallelism().unwrap_or(NonZeroUsize::new(1).unwrap());
     let rego_git_repo = std::env::var("REGOCPP_REPO")
         .unwrap_or("https://github.com/microsoft/rego-cpp.git".to_string());
-    let rego_git_tag = std::env::var("REGOCPP_TAG").unwrap_or("main".to_string());
-
-    if !regocpp_path.exists() {
-        Command::new("git")
-            .args(&["clone", &rego_git_repo])
-            .current_dir(&out_path)
-            .status()
-            .expect("failed to execute process");
+    if rego_git_repo == "LOCAL" {
+        regocpp_path =
+            PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"))
+                .ancestors()
+                .nth(3)
+                .map(|path| path.to_path_buf())
+                .expect("unable to resolve repository root");
     } else {
+        let rego_git_tag = std::env::var("REGOCPP_TAG").unwrap_or("main".to_string());
+
+        if !regocpp_path.exists() {
+            Command::new("git")
+                .args(&["clone", &rego_git_repo])
+                .current_dir(&out_path)
+                .status()
+                .expect("failed to execute process");
+        } else {
+            Command::new("git")
+                .args(&["pull", "--rebase"])
+                .current_dir(&regocpp_path)
+                .status()
+                .expect("failed to execute process");
+        }
+
         Command::new("git")
-            .args(&["pull", "--rebase"])
+            .args(&["checkout", &rego_git_tag])
             .current_dir(&regocpp_path)
             .status()
             .expect("failed to execute process");
     }
-
-    Command::new("git")
-        .args(&["checkout", &rego_git_tag])
-        .current_dir(&regocpp_path)
-        .status()
-        .expect("failed to execute process");
 
     let regocpp_config = match std::env::var("PROFILE").as_ref() {
         Ok(build_type) => {

@@ -68,10 +68,13 @@ class CMakeBuild(build_ext):
         if not os.path.exists("rego-cpp"):
             repo = os.environ.get(
                 "REGOCPP_REPO", "https://github.com/microsoft/rego-cpp.git")
-            tag = os.environ.get("REGOCPP_TAG", "main")
+            if repo == "LOCAL":
+                src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+            else:
+                tag = os.environ.get("REGOCPP_TAG", "main")
 
-            subprocess.check_call(["git", "clone", repo, src_path])
-            subprocess.check_call(["git", "checkout", tag], cwd=src_path)
+                subprocess.check_call(["git", "clone", repo, src_path])
+                subprocess.check_call(["git", "checkout", tag], cwd=src_path)
 
         cmake_args = [f"-S {src_path}",
                       f"-B {self.build_temp}",
