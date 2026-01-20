@@ -107,16 +107,11 @@ jobs:
         run: |
           sudo apt-get install ninja-build
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
         run: cmake -B ${{github.workspace}}/examples/c/build --preset release -G Ninja
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -140,17 +135,10 @@ jobs:
             8.0.x
             9.0.x
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: dotnet test
         working-directory: ${{github.workspace}}/wrappers/dotnet/
         run: |
           dotnet test -v n /p:Multitarget=true
-        env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
 
   linux-wrappers-rust:
     runs-on: ubuntu-latest
@@ -163,22 +151,17 @@ jobs:
         run: |
           sudo apt-get install cargo rustc
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
         run: cargo test -vv
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
   linux-wrappers-python:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ["3.10", "3.11", "3.12", "3.13"]
+        python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -192,16 +175,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: Python build
         working-directory: ${{github.workspace}}/wrappers/python/
         run: pip install -e .[dev]
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
@@ -266,16 +244,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch "+refs/pull/*/merge:refs/remotes/pull/*"
-
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
         run: cmake -B ${{github.workspace}}/examples/c/build --preset release
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -299,17 +272,10 @@ jobs:
             8.0.x
             9.0.x
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch "+refs/pull/*/merge:refs/remotes/pull/*"
-
       - name: dotnet test
         working-directory: ${{github.workspace}}/wrappers/dotnet/
         run: |
           dotnet test -v n /p:Multitarget=true
-        env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
 
   windows-wrappers-rust:
     runs-on: windows-latest
@@ -318,22 +284,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch "+refs/pull/*/merge:refs/remotes/pull/*"
-
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust
         run: cargo test -vv
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
   windows-wrappers-python:
     runs-on: windows-latest
     strategy:
       matrix:
-        python_version: ["3.10", "3.11", "3.12", "3.13"]
+        python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -348,16 +309,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: Python build
         working-directory: ${{github.workspace}}/wrappers/python/
         run: pip install -e .[dev]
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
@@ -396,16 +352,11 @@ jobs:
         run: |
           brew update && brew install ninja
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
         run: cmake -B ${{github.workspace}}/examples/c/build --preset release -G Ninja
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
       - name: CMake build
         working-directory: ${{github.workspace}}/examples/c/build
@@ -429,17 +380,10 @@ jobs:
             8.0.x
             9.0.x
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: dotnet test
         working-directory: ${{github.workspace}}/wrappers/dotnet/
         run: |
           dotnet test -v n /p:Multitarget=true
-        env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
 
   macos-arm64-wrappers-rust:
     runs-on: macos-latest
@@ -452,22 +396,17 @@ jobs:
         run: |
           brew update && brew install rust
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
         run: cargo test -vv
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
   macos-arm64-wrappers-python:
     runs-on: macos-latest
     strategy:
       matrix:
-        python_version: ["3.10", "3.11", "3.12", "3.13"]
+        python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -481,16 +420,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: Python build
         working-directory: ${{github.workspace}}/wrappers/python/
         run: pip install -e .[dev] --verbose
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
@@ -532,23 +466,16 @@ jobs:
             8.0.x
             9.0.x
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: dotnet test
         working-directory: ${{github.workspace}}/wrappers/dotnet/
         run: |
           dotnet test -v n /p:Multitarget=true
-        env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
 
   macos-x86_64-wrappers-python:
     runs-on: macos-15-intel
     strategy:
       matrix:
-        python_version: ["3.10", "3.11", "3.12", "3.13"]
+        python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -562,16 +489,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Git config for fetching pull requests
-        run: |
-          git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
-
       - name: Python build
         working-directory: ${{github.workspace}}/wrappers/python/
         run: pip install -e .[dev] --verbose
         env:
-          REGOCPP_REPO: https://github.com/${{github.repository}}
-          REGOCPP_TAG: ${{github.sha}}
+          REGOCPP_REPO: LOCAL
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 

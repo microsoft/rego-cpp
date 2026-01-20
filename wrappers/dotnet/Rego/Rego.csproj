@@ -37,8 +37,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <REGOCPP_REPO Condition=" '$(REGOCPP_REPO)' == '' ">https://github.com/microsoft/rego-cpp.git</REGOCPP_REPO>
-    <REGOCPP_TAG Condition=" '$(REGOCPP_TAG)' == '' ">main</REGOCPP_TAG>
     <RegoCPPSourceDir>MSBuildProjectDirectory/../../../..</RegoCPPSourceDir>
     <RegoCPPBuildDir>rego-cpp/</RegoCPPBuildDir>
     <RegoCPPInstallDir>rego-cpp/install</RegoCPPInstallDir>

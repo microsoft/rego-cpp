@@ -21,6 +21,11 @@ else ()
   set(REGOCPP_TAG "main")
 endif()
 
+if(REGOCPP_REPO STREQUAL LOCAL)
+  set(FETCHCONTENT_SOURCE_DIR_REGOCPP "${CMAKE_SOURCE_DIR}/../..")
+  message("REGOCPP_REPO=LOCAL: Using ${FETCHCONTENT_SOURCE_DIR_REGOCPP} as source directory")
+endif()
+
 FetchContent_Declare(
   regocpp
   GIT_REPOSITORY ${REGOCPP_REPO}
