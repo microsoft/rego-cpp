@@ -12,7 +12,8 @@
         "CMAKE_CXX_COMPILER": "clang++",
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
-        "REGOCPP_COPY_EXAMPLES": "ON"
+        "REGOCPP_COPY_EXAMPLES": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
       }
     },
     {
@@ -27,7 +28,8 @@
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
-        "REGOCPP_OPA_TESTS": "ON"
+        "REGOCPP_OPA_TESTS": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
       }
     },
     {
@@ -39,7 +41,8 @@
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
-        "REGOCPP_COPY_EXAMPLES": "ON"
+        "REGOCPP_COPY_EXAMPLES": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
       }
     },
     {
@@ -52,7 +55,8 @@
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
-        "REGOCPP_OPA_TESTS": "ON"
+        "REGOCPP_OPA_TESTS": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
       }
     },
     {
@@ -66,7 +70,8 @@
         "CMAKE_CXX_COMPILER": "clang++",
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
-        "REGOCPP_COPY_EXAMPLES": "ON"
+        "REGOCPP_COPY_EXAMPLES": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
       }
     },
     {
@@ -81,7 +86,8 @@
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
-        "REGOCPP_OPA_TESTS": "ON"
+        "REGOCPP_OPA_TESTS": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
       }
     },
     {
@@ -93,7 +99,8 @@
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
-        "REGOCPP_COPY_EXAMPLES": "ON"
+        "REGOCPP_COPY_EXAMPLES": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
       }
     },
     {
@@ -106,7 +113,62 @@
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
-        "REGOCPP_OPA_TESTS": "ON"
+        "REGOCPP_OPA_TESTS": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+      }
+    },
+    {
+      "name": "debug-windows",
+      "displayName": "Debug Build for Windows",
+      "description": "Sets up a debug build using the Windows bcrypt crypto backend",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON",
+        "REGOCPP_COPY_EXAMPLES": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "bcrypt"
+      }
+    },
+    {
+      "name": "debug-windows-opa",
+      "displayName": "Debug Build for Windows + OPA Tests",
+      "description": "Sets up a debug build using the Windows bcrypt crypto backend and includes the OPA tests",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON",
+        "REGOCPP_COPY_EXAMPLES": "ON",
+        "REGOCPP_OPA_TESTS": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "bcrypt"
+      }
+    },
+    {
+      "name": "release-windows",
+      "displayName": "Release Build for Windows",
+      "description": "Sets up a release build using the Windows bcrypt crypto backend",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON",
+        "REGOCPP_COPY_EXAMPLES": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "bcrypt"
+      }
+    },
+    {
+      "name": "release-windows-opa",
+      "displayName": "Release Build for Windows + OPA Tests",
+      "description": "Sets up a release build using the Windows bcrypt crypto backend and includes the OPA tests",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+        "REGOCPP_BUILD_TESTS": "ON",
+        "REGOCPP_BUILD_TOOLS": "ON",
+        "REGOCPP_COPY_EXAMPLES": "ON",
+        "REGOCPP_OPA_TESTS": "ON",
+        "REGOCPP_CRYPTO_BACKEND": "bcrypt"
       }
     }
   ]

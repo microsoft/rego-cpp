@@ -27,6 +27,7 @@ namespace
     | (RuleHeadObjDynamic <<= ExprSeq * Expr)
     | (RuleHeadSetDynamic <<= ExprSeq * Expr)
     | (Scalar <<= JSONString | Int | Float | True | False | Null)
+    | (Term <<= TemplateString | Ref | Var | Scalar | Array | Object | Set | Membership | ArrayCompr | ObjectCompr | SetCompr)
     | (Membership <<= (Key >>= Expr | Undefined) * (Val >>= Expr) * Expr)
     ;
   // clang-format on
@@ -106,8 +107,18 @@ namespace
       wf_bundle_refheads,
       dir::bottomup | dir::once,
       {
+        In(Term) *
+            (T(Scalar) << (T(String) << T(TemplateString)[TemplateString])) >>
+          [](Match& _) { return _(TemplateString); },
+
+        In(DataTerm) *
+            (T(Scalar) << (T(String) << T(TemplateString)[TemplateString])) >>
+          [](Match& _) {
+            return err(_(TemplateString), "Invalid template string in data");
+          },
+
         In(Scalar) * (T(String) << T(JSONString)[JSONString]) >>
-          [](Match& _) { return JSONString ^ _(JSONString); },
+          [](Match& _) { return _(JSONString); },
 
         In(Scalar) * (T(String) << T(RawString)[RawString]) >>
           [](Match& _) {
@@ -686,6 +697,13 @@ namespace
 
         In(Query) * (T(Literal) << T(SomeDecl)[SomeDecl]) >>
           [](Match& _) { return err(_(SomeDecl), "Invalid some statement"); },
+
+        In(TemplateString) *
+            (T(Literal) << (T(SomeDecl)[SomeDecl] * T(WithSeq))) >>
+          [](Match& _) {
+            return err(
+              _(SomeDecl), "Invalid some statement in template string");
+          },
 
         In(Query) *
             (T(Literal)[Literal]
@@ -1543,7 +1561,7 @@ namespace
     | (ExprAssignFromArray <<= AssignVar * Var * Int)
     | (ExprAssignFromObject <<= AssignVar * Var * Expr)
     | (Literal <<= (Expr >>= ExprAssignFromArray | ExprAssignFromObject | ExprIsArray | ExprIsObject | ExprAssign | ExprUnify | ExprScan | ExprEvery | Local | Expr | NotExpr) * WithSeq)
-    | (Term <<= (UnifyVar | Ref | Var | Scalar | Array | Object | Set | Membership | ArrayCompr | ObjectCompr | SetCompr))
+    | (Term <<= (UnifyVar | TemplateString | Ref | Var | Scalar | Array | Object | Set | Membership | ArrayCompr | ObjectCompr | SetCompr))
     ;
   // clang-format on
 
@@ -2792,6 +2810,12 @@ namespace
         },
 
         // errors
+
+        In(TemplateString) *
+            (T(Literal) << (T(ExprUnify)[ExprUnify] * T(WithSeq))) >>
+          [](Match& _) {
+            return err(_(ExprUnify), "Invalid unification in template string");
+          },
 
         In(ExprScan) * (T(Local) << T(Ident)[Ident]) >> [](Match& _) -> Node {
           std::string_view name = _(Ident)->location().view();

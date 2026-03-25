@@ -3,6 +3,8 @@
 #include "internal.hh"
 #include "rego.hh"
 
+#include <unordered_map>
+
 namespace
 {
   using namespace trieste;
@@ -38,6 +40,92 @@ namespace
     R"(\-?[[:digit:]]+\.[[:digit:]]+(?:e[+-]?[[:digit:]]+)?)";
   const char* IntRE = R"(\-?[[:digit:]]+)";
 
+  // Extract the key string view from an ObjectItem or DataObjectItem node.
+  // The key child is either Term >> Scalar >> JSONString or
+  // DataTerm >> Scalar >> String >> JSONString.
+  std::string_view item_key_view(const Node& item)
+  {
+    Node key = item->front();
+    // Walk down through wrapper nodes to the leaf token.
+    while (key->size() > 0)
+    {
+      key = key->front();
+    }
+    return key->location().view();
+  }
+
+  // Deduplicate object children, keeping the last occurrence of each key.
+  // This matches Go json.Unmarshal (and OPA) semantics.
+  // Returns a new Nodes vector with duplicates removed, or empty if no
+  // duplicates were found.
+  Nodes dedup_items(const Node& obj)
+  {
+    // Single pass: build the last-index map.
+    std::unordered_map<std::string_view, std::size_t> last_index;
+    last_index.reserve(obj->size());
+    for (std::size_t i = 0; i < obj->size(); ++i)
+    {
+      last_index[item_key_view(obj->at(i))] = i;
+    }
+
+    if (last_index.size() == obj->size())
+    {
+      // No duplicates
+      return {};
+    }
+
+    // Build result preserving original order.
+    Nodes result;
+    result.reserve(last_index.size());
+    for (std::size_t i = 0; i < obj->size(); ++i)
+    {
+      if (last_index[item_key_view(obj->at(i))] == i)
+      {
+        result.push_back(obj->at(i));
+      }
+    }
+    return result;
+  }
+
+  // Pass that deduplicates object keys (last-wins) in Term-wrapped AST.
+  PassDef dedup_object_keys_term()
+  {
+    return {
+      "dedup_object_keys",
+      wf_from_json_term,
+      dir::bottomup | dir::once,
+      {
+        In(Term) * T(Object)[Object] >> [](Match& _) -> Node {
+          Node obj = _(Object);
+          Nodes items = dedup_items(obj);
+          if (items.empty())
+          {
+            return NoChange;
+          }
+          return Object << items;
+        },
+      }};
+  }
+
+  // Pass that deduplicates object keys (last-wins) in DataTerm-wrapped AST.
+  PassDef dedup_object_keys_dataterm()
+  {
+    return {
+      "dedup_object_keys",
+      wf_from_json_dataterm,
+      dir::bottomup | dir::once,
+      {
+        In(DataTerm) * T(DataObject)[DataObject] >> [](Match& _) -> Node {
+          Node obj = _(DataObject);
+          Nodes items = dedup_items(obj);
+          if (items.empty())
+          {
+            return NoChange;
+          }
+          return DataObject << items;
+        },
+      }};
+  }
   PassDef from_json_to_dataterm()
   {
     return {
@@ -162,13 +250,37 @@ namespace
           },
 
         (T(Term) << (T(Scalar) << T(True)[json::True])) >>
-          [](Match& _) { return json::True ^ _(json::True); },
+          [](Match& _) {
+            Location loc = _(json::True)->location();
+            if (loc.len == 0)
+            {
+              return json::True ^ "true";
+            }
+
+            return json::True ^ loc;
+          },
 
         (T(Term) << (T(Scalar) << T(False)[json::False])) >>
-          [](Match& _) { return json::False ^ _(json::False); },
+          [](Match& _) {
+            Location loc = _(json::False)->location();
+            if (loc.len == 0)
+            {
+              return json::False ^ "false";
+            }
+
+            return json::False ^ loc;
+          },
 
         (T(Term) << (T(Scalar) << T(Null)[json::Null])) >>
-          [](Match& _) { return json::Null ^ _(json::Null); },
+          [](Match& _) {
+            Location loc = _(json::Null)->location();
+            if (loc.len == 0)
+            {
+              return json::Null ^ "null";
+            }
+
+            return json::Null ^ loc;
+          },
 
         (T(Term) << (T(Array, Set)[json::Array])) >>
           [](Match& _) {
@@ -242,9 +354,11 @@ namespace rego
   Rewriter json_to_rego(bool as_term)
   {
     auto pass = as_term ? from_json_to_term() : from_json_to_dataterm();
+    auto dedup =
+      as_term ? dedup_object_keys_term() : dedup_object_keys_dataterm();
     return {
       "json_to_rego",
-      {pass},
+      {pass, dedup},
       json::wf,
     };
   }

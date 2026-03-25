@@ -1477,6 +1477,19 @@ namespace
     Node array = NodeDef::create(Array);
     std::size_t start = 0;
     std::size_t pos = x_str.find(delimiter_str);
+    if (delimiter_str.size() == 0)
+    {
+      std::string_view x_view = x_str;
+      while (pos < x_str.size())
+      {
+        auto [r, s] = utf8_to_rune(x_view.substr(pos), false);
+        array->push_back(JSONString ^ x_str.substr(pos, s.size()));
+        pos += s.size();
+      }
+
+      return array;
+    }
+
     while (pos != x_str.npos)
     {
       array->push_back(JSONString ^ x_str.substr(start, pos - start));
@@ -1651,7 +1664,7 @@ namespace
           }
           else
           {
-            result << json::escape(to_key(node, false, false, ", "));
+            result << json::escape(to_key(node, SetFormat::Rego, false, ", "));
           }
           break;
 
@@ -2267,6 +2280,13 @@ namespace
 
       size_t pos = 0;
       size_t count = 0;
+      size_t size = substring_str.size();
+      if (size == 0)
+      {
+        // the empty string matches at every location
+        return Int ^ std::to_string(search_str.size() + 1);
+      }
+
       while (pos < search_str.size())
       {
         pos = search_str.find(substring_str, pos);

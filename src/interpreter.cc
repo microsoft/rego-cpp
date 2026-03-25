@@ -496,7 +496,7 @@ namespace rego
     else
     {
       WFContext context(rego::wf_result);
-      output_buf << rego::to_key(ast, true);
+      output_buf << rego::to_key(ast, rego::SetFormat::Square);
     }
 
     return output_buf.str();

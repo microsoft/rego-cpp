@@ -104,7 +104,7 @@ namespace rego
 {
   std::string to_key(
     const Node& node,
-    bool set_as_array,
+    SetFormat set_format,
     bool sort_arrays,
     const char* list_delim)
   {
@@ -164,14 +164,14 @@ namespace rego
         std::sort(keys.begin(), keys.end());
         std::transform(
           keys.begin(), keys.end(), std::back_inserter(items), [&](auto& key) {
-            return to_key(key.node, set_as_array, sort_arrays, list_delim);
+            return to_key(key.node, set_format, sort_arrays, list_delim);
           });
       }
       else
       {
         for (const auto& child : *node)
         {
-          items.push_back(to_key(child, set_as_array, sort_arrays, list_delim));
+          items.push_back(to_key(child, set_format, sort_arrays, list_delim));
         }
       }
 
@@ -197,13 +197,22 @@ namespace rego
 
       std::sort(node_keys.begin(), node_keys.end());
 
-      if (set_as_array)
+      switch (set_format)
       {
-        buf << "[";
-      }
-      else
-      {
-        buf << "<";
+        case SetFormat::Square:
+          buf << "[";
+          break;
+        case SetFormat::Rego:
+          if (node_keys.empty())
+          {
+            buf << "set()";
+            return buf.str();
+          }
+          buf << "{";
+          break;
+        case SetFormat::Angle:
+          buf << "<";
+          break;
       }
 
       join(
@@ -211,20 +220,23 @@ namespace rego
         node_keys.begin(),
         node_keys.end(),
         list_delim,
-        [set_as_array, sort_arrays, list_delim](
+        [set_format, sort_arrays, list_delim](
           std::ostream& stream, const NodeKey& node_key) {
-          stream << to_key(
-            node_key.node, set_as_array, sort_arrays, list_delim);
+          stream << to_key(node_key.node, set_format, sort_arrays, list_delim);
           return true;
         });
 
-      if (set_as_array)
+      switch (set_format)
       {
-        buf << "]";
-      }
-      else
-      {
-        buf << ">";
+        case SetFormat::Square:
+          buf << "]";
+          break;
+        case SetFormat::Rego:
+          buf << "}";
+          break;
+        case SetFormat::Angle:
+          buf << ">";
+          break;
       }
     }
     else if (node->in({Object, DataObject, Bindings}))
@@ -234,14 +246,13 @@ namespace rego
       {
         auto key = child / Key;
         auto value = child / Val;
-        std::string key_str =
-          to_key(key, set_as_array, sort_arrays, list_delim);
+        std::string key_str = to_key(key, set_format, sort_arrays, list_delim);
         if (!is_quoted(key_str))
         {
           key_str = add_quotes(json::escape(key_str));
         }
         items.insert(
-          {key_str, to_key(value, set_as_array, sort_arrays, list_delim)});
+          {key_str, to_key(value, set_format, sort_arrays, list_delim)});
       }
 
       buf << "{";
@@ -250,15 +261,28 @@ namespace rego
         items.begin(),
         items.end(),
         ", ",
-        [](std::ostream& stream, const auto& item) {
-          stream << item.first << ":" << item.second;
+        [list_delim](std::ostream& stream, const auto& item) {
+          stream << item.first << ":";
+          // Use spaced separator when callers request spaced list delimiters
+          // (i.e. display format like sprintf %v and template strings).
+          if (list_delim[0] == ',' && list_delim[1] == ' ')
+          {
+            stream << " ";
+          }
+          stream << item.second;
           return true;
         });
       buf << "}";
     }
     else if (node->in({Scalar, Term, DataTerm}))
     {
-      return to_key(node->front(), set_as_array, sort_arrays, list_delim);
+      return to_key(node->front(), set_format, sort_arrays, list_delim);
+    }
+    else if (node == TemplateString)
+    {
+      // TemplateString should be lowered to an opblock call before reaching
+      // encoding. If we get here, something went wrong in the pipeline.
+      buf << "<TemplateString:unreachable>";
     }
     else if (node == Result)
     {
@@ -268,7 +292,7 @@ namespace rego
       if (!terms->empty())
       {
         buf << '"' << "expressions" << '"' << ":"
-            << to_key(terms, set_as_array, sort_arrays, list_delim);
+            << to_key(terms, set_format, sort_arrays, list_delim);
         if (!bindings->empty())
         {
           buf << ", ";
@@ -278,7 +302,7 @@ namespace rego
       if (!bindings->empty())
       {
         buf << '"' << "bindings" << '"' << ":"
-            << to_key(bindings, set_as_array, sort_arrays, list_delim);
+            << to_key(bindings, set_format, sort_arrays, list_delim);
       }
 
       buf << "}";
@@ -291,9 +315,9 @@ namespace rego
         node->begin(),
         node->end(),
         ", ",
-        [set_as_array, sort_arrays, list_delim](
+        [set_format, sort_arrays, list_delim](
           std::ostream& stream, const Node& n) {
-          stream << to_key(n, set_as_array, sort_arrays, list_delim);
+          stream << to_key(n, set_format, sort_arrays, list_delim);
           return true;
         });
       buf << ']';
@@ -310,7 +334,7 @@ namespace rego
     {
       if (node->size() == 1)
       {
-        return to_key(node->front(), set_as_array, sort_arrays, list_delim);
+        return to_key(node->front(), set_format, sort_arrays, list_delim);
       }
 
       buf << '[';
@@ -319,9 +343,9 @@ namespace rego
         node->begin(),
         node->end(),
         ", ",
-        [set_as_array, sort_arrays, list_delim](
+        [set_format, sort_arrays, list_delim](
           std::ostream& stream, const Node& n) {
-          stream << to_key(n, set_as_array, sort_arrays, list_delim);
+          stream << to_key(n, set_format, sort_arrays, list_delim);
           return true;
         });
       buf << ']';

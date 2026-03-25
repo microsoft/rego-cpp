@@ -2,6 +2,7 @@
 
 #include "rego.hh"
 
+#include <cstdio>
 #include <initializer_list>
 #include <trieste/json.h>
 
@@ -261,7 +262,11 @@ namespace rego
     double floor = std::floor(value);
     if (value == floor)
     {
-      return BigInt(static_cast<size_t>(floor));
+      // Format the integer value as a decimal string to avoid undefined
+      // behavior when the double exceeds the range of size_t or int64_t.
+      char buf[32];
+      std::snprintf(buf, sizeof(buf), "%.0f", floor);
+      return BigInt(Location(buf));
     }
 
     return std::nullopt;
@@ -910,6 +915,12 @@ namespace rego
       }
 
       return Term << set;
+    }
+
+    if (value == TemplateString)
+    {
+      return rego::err(
+        value, "Template string cannot be a constant", rego::RegoTypeError);
     }
 
     throw std::runtime_error("Invalid term");

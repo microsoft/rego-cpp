@@ -62,7 +62,8 @@ namespace rego
   inline const auto wf_parse_tokens = Query | Module | wf_json | wf_arith_op |
     wf_bool_op | wf_bin_op | Package | Var | Brace | Square | Dot | Paren |
     Assign | Unify | EmptySet | Colon | RawString | Default | Some | Import |
-    Else | As | With | NewLine | Comma | If | IsIn | Contains | Every;
+    Else | As | With | NewLine | Comma | If | IsIn | Contains | Every |
+    TemplateString | TemplateLiteral;
 
   // clang-format off
   inline const auto wf_parser =
@@ -74,6 +75,7 @@ namespace rego
     | (Square <<= Group++)
     | (Paren <<= Group++)
     | (Group <<= wf_parse_tokens++)
+    | (TemplateString <<= Group++)
     ;
   // clang-format on
 
@@ -211,7 +213,7 @@ namespace rego
     Node m_scope;
     Node m_error;
     Node m_orderedseq;
-    bool m_needs_sort;
+    bool m_needs_sort = false;
 
     bool is_assigned(const std::string& name);
     bool any_unassigned(const Nodes& nodes);

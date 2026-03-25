@@ -15,7 +15,7 @@ list( GET REGOCPP_VERSION_LIST 1 REGOCPP_VERSION_MINOR )
 
 list( GET REGOCPP_VERSION_LIST 2 REGOCPP_VERSION_REVISION )
 
-set ( REGOCPP_OPA_VERSION 1.8.0 )
+set ( REGOCPP_OPA_VERSION 1.15.1 )
 
 set( REGOCPP_VERSION ${REGOCPP_VERSION_MAJOR}.${REGOCPP_VERSION_MINOR}.${REGOCPP_VERSION_REVISION} )
 
@@ -72,6 +72,15 @@ option(REGOCPP_CLEAN_INSTALL "Whether the install directory should be cleaned be
 set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 option(REGOCPP_USE_SNMALLOC "Whether to use snmalloc for memory allocation" ON)
 
+set(REGOCPP_CRYPTO_BACKEND "mbedtls" CACHE STRING
+  "Crypto backend for crypto/JWT builtins. Options: mbedtls, openssl3, bcrypt, '' (disabled)")
+set_property(CACHE REGOCPP_CRYPTO_BACKEND PROPERTY STRINGS "" "mbedtls" "openssl3" "bcrypt")
+
+if(REGOCPP_CRYPTO_BACKEND AND NOT REGOCPP_CRYPTO_BACKEND MATCHES "^(mbedtls|openssl3|bcrypt)$")
+  message(FATAL_ERROR
+    "Invalid REGOCPP_CRYPTO_BACKEND='${REGOCPP_CRYPTO_BACKEND}'."
+    " Valid values: mbedtls, openssl3, bcrypt, or '' (empty to disable crypto).")
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -99,7 +108,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   trieste
   GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        main
+  GIT_TAG        32c3069913245eb8622cb82e47ad2523c7d23eea
 )
 
 FetchContent_MakeAvailable(cmake_utils)
@@ -111,6 +120,24 @@ set(TRIESTE_BUILD_PARSERS ON)
 set(TRIESTE_USE_SNMALLOC ${REGOCPP_USE_SNMALLOC})
 
 FetchContent_MakeAvailable_ExcludeFromAll(trieste)
+
+if(REGOCPP_CRYPTO_BACKEND STREQUAL "mbedtls")
+  set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+  set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+  set(MBEDTLS_AS_SUBPROJECT ON CACHE BOOL "" FORCE)
+  # Build mbedTLS with PIC so its static libraries can be linked into rego_shared.
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+  # Mbed TLS v3.6.2
+  FetchContent_Declare(
+    mbedtls
+    GIT_REPOSITORY https://github.com/Mbed-TLS/mbedtls
+    GIT_TAG        0c7704b4f231fc62ad261e18d32677165a8d14d5
+    GIT_SHALLOW    TRUE
+  )
+
+  FetchContent_MakeAvailable_ExcludeFromAll(mbedtls)
+endif()
 
 find_program(CLANG_FORMAT NAMES clang-format-10 clang-format-14 clang-format-18 )
 
@@ -193,7 +220,7 @@ endif()
 set(INSTALL_CONFIGDIR cmake)
 set(INSTALL_LIBDIR lib)
 set(INSTALL_INCLUDEDIR include)
-set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc re2)
+set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc)
 
 if(REGOCPP_BUILD_SHARED)
   list(APPEND REGOCPP_INSTALL_TARGETS rego_shared)
@@ -201,6 +228,10 @@ endif()
 
 if(TRIESTE_USE_SNMALLOC)
   list(APPEND REGOCPP_INSTALL_TARGETS snmalloc-new-override)
+endif()
+
+if(REGOCPP_CRYPTO_BACKEND STREQUAL "mbedtls")
+  list(APPEND REGOCPP_INSTALL_TARGETS mbedtls mbedcrypto mbedx509 everest p256m)
 endif()
 
 install(TARGETS ${REGOCPP_INSTALL_TARGETS}

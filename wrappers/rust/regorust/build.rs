@@ -62,6 +62,7 @@ fn main() {
                 .as_str(),
             "-DCMAKE_INSTALL_PREFIX=rust",
             "-DREGOCPP_COPY_EXAMPLES=ON",
+            "-DREGOCPP_CRYPTO_BACKEND=mbedtls",
         ])
         .current_dir(&regocpp_path)
         .status()
@@ -90,7 +91,6 @@ fn main() {
     let header_path_str = header_path.to_str().unwrap();
 
     println!("cargo:rustc-link-search={}", libdir_path.to_str().unwrap());
-    println!("cargo:rustc-link-lib=static:+whole-archive=re2");
     println!("cargo:rustc-link-lib=static:+whole-archive=json");
     println!("cargo:rustc-link-lib=static:+whole-archive=yaml");
     println!("cargo:rustc-link-lib=static=rego");
@@ -104,6 +104,12 @@ fn main() {
         println!("cargo:rustc-link-lib=static:+whole-archive=snmalloc-new-override");
         println!("cargo:rustc-link-lib=stdc++");
     }
+    // mbedtls libraries for crypto/JWT builtins
+    println!("cargo:rustc-link-lib=static=mbedtls");
+    println!("cargo:rustc-link-lib=static=mbedcrypto");
+    println!("cargo:rustc-link-lib=static=mbedx509");
+    println!("cargo:rustc-link-lib=static=everest");
+    println!("cargo:rustc-link-lib=static=p256m");
     println!("cargo:rerun-if-changed={}", header_path_str);
 
     // The bindgen::Builder is the main entry point

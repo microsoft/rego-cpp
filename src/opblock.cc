@@ -1,4 +1,5 @@
 #include "internal.hh"
+#include "rego.hh"
 
 namespace
 {
@@ -348,6 +349,49 @@ namespace rego
     return OpBlock << (Operand << (IRString ^ json_string)) << Block;
   }
 
+  Node templatestring_to_opblock(Node templatestring)
+  {
+    Location array_name = templatestring->fresh({"tpl_array"});
+    Location result_name = templatestring->fresh({"tpl_result"});
+    size_t num_elements = templatestring->size();
+
+    Node block = Block
+      << (MakeArrayStmt << (Int32 ^ std::to_string(num_elements))
+                        << (LocalRef ^ array_name));
+
+    for (Node literal : *templatestring)
+    {
+      // Evaluate the expression inside a try-block and add to a set.
+      // If the expression is undefined, the set remains empty.
+      Location set_name = templatestring->fresh({"tpl_set"});
+      block << (MakeSetStmt << (LocalRef ^ set_name));
+
+      Node tryblock = NodeDef::create(Block);
+      assert(literal == Literal);
+      Node expr = literal / Expr;
+      if (expr != OpBlock)
+      {
+        return err(templatestring, "Invalid template string expression");
+      }
+
+      Node expr_operand = to_operand(tryblock, expr);
+      tryblock << (SetAddStmt << expr_operand << (LocalRef ^ set_name));
+
+      block << (BlockStmt << (BlockSeq << tryblock));
+      block
+        << (ArrayAppendStmt << (LocalRef ^ array_name)
+                            << (Operand << (LocalRef ^ set_name)));
+    }
+
+    block
+      << (BuiltInCallStmt << (IRString ^ "internal.template_string")
+                          << (OperandSeq
+                              << (Operand << (LocalRef ^ array_name)))
+                          << (LocalRef ^ result_name));
+
+    return OpBlock << (Operand << (LocalRef ^ result_name)) << block;
+  }
+
   Node boolean_to_opblock(Node term)
   {
     return OpBlock << (Operand << (Boolean ^ term)) << Block;
@@ -607,6 +651,11 @@ namespace rego
     if (value == Scalar)
     {
       return scalar_to_opblock(value);
+    }
+
+    if (value == TemplateString)
+    {
+      return templatestring_to_opblock(value);
     }
 
     if (value == Array)

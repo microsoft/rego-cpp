@@ -99,7 +99,7 @@ namespace
     {
       return err(
         step_number,
-        "numbers.range_step: step must be a positive number above zero",
+        "numbers.range_step: step must be a positive integer",
         EvalBuiltInError);
     }
 

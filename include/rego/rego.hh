@@ -60,6 +60,9 @@ namespace rego
   inline const auto ObjectItem = TokenDef("rego-objectitem");
   inline const auto RawString = TokenDef("rego-rawstring", flag::print);
   inline const auto JSONString = TokenDef("rego-STRING", flag::print);
+  inline const auto TemplateString = TokenDef("rego-templatestring");
+  inline const auto TemplateLiteral =
+    TokenDef("rego-templateliteral", flag::print);
   inline const auto Int = TokenDef("rego-INT", flag::print);
   inline const auto Float = TokenDef("rego-FLOAT", flag::print);
   inline const auto True = TokenDef("rego-true");
@@ -177,6 +180,7 @@ namespace rego
     | (UnaryExpr <<= Expr)
     | (Membership <<= ExprSeq * Expr)
     | (Term <<= Ref | Var | Scalar | Array | Object | Set | Membership | ArrayCompr | ObjectCompr | SetCompr)
+    | (TemplateString <<= Literal++)
     | (ArrayCompr <<= Expr * Query)
     | (SetCompr <<= Expr * Query)
     | (ObjectCompr <<= Expr * Expr * Query)
@@ -191,7 +195,7 @@ namespace rego
     | (RefArgBrack <<= Expr | Placeholder)
     | (RefArgDot <<= Var)
     | (Scalar <<= String | Int | Float | True | False | Null)
-    | (String <<= JSONString | RawString)
+    | (String <<= JSONString | RawString | TemplateString)
     | (Array <<= Expr++)
     | (Object <<= ObjectItem++)
     | (ObjectItem <<= (Key >>= Expr) * (Val >>= Expr))
@@ -1077,16 +1081,27 @@ namespace rego
   /// - The environment variables ("env")
   Node version();
 
+  /// @brief Controls how sets are rendered by to_key().
+  enum class SetFormat
+  {
+    /// Angle brackets: <1, 2, 3> (internal key representation).
+    Angle,
+    /// Square brackets: [1, 2, 3] (JSON-compatible array format).
+    Square,
+    /// Curly braces / set(): {1, 2, 3} or set() (OPA Rego display format).
+    Rego,
+  };
+
   /// @brief Converts a node to a unique key representation that can be used for
   /// comparison.
   /// @param node The node to convert.
-  /// @param set_as_array Whether to represent sets as arrays.
+  /// @param set_format How to render set values.
   /// @param sort_arrays Whether to sort array elements.
   /// @param list_delim The delimiter to use when joining array elements.
   /// @return The key representation of the node.
   std::string to_key(
     const trieste::Node& node,
-    bool set_as_array = false,
+    SetFormat set_format = SetFormat::Angle,
     bool sort_arrays = false,
     const char* list_delim = ",");
 
@@ -1571,7 +1586,7 @@ namespace rego
 
     Bundle m_bundle;
     BuiltIns m_builtins;
-    RE2 m_int_regex;
+    TRegex m_int_regex;
     size_t m_stmt_limit;
   };
 

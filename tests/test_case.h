@@ -113,6 +113,10 @@ namespace rego_test
     bool broken() const;
     TestCase& broken(bool broken);
 
+    /// indicates the test uses functionality not supported by this backend
+    bool unsupported() const;
+    TestCase& unsupported(bool unsupported);
+
     /// whether to perform a serialisation round-trip before running the test
     RoundTrip roundtrip() const;
     TestCase& roundtrip(RoundTrip setting);
@@ -162,6 +166,7 @@ namespace rego_test
     bool m_sort_bindings;
     bool m_strict_error;
     bool m_broken;
+    bool m_unsupported;
   };
 
 }

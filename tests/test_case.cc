@@ -143,7 +143,8 @@ namespace rego_test
     m_want_defined(false),
     m_sort_bindings(false),
     m_strict_error(false),
-    m_broken(false)
+    m_broken(false),
+    m_unsupported(false)
   {}
 
   std::optional<Node> TestCase::maybe_get_object(
@@ -319,11 +320,13 @@ namespace rego_test
           assert(string == JSONString);
           std::string key = std::string(string->location().view());
           key = key.substr(1, key.size() - 2); // remove quotes
-          std::string value = rego::to_key(item / Val, true, m_sort_bindings);
+          std::string value =
+            rego::to_key(item / Val, rego::SetFormat::Square, m_sort_bindings);
           binding_map[key] = value;
         }
 
-        std::string binding_key = rego::to_key(object, true, m_sort_bindings);
+        std::string binding_key =
+          rego::to_key(object, rego::SetFormat::Square, m_sort_bindings);
         binding_maps[binding_key] = binding_map;
       }
     }
@@ -343,12 +346,13 @@ namespace rego_test
         {
           std::string key =
             std::string((binding / rego::Key)->location().view());
-          std::string value =
-            rego::to_key((binding / rego::Val), true, m_sort_bindings);
+          std::string value = rego::to_key(
+            (binding / rego::Val), rego::SetFormat::Square, m_sort_bindings);
           binding_map[key] = value;
         }
 
-        std::string binding_key = rego::to_key(bindings, true, m_sort_bindings);
+        std::string binding_key =
+          rego::to_key(bindings, rego::SetFormat::Square, m_sort_bindings);
         binding_maps[binding_key] = binding_map;
       }
     }
@@ -611,6 +615,18 @@ namespace rego_test
         test_case.broken(true);
       }
 
+#ifndef REGOCPP_CRYPTO_OPENSSL3
+      if (
+        test_case.note() == "jwtdecodeverify/EdDSA" ||
+        test_case.note() == "jwtencodesign/EdDSA" ||
+        test_case.note() == "jwtencodesignraw/EdDSA" ||
+        test_case.note().find("jwtverifyeddsa/") == 0)
+      {
+        // Only the OpenSSL backend supports Ed25519/EdDSA.
+        test_case.unsupported(true);
+      }
+#endif
+
       return test_case;
     }
     catch (const std::exception& e)
@@ -744,6 +760,11 @@ namespace rego_test
     if (m_broken)
     {
       return {Outcome::Skip, "Test Broken"};
+    }
+
+    if (m_unsupported)
+    {
+      return {Outcome::Skip, "Not Supported"};
     }
 
     if (actual->type() == ErrorSeq)
@@ -1070,6 +1091,17 @@ namespace rego_test
   TestCase& TestCase::broken(bool broken)
   {
     m_broken = broken;
+    return *this;
+  }
+
+  bool TestCase::unsupported() const
+  {
+    return m_unsupported;
+  }
+
+  TestCase& TestCase::unsupported(bool unsupported)
+  {
+    m_unsupported = unsupported;
     return *this;
   }
 }
