@@ -860,6 +860,12 @@ namespace rego
       return false;
     }
 
+    if (lhs == TemplateString)
+    {
+      add_equals(lhs_term, rhs_var);
+      return false;
+    }
+
     if (lhs == Array)
     {
       return add_array_var(lhs, rhs_var);

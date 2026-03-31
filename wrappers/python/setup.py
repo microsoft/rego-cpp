@@ -28,7 +28,7 @@ REQUIRES_DEV = [
 with open("README.md", "r") as file:
     LONG_DESCRIPTION = file.read()
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 
 class CMakeExtension(Extension):
@@ -76,12 +76,18 @@ class CMakeBuild(build_ext):
                 subprocess.check_call(["git", "clone", repo, src_path])
                 subprocess.check_call(["git", "checkout", tag], cwd=src_path)
 
+        if platform.uname()[0] == "Windows":
+            crypto_backend = "bcrypt"
+        else:
+            crypto_backend = "mbedtls"
+
         cmake_args = [f"-S {src_path}",
                       f"-B {self.build_temp}",
                       f"-DCMAKE_INSTALL_PREFIX={extdir}",
                       "-DREGOCPP_BUILD_SHARED=ON",
                       f"-DCMAKE_BUILD_TYPE={cfg}",
-                      "-DSNMALLOC_ENABLE_DYNAMIC_LOADING=ON"]
+                      "-DSNMALLOC_ENABLE_DYNAMIC_LOADING=ON",
+                      f"-DREGOCPP_CRYPTO_BACKEND={crypto_backend}"]
 
         build_args = ["--build", self.build_temp,
                       "--config", cfg,

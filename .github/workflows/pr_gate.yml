@@ -86,7 +86,7 @@ jobs:
           sudo apt-get install ninja-build
 
       - name: CMake config
-        run: cmake -B ${{github.workspace}}/build --preset release-clang-opa -DREGOCPP_SANITIZE=address
+        run: cmake -B ${{github.workspace}}/build --preset release-clang-opa -DREGOCPP_SANITIZE=address,undefined
 
       - name: CMake build
         working-directory: ${{github.workspace}}/build
@@ -227,7 +227,7 @@ jobs:
       
       - name: CMake config
         run: |
-          cmake -B ${{github.workspace}}/build --preset release-opa
+          cmake -B ${{github.workspace}}/build --preset release-windows-opa
       
       - name: CMake build
         working-directory: ${{github.workspace}}/build

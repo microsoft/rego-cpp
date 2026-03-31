@@ -326,7 +326,8 @@ int main(int argc, char** argv)
           Timer timer("Query", timing);
           result = interpreter->query_bundle(bundle)->front();
         }
-        trieste::logging::Output() << rego::to_key(result, true) << std::endl;
+        trieste::logging::Output()
+          << rego::to_key(result, rego::SetFormat::Square) << std::endl;
       }
       else
       {
@@ -338,7 +339,8 @@ int main(int argc, char** argv)
             Timer timer("Endpoint", timing);
             result = interpreter->query_bundle(bundle, entrypoint)->front();
           }
-          trieste::logging::Output() << rego::to_key(result, true) << std::endl;
+          trieste::logging::Output()
+            << rego::to_key(result, rego::SetFormat::Square) << std::endl;
         }
       }
     }

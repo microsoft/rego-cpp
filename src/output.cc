@@ -16,7 +16,7 @@ namespace rego
       assert(node == Results);
       std::ostringstream buf;
       WFContext context(rego::wf_result);
-      buf << rego::to_key(m_node, true);
+      buf << rego::to_key(m_node, rego::SetFormat::Square);
       m_json = buf.str();
     }
   }

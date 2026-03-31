@@ -130,7 +130,8 @@ namespace
       With);
 
   const auto wf_prep_tokens = (wf_parse_tokens | Scalar | Placeholder) -
-    (Int | Float | JSONString | RawString | True | False | Null);
+    (Int | Float | JSONString | RawString | TemplateString | True | False |
+     Null | TemplateLiteral);
 
   // clang-format off
   const auto wf_prep =
@@ -143,8 +144,9 @@ namespace
     | (Package <<= RefGroup)
     | (Import <<= RefGroup * Var)
     | (Scalar <<= Int | Float | String | True | False | Null)
-    | (String <<= JSONString | RawString)
+    | (String <<= JSONString | RawString | TemplateString)
     | (RefGroup <<= (Var | Dot | Square)++)
+    | (TemplateString <<= Group++)
     | (Group <<= wf_prep_tokens++)
     ;
   // clang-format on
@@ -214,8 +216,29 @@ namespace
         In(Group) * T(Int, Float, True, False, Null)[Scalar] >>
           [](Match& _) { return Scalar << _(Scalar); },
 
-        In(Group) * T(JSONString, RawString)[String] >>
+        In(Group) * T(JSONString, RawString, TemplateString)[String] >>
           [](Match& _) { return Scalar << (String << _(String)); },
+
+        In(Group) * T(TemplateLiteral)[String] >>
+          [](Match& _) {
+            // Unescape \{ to { (template-specific escape)
+            std::string text(_(String)->location().view());
+            std::string unescaped;
+            unescaped.reserve(text.size());
+            for (size_t i = 0; i < text.size(); ++i)
+            {
+              if (text[i] == '\\' && i + 1 < text.size() && text[i + 1] == '{')
+              {
+                unescaped.push_back('{');
+                ++i;
+              }
+              else
+              {
+                unescaped.push_back(text[i]);
+              }
+            }
+            return Scalar << (String << (JSONString ^ add_quotes(unescaped)));
+          },
 
         // errors
         In(Top) * T(File)[File] >>
@@ -450,6 +473,10 @@ namespace
 
         In(Import) * (T(RefGroup) << (T(Ref)[Ref] * End)) >>
           [](Match& _) { return _(Ref); },
+
+        In(TemplateString) *
+            (T(Group) << ((T(Brace)[Brace] << T(Group)[Group]) * End)) >>
+          [](Match& _) { return _(Group); },
 
         T(Brace)[Brace] << T(Group)[Group] >>
           [comma_groups, colon_groups, or_groups](Match& _) {
@@ -1475,7 +1502,7 @@ namespace
             return Seq << _(Package) << version << importseq << policy;
           },
 
-        In(Query) * (T(Group) << (T(Literal)++[Query] * End)) >>
+        In(Query, TemplateString) * (T(Group) << (T(Literal)++[Query] * End)) >>
           [](Match& _) { return Seq << _[Query]; },
 
         In(RuleRef) * T(Var)[Var] >>

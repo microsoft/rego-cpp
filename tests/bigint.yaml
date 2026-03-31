@@ -1,3 +1,5 @@
+# Speculative tests for full big-integer arithmetic support.
+# These are NOT part of the compliance suite and may fail on the current build.
 cases:
 - note: bigint/4-bit
   modules:

@@ -68,7 +68,7 @@ int main(void)
 
   regoSetDebugEnabled(rego, true);
   regoSetDebugPath(rego, "test");
-  regoSetLogLevel(rego, regoLogLevelFromString("Debug"));
+  regoSetLogLevel(rego, regoLogLevelFromString("Warning"));
 
   err = regoAddModuleFile(rego, "examples/objects.rego");
   if (err != REGO_OK)

@@ -70,7 +70,7 @@ library from different langauages.
 
 ## Language Support {#language-support}
 
-We support v1.8.0 of Rego as defined by OPA, with the following grammar:
+We support v1.14.1 of Rego as defined by OPA, with the following grammar:
 
 ```ebnf
 module          = package { import } policy
@@ -111,7 +111,9 @@ ref-arg-brack   = "[" ( scalar | var | array | object | set | "_" ) "]"
 ref-arg-dot     = "." var
 var             = ( ALPHA | "_" ) { ALPHA | DIGIT | "_" }
 scalar          = string | NUMBER | TRUE | FALSE | NULL
-string          = STRING | raw-string
+string          = STRING | raw-string | template-string
+template-string = "$" ( '"' { CHAR-'"' | template-expr } '"' | "`" { CHAR-"`" | template-expr } "`" )
+template-expr   = "{" ( ref | var | scalar | array | object | set | array-compr | object-compr | set-compr | expr-call | expr-infix | expr-parens | unary-expr ) "}"
 raw-string      = "`" { CHAR-"`" } "`"
 array           = "[" term { "," term } "]"
 object          = "{" object-item { "," object-item } "}"
@@ -143,22 +145,33 @@ LF     Line Feed
 
 We support the majority of the standard Rego built-ins, and provide a robust
 mechanism for including custom built-ins (via the CPP API). The following builtins
-are NOT supported at present, though some are scheduled for future releases.
+are NOT supported at present:
 
-- `providers.aws.sign_req` - Not planned
-- `crypto.*` - Currently slated to be released in v1.2.0
+- `crypto.x509.parse_and_verify_certificates_with_options` - Not yet implemented (no OPA conformance tests available)
 - `glob.*` - Not planned
 - `graphql.*` - Not planned
 - `http.send` - Not planned
 - `json.match_schema`/`json.verify_schema` - Not planned
-- `jwt.*` - Currently slated to be released in v1.3.0
 - `net.*` - Not planned
+- `providers.aws.sign_req` - Not planned
 - `regex.globs_match` - Not planned
 - `rego.metadata.chain`/`rego.metadata.rule`/`rego.parse_module` - Not planned
 - `strings.render_template` - Not planned
 - `time` - This is entirely platform dependent at the moment, depending on whether
            there is a compiler on that platform which supports `__cpp_lib_chrono >= 201907L`.
 
+#### Crypto and JWT Builtins
+
+The `crypto.*` and `io.jwt.*` builtins require a platform crypto backend, controlled
+by the `REGOCPP_CRYPTO_BACKEND` CMake option:
+
+- `mbedtls` (default) — Mbed TLS, built from source via FetchContent (all platforms)
+- `openssl3` — OpenSSL 3.0+ (requires system install)
+- `bcrypt` — Windows CNG (Windows only)
+- `""` (empty) — Crypto disabled; crypto/JWT builtins return an error at runtime
+
+All presets enable crypto automatically. The `-windows` and `-windows-opa` presets
+use the `bcrypt` backend; all others use `mbedtls`.
 
 ### Compatibility with the OPA Rego Go implementation
 
@@ -170,6 +183,7 @@ the non-builtin specific test suites, which we clone from the
 To build with the OPA tests available for testing, use one of the following presets:
 - `release-clang-opa`
 - `release-opa`
+- `release-windows-opa`
 
 ## Contributing
 

@@ -659,7 +659,7 @@ namespace rego
 
       case b::StatementType::MakeNumberRef: {
         const Location& num_value = m_bundle->strings[stmt.op0.index];
-        if (RE2::FullMatch(num_value.view(), m_int_regex))
+        if (TRegex::FullMatch(num_value.view(), m_int_regex))
         {
           state.write_local(stmt.target, Int ^ num_value);
         }

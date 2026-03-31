@@ -48,6 +48,14 @@ builtins/units.cc
 builtins/uuid.cc
 )
 
+if(REGOCPP_CRYPTO_BACKEND STREQUAL "openssl3")
+  list(APPEND SOURCES builtins/crypto_openssl3.cc)
+elseif(REGOCPP_CRYPTO_BACKEND STREQUAL "bcrypt")
+  list(APPEND SOURCES builtins/crypto_bcrypt.cc)
+elseif(REGOCPP_CRYPTO_BACKEND STREQUAL "mbedtls")
+  list(APPEND SOURCES builtins/crypto_mbedtls.cc)
+endif()
+
 add_library(rego STATIC ${SOURCES})
 
 add_library(regocpp::rego ALIAS rego)
@@ -66,6 +74,18 @@ endif()
 
 if(Threads_FOUND)
   target_link_libraries(rego PUBLIC Threads::Threads)
+endif()
+
+if(REGOCPP_CRYPTO_BACKEND STREQUAL "openssl3")
+  find_package(OpenSSL 3.0 REQUIRED)
+  target_link_libraries(rego PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+  target_compile_definitions(rego PUBLIC REGOCPP_HAS_CRYPTO=1 REGOCPP_CRYPTO_OPENSSL3=1)
+elseif(REGOCPP_CRYPTO_BACKEND STREQUAL "bcrypt")
+  target_link_libraries(rego PUBLIC bcrypt crypt32)
+  target_compile_definitions(rego PUBLIC REGOCPP_HAS_CRYPTO=1 REGOCPP_CRYPTO_BCRYPT=1)
+elseif(REGOCPP_CRYPTO_BACKEND STREQUAL "mbedtls")
+  target_link_libraries(rego PUBLIC mbedtls mbedcrypto mbedx509)
+  target_compile_definitions(rego PUBLIC REGOCPP_HAS_CRYPTO=1 REGOCPP_CRYPTO_MBEDTLS=1)
 endif()
 
 if (REGOCPP_SANITIZE)
@@ -95,7 +115,6 @@ if ( REGOCPP_BUILD_SHARED )
   set_property(TARGET yaml PROPERTY POSITION_INDEPENDENT_CODE ON)
   set_property(TARGET json PROPERTY POSITION_INDEPENDENT_CODE ON)
   set_property(TARGET snmalloc-new-override PROPERTY POSITION_INDEPENDENT_CODE ON)
-  set_property(TARGET re2 PROPERTY POSITION_INDEPENDENT_CODE ON)
 
   target_link_libraries(rego_shared
     PUBLIC
@@ -111,6 +130,17 @@ if ( REGOCPP_BUILD_SHARED )
 
   if(Threads_FOUND)
     target_link_libraries(rego_shared PUBLIC Threads::Threads)
+  endif()
+
+  if(REGOCPP_CRYPTO_BACKEND STREQUAL "openssl3")
+    target_link_libraries(rego_shared PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+    target_compile_definitions(rego_shared PUBLIC REGOCPP_HAS_CRYPTO=1 REGOCPP_CRYPTO_OPENSSL3=1)
+  elseif(REGOCPP_CRYPTO_BACKEND STREQUAL "bcrypt")
+    target_link_libraries(rego_shared PUBLIC bcrypt crypt32)
+    target_compile_definitions(rego_shared PUBLIC REGOCPP_HAS_CRYPTO=1 REGOCPP_CRYPTO_BCRYPT=1)
+  elseif(REGOCPP_CRYPTO_BACKEND STREQUAL "mbedtls")
+    target_link_libraries(rego_shared PUBLIC mbedtls mbedcrypto mbedx509)
+    target_compile_definitions(rego_shared PUBLIC REGOCPP_HAS_CRYPTO=1 REGOCPP_CRYPTO_MBEDTLS=1)
   endif()
 
   target_compile_features(rego_shared PUBLIC cxx_std_20)

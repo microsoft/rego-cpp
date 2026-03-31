@@ -1,5 +1,6 @@
 #include "test_case.h"
 
+#include <cstring>
 #include <thread>
 
 #ifndef _WIN32
@@ -29,7 +30,7 @@ namespace
   {
     const char* duration_re =
       R"((-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?)((?:ns|us|µs|ms|s|m|h)))";
-    const RE2 re(duration_re);
+    const TRegex re(duration_re);
     assert(re.ok());
 
     std::string number;
@@ -38,8 +39,8 @@ namespace
     std::size_t start = 0;
     while (start < duration.size())
     {
-      re2::StringPiece input(duration.c_str() + start, duration.size() - start);
-      if (RE2::PartialMatch(input, re, &number, &unit))
+      std::string_view input(duration.c_str() + start, duration.size() - start);
+      if (TRegex::PartialMatch(input, re, &number, &unit))
       {
         double number_d = std::stod(number);
         double unit_ns = duration_units.at(unit);

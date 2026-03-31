@@ -1,5 +1,68 @@
 # Changelog
 
+## 2026-03-25 - Version 1.3.0
+Minor version upgrading OPA/Rego compatibility with new language features,
+crypto/JWT support, and build system improvements.
+
+**New Features**
+- OPA Rego compatibility upgraded from v1.8.0 to v1.14.1.
+- Added template string interpolation support (`$"Hello {name}!"` and
+  `` $`raw {expr}` ``), including the `internal.template_string` built-in.
+- Added `array.flatten` built-in.
+- Added `crypto.*` built-in family: hashing (MD5, SHA1, SHA256), HMAC
+  (MD5, SHA1, SHA256, SHA512), X.509 certificate parsing and verification,
+  RSA key parsing, and key pair parsing.
+  `crypto.x509.parse_and_verify_certificates_with_options` is not yet
+  implemented (no OPA conformance tests exist for it).
+- Added `io.jwt.*` built-in family: `decode`, `decode_verify`, `encode_sign`,
+  `encode_sign_raw`, and signature verification for HS256/384/512,
+  RS256/384/512, PS256/384/512, ES256/384/512, and EdDSA.
+  EdDSA is only available with the OpenSSL backend.
+- Added pluggable crypto backend architecture controlled by the
+  `REGOCPP_CRYPTO_BACKEND` CMake option:
+  - `mbedtls` (default) — Mbed TLS v3.6.2, built from source via
+    FetchContent with zero system dependencies on any platform.
+  - `openssl3` — OpenSSL 3.0+ (requires system install).
+  - `bcrypt` — Windows CNG (Windows only, no external dependencies).
+  - `""` — Crypto disabled; crypto/JWT builtins return an error at runtime.
+- Added Windows CMake presets (`debug-windows`, `release-windows`,
+  `debug-windows-opa`, `release-windows-opa`) using the `bcrypt` backend.
+- Wrapper builds (Python, Rust, .NET) now pass the crypto backend through to
+  CMake. Python and .NET use `bcrypt` on Windows and `mbedtls` elsewhere;
+  Rust uses `mbedtls` on all platforms.
+
+**Bug Fixes**
+- Fixed `numbers.range_step` behavior to match current OPA expectations.
+- Fixed `strings.count` with empty substring to return `len(s)+1` instead of
+  looping indefinitely, matching OPA semantics.
+- Fixed `split` with empty delimiter to split into individual characters,
+  matching OPA semantics.
+- Fixed JSON object key deduplication to use last-wins semantics, matching
+  Go `json.Unmarshal` and OPA behavior.
+- Fixed `sprintf` `%v` format to render sets using Rego display syntax
+  (`{1, 2, 3}` / `set()`) instead of internal angle-bracket representation.
+- Fixed `to_json`/`to_key` rendering of `true`, `false`, and `null` for
+  synthetically constructed AST nodes with empty locations.
+
+**Migration Notes**
+- JSON objects with duplicate keys now keep only the last value for each key
+  ("last-wins" semantics), matching Go `json.Unmarshal` and OPA behavior.
+  Previously, duplicate keys were preserved in the AST. If your data documents
+  or inputs contain duplicate keys and you relied on earlier values being
+  visible, those values will now be silently dropped.
+- `crypto.x509.parse_and_verify_certificates` follows OPA's convention: the
+  last certificate in the PEM bundle is treated as the leaf (workload)
+  certificate; all others are treated as CA or intermediate certificates.
+  Revocation checking (CRL/OCSP) is not performed, matching OPA behavior.
+
+**Build & Infrastructure**
+- Upgraded Trieste dependency (switched regex engine from RE2 to TRegex).
+  Validated against full OPA conformance test suite including regex patterns.
+- Removed RE2 from link targets across all build configurations and wrappers.
+- CI: Windows PR gate job now uses `release-windows-opa` preset.
+- Added test infrastructure for marking tests as `unsupported` (used for
+  EdDSA tests on non-OpenSSL backends).
+
 ## 2026-01-08 - Version 1.2.0
 Minor version fixing some bugs.
 

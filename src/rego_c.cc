@@ -3,6 +3,8 @@
 #include "internal.hh"
 #include "rego.hh"
 
+#include <cstring>
+
 namespace logging = trieste::logging;
 
 namespace
@@ -24,7 +26,23 @@ namespace rego
 {
   void setError(regoInterpreter* rego, const std::string& error)
   {
+    if (rego == nullptr)
+    {
+      return;
+    }
     reinterpret_cast<rego::Interpreter*>(rego)->c_error(error);
+  }
+
+  regoEnum check_c_str(
+    regoInterpreter* rego, const char* ptr, const char* param_name)
+  {
+    if (ptr == nullptr)
+    {
+      std::string msg = std::string(param_name) + " must not be null";
+      setError(rego, msg);
+      return REGO_ERROR;
+    }
+    return REGO_OK;
   }
 
   struct regoOutput
@@ -99,12 +117,20 @@ extern "C"
 {
   regoSize regoErrorSize(regoInterpreter* rego)
   {
+    if (rego == nullptr)
+    {
+      return 0;
+    }
     logging::Debug() << "regoErrorSize: " << rego;
     return reinterpret_cast<rego::Interpreter*>(rego)->c_error().size() + 1;
   }
 
   regoEnum regoError(regoInterpreter* rego, char* buffer, regoSize size)
   {
+    if (rego == nullptr)
+    {
+      return REGO_ERROR;
+    }
     logging::Debug() << "regoGetError: " << (void*)buffer << "[" << size << "]";
 
     const std::string& error_str =
@@ -164,6 +190,11 @@ extern "C"
 
   regoEnum regoLogLevelFromString(const char* value)
   {
+    if (value == nullptr)
+    {
+      return REGO_ERROR;
+    }
+
     rego::LogLevel loglevel;
     try
     {
@@ -177,6 +208,10 @@ extern "C"
 
   regoEnum regoSetLogLevel(regoInterpreter* rego, regoEnum level)
   {
+    if (rego == nullptr)
+    {
+      return REGO_ERROR;
+    }
     rego::Interpreter* r = reinterpret_cast<rego::Interpreter*>(rego);
     switch (level)
     {
@@ -256,6 +291,10 @@ extern "C"
 
   regoEnum regoGetLogLevel(regoInterpreter* rego)
   {
+    if (rego == nullptr)
+    {
+      return REGO_ERROR;
+    }
     return (regoEnum) reinterpret_cast<rego::Interpreter*>(rego)->log_level();
   }
 
@@ -274,6 +313,12 @@ extern "C"
 
   regoEnum regoAddModuleFile(regoInterpreter* rego, const char* path)
   {
+    regoEnum err = rego::check_c_str(rego, path, "path");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoAddModuleFile: " << path;
     try
     {
@@ -290,6 +335,18 @@ extern "C"
   regoEnum regoAddModule(
     regoInterpreter* rego, const char* name, const char* contents)
   {
+    regoEnum err = rego::check_c_str(rego, name, "name");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
+    err = rego::check_c_str(rego, contents, "contents");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoAddModule: " << name;
     try
     {
@@ -305,6 +362,12 @@ extern "C"
 
   regoEnum regoAddDataJSONFile(regoInterpreter* rego, const char* path)
   {
+    regoEnum err = rego::check_c_str(rego, path, "path");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoAddDataJSONFile: " << path;
     try
     {
@@ -320,6 +383,12 @@ extern "C"
 
   regoEnum regoAddDataJSON(regoInterpreter* rego, const char* contents)
   {
+    regoEnum err = rego::check_c_str(rego, contents, "contents");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoAddDataJSON: " << contents;
     try
     {
@@ -335,6 +404,12 @@ extern "C"
 
   regoEnum regoSetInputJSONFile(regoInterpreter* rego, const char* path)
   {
+    regoEnum err = rego::check_c_str(rego, path, "path");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoSetInputJSONFile: " << path;
     try
     {
@@ -358,6 +433,12 @@ extern "C"
 
   regoEnum regoSetInputTerm(regoInterpreter* rego, const char* contents)
   {
+    regoEnum err = rego::check_c_str(rego, contents, "contents");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoSetInputTerm: " << contents;
     try
     {
@@ -377,6 +458,12 @@ extern "C"
     logging::Debug() << "regoSetInput: interp=" << rego << " input=" << input;
     try
     {
+      if (input == nullptr)
+      {
+        rego::setError(rego, "input must not be null");
+        return REGO_ERROR;
+      }
+
       rego::regoInput* ri = reinterpret_cast<rego::regoInput*>(input);
       if (ri->stack.empty())
       {
@@ -404,18 +491,32 @@ extern "C"
 
   void regoSetDebugEnabled(regoInterpreter* rego, regoBoolean enabled)
   {
+    if (rego == nullptr)
+    {
+      return;
+    }
     logging::Debug() << "regoSetDebugEnabled: " << enabled;
     reinterpret_cast<rego::Interpreter*>(rego)->debug_enabled(enabled);
   }
 
   regoBoolean regoGetDebugEnabled(regoInterpreter* rego)
   {
+    if (rego == nullptr)
+    {
+      return false;
+    }
     logging::Debug() << "regoGetDebugEnabled";
     return reinterpret_cast<rego::Interpreter*>(rego)->debug_enabled();
   }
 
   regoEnum regoSetDebugPath(regoInterpreter* rego, const char* path)
   {
+    regoEnum err = rego::check_c_str(rego, path, "path");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoSetDebugPath: " << path;
     try
     {
@@ -432,18 +533,36 @@ extern "C"
   void regoSetWellFormedChecksEnabled(
     regoInterpreter* rego, regoBoolean enabled)
   {
+    if (rego == nullptr)
+    {
+      return;
+    }
     logging::Debug() << "regoSetWellFormedChecksEnabled: " << enabled;
     reinterpret_cast<rego::Interpreter*>(rego)->wf_check_enabled(enabled);
   }
 
   regoBoolean regoGetWellFormedChecksEnabled(regoInterpreter* rego)
   {
+    if (rego == nullptr)
+    {
+      return false;
+    }
     logging::Debug() << "regoGetWellFormedChecksEnabled";
     return reinterpret_cast<rego::Interpreter*>(rego)->wf_check_enabled();
   }
 
   regoOutput* regoQuery(regoInterpreter* rego, const char* query_expr)
   {
+    if (rego == nullptr)
+    {
+      return nullptr;
+    }
+    if (query_expr == nullptr)
+    {
+      rego::setError(rego, "query_expr must not be null");
+      return nullptr;
+    }
+
     logging::Debug() << "regoQuery: " << query_expr;
     try
     {
@@ -463,6 +582,10 @@ extern "C"
 
   void regoSetStrictBuiltInErrors(regoInterpreter* rego, regoBoolean enabled)
   {
+    if (rego == nullptr)
+    {
+      return;
+    }
     logging::Debug() << "regoSetStrictBuiltInErrors: " << enabled;
     reinterpret_cast<rego::Interpreter*>(rego)->builtins()->strict_errors(
       enabled);
@@ -470,6 +593,10 @@ extern "C"
 
   regoBoolean regoGetStrictBuiltInErrors(regoInterpreter* rego)
   {
+    if (rego == nullptr)
+    {
+      return false;
+    }
     logging::Debug() << "regoGetStrictBuiltInErrors";
     return reinterpret_cast<rego::Interpreter*>(rego)
       ->builtins()
@@ -478,6 +605,11 @@ extern "C"
 
   regoBoolean regoIsAvailableBuiltIn(regoInterpreter* rego, const char* name)
   {
+    if (rego == nullptr || name == nullptr)
+    {
+      return false;
+    }
+
     logging::Debug() << "regoIsBuiltIn: " << name;
 
     rego::Location loc(name);
@@ -495,6 +627,10 @@ extern "C"
 
   regoBundle* regoBuild(regoInterpreter* rego)
   {
+    if (rego == nullptr)
+    {
+      return nullptr;
+    }
     logging::Debug() << "regoBuild";
     rego::regoBundle* bundle = new rego::regoBundle();
     bundle->bundle = nullptr;
@@ -504,6 +640,16 @@ extern "C"
 
   regoBundle* regoBundleLoad(regoInterpreter* rego, const char* dir)
   {
+    if (rego == nullptr)
+    {
+      return nullptr;
+    }
+    if (dir == nullptr)
+    {
+      rego::setError(rego, "dir must not be null");
+      return nullptr;
+    }
+
     logging::Debug() << "regoBundleLoad";
     rego::regoBundle* bundle = new rego::regoBundle();
     bundle->bundle = nullptr;
@@ -514,6 +660,16 @@ extern "C"
 
   regoBundle* regoBundleLoadBinary(regoInterpreter* rego, const char* path)
   {
+    if (rego == nullptr)
+    {
+      return nullptr;
+    }
+    if (path == nullptr)
+    {
+      rego::setError(rego, "path must not be null");
+      return nullptr;
+    }
+
     logging::Debug() << "regoBundleLoadBinary";
     rego::regoBundle* bundle = new rego::regoBundle();
     bundle->bundle = nullptr;
@@ -567,6 +723,12 @@ extern "C"
   regoEnum regoBundleSave(
     regoInterpreter* rego, const char* dir, regoBundle* bundle)
   {
+    regoEnum err = rego::check_c_str(rego, dir, "dir");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoBundleSave: " << dir;
     try
     {
@@ -590,6 +752,12 @@ extern "C"
   regoEnum regoBundleSaveBinary(
     regoInterpreter* rego, const char* path, regoBundle* bundle)
   {
+    regoEnum err = rego::check_c_str(rego, path, "path");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoBundleSaveBinary";
     try
     {
@@ -613,6 +781,12 @@ extern "C"
 
   regoEnum regoSetQuery(regoInterpreter* rego, const char* query_expr)
   {
+    regoEnum err = rego::check_c_str(rego, query_expr, "query_expr");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoSetQuery: " << query_expr;
     try
     {
@@ -628,6 +802,12 @@ extern "C"
 
   regoEnum regoAddEntrypoint(regoInterpreter* rego, const char* entrypoint)
   {
+    regoEnum err = rego::check_c_str(rego, entrypoint, "entrypoint");
+    if (err != REGO_OK)
+    {
+      return err;
+    }
+
     logging::Debug() << "regoAddEntrypoint: " << entrypoint;
     try
     {
@@ -644,6 +824,10 @@ extern "C"
 
   regoOutput* regoBundleQuery(regoInterpreter* rego, regoBundle* bundle)
   {
+    if (rego == nullptr)
+    {
+      return nullptr;
+    }
     logging::Debug() << "regoBundleQuery rego(" << rego << ") bundle(" << bundle
                      << ")";
     try
@@ -671,6 +855,16 @@ extern "C"
   regoOutput* regoBundleQueryEntrypoint(
     regoInterpreter* rego, regoBundle* bundle, const char* entrypoint)
   {
+    if (rego == nullptr)
+    {
+      return nullptr;
+    }
+    if (entrypoint == nullptr)
+    {
+      rego::setError(rego, "entrypoint must not be null");
+      return nullptr;
+    }
+
     logging::Debug() << "regoBundleQueryEntrypoint: rego(" << rego
                      << ") bundle(" << bundle << ") " << entrypoint;
     try
@@ -743,6 +937,11 @@ extern "C"
   regoNode* regoOutputBindingAtIndex(
     regoOutput* output, regoSize index, const char* name)
   {
+    if (name == nullptr)
+    {
+      return nullptr;
+    }
+
     logging::Debug() << "regoOutputBindingAtIndex: " << name;
     auto val = reinterpret_cast<rego::regoOutput*>(output)->output.binding_at(
       index, name);
@@ -996,7 +1195,8 @@ extern "C"
     logging::Debug() << "regoNodeJSONSize";
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     trieste::WFContext context(rego::wf_result);
-    std::string json = rego::to_key(node_ptr->intrusive_ptr_from_this(), true);
+    std::string json = rego::to_key(
+      node_ptr->intrusive_ptr_from_this(), rego::SetFormat::Square);
     return static_cast<regoSize>(json.size() + 1);
   }
 
@@ -1006,7 +1206,8 @@ extern "C"
 
     auto node_ptr = reinterpret_cast<trieste::NodeDef*>(node);
     trieste::WFContext context(rego::wf_result);
-    std::string json = rego::to_key(node_ptr->intrusive_ptr_from_this(), true);
+    std::string json = rego::to_key(
+      node_ptr->intrusive_ptr_from_this(), rego::SetFormat::Square);
     if (size < json.size() + 1)
     {
       return REGO_ERROR_BUFFER_TOO_SMALL;

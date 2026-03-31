@@ -1311,3 +1311,50 @@ cases:
     - x:
         baz: gimel
         foo: aleph
+- modules:
+  - |
+    package test
+
+    greeting := "world"
+    msg := $"Hello {greeting}!"
+  note: regocpp/stringinterp
+  query: data.test.msg = x
+  want_result:
+    - x: Hello world!
+- modules:
+  - |
+    package test
+
+    msg := $"Hello {input.name with input as {"name": "world"}}!"
+  note: regocpp/stringinterp-with
+  query: data.test.msg = x
+  want_result:
+    - x: Hello world!
+- modules:
+  - |
+    package test
+
+    token := io.jwt.encode_sign({"alg": "HS256"}, {"sub": "alice"}, {"kty": "oct", "k": base64url.encode_no_pad("secret")})
+
+    match := io.jwt.decode_verify(token, {"secret": "secret", "alg": "HS256", "sub": "alice"})
+  note: regocpp/jwt-sub-match
+  query: data.test.match = x
+  want_result:
+    - x:
+        - true
+        - {"alg": "HS256"}
+        - {"sub": "alice"}
+- modules:
+  - |
+    package test
+
+    token := io.jwt.encode_sign({"alg": "HS256"}, {"sub": "alice"}, {"kty": "oct", "k": base64url.encode_no_pad("secret")})
+
+    mismatch := io.jwt.decode_verify(token, {"secret": "secret", "alg": "HS256", "sub": "bob"})
+  note: regocpp/jwt-sub-mismatch
+  query: data.test.mismatch = x
+  want_result:
+    - x:
+        - false
+        - {}
+        - {}

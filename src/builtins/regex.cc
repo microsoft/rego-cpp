@@ -138,7 +138,7 @@ namespace
     try
     {
       std::regex re(pattern);
-      bool match = std::regex_match(value, re);
+      bool match = std::regex_search(value, re);
       return Resolver::scalar(match);
     }
     catch (std::regex_error& e)
@@ -304,17 +304,11 @@ namespace
     }
 
     Node array = NodeDef::create(Array);
-    std::smatch match;
-    for (std::size_t i = 0; i < number && !value.empty(); ++i)
+    auto it = std::sregex_iterator(value.begin(), value.end(), re);
+    auto end = std::sregex_iterator();
+    for (std::size_t i = 0; i < number && it != end; ++i, ++it)
     {
-      std::regex_search(value, match, re);
-      if (match.empty())
-      {
-        break;
-      }
-
-      array->push_back(Resolver::scalar(match.str()));
-      value = match.suffix();
+      array->push_back(Resolver::scalar(it->str()));
     }
 
     return array;

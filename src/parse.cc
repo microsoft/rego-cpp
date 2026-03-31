@@ -73,6 +73,13 @@ namespace rego
     std::shared_ptr<NewlineMode> newline_mode =
       std::make_shared<NewlineMode>(NewlineMode::Ignore);
 
+    // Tracks nesting of template strings. Each entry is the quote character
+    // ('"' or '`') for the enclosing template string, so that '}' knows
+    // whether to return to template scanning or normal parsing.
+    constexpr size_t MaxTemplateNesting = 64;
+    std::shared_ptr<std::vector<char>> template_stack =
+      std::make_shared<std::vector<char>>();
+
     // Our starting path tries to determine if the input is a module or a query
     p("start",
       {
@@ -182,9 +189,17 @@ namespace rego
         R"({(?:\r?\n)?)" >> [](auto& m) { m.push(Brace); },
 
         "}" >>
-          [](auto& m) {
+          [template_stack](auto& m) {
             m.term();
-            m.pop(Brace);
+            if (!template_stack->empty() && m.in(TemplateString))
+            {
+              char quote = template_stack->back();
+              m.mode(quote == '"' ? "template_dq" : "template_raw");
+            }
+            else
+            {
+              m.pop(Brace);
+            }
           },
 
         R"(\()" >> [](auto& m) { m.push(Paren); },
@@ -218,6 +233,66 @@ namespace rego
         R"(-?(?:0|[1-9][0-9]*))" >> [](auto& m) { m.add(Int); },
 
         "-" >> [](auto& m) { m.add(Subtract); },
+
+        // Template string $"<chunk>{  — double-quoted, has expression(s)
+        R"((\$")((?:[^"\\\{]|\\["\\\/bfnrt\{]|\\u[[:xdigit:]]{4})*)(\{(?:\r?\n)?))" >>
+          [template_stack, MaxTemplateNesting](auto& m) {
+            if (template_stack->size() >= MaxTemplateNesting)
+            {
+              m.error("template string nesting depth exceeded");
+              return;
+            }
+            m.push(TemplateString, 1);
+            if (m.match(2).len > 0)
+            {
+              m.add(TemplateLiteral, 2);
+              m.term();
+            }
+            template_stack->push_back('"');
+          },
+
+        // Template string $"<chunk>"  — double-quoted, no expressions
+        R"((\$")((?:[^"\\\{]|\\["\\\/bfnrt\{]|\\u[[:xdigit:]]{4})*)("))" >>
+          [](auto& m) {
+            m.push(TemplateString, 1);
+            if (m.match(2).len > 0)
+            {
+              m.add(TemplateLiteral, 2);
+              m.term();
+            }
+            m.term();
+            m.pop(TemplateString);
+          },
+
+        // Template string $`<chunk>{  — raw, has expression(s)
+        R"((\$\`)((?:[^\`\{\\]|\\{)*)(\{(?:\r?\n)?))" >>
+          [template_stack, MaxTemplateNesting](auto& m) {
+            if (template_stack->size() >= MaxTemplateNesting)
+            {
+              m.error("template string nesting depth exceeded");
+              return;
+            }
+            m.push(TemplateString, 1);
+            if (m.match(2).len > 0)
+            {
+              m.add(TemplateLiteral, 2);
+              m.term();
+            }
+            template_stack->push_back('`');
+          },
+
+        // Template string $`<chunk>`  — raw, no expressions
+        R"((\$\`)((?:[^\`\{\\]|\\{)*)(\`))" >>
+          [](auto& m) {
+            m.push(TemplateString, 1);
+            if (m.match(2).len > 0)
+            {
+              m.add(TemplateLiteral, 2);
+              m.term();
+            }
+            m.term();
+            m.pop(TemplateString);
+          },
 
         // RE for a JSON string:
         // " : a double quote followed by either:
@@ -258,7 +333,82 @@ namespace rego
         R"(\s+)" >> [](auto&) {},
       });
 
-    p.done([](auto& m) { m.term({Module, Query}); });
+    // After closing a template expression }, scan the next literal chunk
+    // in a double-quoted template string.
+    p("template_dq",
+      {
+        // Literal chunk followed by another expression
+        R"(((?:[^"\\\{]|\\["\\\/bfnrt\{]|\\u[[:xdigit:]]{4})+)(\{(?:\r?\n)?))" >>
+          [](auto& m) {
+            m.add(TemplateLiteral, 1);
+            m.term();
+            m.mode("main");
+          },
+
+        // Another expression immediately (no literal between)
+        R"(\{(?:\r?\n)?)" >> [](auto& m) { m.mode("main"); },
+
+        // Literal chunk followed by end of template string
+        R"(((?:[^"\\\{]|\\["\\\/bfnrt\{]|\\u[[:xdigit:]]{4})+)("))" >>
+          [template_stack](auto& m) {
+            m.add(TemplateLiteral, 1);
+            m.term();
+            template_stack->pop_back();
+            m.term();
+            m.pop(TemplateString);
+            m.mode("main");
+          },
+
+        // End of template string immediately (no trailing literal)
+        R"(")" >>
+          [template_stack](auto& m) {
+            template_stack->pop_back();
+            m.term();
+            m.pop(TemplateString);
+            m.mode("main");
+          },
+      });
+
+    // Same as template_dq but for raw (backtick) template strings.
+    p("template_raw",
+      {
+        // Literal chunk followed by another expression.
+        // \\{ matches an escaped brace (literal {), not an interpolation start.
+        R"(((?:[^\`\{\\]|\\{)+)(\{(?:\r?\n)?))" >>
+          [](auto& m) {
+            m.add(TemplateLiteral, 1);
+            m.term();
+            m.mode("main");
+          },
+
+        // Another expression immediately
+        R"(\{(?:\r?\n)?)" >> [](auto& m) { m.mode("main"); },
+
+        // Literal chunk followed by end of template string.
+        R"(((?:[^\`\{\\]|\\{)+)(\`))" >>
+          [template_stack](auto& m) {
+            m.add(TemplateLiteral, 1);
+            m.term();
+            template_stack->pop_back();
+            m.term();
+            m.pop(TemplateString);
+            m.mode("main");
+          },
+
+        // End of template string immediately
+        R"(\`)" >>
+          [template_stack](auto& m) {
+            template_stack->pop_back();
+            m.term();
+            m.pop(TemplateString);
+            m.mode("main");
+          },
+      });
+
+    p.done([template_stack](auto& m) {
+      template_stack->clear();
+      m.term({Module, Query});
+    });
 
     p.gen({
       Int >> [](auto& rnd) { return rand_int(rnd); },
@@ -274,6 +424,7 @@ namespace rego
       builtins::Name >> [](auto& rnd) { return rand_string(rnd); },
       builtins::Description >> [](auto& rnd) { return rand_string(rnd); },
       IRString >> [](auto& rnd) { return rand_string(rnd); },
+      TemplateLiteral >> [](auto& rnd) { return rand_string(rnd); },
       JSONString >> [](auto& rnd) { return rand_quoted(rnd, '"'); },
       RawString >> [](auto& rnd) { return rand_quoted(rnd, '`'); },
       Version >>

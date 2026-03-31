@@ -74,7 +74,7 @@ namespace
     const Node reverse_decl = bi::Decl
       << (bi::ArgSeq
           << (bi::Arg << (bi::Name ^ "arr")
-                      << (bi::Description ^ "the array to be reverse")
+                      << (bi::Description ^ "the array to reverse")
                       << (bi::Type
                           << (bi::DynamicArray << (bi::Type << bi::Any)))))
       << (bi::Result
@@ -155,7 +155,7 @@ namespace
     const Node slice_decl = bi::Decl
       << (bi::ArgSeq
           << (bi::Arg << (bi::Name ^ "arr")
-                      << (bi::Description ^ "the array to be reverse")
+                      << (bi::Description ^ "the array to slice")
                       << (bi::Type
                           << (bi::DynamicArray << (bi::Type << bi::Any))))
           << (bi::Arg << (bi::Name ^ "start")
@@ -176,6 +176,51 @@ namespace
                          << (bi::DynamicArray << (bi::Type << bi::Any))));
     return BuiltInDef::create({"array.slice"}, slice_decl, slice);
   }
+
+  Node flatten(const Nodes& args)
+  {
+    Node arr = unwrap_arg(args, UnwrapOpt(0).func("array.flatten").type(Array));
+    if (arr->type() == Error)
+    {
+      return arr;
+    }
+
+    Node result = NodeDef::create(Array);
+    for (auto& child : *arr)
+    {
+      auto maybe_array = unwrap(child, Array);
+      if (maybe_array.success)
+      {
+        for (auto& inner : *maybe_array.node)
+        {
+          result->push_back(inner->clone());
+        }
+      }
+      else
+      {
+        result->push_back(child->clone());
+      }
+    }
+    return result;
+  }
+
+  BuiltIn flatten_factory()
+  {
+    const Node flatten_decl =
+      bi::Decl << (bi::ArgSeq
+                   << (bi::Arg
+                       << (bi::Name ^ "arr")
+                       << (bi::Description ^ "the array to flatten")
+                       << (bi::Type
+                           << (bi::DynamicArray << (bi::Type << bi::Any)))))
+               << (bi::Result
+                   << (bi::Name ^ "output")
+                   << (bi::Description ^
+                       "the flattened array, with all nested arrays inlined")
+                   << (bi::Type
+                       << (bi::DynamicArray << (bi::Type << bi::Any))));
+    return BuiltInDef::create({"array.flatten"}, flatten_decl, flatten);
+  }
 }
 
 namespace rego
@@ -189,6 +234,10 @@ namespace rego
       if (view == "concat")
       {
         return concat_factory();
+      }
+      if (view == "flatten")
+      {
+        return flatten_factory();
       }
       if (view == "reverse")
       {
