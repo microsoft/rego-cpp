@@ -1358,3 +1358,137 @@ cases:
         - false
         - {}
         - {}
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print("hello")
+    }
+  note: regocpp/print-basic
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "hello"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print("a", 1, true)
+    }
+  note: regocpp/print-multi-args
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "a 1 true"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print(input.missing)
+    }
+  note: regocpp/print-undefined
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "<undefined>"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print("before", input.missing, "after")
+    }
+  note: regocpp/print-mixed-undefined
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "before <undefined> after"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print(null, false)
+    }
+  note: regocpp/print-null-false
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "null false"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print()
+    }
+  note: regocpp/print-empty
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: ""
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print([1, 2], {"a": 1})
+    }
+  note: regocpp/print-collections
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "[1, 2] {\"a\": 1}"
+- input:
+    x: 10
+  modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print(input.x)
+    }
+  note: regocpp/print-with-input
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "10"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      x := "world"
+      print("hello", x)
+    }
+  note: regocpp/print-variable
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "hello world"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print(42)
+      print("done")
+    }
+  note: regocpp/print-multiple-calls
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "42\ndone"

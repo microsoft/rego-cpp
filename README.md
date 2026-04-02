@@ -165,13 +165,12 @@ are NOT supported at present:
 The `crypto.*` and `io.jwt.*` builtins require a platform crypto backend, controlled
 by the `REGOCPP_CRYPTO_BACKEND` CMake option:
 
-- `mbedtls` (default) — Mbed TLS, built from source via FetchContent (all platforms)
-- `openssl3` — OpenSSL 3.0+ (requires system install)
+- `openssl3` (default) — OpenSSL 3.0+, dynamically linked (requires system install)
 - `bcrypt` — Windows CNG (Windows only)
 - `""` (empty) — Crypto disabled; crypto/JWT builtins return an error at runtime
 
 All presets enable crypto automatically. The `-windows` and `-windows-opa` presets
-use the `bcrypt` backend; all others use `mbedtls`.
+use the `bcrypt` backend; all others use `openssl3`.
 
 ### Compatibility with the OPA Rego Go implementation
 

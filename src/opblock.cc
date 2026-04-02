@@ -706,8 +706,63 @@ namespace rego
     return err(value, "Invalid term");
   }
 
+  Node print_to_opblock(Node call)
+  {
+    Node exprseq = call / ExprSeq;
+    Location array_name = call->fresh({"print_array"});
+    Location result_name = call->fresh({"print_result"});
+    size_t num_elements = exprseq->size();
+
+    Node block = Block
+      << (MakeArrayStmt << (Int32 ^ std::to_string(num_elements))
+                        << (LocalRef ^ array_name));
+
+    for (Node expr : *exprseq)
+    {
+      // Evaluate each argument inside a try-block and add to a set.
+      // If the expression is undefined, the set remains empty.
+      Location set_name = call->fresh({"print_set"});
+      block << (MakeSetStmt << (LocalRef ^ set_name));
+
+      Node tryblock = NodeDef::create(Block);
+      Node expr_operand = to_operand(tryblock, expr);
+      tryblock << (SetAddStmt << expr_operand << (LocalRef ^ set_name));
+
+      block << (BlockStmt << (BlockSeq << tryblock));
+      block
+        << (ArrayAppendStmt << (LocalRef ^ array_name)
+                            << (Operand << (LocalRef ^ set_name)));
+    }
+
+    block
+      << (BuiltInCallStmt << (IRString ^ "internal.print")
+                          << (OperandSeq
+                              << (Operand << (LocalRef ^ array_name)))
+                          << (LocalRef ^ result_name));
+
+    return OpBlock << (Operand << (LocalRef ^ result_name)) << block;
+  }
+
+  bool is_print_call(Node call)
+  {
+    Node ref = call / Ref;
+    Node refhead = ref / RefHead;
+    Node var = refhead->front();
+    if (var == Var && var->location().view() == "print")
+    {
+      Node refargseq = ref / RefArgSeq;
+      return refargseq->empty();
+    }
+    return false;
+  }
+
   Node call_to_opblock(Node call)
   {
+    if (is_print_call(call))
+    {
+      return print_to_opblock(call);
+    }
+
     Node ref = to_absolute_path(call / Ref);
     Node exprseq = call / ExprSeq;
     Location call_name = call->fresh({"call"});

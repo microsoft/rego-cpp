@@ -1,5 +1,62 @@
 # Changelog
 
+## 2026-04-02 - Version 1.3.1
+Patch release replacing the mbedTLS crypto backend with OpenSSL 3, fixing the
+`print` built-in to match OPA semantics, and adding vcpkg packaging support.
+
+**Breaking Changes**
+- Removed the `mbedtls` crypto backend. The default `REGOCPP_CRYPTO_BACKEND` is
+  now `openssl3` (previously `mbedtls`). Builds on Linux/macOS require
+  OpenSSL 3.0+ development headers (e.g. `libssl-dev`, `openssl@3`).
+  The `bcrypt` backend for Windows is unchanged.
+
+**Bug Fixes**
+- Fixed the `print` built-in (`internal.print`) to match OPA semantics:
+  arguments are now wrapped in set comprehensions, undefined arguments
+  print as `<undefined>` instead of aborting, and multi-valued arguments
+  produce the cross-product of output lines.
+- Fixed `regocppConfig.cmake.in` to use `@PACKAGE_INIT@` and
+  `CMakeFindDependencyMacro` instead of re-fetching Trieste from git.
+  Corrected the typo `REGOCPP_lIBRARIES` → `REGOCPP_LIBRARIES`.
+
+**Build System / Packaging**
+- Added `REGOCPP_USE_FETCH_CONTENT` option (default `ON`). When `OFF`, Trieste
+  and its parsers are located via `find_package` instead of `FetchContent`,
+  enabling vcpkg and other package-manager workflows.
+- Added vcpkg port files (`ports/rego-cpp/`): `vcpkg.json` manifest with
+  `openssl3` and `tools` features, `portfile.cmake`, and usage instructions.
+- Header install rules now use `CONFIGURATIONS Release RelWithDebInfo
+  MinSizeRel` to prevent duplicate headers under `debug/include` in
+  multi-config builds (vcpkg compatibility).
+- The fuzzer (`rego_fuzzer`) is no longer installed unless tests are also
+  enabled, avoiding stray binaries in vcpkg's `bin/` directory.
+- Install targets (`trieste`, `json`, `yaml`, `snmalloc`) are only exported
+  when `REGOCPP_USE_FETCH_CONTENT=ON`.
+- Added a minimal vcpkg consumer test project (`tests/vcpkg-consumer/`) that
+  verifies `find_package(regocpp)` and a simple query.
+
+**CI**
+- Added `vcpkg-integration` and `vcpkg-integration-minimal` CI jobs testing
+  vcpkg install on Ubuntu, macOS, and Windows.
+- Added version consistency check between `VERSION` and
+  `ports/rego-cpp/vcpkg.json`.
+- All CI jobs now install OpenSSL development headers where needed.
+- Python wheel builds (`build_wheels.yml`) updated to install OpenSSL on
+  macOS (Homebrew), manylinux (yum), and musllinux (apk).
+
+**Wrappers**
+- Python, Rust, and .NET wrappers updated to use `openssl3` instead of
+  `mbedtls` as the default crypto backend.
+- Rust `build.rs` now selects `bcrypt` on Windows and `openssl3` elsewhere,
+  linking against the appropriate system libraries.
+
+**Test Infrastructure**
+- Added `want_output` field to YAML test cases, enabling validation of
+  `print` output via stdout capture.
+- Added 10 new `print` test cases covering basic output, multiple arguments,
+  undefined arguments, collections, variables, null/false, empty calls,
+  and multiple print calls.
+
 ## 2026-03-25 - Version 1.3.0
 Minor version upgrading OPA/Rego compatibility with new language features,
 crypto/JWT support, and build system improvements.
