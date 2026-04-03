@@ -51,29 +51,102 @@ namespace
     return BuiltInDef::create({"internal.member_3"}, member_3_decl, member_3);
   }
 
+  std::string print_value(const Node& node)
+  {
+    Node inner = node;
+    if (inner == Scalar)
+    {
+      inner = inner->front();
+    }
+
+    if (inner->type() == JSONString)
+    {
+      // Print strings without surrounding quotes.
+      return get_string(inner);
+    }
+
+    return to_key(inner, SetFormat::Rego, false, ", ");
+  }
+
+  void print_cross_product(
+    std::ostream& out,
+    const std::vector<std::vector<std::string>>& positions,
+    std::vector<std::string>& current,
+    size_t depth)
+  {
+    if (depth == positions.size())
+    {
+      for (size_t i = 0; i < current.size(); ++i)
+      {
+        if (i > 0)
+        {
+          out << " ";
+        }
+        out << current[i];
+      }
+      out << std::endl;
+      return;
+    }
+
+    for (const auto& val : positions[depth])
+    {
+      current.push_back(val);
+      print_cross_product(out, positions, current, depth + 1);
+      current.pop_back();
+    }
+  }
+
   Node print(const Nodes& args)
   {
-    // Simplified print: does not wrap arguments in set comprehensions or
-    // support cross-product expansion. See GitHub issue #209 for full
-    // OPA-equivalent implementation.
-    for (auto arg : args)
+    Node arr =
+      unwrap_arg(args, UnwrapOpt(0).type(Array).func("internal.print"));
+    if (arr->type() == Error)
     {
-      if (arg->type() == Undefined)
+      return arr;
+    }
+
+    std::vector<std::vector<std::string>> positions;
+    for (const auto& elem : *arr)
+    {
+      Node item = elem->front();
+
+      if (item == rego::Set)
       {
-        return Resolver::scalar(false);
+        if (item->size() == 0)
+        {
+          // Empty set = undefined argument.
+          positions.push_back({"<undefined>"});
+        }
+        else
+        {
+          std::vector<std::string> values;
+          for (const auto& set_elem : *item)
+          {
+            values.push_back(print_value(set_elem->front()));
+          }
+          positions.push_back(std::move(values));
+        }
+      }
+      else
+      {
+        // Non-set element (shouldn't happen with correct wrapping, but
+        // handle gracefully).
+        positions.push_back({print_value(item)});
       }
     }
 
-    join(
-      std::cout,
-      args.begin(),
-      args.end(),
-      " ",
-      [](std::ostream& stream, const Node& n) {
-        stream << to_key(n);
-        return true;
-      })
-      << std::endl;
+    if (positions.empty())
+    {
+      // print() with no arguments outputs an empty line.
+      std::cout << std::endl;
+    }
+    else
+    {
+      std::vector<std::string> current;
+      current.reserve(positions.size());
+      print_cross_product(std::cout, positions, current, 0);
+    }
+
     return Resolver::scalar(true);
   }
 
@@ -81,10 +154,12 @@ namespace
   {
     const Node print_decl =
       bi::Decl << (bi::ArgSeq
-                   << (bi::Arg << bi::Name << bi::Description
+                   << (bi::Arg
+                       << bi::Name << bi::Description
+                       << (bi::Type
+                           << (bi::DynamicArray
                                << (bi::Type
-                                   << (bi::DynamicArray
-                                       << (bi::Type << (bi::Set << bi::Any))))))
+                                   << (bi::Set << (bi::Type << bi::Any)))))))
                << bi::Void;
     return BuiltInDef::create({"internal.print"}, print_decl, ::print);
   }

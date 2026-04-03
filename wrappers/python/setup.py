@@ -28,7 +28,7 @@ REQUIRES_DEV = [
 with open("README.md", "r") as file:
     LONG_DESCRIPTION = file.read()
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 
 
 class CMakeExtension(Extension):
@@ -79,7 +79,7 @@ class CMakeBuild(build_ext):
         if platform.uname()[0] == "Windows":
             crypto_backend = "bcrypt"
         else:
-            crypto_backend = "mbedtls"
+            crypto_backend = "openssl3"
 
         cmake_args = [f"-S {src_path}",
                       f"-B {self.build_temp}",

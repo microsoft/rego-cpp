@@ -51,19 +51,25 @@ fn main() {
         Err(_) => "Release",
     };
 
+    let crypto_backend = if cfg!(windows) { "bcrypt" } else { "openssl3" };
+
+    let mut cmake_args = vec![
+        "-S".to_string(),
+        ".".to_string(),
+        "-B".to_string(),
+        "build".to_string(),
+        format!("-DCMAKE_BUILD_TYPE={}", regocpp_config),
+        "-DCMAKE_INSTALL_PREFIX=rust".to_string(),
+        "-DREGOCPP_COPY_EXAMPLES=ON".to_string(),
+        format!("-DREGOCPP_CRYPTO_BACKEND={}", crypto_backend),
+    ];
+
+    if let Ok(openssl_root) = env::var("OPENSSL_ROOT_DIR") {
+        cmake_args.push(format!("-DOPENSSL_ROOT_DIR={}", openssl_root));
+    }
+
     Command::new("cmake")
-        .args(&[
-            "-S",
-            ".",
-            "-B",
-            "build",
-            "-DCMAKE_BUILD_TYPE={}"
-                .replace("{}", regocpp_config)
-                .as_str(),
-            "-DCMAKE_INSTALL_PREFIX=rust",
-            "-DREGOCPP_COPY_EXAMPLES=ON",
-            "-DREGOCPP_CRYPTO_BACKEND=mbedtls",
-        ])
+        .args(&cmake_args)
         .current_dir(&regocpp_path)
         .status()
         .expect("failed to execute process");
@@ -98,18 +104,24 @@ fn main() {
         println!("cargo:rustc-link-lib=static:+whole-archive=snmalloc-new-override");
         println!("cargo:rustc-link-arg=mincore.lib");
         println!("cargo:rustc-link-arg=shell32.lib");
+        // Windows bcrypt crypto backend
+        println!("cargo:rustc-link-arg=bcrypt.lib");
+        println!("cargo:rustc-link-arg=crypt32.lib");
     } else if cfg!(target_os = "macos") {
         println!("cargo:rustc-link-lib=c++");
+        // OpenSSL dynamic libraries for crypto/JWT builtins
+        if let Ok(openssl_root) = env::var("OPENSSL_ROOT_DIR") {
+            println!("cargo:rustc-link-search={}/lib", openssl_root);
+        }
+        println!("cargo:rustc-link-lib=ssl");
+        println!("cargo:rustc-link-lib=crypto");
     } else {
         println!("cargo:rustc-link-lib=static:+whole-archive=snmalloc-new-override");
         println!("cargo:rustc-link-lib=stdc++");
+        // OpenSSL dynamic libraries for crypto/JWT builtins
+        println!("cargo:rustc-link-lib=ssl");
+        println!("cargo:rustc-link-lib=crypto");
     }
-    // mbedtls libraries for crypto/JWT builtins
-    println!("cargo:rustc-link-lib=static=mbedtls");
-    println!("cargo:rustc-link-lib=static=mbedcrypto");
-    println!("cargo:rustc-link-lib=static=mbedx509");
-    println!("cargo:rustc-link-lib=static=everest");
-    println!("cargo:rustc-link-lib=static=p256m");
     println!("cargo:rerun-if-changed={}", header_path_str);
 
     // The bindgen::Builder is the main entry point

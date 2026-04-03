@@ -10,7 +10,7 @@
   <PropertyGroup>
     <Authors>Matthew Johnson</Authors>
     <Company>Microsoft</Company>
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <Copyright>Copyright (c) Microsoft. All rights reserved.</Copyright>
     <Description>
       This client library provides in-process Rego query support for .NET applications.
@@ -46,7 +46,7 @@
   <PropertyGroup Condition="'$(IsLinux)'=='true'">
     <RegoCPPLibraryName>librego_shared.so</RegoCPPLibraryName>
     <RegoCPPLibraryPath>$(RegoCPPBuildDir)/src/$(RegoCPPLibraryName)</RegoCPPLibraryPath>
-    <RegoCPPCryptoBackend>mbedtls</RegoCPPCryptoBackend>
+    <RegoCPPCryptoBackend>openssl3</RegoCPPCryptoBackend>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsWindows)'=='true'">
@@ -58,7 +58,7 @@
   <PropertyGroup Condition="'$(IsOSX)'=='true'">
     <RegoCPPLibraryName>librego_shared.dylib</RegoCPPLibraryName>
     <RegoCPPLibraryPath>$(RegoCPPBuildDir)/src/$(RegoCPPLibraryName)</RegoCPPLibraryPath>
-    <RegoCPPCryptoBackend>mbedtls</RegoCPPCryptoBackend>
+    <RegoCPPCryptoBackend>openssl3</RegoCPPCryptoBackend>
   </PropertyGroup>
 
   <Target Name="BuildNativeDLL">

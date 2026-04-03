@@ -121,6 +121,11 @@ namespace rego_test
     RoundTrip roundtrip() const;
     TestCase& roundtrip(RoundTrip setting);
 
+    /// expected print output (captured via stdout redirection)
+    const std::string& want_output() const;
+    TestCase& want_output(const std::string& want_output);
+    bool has_want_output() const;
+
   private:
     BindingMaps to_binding_maps(const Node& node) const;
     bool compare(
@@ -167,6 +172,8 @@ namespace rego_test
     bool m_strict_error;
     bool m_broken;
     bool m_unsupported;
+    std::string m_want_output;
+    bool m_has_want_output;
   };
 
 }

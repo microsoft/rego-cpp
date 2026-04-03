@@ -22,6 +22,7 @@ library and its wrapper packages.
 | File | Field / Pattern | Example |
 |------|----------------|---------|
 | `VERSION` | Entire file contents | `1.3.0` |
+| `ports/rego-cpp/vcpkg.json` | `"version": "X.Y.Z"` | `"version": "1.3.0"` |
 | `wrappers/python/setup.py` | `VERSION = "X.Y.Z"` | `VERSION = "1.3.0"` |
 | `wrappers/rust/regorust/Cargo.toml` | `version = "X.Y.Z"` | `version = "1.3.0"` |
 | `wrappers/dotnet/Rego/Rego.csproj` | `<Version>X.Y.Z</Version>` | `<Version>1.3.0</Version>` |
