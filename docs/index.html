@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>rego-cpp Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="stylesheet" href="scripts/highlight/styles/default.min.css">
+    <link rel="stylesheet" href="styles/regocpp.css">
+    <link rel="shortcut icon" href="/rego-cpp/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/rego-cpp/favicon.ico" type="image/svg+xml">
+    <meta property="og:title" content="rego-cpp: a C++ Rego interpreter and runtime" />
+    <meta property="og:url" content="https://microsoft.github.io/rego-cpp/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="rego-cpp is a C++ implementation of the OPA Rego language and runtime." />
+    <meta property="og:locale" content="en_GB" />
+</head>
+
+<body>
+    <main>
+        <div class="container py-4">
+            <header class="pb-3 mb-4 border-bottom">
+                <img src="images/regocpp-logo.svg" width="24" height="24">
+                <span class="fs-4">rego-cpp</span>
+            </header>
+            <div class="mx-auto col-md-8">
+                <div class="container-fluid py-5 text-center">
+                    <img src="images/regocpp-logo.svg" width="165" height="165" alt="rego-cpp"
+                        class="d-none d-sm-block mx-auto mb-3">
+                    <h1 class="lh-1 fw-semibold">Perform Rego queries from multiple languages with rego-cpp</h1>
+                    <p class="fs-4">A <a href="https://www.openpolicyagent.org/docs/latest/policy-language/">Rego</a>
+                        language
+                        interpreter in C++ with wrappers for C, Rust, and Python.</p>
+                    <p class="text-body-secondary mb-0">
+                        Currently <strong>v1.4.0</strong><span class="px-1">·</span><a
+                            href="https://github.com/microsoft/rego-cpp/releases">All releases</a>
+                    </p>
+                </div>
+            </div>
+            <div class="mx-auto col-md-8">
+                <div class="container-fluid py-5">
+                    <a href="https://www.openpolicyagent.org/">
+                        <img src="images/opa-logo.png" width="92" height="101" alt="Open Policy Agent"
+                            class="d-block mx-auto mb-3">
+                    </a>
+                    <h1 class="lh-2 fw-semibold text-center">What is Rego?</h1>
+                    <p class="lead text-center">Rego is a language developed by <a
+                            href="https://www.openpolicyagent.org/">Open
+                            Policy Agent (OPA)</a> for use in defining policies in cloud systems.</p>
+
+                    <p>We think Rego is a great language, and you can learn more about it <a
+                            href="https://www.openpolicyagent.org/docs/latest/policy-language/">here</a>.
+                        However, it has some limitations.
+                        Primarily, the interpreter is only accessible via the command line or a web server.
+                        Further, the only option for using the language in-process is via an interface in Go.</p>
+
+                    <p>The rego-cpp project provides the ability to integrate Rego natively into a wider range of
+                        languages.
+                        We currrently support C, C++, dotnet, Python, and Rust, and are largely compatible with v1.15.1 of the
+                        language.
+                        You can learn more about our implementation <a
+                            href="https://github.com/microsoft/rego-cpp">here</a>.</p>
+                </div>
+            </div>
+            <div class="mx-auto col-md-8">
+                <div class="container-fluid py-5 text-center">
+                    <h4 class="fw-semibold">Take a look at our examples</h4>
+                    <p>A great way to get started is by looking at one of our code examples.</p>
+                    <div class="d-flex flex-wrap align-items-center justify-content-center gap-4 mt-4">
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#cpp-example">
+                            <img class="d-block mb-2" src="images/cpp-logo.svg" alt="" width="64" height="64"
+                                loading="lazy">
+                            <span class="text-body-secondary">C++</span>
+                        </a>
+
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#c-example">
+                            <img class="d-block mb-2" src="images/c-logo.svg" alt="" width="64" height="64"
+                                loading="lazy">
+                            <span class="text-body-secondary">C</span>
+                        </a>
+
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#dotnet-example">
+                            <img class="d-block mb-2" src="images/dotnet-logo.svg" alt="" width="53" height="64"
+                                loading="lazy">
+                            <span class="text-body-secondary">dotnet</span>
+                        </a>
+
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#python-example">
+                            <img class="d-block mb-2" src="images/python-logo-only.svg" alt="" width="53" height="64"
+                                loading="lazy">
+                            <span class="text-body-secondary">Python</span>
+                        </a>
+
+                        <a class="d-flex flex-column align-items-center text-decoration-none animate-img"
+                            href="#rust-example">
+                            <img class="d-block mb-2" src="images/rust-logo-blk.svg" alt="" width="80" height="80"
+                                loading="lazy">
+                            <span class="text-body-secondary">Rust</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <section id="cpp-example" class="mx-auto col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="images/cpp-logo.svg" alt="c++" width="72" height="72"
+                    loading="lazy">
+                <p class="lead fw-normal">You can compile rego-cpp directly into your C++ program, which gives you full
+                    access to our API. We recommend using CMake FetchContent to add rego-cpp to your project.</p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="cpp/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the C++ API
+                        <img class="bi" src="images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-cmake">FetchContent_Declare(
+  regocpp
+  GIT_REPOSITORY https://github.com/microsoft/rego-cpp.git
+  GIT_TAG        main
+)
+       
+FetchContent_MakeAvailable(regocpp)
+
+# ...
+
+target_link_libraries(myproject PRIVATE regocpp::rego)</code></pre>
+                    <a
+                        href="https://github.com/microsoft/rego-cpp/blob/main/examples/cpp/CMakeLists.txt">CMakeLists.txt</a>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-cpp">#include &lt;rego/rego_c.h&gt;
+
+int main(void)
+{
+  regoEnum err;
+  int rc = EXIT_SUCCESS;
+  regoOutput* output = NULL;
+  regoNode* node = NULL;
+  regoBundle* bundle = NULL;
+  regoInput* input = NULL;
+  regoInterpreter* rego = regoNew();
+  regoSize size = 0;
+  char* buf = NULL;
+  const char* bundle_dir = &quot;example_bundle&quot;;
+  const char* bundle_path = &quot;example.rbb&quot;;
+
+  err = regoAddModuleFile(rego, &quot;examples/objects.rego&quot;);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  err = regoAddDataJSONFile(rego, &quot;examples/data0.json&quot;);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  err = regoAddDataJSONFile(rego, &quot;examples/data1.json&quot;);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  err = regoSetInputJSONFile(rego, &quot;examples/input0.json&quot;);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  output = regoQuery(rego, &quot;[data.one, input.b, data.objects.sites[1]] = x&quot;);
+  if (output == NULL)
+  {
+    goto error;
+  }
+
+  err = print_output(&quot;Query&quot;, output);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  node = regoOutputBinding(output, &quot;x&quot;);
+  if (node == NULL)
+  {
+    goto error;
+  }
+
+  size = regoNodeJSONSize(node);
+  if (size == 0)
+  {
+    goto error;
+  }
+
+  buf = (char*)malloc(size);
+  err = regoNodeJSON(node, buf, size);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  printf(&quot;x = %s\n&quot;, buf);
+  free(buf);
+  buf = NULL;
+
+  node = regoNodeGet(node, 1); // index
+  if (node == NULL)
+  {
+    goto error;
+  }
+
+  size = regoNodeValueSize(node);
+  if (size == 0)
+  {
+    goto error;
+  }
+
+  buf = (char*)malloc(size);
+  err = regoNodeValue(node, buf, size);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  printf(&quot;x[1] = `%s`\n&quot;, buf);
+  free(buf);
+  buf = NULL;
+
+  regoFreeOutput(output);
+  output = NULL;
+
+  err = regoSetQuery(rego, &quot;[data.one, input.b, data.objects.sites[1]] = x&quot;);
+
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  err = regoAddEntrypoint(rego, &quot;objects/sites&quot;);
+
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  bundle = regoBuild(rego);
+
+  if (!regoBundleOk(bundle))
+  {
+    goto error;
+  }
+
+  err = regoBundleSave(rego, bundle_dir, bundle);
+
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  regoFreeBundle(bundle);
+  bundle = NULL;
+
+  bundle = regoBundleLoad(rego, bundle_dir);
+
+  if (bundle == NULL || !regoBundleOk(bundle))
+  {
+    goto error;
+  }
+
+  err = regoBundleSaveBinary(rego, bundle_path, bundle);
+
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  regoFreeBundle(bundle);
+  bundle = NULL;
+
+  bundle = regoBundleLoadBinary(rego, bundle_path);
+
+  if (bundle == NULL || !regoBundleOk(bundle))
+  {
+    goto error;
+  }
+
+  input = regoNewInput();
+  regoInputString(input, &quot;a&quot;);
+  regoInputInt(input, 10);
+  regoInputObjectItem(input);
+  regoInputString(input, &quot;b&quot;);
+  regoInputString(input, &quot;20&quot;);
+  regoInputObjectItem(input);
+  regoInputString(input, &quot;c&quot;);
+  regoInputFloat(input, 30.0);
+  regoInputObjectItem(input);
+  regoInputString(input, &quot;d&quot;);
+  regoInputBoolean(input, 1);
+  regoInputObjectItem(input);
+  regoInputObject(input, 4);
+  err = regoInputValidate(input);
+
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  err = regoSetInput(rego, input);
+
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  output = regoBundleQuery(rego, bundle);
+  if (output == NULL)
+  {
+    goto error;
+  }
+
+  err = print_output(&quot;Bundle Query&quot;, output);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  regoFreeOutput(output);
+
+  output = regoBundleQueryEntrypoint(rego, bundle, &quot;objects/sites&quot;);
+  if (output == NULL)
+  {
+    goto error;
+  }
+
+  err = print_output(&quot;Bundle Query Endpoint&quot;, output);
+  if (err != REGO_OK)
+  {
+    goto error;
+  }
+
+  goto exit;
+
+error:
+  print_error(rego);
+  rc = EXIT_FAILURE;
+
+exit:
+  if (buf != NULL)
+  {
+    free(buf);
+  }
+
+  if (output != NULL)
+  {
+    regoFreeOutput(output);
+  }
+
+  if (input != NULL)
+  {
+    regoFreeInput(input);
+  }
+
+  if (bundle != NULL)
+  {
+    regoFreeBundle(bundle);
+  }
+
+  if (rego != NULL)
+  {
+    regoFree(rego);
+  }
+
+  return rc;
+}</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/c/example.c">example.c</a>
+                </div>
+
+            </section>
+
+            <section id="dotnet-example" class="mx-auto col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="images/dotnet-logo.svg" alt="dotnet" width="60" height="72"
+                    loading="lazy">
+                <p class="lead fw-normal">We provide a Nuget package called <a
+                        href="https://pypi.org/project/regopy/">Rego</a> which exposes the C API to dotnet languages.
+                </p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="dotnet/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the dotnet API
+                        <img class="bi" src="images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-bash">$ dotnet add Rego</code></pre>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-csharp">﻿using System.Collections;
+using Rego;
+
+//////////////////////
+///// Query only /////
+//////////////////////
+
+Console.WriteLine(&quot;Query Only&quot;);
+
+// You can run simple queries without any input or data.
+Interpreter rego = new();
+var output = rego.Query(&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5&quot;);
+Console.WriteLine(output);
+// {&quot;expressions&quot;:[true, true, 10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}
+
+// You can access bound results using the Binding method
+Console.WriteLine(&quot;x = {0}&quot;, output.Binding(&quot;x&quot;));
+
+// You can also access expressions by index
+Console.WriteLine(output.Expressions()[2]);
+
+Console.WriteLine();
+
+////////////////////////
+//// Input and Data ////
+////////////////////////
+
+Console.WriteLine(&quot;Input and Data&quot;);
+
+// If you provide an object, it will be converted to JSON before
+// being added to the state.
+var data0 = new Dictionary&lt;string, object&gt;{
+    {&quot;one&quot;, new Dictionary&lt;string, object&gt;{
+        {&quot;bar&quot;, &quot;Foo&quot;},
+        {&quot;baz&quot;, 5},
+        {&quot;be&quot;, true},
+        {&quot;bop&quot;, 23.4}}},
+    {&quot;two&quot;, new Dictionary&lt;string, object&gt;{
+        {&quot;bar&quot;, &quot;Bar&quot;},
+        {&quot;baz&quot;, 12.3},
+        {&quot;be&quot;, false},
+        {&quot;bop&quot;, 42}}}};
+rego.AddData(data0);
+
+// You can also provide JSON directly.
+rego.AddDataJson(&quot;&quot;&quot;
+    {
+        &quot;three&quot;: {
+            &quot;bar&quot;: &quot;Baz&quot;,
+            &quot;baz&quot;: 15,
+            &quot;be&quot;: true,
+            &quot;bop&quot;: 4.23
+        }
+    }
+    &quot;&quot;&quot;);
+
+var objectsSource = &quot;&quot;&quot;
+    package objects
+
+    rect := {&quot;width&quot;: 2, &quot;height&quot;: 4}
+    cube := {&quot;width&quot;: 3, &quot;height&quot;: 4, &quot;depth&quot;: 5}
+    a := 42
+    b := false
+    c := null
+    d := {&quot;a&quot;: a, &quot;x&quot;: [b, c]}
+    index := 1
+    shapes := [rect, cube]
+    names := [&quot;prod&quot;, &quot;smoke1&quot;, &quot;dev&quot;]
+    sites := [{&quot;name&quot;: &quot;prod&quot;}, {&quot;name&quot;: names[index]}, {&quot;name&quot;: &quot;dev&quot;}]
+    e := {
+        a: &quot;foo&quot;,
+        &quot;three&quot;: c,
+        names[2]: b,
+        &quot;four&quot;: d,
+    }
+    f := e[&quot;dev&quot;]
+    &quot;&quot;&quot;;
+rego.AddModule(&quot;objects.rego&quot;, objectsSource);
+
+// inputs can be either JSON or Rego, and provided
+// as objects (which will be converted to JSON) or as
+// text.
+rego.SetInputTerm(&quot;&quot;&quot;
+    {
+        &quot;a&quot;: 10,
+        &quot;b&quot;: &quot;20&quot;,
+        &quot;c&quot;: 30.0,
+        &quot;d&quot;: true
+    }
+    &quot;&quot;&quot;);
+
+Console.WriteLine(rego.Query(&quot;[data.one, input.b, data.objects.sites[1]] = x&quot;));
+// {&quot;bindings&quot;:{&quot;x&quot;:[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]}}
+
+///////////////////
+///// Bundles  ////
+///////////////////
+
+Console.WriteLine();
+Console.WriteLine(&quot;Bundles&quot;);
+
+// If you want to run the same set of queries against a policy with different
+// inputs, you can create a bundle and use that to save the cost of compilation.
+
+Interpreter rego_build = new();
+
+rego_build.AddDataJson(&quot;&quot;&quot;
+{&quot;a&quot;: 7,
+&quot;b&quot;: 13}
+&quot;&quot;&quot;);
+
+rego_build.AddModule(&quot;example.rego&quot;, &quot;&quot;&quot;
+    package example
+
+    foo := data.a * input.x + data.b * input.y
+    bar := data.b * input.x + data.a * input.y
+&quot;&quot;&quot;);
+
+// We can specify both a default query, and specific entry points into the policy
+// that should be made available to use later.
+var bundle = rego_build.Build(&quot;x=data.example.foo + data.example.bar&quot;, [&quot;example/foo&quot;, &quot;example/bar&quot;]);
+
+// we can now save the bundle to the disk
+rego_build.SaveBundle(&quot;bundle&quot;, bundle);
+
+// and load it again
+Interpreter rego_run = new();
+rego_run.LoadBundle(&quot;bundle&quot;);
+
+// the most efficient way to provide input to a policy is by constructing it
+// manually, without the need for parsing JSON or Rego.
+
+var input = Input.Create(new Dictionary&lt;string, int&gt;
+        {
+            {&quot;x&quot;, 104 },
+            {&quot;y&quot;, 119 }
+        });
+
+rego_run.SetInput(input);
+
+// We can query the bundle, which will use the entrypoint of the default query
+// provided at build
+Console.WriteLine(&quot;query: {0}&quot;,rego_run.QueryBundle(bundle));
+// Query: {&quot;expressions&quot;:[true], &quot;bindings&quot;:{&quot;x&quot;:4460}}
+
+// or we can query specific entrypoints
+Console.WriteLine(&quot;example/foo: {0}&quot;, rego_run.QueryBundle(bundle, &quot;example/foo&quot;));
+// example/foo: {&quot;expressions&quot;:[2275]}</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/dotnet/Program.cs">Program.cs</a>
+                </div>
+            </section>
+            
+            <section id="python-example" class="mx-auto col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="images/python-logo-only.svg" alt="Python" width="60" height="72"
+                    loading="lazy">
+                <p class="lead fw-normal">We provide a Python wheel called <a
+                        href="https://pypi.org/project/regopy/">regopy</a> which exposes the C API in a pythonic way.
+                </p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="python/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the Python API
+                        <img class="bi" src="images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-bash">$ pip install regopy</code></pre>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-python">&quot;&quot;&quot;Python example code.&quot;&quot;&quot;
+
+from regopy import Input, Interpreter
+
+##############################
+#####    Query Only      #####
+##############################
+
+print(&quot;Query Only&quot;)
+
+# You can run simple queries without any input or data.
+rego = Interpreter()
+output = rego.query(&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5&quot;)
+print(output)
+# {&quot;expressions&quot;:[true, true, 10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}
+
+# You can access bound results using the binding method
+print(&quot;x =&quot;, output.binding(&quot;x&quot;).json())
+
+# You can also access expressions by index
+print(output[0][2])
+
+print()
+
+##############################
+####   Input and Data    #####
+##############################
+
+print(&quot;Input and Data&quot;)
+
+# If you provide a dict, it will be converted to JSON before
+# being added to the state.
+rego.add_data({
+    &quot;one&quot;: {
+        &quot;bar&quot;: &quot;Foo&quot;,
+        &quot;baz&quot;: 5,
+        &quot;be&quot;: True,
+        &quot;bop&quot;: 23.4
+    },
+    &quot;two&quot;: {
+        &quot;bar&quot;: &quot;Bar&quot;,
+        &quot;baz&quot;: 12.3,
+        &quot;be&quot;: False,
+        &quot;bop&quot;: 42
+    }
+})
+
+# You can also provide JSON directly.
+rego.add_data_json(&quot;&quot;&quot;
+{
+    &quot;three&quot;: {
+        &quot;bar&quot;: &quot;Baz&quot;,
+        &quot;baz&quot;: 15,
+        &quot;be&quot;: true,
+        &quot;bop&quot;: 4.23
+    }
+}
+&quot;&quot;&quot;)
+
+objects_source = &quot;&quot;&quot;
+package objects
+
+rect := {&quot;width&quot;: 2, &quot;height&quot;: 4}
+cube := {&quot;width&quot;: 3, &quot;height&quot;: 4, &quot;depth&quot;: 5}
+a := 42
+b := false
+c := null
+d := {&quot;a&quot;: a, &quot;x&quot;: [b, c]}
+index := 1
+shapes := [rect, cube]
+names := [&quot;prod&quot;, &quot;smoke1&quot;, &quot;dev&quot;]
+sites := [{&quot;name&quot;: &quot;prod&quot;}, {&quot;name&quot;: names[index]}, {&quot;name&quot;: &quot;dev&quot;}]
+e := {
+    a: &quot;foo&quot;,
+    &quot;three&quot;: c,
+    names[2]: b,
+    &quot;four&quot;: d,
+}
+f := e[&quot;dev&quot;]
+&quot;&quot;&quot;
+rego.add_module(&quot;objects.rego&quot;, objects_source)
+
+# Inputs can be either JSON or Rego, and provided
+# as objects or as text.
+rego.set_input_term(&quot;&quot;&quot;
+{
+    &quot;a&quot;: 10,
+    &quot;b&quot;: &quot;20&quot;,
+    &quot;c&quot;: 30.0,
+    &quot;d&quot;: true
+}
+&quot;&quot;&quot;)
+
+print(rego.query(&quot;[data.one, input.b, data.objects.sites[1]] = x&quot;))
+# {&quot;bindings&quot;:{&quot;x&quot;:[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]}}
+
+##############################
+#####      Bundles       #####
+##############################
+
+print()
+print(&quot;Bundles&quot;)
+
+# If you want to run the same set of queries against a policy with different
+# inputs, you can create a bundle and use that to save the cost of compilation.
+
+rego_build = Interpreter()
+
+rego_build.add_data_json(&quot;&quot;&quot;
+{&quot;a&quot;: 7,
+&quot;b&quot;: 13}
+&quot;&quot;&quot;)
+
+rego_build.add_module(&quot;example.rego&quot;, &quot;&quot;&quot;
+package example
+
+foo := data.a * input.x + data.b * input.y
+bar := data.b * input.x + data.a * input.y
+&quot;&quot;&quot;)
+
+# We can specify both a default query, and specific entry points into the policy
+# that should be made available to use later.
+bundle = rego_build.build(
+    &quot;x=data.example.foo + data.example.bar&quot;,
+    [&quot;example/foo&quot;, &quot;example/bar&quot;]
+)
+
+# We can now save the bundle to disk
+rego_build.save_bundle(&quot;bundle&quot;, bundle)
+
+# And load it again
+rego_run = Interpreter()
+rego_run.load_bundle(&quot;bundle&quot;)
+
+# The most efficient way to provide input to a policy is by constructing it
+# manually, without the need for parsing JSON or Rego.
+rego_run.set_input(Input({&quot;x&quot;: 104, &quot;y&quot;: 119}))
+
+# We can query the bundle, which will use the entrypoint of the default query
+# provided at build
+print(&quot;query:&quot;, rego_run.query_bundle(bundle))
+# query: {&quot;expressions&quot;:[true], &quot;bindings&quot;:{&quot;x&quot;:4460}}
+
+# Or we can query specific entrypoints
+print(&quot;example/foo:&quot;, rego_run.query_bundle_entrypoint(bundle, &quot;example/foo&quot;))
+# example/foo: {&quot;expressions&quot;:[2275]}</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/python/example.py">example.py</a>
+                </div>
+            </section>
+
+            <section id="rust-example" class="mx-auto col-lg-8 mb-5">
+                <img class="d-inline-block mb-3" src="images/rust-logo-blk.svg" alt="Rust" width="80" height="80"
+                    loading="lazy">
+                <p class="lead fw-normal">We provide a Rust crate called <a
+                        href="https://crates.io/crates/regorust">regorust</a> which exposes the C API in idiomatic Rust.
+                    This example shows a CLI interpreter implemented in Rust.</p>
+                <p class="d-flex justify-content-start lead fw-normal">
+                    <a href="rust/regorust/index.html" class="icon-link icon-link-hover fw-semibold">
+                        Learn more about the Rust API
+                        <img class="bi" src="images/arrow-right.svg">
+                    </a>
+                </p>
+                <div>
+                    <pre>
+                        <code class="language-ini">[dependencies]
+regorust = "1.4.0"</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/rust/Cargo.toml">Cargo.toml</a>
+                </div>
+                <div>
+                    <pre>
+                        <code class="language-rust">use regorust::{BundleFormat, Input, Interpreter};
+use std::path::Path;
+
+fn main() {
+    //////////////////////
+    ///// Query Only /////
+    //////////////////////
+
+    println!(&quot;Query Only&quot;);
+
+    // You can run simple queries without any input or data.
+    let rego = Interpreter::new();
+    let output = rego
+        .query(&quot;x=5;y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5&quot;)
+        .expect(&quot;Failed to evaluate query&quot;);
+    println!(&quot;{}&quot;, output);
+    // {&quot;expressions&quot;:[true, true, 10], &quot;bindings&quot;:{&quot;x&quot;:5, &quot;y&quot;:9.4}}
+
+    // You can access bound results using the binding method
+    let x = output.binding(&quot;x&quot;).expect(&quot;x is not bound&quot;);
+    println!(&quot;x = {}&quot;, x.json().unwrap());
+
+    // You can also access expressions by index
+    let exprs = output.expressions().expect(&quot;no expressions&quot;);
+    println!(&quot;{}&quot;, exprs.index(2).unwrap().json().unwrap());
+
+    println!();
+
+    ////////////////////////
+    //// Input and Data ////
+    ////////////////////////
+
+    println!(&quot;Input and Data&quot;);
+
+    // You can provide JSON data directly.
+    rego.add_data_json(
+        r#&quot;{
+        &quot;one&quot;: {
+            &quot;bar&quot;: &quot;Foo&quot;,
+            &quot;baz&quot;: 5,
+            &quot;be&quot;: true,
+            &quot;bop&quot;: 23.4
+        },
+        &quot;two&quot;: {
+            &quot;bar&quot;: &quot;Bar&quot;,
+            &quot;baz&quot;: 12.3,
+            &quot;be&quot;: false,
+            &quot;bop&quot;: 42
+        }
+    }&quot;#,
+    )
+    .expect(&quot;Failed to add data&quot;);
+
+    rego.add_data_json(
+        r#&quot;{
+        &quot;three&quot;: {
+            &quot;bar&quot;: &quot;Baz&quot;,
+            &quot;baz&quot;: 15,
+            &quot;be&quot;: true,
+            &quot;bop&quot;: 4.23
+        }
+    }&quot;#,
+    )
+    .expect(&quot;Failed to add data&quot;);
+
+    rego.add_module(
+        &quot;objects.rego&quot;,
+        r#&quot;package objects
+
+rect := {&quot;width&quot;: 2, &quot;height&quot;: 4}
+cube := {&quot;width&quot;: 3, &quot;height&quot;: 4, &quot;depth&quot;: 5}
+a := 42
+b := false
+c := null
+d := {&quot;a&quot;: a, &quot;x&quot;: [b, c]}
+index := 1
+shapes := [rect, cube]
+names := [&quot;prod&quot;, &quot;smoke1&quot;, &quot;dev&quot;]
+sites := [{&quot;name&quot;: &quot;prod&quot;}, {&quot;name&quot;: names[index]}, {&quot;name&quot;: &quot;dev&quot;}]
+e := {
+    a: &quot;foo&quot;,
+    &quot;three&quot;: c,
+    names[2]: b,
+    &quot;four&quot;: d,
+}
+f := e[&quot;dev&quot;]
+&quot;#,
+    )
+    .expect(&quot;Failed to add module&quot;);
+
+    // Inputs can be either JSON or Rego, and provided as text.
+    rego.set_input_json(
+        r#&quot;{
+        &quot;a&quot;: 10,
+        &quot;b&quot;: &quot;20&quot;,
+        &quot;c&quot;: 30.0,
+        &quot;d&quot;: true
+    }&quot;#,
+    )
+    .expect(&quot;Failed to set input&quot;);
+
+    println!(
+        &quot;{}&quot;,
+        rego.query(&quot;[data.one, input.b, data.objects.sites[1]] = x&quot;)
+            .expect(&quot;Failed to evaluate query&quot;)
+    );
+    // {&quot;bindings&quot;:{&quot;x&quot;:[{&quot;bar&quot;:&quot;Foo&quot;, &quot;baz&quot;:5, &quot;be&quot;:true, &quot;bop&quot;:23.4}, &quot;20&quot;, {&quot;name&quot;:&quot;smoke1&quot;}]}}
+
+    ///////////////////
+    ///// Bundles  ////
+    ///////////////////
+
+    println!();
+    println!(&quot;Bundles&quot;);
+
+    // If you want to run the same set of queries against a policy with different
+    // inputs, you can create a bundle and use that to save the cost of compilation.
+
+    let rego_build = Interpreter::new();
+
+    rego_build
+        .add_data_json(
+            r#&quot;{&quot;a&quot;: 7,
+&quot;b&quot;: 13}&quot;#,
+        )
+        .expect(&quot;Failed to add data&quot;);
+
+    rego_build
+        .add_module(
+            &quot;example.rego&quot;,
+            r#&quot;package example
+
+foo := data.a * input.x + data.b * input.y
+bar := data.b * input.x + data.a * input.y
+&quot;#,
+        )
+        .expect(&quot;Failed to add module&quot;);
+
+    // We can specify both a default query, and specific entry points into the policy
+    // that should be made available to use later.
+    let bundle = rego_build
+        .build(
+            &amp;Some(&quot;x=data.example.foo + data.example.bar&quot;),
+            &amp;[&quot;example/foo&quot;, &quot;example/bar&quot;],
+        )
+        .expect(&quot;Failed to build bundle&quot;);
+
+    // We can now save the bundle to disk
+    let bundle_path = Path::new(&quot;bundle&quot;);
+    rego_build
+        .save_bundle(bundle_path, &amp;bundle, BundleFormat::JSON)
+        .expect(&quot;Failed to save bundle&quot;);
+
+    // And load it again
+    let rego_run = Interpreter::new();
+    rego_run
+        .load_bundle(bundle_path, BundleFormat::JSON)
+        .expect(&quot;Failed to load bundle&quot;);
+
+    // The most efficient way to provide input to a policy is by constructing it
+    // manually, without the need for parsing JSON or Rego.
+    let input = Input::new()
+        .str(&quot;x&quot;)
+        .int(104)
+        .objectitem()
+        .str(&quot;y&quot;)
+        .int(119)
+        .objectitem()
+        .object(2)
+        .validate()
+        .expect(&quot;Failed to create input&quot;);
+
+    rego_run.set_input(&amp;input).expect(&quot;Failed to set input&quot;);
+
+    // We can query the bundle, which will use the entrypoint of the default query
+    // provided at build
+    println!(
+        &quot;query: {}&quot;,
+        rego_run
+            .query_bundle(&amp;bundle)
+            .expect(&quot;Failed to query bundle&quot;)
+    );
+    // query: {&quot;expressions&quot;:[true], &quot;bindings&quot;:{&quot;x&quot;:4460}}
+
+    // Or we can query specific entrypoints
+    println!(
+        &quot;example/foo: {}&quot;,
+        rego_run
+            .query_bundle_entrypoint(&amp;bundle, &quot;example/foo&quot;)
+            .expect(&quot;Failed to query bundle entrypoint&quot;)
+    );
+    // example/foo: {&quot;expressions&quot;:[2275]}
+}</code></pre>
+                    <a href="https://github.com/microsoft/rego-cpp/blob/main/examples/rust/src/main.rs">main.rs</a>
+                </div>
+            </section>
+
+
+            <footer class="rc-footer py-4 py-md-5 mt-5 bg-body-tertiary">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <a class="d-inline-flex align-items-center mb-2 text-body-emphasis text-decoration-none"
+                                href="/" aria-label="rego-cpp">
+                                <img src="images/regocpp-logo.svg" class="d-block me-2" width="32" height="32"
+                                    alt="rego-cpp">
+                                <span class="fs-5">rego-cpp</span>
+                            </a>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2">Designed and built by the rego-cpp team.</li>
+                                <li class="mb-2">&copy; Microsoft 2024.</li>
+                                <li class="mb-2">Code licensed MIT, docs CC BY 3.0</li>
+                                <li class="mb-2">Currently v1.4.0</li>
+                            </ul>
+                        </div>
+                        <div class="col-6 col-lg-2 offset-lg-1 mb-3">
+                            <h5>Links</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb2"><a href="cpp/index.html">C++ API</a></li>
+                                <li class="mb2"><a href="cpp/rego__c_8h.html">C API</a></li>
+                                <li class="mb2"><a href="rust/regorust/index.html">Rust API</a></li>
+                                <li class="mb2"><a href="python/index.html">Python API</a></li>
+                                <li class="mb2"><a href="https://github.com/microsoft/rego-cpp">Github</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+                integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+                crossorigin="anonymous">
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+                crossorigin="anonymous"></script>
+            <script src="scripts/highlight/highlight.min.js"></script>
+            <script>hljs.highlightAll();</script>
+    </main>
+</body>
+
+</html>
