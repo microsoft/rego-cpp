@@ -30,6 +30,8 @@ namespace
 {
   using rego::crypto_core::to_hex;
 
+  using BIO_ptr = std::unique_ptr<BIO, decltype(&BIO_free)>;
+
   // Safe wrapper around BIO_new_mem_buf that rejects inputs exceeding
   // INT_MAX, preventing undefined behaviour from the size_t → int cast.
   BIO_ptr bio_from_mem(const void* data, size_t len)
@@ -151,7 +153,6 @@ namespace rego::crypto_core
   // ── Key parsing helpers ──
 
   using EVP_PKEY_ptr = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
-  using BIO_ptr = std::unique_ptr<BIO, decltype(&BIO_free)>;
   using BIGNUM_ptr = std::unique_ptr<BIGNUM, decltype(&BN_free)>;
   using X509_ptr = std::unique_ptr<X509, decltype(&X509_free)>;
 

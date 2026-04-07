@@ -13,7 +13,7 @@
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
-        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+        "REGOCPP_CRYPTO_BACKEND": "openssl3"
       }
     },
     {
@@ -29,7 +29,7 @@
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
         "REGOCPP_OPA_TESTS": "ON",
-        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+        "REGOCPP_CRYPTO_BACKEND": "openssl3"
       }
     },
     {
@@ -42,7 +42,7 @@
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
-        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+        "REGOCPP_CRYPTO_BACKEND": "openssl3"
       }
     },
     {
@@ -56,7 +56,7 @@
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
         "REGOCPP_OPA_TESTS": "ON",
-        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+        "REGOCPP_CRYPTO_BACKEND": "openssl3"
       }
     },
     {
@@ -71,7 +71,7 @@
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
-        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+        "REGOCPP_CRYPTO_BACKEND": "openssl3"
       }
     },
     {
@@ -87,7 +87,7 @@
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
         "REGOCPP_OPA_TESTS": "ON",
-        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+        "REGOCPP_CRYPTO_BACKEND": "openssl3"
       }
     },
     {
@@ -100,7 +100,7 @@
         "REGOCPP_BUILD_TESTS": "ON",
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
-        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+        "REGOCPP_CRYPTO_BACKEND": "openssl3"
       }
     },
     {
@@ -114,7 +114,7 @@
         "REGOCPP_BUILD_TOOLS": "ON",
         "REGOCPP_COPY_EXAMPLES": "ON",
         "REGOCPP_OPA_TESTS": "ON",
-        "REGOCPP_CRYPTO_BACKEND": "mbedtls"
+        "REGOCPP_CRYPTO_BACKEND": "openssl3"
       }
     },
     {

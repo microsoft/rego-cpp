@@ -12,14 +12,14 @@ jobs:
         python: [cp39, cp310, cp311, cp312, cp313, cp314]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-win*
           CIBW_ENVIRONMENT: >
@@ -28,7 +28,7 @@ jobs:
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.python }}-windows
           path: ./wheelhouse/*.whl
@@ -40,9 +40,9 @@ jobs:
         python: [cp310, cp311, cp312, cp313, cp314]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         id: python
         with:
           python-version: "3.10 - 3.13"
@@ -57,17 +57,20 @@ jobs:
           export PATH=$(python3 -m site --user-base)/bin:$PATH
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: arm64
+          MACOSX_DEPLOYMENT_TARGET: "15.0"
+          CIBW_BEFORE_ALL_MACOS: brew install openssl@3
           CIBW_ENVIRONMENT_MACOS : >
             REGOCPP_REPO=https://github.com/${{github.repository}}
             REGOCPP_TAG=${{github.sha}}
+            OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.python }}-mac-arm64
           path: ./wheelhouse/*.whl
@@ -79,9 +82,9 @@ jobs:
         python: [cp310, cp311, cp312, cp313, cp314]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         id: python
         with:
           python-version: "3.10 - 3.13"
@@ -96,18 +99,20 @@ jobs:
           export PATH=$(python3 -m site --user-base)/bin:$PATH
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-macosx*
           CIBW_ARCHS_MACOS: x86_64
-          MACOSX_DEPLOYMENT_TARGET: 14.8.1
+          MACOSX_DEPLOYMENT_TARGET: "15.0"
+          CIBW_BEFORE_ALL_MACOS: brew install openssl@3
           CIBW_ENVIRONMENT_MACOS : >
             REGOCPP_REPO=https://github.com/${{github.repository}}
             REGOCPP_TAG=${{github.sha}}
+            OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.python }}-mac-x86_64
           path: ./wheelhouse/*.whl
@@ -119,24 +124,26 @@ jobs:
         python: [cp39, cp310, cp311, cp312, cp313, cp314]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-manylinux*
-          CIBW_BEFORE_ALL: yum makecache
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_34
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_34
+          CIBW_BEFORE_ALL: dnf makecache && dnf install -y openssl-devel
           CIBW_ENVIRONMENT: >
             REGOCPP_REPO=https://github.com/${{github.repository}}
             REGOCPP_TAG=${{github.sha}}
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.python }}-manylinux
           path: ./wheelhouse/*.whl
@@ -149,23 +156,24 @@ jobs:
         python: [cp39, cp310, cp311, cp312, cp313, cp314]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BUILD: ${{ matrix.python }}-musllinux*
+          CIBW_BEFORE_ALL: apk add openssl-dev
           CIBW_ENVIRONMENT: >
             REGOCPP_REPO=https://github.com/${{github.repository}}
             REGOCPP_TAG=${{github.sha}}
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.python }}-musllinux
           path: ./wheelhouse/*.whl
@@ -180,13 +188,13 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - name: Download Wheels
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: wheelhouse
           pattern: wheels-*
           merge-multiple: true
       - run: ls -R wheelhouse
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels
           path: ./wheelhouse/*

@@ -25,35 +25,62 @@ project( regocpp VERSION ${REGOCPP_VERSION} LANGUAGES CXX)
 
 # -------------------- Get version info --------------------------
 
-find_package(Git REQUIRED)
+find_package(Git QUIET)
 
-execute_process(
-  COMMAND git log -1 --format=%H
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE REGOCPP_GIT_HASH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/.git")
+  execute_process(
+    COMMAND git log -1 --format=%H
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE REGOCPP_GIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _git_result
+    )
+
+  if(NOT _git_result EQUAL 0)
+    set(REGOCPP_GIT_HASH "unknown")
+  endif()
+
+  execute_process(
+    COMMAND git rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE REGOCPP_GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _git_result
   )
 
-execute_process(
-  COMMAND git rev-parse --abbrev-ref HEAD
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE REGOCPP_GIT_BRANCH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+  if(NOT _git_result EQUAL 0)
+    set(REGOCPP_GIT_BRANCH "unknown")
+  endif()
 
-execute_process(
-  COMMAND git log -1 --format=%h
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE REGOCPP_GIT_SHORT_HASH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
+  execute_process(
+    COMMAND git log -1 --format=%h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE REGOCPP_GIT_SHORT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _git_result
+    )
 
-execute_process(
-  COMMAND git log -1 --format=%aD
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE REGOCPP_BUILD_DATE
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
+  if(NOT _git_result EQUAL 0)
+    set(REGOCPP_GIT_SHORT_HASH "unknown")
+  endif()
+
+  execute_process(
+    COMMAND git log -1 --format=%aD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE REGOCPP_BUILD_DATE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _git_result
+    )
+
+  if(NOT _git_result EQUAL 0)
+    set(REGOCPP_BUILD_DATE "unknown")
+  endif()
+else()
+  set(REGOCPP_GIT_HASH "unknown")
+  set(REGOCPP_GIT_BRANCH "tag")
+  set(REGOCPP_GIT_SHORT_HASH "v${REGOCPP_VERSION}")
+  string(TIMESTAMP REGOCPP_BUILD_DATE "%a, %d %b %Y %H:%M:%S %z")
+endif()
 
 set(REGOCPP_BUILD_TOOLCHAIN "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
@@ -72,18 +99,23 @@ option(REGOCPP_CLEAN_INSTALL "Whether the install directory should be cleaned be
 set(REGOCPP_SANITIZE "" CACHE STRING "Argument to pass to sanitize (disabled by default)")
 option(REGOCPP_USE_SNMALLOC "Whether to use snmalloc for memory allocation" ON)
 
-set(REGOCPP_CRYPTO_BACKEND "mbedtls" CACHE STRING
-  "Crypto backend for crypto/JWT builtins. Options: mbedtls, openssl3, bcrypt, '' (disabled)")
-set_property(CACHE REGOCPP_CRYPTO_BACKEND PROPERTY STRINGS "" "mbedtls" "openssl3" "bcrypt")
+set(REGOCPP_CRYPTO_BACKEND "openssl3" CACHE STRING
+  "Crypto backend for crypto/JWT builtins. Options: openssl3, bcrypt, '' (disabled)")
+set_property(CACHE REGOCPP_CRYPTO_BACKEND PROPERTY STRINGS "" "openssl3" "bcrypt")
+option(REGOCPP_USE_FETCH_CONTENT
+  "Fetch trieste from git (ON) or locate via find_package (OFF). When OFF, consumers must have trieste findable by CMake (e.g. via vcpkg)."
+  ON)
 
-if(REGOCPP_CRYPTO_BACKEND AND NOT REGOCPP_CRYPTO_BACKEND MATCHES "^(mbedtls|openssl3|bcrypt)$")
+if(REGOCPP_CRYPTO_BACKEND AND NOT REGOCPP_CRYPTO_BACKEND MATCHES "^(openssl3|bcrypt)$")
   message(FATAL_ERROR
     "Invalid REGOCPP_CRYPTO_BACKEND='${REGOCPP_CRYPTO_BACKEND}'."
-    " Valid values: mbedtls, openssl3, bcrypt, or '' (empty to disable crypto).")
+    " Valid values: openssl3, bcrypt, or '' (empty to disable crypto).")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+include(GNUInstallDirs)
 
 # -------------------- OS adjustments -------------------------
 
@@ -96,47 +128,33 @@ endif()
 
 find_package(Threads)
 
-# Used to provide
-# FetchContent_MakeAvailable_ExcludeFromAll
-FetchContent_Declare(
-    cmake_utils
-    GIT_REPOSITORY https://github.com/mjp41/cmake_utils
-    GIT_TAG 2bf98b5773ea7282197c823e205547d8c2e323c0
-    GIT_SHALLOW FALSE
-)
-
-FetchContent_Declare(
-  trieste
-  GIT_REPOSITORY https://github.com/microsoft/trieste
-  GIT_TAG        32c3069913245eb8622cb82e47ad2523c7d23eea
-)
-
-FetchContent_MakeAvailable(cmake_utils)
-
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
-
-set(TRIESTE_BUILD_SAMPLES OFF)
-set(TRIESTE_BUILD_PARSERS ON)
-set(TRIESTE_USE_SNMALLOC ${REGOCPP_USE_SNMALLOC})
-
-FetchContent_MakeAvailable_ExcludeFromAll(trieste)
-
-if(REGOCPP_CRYPTO_BACKEND STREQUAL "mbedtls")
-  set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
-  set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
-  set(MBEDTLS_AS_SUBPROJECT ON CACHE BOOL "" FORCE)
-  # Build mbedTLS with PIC so its static libraries can be linked into rego_shared.
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-  # Mbed TLS v3.6.2
+if(REGOCPP_USE_FETCH_CONTENT)
+  # Used to provide
+  # FetchContent_MakeAvailable_ExcludeFromAll
   FetchContent_Declare(
-    mbedtls
-    GIT_REPOSITORY https://github.com/Mbed-TLS/mbedtls
-    GIT_TAG        0c7704b4f231fc62ad261e18d32677165a8d14d5
-    GIT_SHALLOW    TRUE
+      cmake_utils
+      GIT_REPOSITORY https://github.com/mjp41/cmake_utils
+      GIT_TAG 2bf98b5773ea7282197c823e205547d8c2e323c0
+      GIT_SHALLOW FALSE
   )
 
-  FetchContent_MakeAvailable_ExcludeFromAll(mbedtls)
+  FetchContent_Declare(
+    trieste
+    GIT_REPOSITORY https://github.com/microsoft/trieste
+    GIT_TAG        ee6bfd1ed88d9fa3279c437ae0c0f7e74bbce4f8
+  )
+
+  FetchContent_MakeAvailable(cmake_utils)
+
+  set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
+
+  set(TRIESTE_BUILD_SAMPLES OFF)
+  set(TRIESTE_BUILD_PARSERS ON)
+  set(TRIESTE_USE_SNMALLOC ${REGOCPP_USE_SNMALLOC})
+
+  FetchContent_MakeAvailable_ExcludeFromAll(trieste)
+else()
+  find_package(trieste CONFIG REQUIRED)
 endif()
 
 find_program(CLANG_FORMAT NAMES clang-format-10 clang-format-14 clang-format-18 )
@@ -217,21 +235,18 @@ if(REGOCPP_CLEAN_INSTALL)
     ]])
 endif()
 
-set(INSTALL_CONFIGDIR cmake)
-set(INSTALL_LIBDIR lib)
-set(INSTALL_INCLUDEDIR include)
-set(REGOCPP_INSTALL_TARGETS rego trieste json yaml snmalloc)
+set(REGOCPP_INSTALL_TARGETS rego)
+
+if(REGOCPP_USE_FETCH_CONTENT)
+  list(APPEND REGOCPP_INSTALL_TARGETS trieste json yaml snmalloc)
+endif()
 
 if(REGOCPP_BUILD_SHARED)
   list(APPEND REGOCPP_INSTALL_TARGETS rego_shared)
 endif()
 
-if(TRIESTE_USE_SNMALLOC)
+if(REGOCPP_USE_FETCH_CONTENT AND TRIESTE_USE_SNMALLOC)
   list(APPEND REGOCPP_INSTALL_TARGETS snmalloc-new-override)
-endif()
-
-if(REGOCPP_CRYPTO_BACKEND STREQUAL "mbedtls")
-  list(APPEND REGOCPP_INSTALL_TARGETS mbedtls mbedcrypto mbedx509 everest p256m)
 endif()
 
 install(TARGETS ${REGOCPP_INSTALL_TARGETS}
@@ -265,7 +280,10 @@ install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
 
 if (REGOCPP_BUILD_TOOLS)
-  install(TARGETS rego_interpreter rego_fuzzer RUNTIME)
+  install(TARGETS rego_interpreter RUNTIME)
+  if (REGOCPP_BUILD_TESTS)
+    install(TARGETS rego_fuzzer RUNTIME)
+  endif()
 endif()
 
 if (REGOCPP_COPY_EXAMPLES)
@@ -287,8 +305,9 @@ export(EXPORT ${PROJECT_NAME}_Targets
 
 export(PACKAGE ${PROJECT_NAME})
 
-install(DIRECTORY include/ DESTINATION ${INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  CONFIGURATIONS Release RelWithDebInfo MinSizeRel)
 install(FILES 
   ${CMAKE_CURRENT_BINARY_DIR}/src/version.h  
-  DESTINATION ${INSTALL_INCLUDEDIR}/rego
-)
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rego
+  CONFIGURATIONS Release RelWithDebInfo MinSizeRel)

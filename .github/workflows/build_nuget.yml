@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Use dotnet
         uses: actions/setup-dotnet@v5
@@ -36,7 +36,7 @@ jobs:
         run: |
           dotnet pack -v n /p:Multitarget=true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nuget-linux
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
@@ -44,7 +44,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Use dotnet
         uses: actions/setup-dotnet@v5
@@ -72,7 +72,7 @@ jobs:
         run: |
           dotnet pack -v n /p:Multitarget=true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nuget-windows
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
@@ -80,7 +80,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Use dotnet
         uses: actions/setup-dotnet@v5
@@ -108,7 +108,7 @@ jobs:
         run: |
           dotnet pack -v n /p:Multitarget=true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nuget-macos-arm64
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg
@@ -116,7 +116,7 @@ jobs:
     runs-on: macos-15-intel
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Use dotnet
         uses: actions/setup-dotnet@v5
@@ -144,7 +144,7 @@ jobs:
         run: |
           dotnet pack -v n /p:Multitarget=true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: nuget-macos-x86_64
           path: ${{github.workspace}}/wrappers/dotnet/Rego/bin/Release/*.nupkg

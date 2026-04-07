@@ -169,11 +169,11 @@ For non-trivial features (new syntax, new passes, AST restructuring), analyze th
 
 ### Multi-perspective Planning Process
 
-When planning a non-trivial code change, use four sub-planners running in parallel to generate competing plans, then synthesise the best elements into a final plan.
+When planning a non-trivial code change, use five sub-planners running in parallel to generate competing plans and an adversarial attack report, then synthesise the best elements into a final plan.
 
 #### Step 1 — Gather sub-plans
 
-Spawn **four fresh subagents**, each prompted to use one of the following skills. Each subagent receives the same task description and context but plans through a different lens:
+Spawn **five fresh subagents**, each prompted to use one of the following skills. Each subagent receives the same task description and context but plans through a different lens:
 
 | Subagent | Skill | Focus |
 |----------|-------|-------|
@@ -181,41 +181,48 @@ Spawn **four fresh subagents**, each prompted to use one of the following skills
 | Security Planner | `/plan-security` | Defence in depth, safe error handling, bounded resources, fuzz coverage |
 | Usability Planner | `/plan-usability` | Clarity, readability, correctness, consistent naming, one-concept-per-pass |
 | Conservative Planner | `/plan-conservative` | Smallest diff, maximum reuse, no speculative generality, backwards compat |
+| Adversarial Planner | `/plan-adversarial` | Red-team attacks, hidden assumptions, untested edge cases, semantic divergence, consensus blind spots |
 
-Prompt each subagent with:
+Prompt each build-planner subagent (Speed, Security, Usability, Conservative) with:
 > You are planning a change to the rego-cpp project. Use the `/[skill-name]` skill to guide your planning. Here is the task: [task description and relevant context]. Produce a numbered plan following the output format defined in the skill.
 
-#### Step 2 — Evaluate the four plans
+Prompt the Adversarial Planner with:
+> You are a red-team adversary attacking a proposed change to rego-cpp. Use the `/plan-adversarial` skill to guide your attack. Here is the proposed change: [task description and relevant context]. The other four planners are building this feature — your job is to break it. Produce an attack report following the output format defined in the skill.
 
-Review the four plans yourself and produce a short evaluation covering:
+#### Step 2 — Evaluate the five plans
 
-- **Convergence**: where two or more plans agree on the same approach. High convergence suggests a clearly correct design.
+Review the four build plans and the adversarial attack report yourself and produce a short evaluation covering:
+
+- **Convergence**: where two or more build planners agree on the same approach. High convergence suggests a clearly correct design — but check the adversarial report for challenges to that convergence.
+- **Adversarial findings**: which attacks from the adversarial planner are valid and must be addressed in the final plan. Classify each as MUST-ADDRESS, SHOULD-ADDRESS, or ACKNOWLEDGED (risk accepted).
 - **Unique insights**: ideas that appear in only one plan and are worth incorporating.
 - **Conflicts**: where plans disagree. For each conflict, state which perspective you favour and why.
-- **Gaps**: anything none of the four plans addressed.
+- **Gaps**: anything none of the five plans addressed.
 
 #### Step 3 — Synthesise the final plan
 
-Spawn a **fifth subagent** (the synthesiser). Provide it with:
+Spawn a **sixth subagent** (the synthesiser). Provide it with:
 - The original task description.
-- All four sub-plans (labelled by perspective).
-- Your evaluation from Step 2.
+- All four build sub-plans (labelled by perspective).
+- The adversarial attack report.
+- Your evaluation from Step 2 (including adversarial finding classifications).
 
 Prompt the synthesiser with:
-> You are producing the final plan for a change to rego-cpp. You have received four sub-plans from different perspectives (Speed, Security, Usability, Conservative) and an evaluation of those plans. Synthesise them into a single coherent, numbered plan that balances all four concerns. Where the evaluation favours one perspective, follow it. Where the evaluation is neutral, prefer the Conservative approach. Output the final plan in the standard format: Goal, Steps (with file paths and descriptions balancing all four perspectives), Rationale (explaining the synthesis), and Trade-offs (any conflicts between perspectives and how they were resolved).
+> You are producing the final plan for a change to rego-cpp. You have received four build sub-plans from different perspectives (Speed, Security, Usability, Conservative), an adversarial attack report, and an evaluation of all five. Synthesise them into a single coherent, numbered plan that balances all four build concerns and defends against the adversarial attacks classified as MUST-ADDRESS or SHOULD-ADDRESS. Where the evaluation favours one perspective, follow it. Where the evaluation is neutral, prefer the Conservative approach. For each MUST-ADDRESS adversarial finding, include a specific mitigation step in the plan. Output the final plan in the standard format: Goal, Steps (with file paths and descriptions balancing all perspectives), Adversarial Mitigations (how each MUST-ADDRESS attack is handled), Rationale (explaining the synthesis), and Trade-offs (any conflicts between perspectives and how they were resolved).
 
 #### Step 4 — Review the synthesised plan
 
 Before presenting the plan, run an iterative review loop:
 
-1. Spawn a subagent to review the synthesised plan. Provide it with the original task description, the four sub-plans, your evaluation, and the synthesised plan. Ask it to check for: logical errors in the step ordering, steps that contradict each other, missing error handling or edge cases, violations of rego-cpp conventions, and anything the synthesis dropped that should have been kept.
+1. Spawn a subagent to review the synthesised plan. Provide it with the original task description, the four build sub-plans, the adversarial attack report, your evaluation, and the synthesised plan. Ask it to check for: logical errors in the step ordering, steps that contradict each other, missing error handling or edge cases, violations of rego-cpp conventions, anything the synthesis dropped that should have been kept, and any MUST-ADDRESS adversarial attacks that lack adequate mitigation in the plan.
 2. If the review finds issues, revise the plan yourself and spawn a **different** subagent to review the revised version.
 3. Repeat until a review comes back clean (no issues found).
 
 #### Step 5 — Present for approval
 
 Present the reviewed plan to the user along with a brief summary of:
-- Key points of agreement across the four sub-planners.
+- Key points of agreement across the build sub-planners.
+- Adversarial attacks that were addressed and how, plus any that were acknowledged but not mitigated (with rationale).
 - Notable trade-offs made during synthesis.
 - Any minority opinions from individual sub-planners that were overruled.
 - Issues caught and resolved during the review loop (if any).
@@ -315,7 +322,7 @@ When iterating on a specific feature, **prefer running individual OPA subdirecto
 
 ### Debugging with lldb
 
-Debug builds (e.g., `build-mbedtls` with `CMAKE_BUILD_TYPE=Debug`) include full debug symbols. Use `lldb` to diagnose test failures, crashes, or incorrect results:
+Debug builds (e.g., with `CMAKE_BUILD_TYPE=Debug`) include full debug symbols. Use `lldb` to diagnose test failures, crashes, or incorrect results:
 
 ```bash
 # Break at a specific function and run a single test case
@@ -330,7 +337,7 @@ cd build && lldb ./tests/rego_test -- opa/v1/test/cases/testdata/v1/<suite>/<tes
 (lldb) n / s / c            # next / step / continue
 ```
 
-This is particularly useful for debugging backend-specific failures (e.g., a test passes with OpenSSL but fails with mbedTLS) where the issue is in crypto or encoding logic.
+This is particularly useful for debugging backend-specific failures (e.g., a test passes with OpenSSL but fails with bcrypt) where the issue is in crypto or encoding logic.
 
 ### Generative Fuzzer (`rego_fuzzer`)
 

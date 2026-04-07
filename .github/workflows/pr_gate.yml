@@ -21,7 +21,7 @@ jobs:
           - check: examples/cpp
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run clang-format style check
         uses: jidicula/clang-format-action@v4.8.0
@@ -35,11 +35,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          sudo apt-get install ninja-build
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libssl-dev
 
       - name: CMake config
         run: cmake -B ${{github.workspace}}/build --preset release-opa -G Ninja
@@ -57,11 +58,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          sudo apt-get install ninja-build
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libssl-dev
 
       - name: CMake config
         run: cmake -B ${{github.workspace}}/build --preset release-opa -G Ninja
@@ -79,11 +81,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          sudo apt-get install ninja-build
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libssl-dev
 
       - name: CMake config
         run: cmake -B ${{github.workspace}}/build --preset release-clang-opa -DREGOCPP_SANITIZE=address,undefined
@@ -101,11 +104,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          sudo apt-get install ninja-build
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libssl-dev
 
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
@@ -126,7 +130,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Get dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev
 
       - name: Use dotnet
         uses: actions/setup-dotnet@v5
@@ -145,11 +154,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          sudo apt-get install cargo rustc
+          sudo apt-get update
+          sudo apt-get install -y cargo rustc libssl-dev
 
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
@@ -164,15 +174,17 @@ jobs:
         python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use Python ${{matrix.python_version}}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{matrix.python_version}}
 
       - name: Get dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev
           python -m pip install --upgrade pip
 
       - name: Python build
@@ -190,7 +202,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: CHERIoT-Platform/cheriot-audit
           path: cheriot-audit
@@ -223,7 +235,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: CMake config
         run: |
@@ -242,7 +254,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
@@ -263,7 +275,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use dotnet
         uses: actions/setup-dotnet@v5
@@ -282,7 +294,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust
@@ -297,10 +309,10 @@ jobs:
         python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use Python ${{matrix.python_version}}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{matrix.python_version}}
           architecture: x64
@@ -324,11 +336,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          brew update && brew install ninja
+          brew update && brew install ninja openssl@3
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
 
       - name: CMake config
         run: cmake -B ${{github.workspace}}/build --preset release-opa -G Ninja
@@ -346,11 +359,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          brew update && brew install ninja
+          brew update && brew install ninja openssl@3
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
 
       - name: CMake config
         working-directory: ${{github.workspace}}/examples/c
@@ -371,7 +385,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Get dependencies
+        run: |
+          brew update && brew install openssl@3
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
 
       - name: Use dotnet
         uses: actions/setup-dotnet@v5
@@ -390,11 +409,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          brew update && brew install rust
+          brew update && brew install rust openssl@3
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
 
       - name: Cargo test
         working-directory: ${{github.workspace}}/wrappers/rust/regorust/
@@ -409,15 +429,17 @@ jobs:
         python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use Python ${{matrix.python_version}}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{matrix.python_version}}
 
       - name: Get dependencies
         run: |
+          brew update && brew install openssl@3
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
           python -m pip install --upgrade pip
 
       - name: Python build
@@ -435,11 +457,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get dependencies
         run: |
-          brew update && brew install ninja
+          brew update && brew install ninja openssl@3
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
 
       - name: CMake config
         run: cmake -B ${{github.workspace}}/build --preset release-opa -G Ninja
@@ -457,7 +480,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Get dependencies
+        run: |
+          brew update && brew install openssl@3
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
 
       - name: Use dotnet
         uses: actions/setup-dotnet@v5
@@ -478,15 +506,17 @@ jobs:
         python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use Python ${{matrix.python_version}}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{matrix.python_version}}
 
       - name: Get dependencies
         run: |
+          brew update && brew install openssl@3
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
           python -m pip install --upgrade pip
 
       - name: Python build
@@ -498,3 +528,180 @@ jobs:
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 
         run: pytest -vv
+
+  vcpkg-integration:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            install_deps: sudo apt-get update && sudo apt-get install -y ninja-build libssl-dev
+          - os: macos-latest
+            install_deps: brew update && brew install ninja openssl@3
+          - os: windows-latest
+            install_deps: ""
+    runs-on: ${{ matrix.os }}
+    name: vcpkg - ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Check version consistency
+      shell: bash
+      run: |
+        file_ver=$(head -1 VERSION | tr -d '[:space:]')
+        vcpkg_ver=$(grep '"version"' ports/rego-cpp/vcpkg.json | sed 's/.*: *"\(.*\)".*/\1/')
+        if [ "$file_ver" != "$vcpkg_ver" ]; then
+          echo "::error::VERSION ($file_ver) and ports/rego-cpp/vcpkg.json ($vcpkg_ver) are out of sync."
+          exit 1
+        fi
+        echo "Version consistent: $file_ver"
+
+    - name: Get dependencies
+      if: matrix.install_deps != ''
+      shell: bash
+      run: ${{ matrix.install_deps }}
+
+    - name: Bootstrap vcpkg
+      shell: bash
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git "${{ runner.temp }}/vcpkg" --depth 1
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.bat" -disableMetrics
+        else
+          "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+        fi
+
+    - name: Create overlay port pointing at local source
+      shell: bash
+      run: |
+        overlay="${{ runner.temp }}/overlay/rego-cpp"
+        mkdir -p "$overlay"
+        # Copy the real port files
+        cp ports/rego-cpp/vcpkg.json "$overlay/"
+        cp ports/rego-cpp/usage "$overlay/"
+        # Normalize workspace path to forward slashes for CMake (Windows compat)
+        ws_path=$(echo "${{ github.workspace }}" | sed 's|\\|/|g')
+        # Rewrite portfile to use local source instead of vcpkg_from_github
+        {
+          echo "set(SOURCE_PATH \"${ws_path}\")"
+          echo ''
+          # Keep everything from the feature block onwards (see NOTE comment in
+          # ports/rego-cpp/portfile.cmake documenting this coupling)
+          sed -n '/^if("openssl3"/,$ p' ports/rego-cpp/portfile.cmake
+        } > "$overlay/portfile.cmake"
+        # Validate that the sed extraction actually matched
+        if ! grep -q 'vcpkg_cmake_configure' "$overlay/portfile.cmake"; then
+          echo "::error::Overlay portfile extraction failed — 'vcpkg_cmake_configure' not found."
+          echo "The sed pattern in this workflow is coupled to ports/rego-cpp/portfile.cmake."
+          echo "See the NOTE comment in that file."
+          exit 1
+        fi
+
+    - name: Install rego-cpp via vcpkg
+      shell: bash
+      # Run from runner.temp to avoid the workspace triggering manifest mode.
+      working-directory: ${{ runner.temp }}
+      run: |
+        "${{ runner.temp }}/vcpkg/vcpkg" install "rego-cpp[openssl3,tools]" \
+          --overlay-ports="${{ runner.temp }}/overlay"
+
+    - name: Verify rego CLI
+      shell: bash
+      run: |
+        # Find the rego binary under the vcpkg installed tools directory
+        rego_bin=$(find "${{ runner.temp }}/vcpkg/installed" -path "*/tools/rego-cpp/rego*" -type f | head -1)
+        if [ -z "$rego_bin" ]; then
+          echo "::error::rego CLI binary not found under vcpkg installed tools"
+          find "${{ runner.temp }}/vcpkg/installed" -type f -name "rego*" || true
+          exit 1
+        fi
+        echo "Found rego CLI at: $rego_bin"
+        result=$("$rego_bin" eval '1+1')
+        echo "Result: $result"
+        if echo "$result" | grep -q '"expressions":\[2\]'; then
+          echo "rego CLI works correctly"
+        else
+          echo "::error::Unexpected output from rego CLI: $result"
+          exit 1
+        fi
+
+    - name: Build consumer project
+      shell: bash
+      run: |
+        cmake -B "${{ runner.temp }}/consumer-build" \
+          -S tests/vcpkg-consumer \
+          -DCMAKE_TOOLCHAIN_FILE="${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        cmake --build "${{ runner.temp }}/consumer-build" --config Release
+
+    - name: Run tests
+      shell: bash
+      run: |
+        ctest --test-dir "${{ runner.temp }}/consumer-build" \
+          --build-config Release --output-on-failure
+
+  vcpkg-integration-minimal:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            install_deps: ""
+          - os: macos-latest
+            install_deps: ""
+          - os: windows-latest
+            install_deps: ""
+    runs-on: ${{ matrix.os }}
+    name: vcpkg minimal - ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Bootstrap vcpkg
+      shell: bash
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git "${{ runner.temp }}/vcpkg" --depth 1
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.bat" -disableMetrics
+        else
+          "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+        fi
+
+    - name: Create overlay port pointing at local source
+      shell: bash
+      run: |
+        overlay="${{ runner.temp }}/overlay/rego-cpp"
+        mkdir -p "$overlay"
+        cp ports/rego-cpp/vcpkg.json "$overlay/"
+        cp ports/rego-cpp/usage "$overlay/"
+        ws_path=$(echo "${{ github.workspace }}" | sed 's|\\|/|g')
+        {
+          echo "set(SOURCE_PATH \"${ws_path}\")"
+          echo ''
+          sed -n '/^if("openssl3"/,$ p' ports/rego-cpp/portfile.cmake
+        } > "$overlay/portfile.cmake"
+        if ! grep -q 'vcpkg_cmake_configure' "$overlay/portfile.cmake"; then
+          echo "::error::Overlay portfile extraction failed — 'vcpkg_cmake_configure' not found."
+          exit 1
+        fi
+
+    - name: Install rego-cpp via vcpkg (no features)
+      shell: bash
+      working-directory: ${{ runner.temp }}
+      run: |
+        "${{ runner.temp }}/vcpkg/vcpkg" install rego-cpp \
+          --overlay-ports="${{ runner.temp }}/overlay"
+
+    - name: Build consumer project
+      shell: bash
+      run: |
+        cmake -B "${{ runner.temp }}/consumer-build" \
+          -S tests/vcpkg-consumer \
+          -DCMAKE_TOOLCHAIN_FILE="${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        cmake --build "${{ runner.temp }}/consumer-build" --config Release
+
+    - name: Run tests
+      shell: bash
+      run: |
+        ctest --test-dir "${{ runner.temp }}/consumer-build" \
+          --build-config Release --output-on-failure

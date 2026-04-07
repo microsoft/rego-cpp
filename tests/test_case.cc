@@ -5,6 +5,7 @@
 #include "trieste/yaml.h"
 
 #include <filesystem>
+#include <sstream>
 #include <stdexcept>
 
 namespace rego_test
@@ -144,7 +145,8 @@ namespace rego_test
     m_sort_bindings(false),
     m_strict_error(false),
     m_broken(false),
-    m_unsupported(false)
+    m_unsupported(false),
+    m_has_want_output(false)
   {}
 
   std::optional<Node> TestCase::maybe_get_object(
@@ -560,6 +562,12 @@ namespace rego_test
         .sort_bindings(get_bool(test_case_obj, "sort_bindings"))
         .strict_error(get_bool(test_case_obj, "strict_error"));
 
+      auto want_output = maybe_get_string(test_case_obj, "want_output");
+      if (want_output.has_value())
+      {
+        test_case.want_output(*want_output);
+      }
+
       // --- Special Cases --- //
       // these test cases require some modification due to differences between
       // C++ and Go, or due to issues with the testcases themselves.
@@ -750,7 +758,31 @@ namespace rego_test
 
     try
     {
-      actual = interpreter.query_bundle(bundle);
+      if (m_has_want_output)
+      {
+        std::ostringstream capture;
+        std::streambuf* old_buf = std::cout.rdbuf(capture.rdbuf());
+        actual = interpreter.query_bundle(bundle);
+        std::cout.rdbuf(old_buf);
+
+        std::string captured = capture.str();
+        // Remove trailing newline for comparison (print adds newlines).
+        if (!captured.empty() && captured.back() == '\n')
+        {
+          captured.pop_back();
+        }
+
+        if (captured != m_want_output)
+        {
+          error << "print output mismatch:" << std::endl;
+          diff(captured, m_want_output, error);
+          return {Outcome::Fail, error.str()};
+        }
+      }
+      else
+      {
+        actual = interpreter.query_bundle(bundle);
+      }
     }
     catch (const std::exception& e)
     {
@@ -1103,5 +1135,22 @@ namespace rego_test
   {
     m_unsupported = unsupported;
     return *this;
+  }
+
+  const std::string& TestCase::want_output() const
+  {
+    return m_want_output;
+  }
+
+  TestCase& TestCase::want_output(const std::string& want_output)
+  {
+    m_want_output = want_output;
+    m_has_want_output = true;
+    return *this;
+  }
+
+  bool TestCase::has_want_output() const
+  {
+    return m_has_want_output;
   }
 }
