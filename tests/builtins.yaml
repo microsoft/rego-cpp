@@ -1,0 +1,509 @@
+cases:
+- modules:
+  - |
+    package test
+
+    token := io.jwt.encode_sign({"alg": "HS256"}, {"sub": "alice"}, {"kty": "oct", "k": base64url.encode_no_pad("secret")})
+
+    match := io.jwt.decode_verify(token, {"secret": "secret", "alg": "HS256", "sub": "alice"})
+  note: regocpp/jwt-sub-match
+  query: data.test.match = x
+  want_result:
+    - x:
+        - true
+        - {"alg": "HS256"}
+        - {"sub": "alice"}
+- modules:
+  - |
+    package test
+
+    token := io.jwt.encode_sign({"alg": "HS256"}, {"sub": "alice"}, {"kty": "oct", "k": base64url.encode_no_pad("secret")})
+
+    mismatch := io.jwt.decode_verify(token, {"secret": "secret", "alg": "HS256", "sub": "bob"})
+  note: regocpp/jwt-sub-mismatch
+  query: data.test.mismatch = x
+  want_result:
+    - x:
+        - false
+        - {}
+        - {}
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print("hello")
+    }
+  note: regocpp/print-basic
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "hello"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print("a", 1, true)
+    }
+  note: regocpp/print-multi-args
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "a 1 true"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print(input.missing)
+    }
+  note: regocpp/print-undefined
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "<undefined>"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print("before", input.missing, "after")
+    }
+  note: regocpp/print-mixed-undefined
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "before <undefined> after"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print(null, false)
+    }
+  note: regocpp/print-null-false
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "null false"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print()
+    }
+  note: regocpp/print-empty
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: ""
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print([1, 2], {"a": 1})
+    }
+  note: regocpp/print-collections
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "[1, 2] {\"a\": 1}"
+- input:
+    x: 10
+  modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print(input.x)
+    }
+  note: regocpp/print-with-input
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "10"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      x := "world"
+      print("hello", x)
+    }
+  note: regocpp/print-variable
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "hello world"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      print(42)
+      print("done")
+    }
+  note: regocpp/print-multiple-calls
+  query: data.test.p = x
+  want_result:
+    - x: true
+  want_output: "42\ndone"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p := glob.quote_meta("hello*world?[test]")
+  note: regocpp/glob-quote-meta-roundtrip
+  query: data.test.p = x
+  want_result:
+    - x: "hello\\*world\\?\\[test\\]"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("", [], "", true)
+    }
+  note: regocpp/glob-match-empty-pattern
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("a.b*", ["."], "a.bc", true)
+      not glob.match("a.b*", ["."], "a.bc.d", true)
+    }
+  note: regocpp/glob-match-delimiter-boundary
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("{a,b,c}", [], "b", true)
+    }
+  note: regocpp/glob-match-brace-alternatives
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("a/**/c", [], "a/b/c", true)
+    }
+  note: regocpp/glob-match-super-wildcard
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("[a-z]", [], "m", true)
+      not glob.match("[a-z]", [], "M", true)
+    }
+  note: regocpp/glob-match-char-class
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("[!0-9]", [], "x", true)
+      not glob.match("[!0-9]", [], "5", true)
+    }
+  note: regocpp/glob-match-negated-char-class
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("\\*", [], "*", true)
+      not glob.match("\\*", [], "a", true)
+    }
+  note: regocpp/glob-match-escaped-star
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("{a,{b,c}}", [], "c", true)
+    }
+  note: regocpp/glob-match-nested-braces
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p := glob.quote_meta("hello\nworld")
+  note: regocpp/glob-quote-meta-escape-sequence
+  query: data.test.p = x
+  want_result:
+    - x: "hello\nworld"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p := regex.find_all_string_submatch_n("(?:)", "café", -1)
+  note: regocpp/regex-zero-match-utf8
+  query: data.test.p = x
+  want_result:
+    - x: [[""], [""], [""], [""]]
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("a", "a")
+    }
+  note: regocpp/globs-match-single-char
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("a*b", "a*b")
+    }
+  note: regocpp/globs-match-identical
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      not regex.globs_match("a", "b")
+    }
+  note: regocpp/globs-match-no-intersection
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match(".*", "a.b")
+    }
+  note: regocpp/globs-match-dot-wildcard
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("[a-c]+", "[b-d]+")
+    }
+  note: regocpp/globs-match-set-overlap
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      not regex.globs_match("[a-c]", "[d-f]")
+    }
+  note: regocpp/globs-match-set-disjoint
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("abc", "abc")
+    }
+  note: regocpp/globs-match-identical-no-flags
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("a+", "a*")
+    }
+  note: regocpp/globs-match-plus-vs-star
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("[a\\-z]", [], "-", true)
+      not glob.match("[a\\-z]", [], "^", true)
+      glob.match("[a\\-z]", [], "a", true)
+      glob.match("[a\\-z]", [], "z", true)
+      not glob.match("[a\\-z]", [], "m", true)
+    }
+  note: regocpp/glob-match-escaped-dash-in-class
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("[\\]]", [], "]", true)
+      not glob.match("[\\]]", [], "a", true)
+    }
+  note: regocpp/glob-match-escaped-bracket-in-class
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("[abc", [], "a")
+    }
+  note: regocpp/glob-match-unclosed-bracket-error
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: syntax error in pattern
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      glob.match("[z-a]", [], "m")
+    }
+  note: regocpp/glob-match-invalid-range-error
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: syntax error in pattern
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      not glob.match("test\\", [], "test\\", true)
+      not glob.match("test\\", [], "test", true)
+    }
+  note: regocpp/glob-match-trailing-backslash
+  query: data.test.p = x
+  want_result:
+    - x: true
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("[abc", "a")
+    }
+  note: regocpp/globs-match-unclosed-bracket-error
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "input:[abc, pos:4, found [ without matching ]: the input provided is invalid"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("a\\", "a")
+    }
+  note: regocpp/globs-match-trailing-escape-error
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "input:a\\, pos:1, input ends with a \\\\ (escape) character: the input provided is invalid"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("[z-a]", "a")
+    }
+  note: regocpp/globs-match-invalid-range-error
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "input:[z-a], pos:4, range is out of order: 'a' comes before 'z' in Unicode: the input provided is invalid"
+- modules:
+  - |
+    package test
+    import rego.v1
+
+    p if {
+      regex.globs_match("]", "a")
+    }
+  note: regocpp/globs-match-unmatched-close-bracket-error
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "input:], pos:1, set-close ']' with no preceding '[': the input provided is invalid"

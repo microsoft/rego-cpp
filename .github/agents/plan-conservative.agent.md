@@ -1,12 +1,8 @@
 ---
-name: plan-conservative
-description: >
-  Conservative planning skill for rego-cpp changes. Produces plans with
-  the smallest possible changeset, fewest new abstractions, minimal disruption
-  to existing code, strict backwards compatibility, and maximum reuse of
-  existing tokens, passes, and patterns. Use this skill when planning code
-  changes and a minimal-change perspective is needed.
+description: "Conservative planner for rego-cpp changes. Use when: planning code changes that need a minimal-change perspective, smallest possible changeset, fewest new abstractions, minimal disruption, strict backwards compatibility, maximum reuse."
+tools: [read, search, web]
 user-invocable: false
+argument-hint: "Describe the task and provide relevant context for conservative planning"
 ---
 
 # Conservative Planner

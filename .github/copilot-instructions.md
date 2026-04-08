@@ -147,6 +147,7 @@ The library exposes two public interfaces:
 - Error messages in built-in functions must match OPA's reference implementation exactly — conformance tests compare error strings literally.
 - **Fix root causes, not symptoms.** When a test fails, investigate *why* the incorrect behavior occurs — trace the logic, inspect intermediate state, and identify the underlying defect. Do not apply surface-level patches (e.g., special-casing an output, suppressing an error, or working around stale state) just to make a test pass. A correct fix eliminates the class of bug, not just the one observable instance.
 - **Move slow to go fast.** Make small, testable changes one step at a time instead of large simultaneous edits. After each change, compile and run the relevant tests before moving on. Small increments are easier to verify, easier to debug when something breaks, and produce cleaner diffs. Resist the urge to batch multiple logical changes into a single edit.
+- **Keep functions short and focused.** Aim for functions under ~60 lines. When a function grows beyond that, break it into named helpers that each do one thing. Use reference or `const&` parameters to pass state between helpers rather than accumulating logic in a single scope. Long functions are harder to test, harder to review, and harder to reason about.
 
 ## Trieste Development Workflow
 
@@ -169,67 +170,76 @@ For non-trivial features (new syntax, new passes, AST restructuring), analyze th
 
 ### Multi-perspective Planning Process
 
-When planning a non-trivial code change, use five sub-planners running in parallel to generate competing plans and an adversarial attack report, then synthesise the best elements into a final plan.
+When planning a non-trivial code change, use four sub-planners running in parallel to generate competing plans, synthesise the best elements into a draft plan, then stress-test it with an adversarial review loop before presenting for approval.
 
-#### Step 1 — Gather sub-plans
+#### Step 0 — Gather context
 
-Spawn **five fresh subagents**, each prompted to use one of the following skills. Each subagent receives the same task description and context but plans through a different lens:
+Before spawning any planners, gather sufficient context about the task:
 
-| Subagent | Skill | Focus |
-|----------|-------|-------|
-| Speed Planner | `/plan-speed` | Runtime performance, low allocations, minimal passes, cache efficiency |
-| Security Planner | `/plan-security` | Defence in depth, safe error handling, bounded resources, fuzz coverage |
-| Usability Planner | `/plan-usability` | Clarity, readability, correctness, consistent naming, one-concept-per-pass |
-| Conservative Planner | `/plan-conservative` | Smallest diff, maximum reuse, no speculative generality, backwards compat |
-| Adversarial Planner | `/plan-adversarial` | Red-team attacks, hidden assumptions, untested edge cases, semantic divergence, consensus blind spots |
+- Read the relevant source files, WF definitions, and existing tests.
+- Inspect OPA's reference implementation if the feature involves OPA compatibility.
+- Identify affected passes, tokens, and API surfaces.
+- Summarise the gathered context into a task description that all subagents will receive.
 
-Prompt each build-planner subagent (Speed, Security, Usability, Conservative) with:
-> You are planning a change to the rego-cpp project. Use the `/[skill-name]` skill to guide your planning. Here is the task: [task description and relevant context]. Produce a numbered plan following the output format defined in the skill.
+#### Step 1 — Plan with non-adversarial agents
 
-Prompt the Adversarial Planner with:
-> You are a red-team adversary attacking a proposed change to rego-cpp. Use the `/plan-adversarial` skill to guide your attack. Here is the proposed change: [task description and relevant context]. The other four planners are building this feature — your job is to break it. Produce an attack report following the output format defined in the skill.
+Spawn **four fresh subagents** in parallel using the planner agents. Each agent receives the same task description and context but plans through a different lens:
 
-#### Step 2 — Evaluate the five plans
+| Agent | Focus |
+|-------|-------|
+| `plan-speed` | Runtime performance, low allocations, minimal passes, cache efficiency |
+| `plan-security` | Defence in depth, safe error handling, bounded resources, fuzz coverage |
+| `plan-usability` | Clarity, readability, correctness, consistent naming, one-concept-per-pass |
+| `plan-conservative` | Smallest diff, maximum reuse, no speculative generality, backwards compat |
 
-Review the four build plans and the adversarial attack report yourself and produce a short evaluation covering:
+Prompt each agent with:
+> Here is the task: [task description and relevant context]. Produce a numbered plan following the output format defined in your instructions.
 
-- **Convergence**: where two or more build planners agree on the same approach. High convergence suggests a clearly correct design — but check the adversarial report for challenges to that convergence.
-- **Adversarial findings**: which attacks from the adversarial planner are valid and must be addressed in the final plan. Classify each as MUST-ADDRESS, SHOULD-ADDRESS, or ACKNOWLEDGED (risk accepted).
+#### Step 2 — Evaluate the four plans
+
+Review the four build plans yourself and produce a short evaluation covering:
+
+- **Convergence**: where two or more planners agree on the same approach. High convergence suggests a clearly correct design.
 - **Unique insights**: ideas that appear in only one plan and are worth incorporating.
 - **Conflicts**: where plans disagree. For each conflict, state which perspective you favour and why.
-- **Gaps**: anything none of the five plans addressed.
+- **Gaps**: anything none of the four plans addressed.
 
-#### Step 3 — Synthesise the final plan
+#### Step 3 — Synthesise the draft plan
 
-Spawn a **sixth subagent** (the synthesiser). Provide it with:
+Spawn a **fifth subagent** (the synthesiser). Provide it with:
 - The original task description.
 - All four build sub-plans (labelled by perspective).
-- The adversarial attack report.
-- Your evaluation from Step 2 (including adversarial finding classifications).
+- Your evaluation from Step 2.
 
 Prompt the synthesiser with:
-> You are producing the final plan for a change to rego-cpp. You have received four build sub-plans from different perspectives (Speed, Security, Usability, Conservative), an adversarial attack report, and an evaluation of all five. Synthesise them into a single coherent, numbered plan that balances all four build concerns and defends against the adversarial attacks classified as MUST-ADDRESS or SHOULD-ADDRESS. Where the evaluation favours one perspective, follow it. Where the evaluation is neutral, prefer the Conservative approach. For each MUST-ADDRESS adversarial finding, include a specific mitigation step in the plan. Output the final plan in the standard format: Goal, Steps (with file paths and descriptions balancing all perspectives), Adversarial Mitigations (how each MUST-ADDRESS attack is handled), Rationale (explaining the synthesis), and Trade-offs (any conflicts between perspectives and how they were resolved).
+> You are producing a draft plan for a change to rego-cpp. You have received four sub-plans from different perspectives (Speed, Security, Usability, Conservative) and an evaluation of all four. Synthesise them into a single coherent, numbered plan that balances all four concerns. Where the evaluation favours one perspective, follow it. Where the evaluation is neutral, prefer the Conservative approach unless another perspective has a compelling reason to override. Output the draft plan in the standard format: Goal, Steps (with file paths and descriptions balancing all perspectives), Rationale (explaining the synthesis), and Trade-offs (any conflicts between perspectives and how they were resolved).
 
-#### Step 4 — Review the synthesised plan
+#### Step 4 — Adversarial review loop
 
-Before presenting the plan, run an iterative review loop:
+Run an iterative adversarial review loop on the draft plan from Step 3:
 
-1. Spawn a subagent to review the synthesised plan. Provide it with the original task description, the four build sub-plans, the adversarial attack report, your evaluation, and the synthesised plan. Ask it to check for: logical errors in the step ordering, steps that contradict each other, missing error handling or edge cases, violations of rego-cpp conventions, anything the synthesis dropped that should have been kept, and any MUST-ADDRESS adversarial attacks that lack adequate mitigation in the plan.
-2. If the review finds issues, revise the plan yourself and spawn a **different** subagent to review the revised version.
-3. Repeat until a review comes back clean (no issues found).
+1. Spawn a subagent using the `plan-adversarial` agent. Provide it with the original task description, context, and the current draft plan. Prompt it with:
+   > Here is the plan: [draft plan]. Your job is to break it — find hidden assumptions, untested edge cases, semantic divergence from OPA, stale-state bugs, off-by-one errors, consensus blind spots, and failure modes. Produce an attack report following the output format defined in your instructions. Classify each finding as MUST-ADDRESS, SHOULD-ADDRESS, or ACKNOWLEDGED (risk accepted).
+
+2. Review the adversarial report yourself. For each finding:
+   - **MUST-ADDRESS**: revise the plan to include a specific mitigation step.
+   - **SHOULD-ADDRESS**: revise the plan if the fix is low-cost; otherwise note the accepted risk.
+   - **ACKNOWLEDGED**: no plan change required.
+
+3. If any MUST-ADDRESS or SHOULD-ADDRESS findings required plan changes, spawn a **different** adversarial subagent to review the revised plan. Repeat until the adversarial review finds no new MUST-ADDRESS issues.
 
 #### Step 5 — Present for approval
 
-Present the reviewed plan to the user along with a brief summary of:
+Present the final plan to the user along with a brief summary of:
 - Key points of agreement across the build sub-planners.
 - Adversarial attacks that were addressed and how, plus any that were acknowledged but not mitigated (with rationale).
 - Notable trade-offs made during synthesis.
 - Any minority opinions from individual sub-planners that were overruled.
-- Issues caught and resolved during the review loop (if any).
+- Number of adversarial review iterations and key issues caught.
 
 #### When to use multi-perspective planning
 
-Use the full five-step process for design decisions where the shape of the solution is uncertain: new language features, new passes, API changes, AST restructuring, or cross-cutting concerns that touch multiple pipeline stages.
+Use the full process for design decisions where the shape of the solution is uncertain: new language features, new passes, API changes, AST restructuring, or cross-cutting concerns that touch multiple pipeline stages.
 
 For tasks that are primarily implementation of a well-understood algorithm (e.g. a new built-in function with a clear OPA specification), a single conservative plan with emphasis on incremental testing is sufficient. Use the full process when the design is uncertain, not when the algorithm is known.
 
@@ -372,3 +382,8 @@ This reveals internal built-in names (e.g., `internal.template_string`), argumen
 Use the `.copilot/` directory at the repo root for all temporary files, downloaded executables, test scripts, and scratch work produced during development. This keeps temporary artifacts visible and inspectable within the workspace rather than scattered in `/tmp`. The `.copilot/` directory is gitignored. Organize by task, e.g.:
 - `.copilot/opa-ir-test/` — OPA IR analysis scratch files
 - `.copilot/bin/` — downloaded tool binaries (e.g., OPA CLI)
+
+**Important**: Because `.copilot/` is gitignored, search tools (`grep_search`, `file_search`, `semantic_search`) skip it by default. When searching for files or content inside `.copilot/`:
+- Use `grep_search` with `includeIgnoredFiles: true` for text searches
+- Use `list_dir` or `read_file` with the absolute path (these always work regardless of gitignore)
+- Use `find` or `ls` in the terminal as a fallback

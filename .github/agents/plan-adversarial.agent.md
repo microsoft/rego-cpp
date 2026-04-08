@@ -1,13 +1,8 @@
 ---
-name: plan-adversarial
-description: >
-  Adversarial red-team planning skill for rego-cpp changes. Produces attack
-  plans that actively try to break, exploit, or invalidate the proposed
-  implementation. Identifies hidden assumptions, untested edge cases, semantic
-  mismatches with OPA, stale-state bugs, off-by-one errors, and failure modes
-  the other planners missed. Suspicious of consensus. Use this skill when
-  planning code changes and a hostile, fault-finding perspective is needed.
+description: "Adversarial red-team planner for rego-cpp changes. Use when: planning code changes that need a hostile fault-finding perspective, attacking proposed implementations, finding hidden assumptions, untested edge cases, semantic mismatches with OPA, stale-state bugs."
+tools: [read, search, web]
 user-invocable: false
+argument-hint: "Provide the proposed plan and relevant context for adversarial review"
 ---
 
 # Adversarial Planner

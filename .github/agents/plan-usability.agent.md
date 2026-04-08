@@ -1,12 +1,8 @@
 ---
-name: plan-usability
-description: >
-  Usability-focused planning skill for rego-cpp changes. Produces plans
-  that prioritise clear, readable, self-documenting code, consistent naming,
-  well-structured pass pipelines, precise WF specs, ergonomic APIs, and
-  correctness above all else. Use this skill when planning code changes and a
-  clarity-and-correctness perspective is needed.
+description: "Usability-focused planner for rego-cpp changes. Use when: planning code changes that need a clarity-and-correctness perspective, readable code, consistent naming, well-structured pass pipelines, precise WF specs, ergonomic APIs."
+tools: [read, search, web]
 user-invocable: false
+argument-hint: "Describe the task and provide relevant context for usability-focused planning"
 ---
 
 # Usability Planner

@@ -28,7 +28,7 @@ REQUIRES_DEV = [
 with open("README.md", "r") as file:
     LONG_DESCRIPTION = file.read()
 
-VERSION = "1.3.1"
+VERSION = "1.4.0"
 
 
 class CMakeExtension(Extension):

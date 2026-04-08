@@ -1,12 +1,8 @@
 ---
-name: plan-security
-description: >
-  Security-focused planning skill for rego-cpp changes. Produces plans
-  that prioritise defence in depth, safe memory handling, bounded resource
-  consumption, robust error representation, thorough fuzz coverage, and
-  resistance to adversarial inputs. Use this skill when planning code changes
-  and a security-oriented perspective is needed.
+description: "Security-focused planner for rego-cpp changes. Use when: planning code changes that need a security-oriented perspective, defence in depth, safe memory handling, bounded resource consumption, fuzz coverage, resistance to adversarial inputs."
+tools: [read, search, web]
 user-invocable: false
+argument-hint: "Describe the task and provide relevant context for security-focused planning"
 ---
 
 # Security Planner
