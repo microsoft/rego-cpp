@@ -50,51 +50,48 @@ a@host:dist$ ./bin/regoc -d examples/scalars.rego -q data.scalars.greeting
 ```
 
 ## Python
-The Python example is a [simple command line tool](python/rego.py) that takes zero or more
-Rego data, module, and input files and evaluates a query against them.
-
-Examples:
+The [Python example](python/example.py) is a demonstration program that shows
+how to use all the features of the wrapper, including queries, input/data,
+and bundles.
 
 ```bash
 a@host:python$ pip install regopy
-a@host:python$ python rego.py eval -d examples/scalars.rego data.scalars.greeting
-{"expressions":["Hello"]}
-
-a@host:python$ python rego.py eval -d examples/objects.rego data.objects.sites[1].name
-{"expressions":["smoke1"]}
-
-a@host:python$ python rego.py eval -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json "[data.one, input.b, data.objects.sites[1]]"
-{"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]]}
-
-a@host:python$ python rego.py eval "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4;2 * 5"
+a@host:python$ python example.py
+Query Only
 {"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}
+x = 5
+10
 
-a@host:python$ python rego.py eval -d examples/bodies.rego -i examples/input1.json data.bodies.e
-{"expressions":[{"one":15, "two":15}]}
+Input and Data
+{"expressions":[true], "bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]}}
+
+Bundles
+query: {"expressions":[true], "bindings":{"x":4460}}
+example/foo: {"expressions":[2275]}
 ```
+
+There is also a [command line tool](python/rego.py) that takes zero or more
+Rego data, module, and input files and evaluates a query against them.
 
 
 ## Rust
-The Rust example is another [simple command line tool](rust/src/main.rs) that takes zero or more
-Rego data, module, and input files and evaluates a query against them.
-
-Examples:
+The [Rust example](rust/src/main.rs) is a demonstration program that shows
+how to use all the features of the wrapper, including queries, input/data,
+and bundles.
 
 ```bash
-a@host:rust$ cargo run -- eval -d examples/scalars.rego data.scalars.greeting
-{"expressions":["Hello"]}
-
-a@host:rust$ cargo run -- eval -d examples/objects.rego data.objects.sites[1].name
-{"expressions":["smoke1"]}
-
-a@host:rust$ cargo run -- eval -d examples/data0.json -d examples/data1.json -d examples/objects.rego -i examples/input0.json "[data.one, input.b, data.objects.sites[1]]"
-{"expressions":[[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]]}
-
-a@host:rust$ cargo run -- eval "x=5; y=x + (2 - 4 * 0.25) * -3 + 7.4;5 * 2"
+a@host:rust$ cargo run
+Query Only
 {"expressions":[true, true, 10], "bindings":{"x":5, "y":9.4}}
+x = 5
+10
 
-a@host:rust$ cargo run -- eval -d examples/bodies.rego -i examples/input1.json data.bodies.e
-{"expressions":[{"one":15, "two":15}]}
+Input and Data
+{"expressions":[true], "bindings":{"x":[{"bar":"Foo", "baz":5, "be":true, "bop":23.4},"20",{"name":"smoke1"}]}}
+
+Bundles
+query: {"expressions":[true], "bindings":{"x":4460}}
+example/foo: {"expressions":[2275]}
 ```
 
 ## dotnet

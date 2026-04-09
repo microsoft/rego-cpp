@@ -26,6 +26,9 @@ library and its wrapper packages.
 | `wrappers/python/setup.py` | `VERSION = "X.Y.Z"` | `VERSION = "1.3.0"` |
 | `wrappers/rust/regorust/Cargo.toml` | `version = "X.Y.Z"` | `version = "1.3.0"` |
 | `wrappers/dotnet/Rego/Rego.csproj` | `<Version>X.Y.Z</Version>` | `<Version>1.3.0</Version>` |
+| `examples/rust/Cargo.toml` | `regorust = { version = "X.Y.Z" }` | `regorust = { version = "1.3.0" }` |
+| `examples/dotnet/example/example.csproj` | `Version="X.Y.Z"` | `Version="1.3.0"` |
+| `examples/dotnet/MyPolicy/MyPolicy.csproj` | `Version="X.Y.Z"` | `Version="1.3.0"` |
 
 ## Procedure
 
