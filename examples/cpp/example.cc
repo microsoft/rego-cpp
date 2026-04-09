@@ -1,5 +1,3 @@
-#include "trieste/logging.h"
-
 #include <rego/rego.hh>
 
 int main()

@@ -26,6 +26,9 @@ library and its wrapper packages.
 | `wrappers/python/setup.py` | `VERSION = "X.Y.Z"` | `VERSION = "1.3.0"` |
 | `wrappers/rust/regorust/Cargo.toml` | `version = "X.Y.Z"` | `version = "1.3.0"` |
 | `wrappers/dotnet/Rego/Rego.csproj` | `<Version>X.Y.Z</Version>` | `<Version>1.3.0</Version>` |
+| `examples/rust/Cargo.toml` | `regorust = { version = "X.Y.Z" }` | `regorust = { version = "1.3.0" }` |
+| `examples/dotnet/example/example.csproj` | `Version="X.Y.Z"` | `Version="1.3.0"` |
+| `examples/dotnet/MyPolicy/MyPolicy.csproj` | `Version="X.Y.Z"` | `Version="1.3.0"` |
 
 ## Procedure
 
@@ -37,6 +40,20 @@ library and its wrapper packages.
    grep -rn '"OLD_VERSION"' wrappers/ VERSION
    ```
 5. Update the CHANGELOG with the new version header if not already present.
+
+## OPA Version Updates
+
+When the OPA compatibility version changes (i.e., `REGOCPP_OPA_VERSION` in
+the root `CMakeLists.txt` is updated), the following file must also be
+updated to stay in sync:
+
+| File | Field / Pattern | Example |
+|------|----------------|---------|
+| `.github/copilot-instructions.md` | `targets Rego vX.Y.Z` | `targets Rego v1.15.1` |
+
+This is separate from the rego-cpp version bump — `REGOCPP_OPA_VERSION`
+tracks which OPA release rego-cpp is compatible with, and can change
+independently.
 
 ## Common Mistakes
 

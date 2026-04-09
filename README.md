@@ -63,6 +63,35 @@ You can run the test driver from the same directory:
 
     ./bin/rego_test tests/regocpp.yaml
 
+### Installing with vcpkg
+
+You can install rego-cpp using [vcpkg](https://vcpkg.io/):
+
+```bash
+vcpkg install rego-cpp
+```
+
+To enable crypto/JWT built-ins (requires OpenSSL 3):
+
+```bash
+vcpkg install rego-cpp[openssl3]
+```
+
+To also install the `rego` CLI tool:
+
+```bash
+vcpkg install rego-cpp[openssl3,tools]
+```
+
+Then in your CMake project:
+
+```cmake
+find_package(regocpp CONFIG REQUIRED)
+target_link_libraries(<your-target> PRIVATE regocpp::rego)
+```
+
+For overlay port usage, see [`ports/rego-cpp/`](ports/rego-cpp/).
+
 ### Using the `rego` Library
 
 See the [examples](examples/README.md) directory for examples of how to use the

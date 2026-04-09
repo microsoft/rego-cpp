@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`rego-cpp` is a C++ interpreter for [Rego](https://www.openpolicyagent.org/docs/latest/policy-language/), the policy language of [Open Policy Agent (OPA)](https://www.openpolicyagent.org/). It targets Rego v1.8.0 and is designed for embedding policy evaluation directly into C++ applications, as well as for use from C, Rust, Python, and .NET via language wrappers.
+`rego-cpp` is a C++ interpreter for [Rego](https://www.openpolicyagent.org/docs/latest/policy-language/), the policy language of [Open Policy Agent (OPA)](https://www.openpolicyagent.org/). It targets Rego v1.15.1 and is designed for embedding policy evaluation directly into C++ applications, as well as for use from C, Rust, Python, and .NET via language wrappers.
 
 The interpreter is built on top of [Trieste](https://github.com/microsoft/trieste), a term-rewriting framework from Microsoft Research. Evaluation proceeds by parsing Rego source into an AST and then iteratively rewriting it through a series of compiler passes until a final result is produced.
 

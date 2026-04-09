@@ -52,3 +52,8 @@ add_test(
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist
 )
 set_tests_properties(custom_builtin PROPERTIES PASS_REGULAR_EXPRESSION "5")
+add_test(
+  NAME example
+  COMMAND bin/example
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist
+)

@@ -58,3 +58,8 @@ add_test(
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist
 )
 set_tests_properties(regoc PROPERTIES PASS_REGULAR_EXPRESSION "{\"name\":\"smoke1\"}")
+add_test(
+  NAME example
+  COMMAND bin/example
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist
+)

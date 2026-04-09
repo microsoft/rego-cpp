@@ -197,6 +197,105 @@ jobs:
         working-directory: ${{github.workspace}}/wrappers/python/ 
         run: pytest -vv
 
+  linux-example-cpp:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libssl-dev
+
+      - name: CMake config
+        working-directory: ${{github.workspace}}/examples/cpp
+        run: cmake -B ${{github.workspace}}/examples/cpp/build --preset release -G Ninja
+        env:
+          REGOCPP_REPO: LOCAL
+
+      - name: CMake build
+        working-directory: ${{github.workspace}}/examples/cpp/build
+        run: ninja install
+
+      - name: CMake test
+        working-directory: ${{github.workspace}}/examples/cpp/build
+        run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
+
+  linux-example-python:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Use Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Get dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev
+          python -m pip install --upgrade pip
+
+      - name: Python build
+        working-directory: ${{github.workspace}}/wrappers/python/
+        run: pip install -e .[dev]
+        env:
+          REGOCPP_REPO: LOCAL
+
+      - name: Run example
+        working-directory: ${{github.workspace}}/examples/python
+        run: python example.py
+
+  linux-example-rust:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cargo rustc libssl-dev
+
+      - name: Cargo run
+        working-directory: ${{github.workspace}}/examples/rust
+        run: cargo run --config 'patch.crates-io.regorust.path="../../wrappers/rust/regorust"'
+        env:
+          REGOCPP_REPO: LOCAL
+
+  linux-example-dotnet:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev
+
+      - name: Use dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Patch project reference
+        working-directory: ${{github.workspace}}/examples/dotnet/example
+        run: sed -i 's|<PackageReference Include="Rego" Version="[^"]*" />|<ProjectReference Include="../../../wrappers/dotnet/Rego/Rego.csproj" />|' example.csproj
+
+      - name: Run example
+        working-directory: ${{github.workspace}}/examples/dotnet/example
+        run: dotnet run
+        env:
+          REGOCPP_REPO: LOCAL
+
   linux-cheriot:
     runs-on: ubuntu-latest
 
