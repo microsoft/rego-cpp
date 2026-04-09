@@ -1,12 +1,8 @@
 ---
-name: plan-speed
-description: >
-  Performance-focused planning skill for rego-cpp changes. Produces plans
-  that prioritise runtime speed, low allocation counts, cache-friendly data access,
-  minimal pass counts, efficient pattern matching, and fast policy evaluation.
-  Use this skill when planning code changes and a performance-oriented perspective
-  is needed.
+description: "Performance-focused planner for rego-cpp changes. Use when: planning code changes that need a performance-oriented perspective, optimising runtime speed, reducing allocations, improving cache locality, minimising pass counts."
+tools: [read, search, web]
 user-invocable: false
+argument-hint: "Describe the task and provide relevant context for performance-focused planning"
 ---
 
 # Speed Planner

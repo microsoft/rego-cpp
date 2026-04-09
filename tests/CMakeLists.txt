@@ -27,6 +27,7 @@ add_test(NAME rego_test_manual COMMAND rego_test -n manual WORKING_DIRECTORY $<T
 add_test(NAME rego_test_regocpp COMMAND rego_test regocpp.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_bundle_json COMMAND rego_test regocpp.yaml -r json -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_bundle_binary COMMAND rego_test regocpp.yaml -r binary -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
+add_test(NAME rego_test_builtins COMMAND rego_test builtins.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_bugs COMMAND rego_test bugs.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_cts COMMAND rego_test cts/cts.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
 add_test(NAME rego_test_aci COMMAND rego_test aci/aci.yaml -wf WORKING_DIRECTORY $<TARGET_FILE_DIR:rego_test>)
@@ -45,6 +46,8 @@ endif()
 
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/regocpp.yaml $<TARGET_FILE_DIR:rego_test>/regocpp.yaml)
+add_custom_command(TARGET rego_test POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/builtins.yaml $<TARGET_FILE_DIR:rego_test>/builtins.yaml)
 add_custom_command(TARGET rego_test POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bugs.yaml $<TARGET_FILE_DIR:rego_test>/bugs.yaml)
 add_custom_command(TARGET rego_test POST_BUILD

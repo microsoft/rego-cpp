@@ -1,7 +1,7 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO microsoft/rego-cpp
-    REF "${VERSION}"
+    REF "v${VERSION}"
     SHA512 0  # Update with actual hash when tagging a release
     HEAD_REF main
 )

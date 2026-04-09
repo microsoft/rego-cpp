@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-04-08 - Version 1.4.0
+Minor version adding `glob.match`, `glob.quote_meta`, and `regex.globs_match`
+built-in implementations.
+
+**New Features**
+- Added `glob.match` built-in with full gobwas/glob-compatible pattern matching,
+  including `*`, `**`, `?`, character classes (`[abc]`, `[a-z]`, `[!x]`),
+  brace alternatives (`{foo,bar}`), and configurable path delimiters.
+- Added `glob.quote_meta` built-in for escaping glob metacharacters.
+- Added `regex.globs_match` built-in for testing whether the intersection of
+  two glob patterns matches a non-empty set of non-empty strings.
+
+**Bug Fixes**
+- Fixed `regex.find_all_string_submatch` to advance by one Unicode codepoint
+  after a zero-length match, preventing infinite loops and matching Go's
+  `regexp.FindAllStringSubmatch` behavior.
+
+**Build System / Packaging**
+- Fixed vcpkg `portfile.cmake` REF to use `v${VERSION}` prefix, matching the
+  actual git tag format.
+- Added `"supports": "!x86"` constraint to vcpkg manifest.
+- Bumped vcpkg OpenSSL minimum version from `3.0.0` to `3.0.2`.
+
+**Test Infrastructure**
+- Extracted built-in-specific test cases from `regocpp.yaml` into a new
+  `builtins.yaml` file with a dedicated CTest target (`rego_test_builtins`).
+- Added 27 new test cases covering `glob.match`, `glob.quote_meta`, and
+  `regex.globs_match` (including edge cases and error conditions).
+
 ## 2026-04-02 - Version 1.3.1
 Patch release replacing the mbedTLS crypto backend with OpenSSL 3, fixing the
 `print` built-in to match OPA semantics, and adding vcpkg packaging support.

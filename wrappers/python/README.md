@@ -172,13 +172,11 @@ are NOT supported at present, though some are scheduled for future releases.
 
 - `providers.aws.sign_req` - Not planned
 - `crypto.*` - Currently slated to be released in v1.2.0
-- `glob.*` - Not planned
 - `graphql.*` - Not planned
 - `http.send` - Not planned
 - `json.match_schema`/`json.verify_schema` - Not planned
 - `jwt.*` - Currently slated to be released in v1.3.0
 - `net.*` - Not planned
-- `regex.globs_match` - Not planned
 - `rego.metadata.chain`/`rego.metadata.rule`/`rego.parse_module` - Not planned
 - `strings.render_template` - Not planned
 - `time` - This is entirely platform dependent at the moment, depending on whether

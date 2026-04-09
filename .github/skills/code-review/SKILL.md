@@ -26,13 +26,13 @@ converge or provide unique insight.
 
 ## Perspectives
 
-| Perspective | Lens | Skill file |
-|-------------|------|------------|
-| **Security** | Defence in depth, memory safety, bounded resources, error handling, adversarial inputs, C API boundaries, fuzz coverage | [plan-security](../plan-security/SKILL.md) |
-| **Performance** | Allocation minimisation, cache-friendly access, pass count, hot-path awareness, algorithmic complexity | [plan-speed](../plan-speed/SKILL.md) |
-| **Usability** | Correctness, clarity, naming, WF precision, error message quality, one-concept-per-pass, API ergonomics | [plan-usability](../plan-usability/SKILL.md) |
-| **Conservative** | Smallest diff, backwards compatibility, API stability, reuse, no speculative generality, blast radius | [plan-conservative](../plan-conservative/SKILL.md) |
-| **Adversarial** | Red-team attacks, hidden assumptions, untested edge cases, semantic divergence from OPA, consensus blind spots, breaking inputs | [plan-adversarial](../plan-adversarial/SKILL.md) |
+| Perspective | Lens | Agent |
+|-------------|------|-------|
+| **Security** | Defence in depth, memory safety, bounded resources, error handling, adversarial inputs, C API boundaries, fuzz coverage | `plan-security` |
+| **Performance** | Allocation minimisation, cache-friendly access, pass count, hot-path awareness, algorithmic complexity | `plan-speed` |
+| **Usability** | Correctness, clarity, naming, WF precision, error message quality, one-concept-per-pass, API ergonomics | `plan-usability` |
+| **Conservative** | Smallest diff, backwards compatibility, API stability, reuse, no speculative generality, blast radius | `plan-conservative` |
+| **Adversarial** | Red-team attacks, hidden assumptions, untested edge cases, semantic divergence from OPA, consensus blind spots, breaking inputs | `plan-adversarial` |
 
 ## Procedure
 

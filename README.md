@@ -148,13 +148,11 @@ mechanism for including custom built-ins (via the CPP API). The following builti
 are NOT supported at present:
 
 - `crypto.x509.parse_and_verify_certificates_with_options` - Not yet implemented (no OPA conformance tests available)
-- `glob.*` - Not planned
 - `graphql.*` - Not planned
 - `http.send` - Not planned
 - `json.match_schema`/`json.verify_schema` - Not planned
 - `net.*` - Not planned
 - `providers.aws.sign_req` - Not planned
-- `regex.globs_match` - Not planned
 - `rego.metadata.chain`/`rego.metadata.rule`/`rego.parse_module` - Not planned
 - `strings.render_template` - Not planned
 - `time` - This is entirely platform dependent at the moment, depending on whether
