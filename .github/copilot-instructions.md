@@ -170,7 +170,7 @@ For non-trivial features (new syntax, new passes, AST restructuring), analyze th
 
 ### Multi-perspective Planning Process
 
-When planning a non-trivial code change, use four sub-planners running in parallel to generate competing plans, synthesise the best elements into a draft plan, then stress-test it with an adversarial review loop before presenting for approval.
+When planning a non-trivial code change, use four sub-planners running in parallel to generate competing plans, synthesise them with explicit rebuttal resolution, then stress-test the result with an adversarial review loop before presenting for approval.
 
 #### Step 0 — Gather context
 
@@ -181,44 +181,51 @@ Before spawning any planners, gather sufficient context about the task:
 - Identify affected passes, tokens, and API surfaces.
 - Summarise the gathered context into a task description that all subagents will receive.
 
-#### Step 1 — Plan with non-adversarial agents
+#### Step 1 — Gather sub-plans
 
-Spawn **four fresh subagents** in parallel using the planner agents. Each agent receives the same task description and context but plans through a different lens:
+Spawn **four fresh subagents** in parallel using the lens agents. Each agent receives the same task description and context but plans through a different lens:
 
 | Agent | Focus |
 |-------|-------|
-| `plan-speed` | Runtime performance, low allocations, minimal passes, cache efficiency |
-| `plan-security` | Defence in depth, safe error handling, bounded resources, fuzz coverage |
-| `plan-usability` | Clarity, readability, correctness, consistent naming, one-concept-per-pass |
-| `plan-conservative` | Smallest diff, maximum reuse, no speculative generality, backwards compat |
+| `speed-lens` | Runtime performance, low allocations, minimal passes, cache efficiency |
+| `security-lens` | Defence in depth, safe error handling, bounded resources, fuzz coverage |
+| `usability-lens` | Clarity, readability, correctness, consistent naming, one-concept-per-pass |
+| `conservative-lens` | Smallest diff, maximum reuse, no speculative generality, backwards compat |
 
 Prompt each agent with:
 > Here is the task: [task description and relevant context]. Produce a numbered plan following the output format defined in your instructions.
 
-#### Step 2 — Evaluate the four plans
+#### Step 2 — Identify conflicts and run rebuttals
 
-Review the four build plans yourself and produce a short evaluation covering:
+Read all four lens outputs and identify *substantive design conflicts* — cases where two or more lenses propose incompatible approaches ("use A" vs. "use B" where both cannot coexist). Different emphasis on the same approach is not a conflict.
+
+If conflicts are found:
+- For each conflict, spawn the disagreeing lens agents in parallel (fresh subagents, by name). Each receives: (a) the specific conflict description, (b) its own original recommendation, (c) the opposing recommendation(s), and (d) instructions to make its strongest case for why its approach should be chosen, directly addressing the opponent's arguments.
+- **One rebuttal round only** — no counter-rebuttals. The adversarial review loop (Step 4) catches remaining issues.
+- If no substantive conflicts are found, skip this step entirely.
+
+#### Step 3 — Evaluate and synthesise
+
+Review the four sub-plans yourself and produce a short evaluation covering:
 
 - **Convergence**: where two or more planners agree on the same approach. High convergence suggests a clearly correct design.
 - **Unique insights**: ideas that appear in only one plan and are worth incorporating.
-- **Conflicts**: where plans disagree. For each conflict, state which perspective you favour and why.
+- **Conflicts**: where plans disagree. For each conflict, summarise the rebuttal arguments from each side (if rebuttals were run) and state which perspective you favour and why.
 - **Gaps**: anything none of the four plans addressed.
 
-#### Step 3 — Synthesise the draft plan
-
-Spawn a **fifth subagent** (the synthesiser). Provide it with:
+Then spawn a **fresh `synthesis-lens` subagent**. Provide it with:
 - The original task description.
 - All four build sub-plans (labelled by perspective).
-- Your evaluation from Step 2.
+- Any rebuttal arguments (labelled by conflict and perspective).
+- Your evaluation.
 
-Prompt the synthesiser with:
-> You are producing a draft plan for a change to rego-cpp. You have received four sub-plans from different perspectives (Speed, Security, Usability, Conservative) and an evaluation of all four. Synthesise them into a single coherent, numbered plan that balances all four concerns. Where the evaluation favours one perspective, follow it. Where the evaluation is neutral, prefer the Conservative approach unless another perspective has a compelling reason to override. Output the draft plan in the standard format: Goal, Steps (with file paths and descriptions balancing all perspectives), Rationale (explaining the synthesis), and Trade-offs (any conflicts between perspectives and how they were resolved).
+When rebuttals are present, synthesis receives structured arguments for each side rather than inferring them. The synthesis subagent must engage with the specific rebuttal arguments made rather than ignoring them.
 
 #### Step 4 — Adversarial review loop
 
 Run an iterative adversarial review loop on the draft plan from Step 3:
 
-1. Spawn a subagent using the `plan-adversarial` agent. Provide it with the original task description, context, and the current draft plan. Prompt it with:
+1. Spawn a subagent using the `adversarial-lens` agent. Provide it with the original task description, context, and the current draft plan. Prompt it with:
    > Here is the plan: [draft plan]. Your job is to break it — find hidden assumptions, untested edge cases, semantic divergence from OPA, stale-state bugs, off-by-one errors, consensus blind spots, and failure modes. Produce an attack report following the output format defined in your instructions. Classify each finding as MUST-ADDRESS, SHOULD-ADDRESS, or ACKNOWLEDGED (risk accepted).
 
 2. Review the adversarial report yourself. For each finding:
@@ -228,20 +235,33 @@ Run an iterative adversarial review loop on the draft plan from Step 3:
 
 3. If any MUST-ADDRESS or SHOULD-ADDRESS findings required plan changes, spawn a **different** adversarial subagent to review the revised plan. Repeat until the adversarial review finds no new MUST-ADDRESS issues.
 
+4. If the loop has run **5 times** without converging, proceed to Step 5 anyway — present the remaining unresolved findings to the user for decision.
+
 #### Step 5 — Present for approval
 
 Present the final plan to the user along with a brief summary of:
 - Key points of agreement across the build sub-planners.
-- Adversarial attacks that were addressed and how, plus any that were acknowledged but not mitigated (with rationale).
 - Notable trade-offs made during synthesis.
+- Conflicts resolved via rebuttals and which perspective prevailed.
 - Any minority opinions from individual sub-planners that were overruled.
+- Adversarial attacks that were addressed and how, plus any that were acknowledged but not mitigated (with rationale).
 - Number of adversarial review iterations and key issues caught.
+- Any unresolved adversarial findings (if the loop hit the 5-iteration cap).
 
 #### When to use multi-perspective planning
 
 Use the full process for design decisions where the shape of the solution is uncertain: new language features, new passes, API changes, AST restructuring, or cross-cutting concerns that touch multiple pipeline stages.
 
 For tasks that are primarily implementation of a well-understood algorithm (e.g. a new built-in function with a clear OPA specification), a single conservative plan with emphasis on incremental testing is sufficient. Use the full process when the design is uncertain, not when the algorithm is known.
+
+#### Execution rules
+
+- Fresh subagents for each phase (lens, rebuttal, synthesis, adversarial review) — no context contamination.
+- Four constructive lens subagents run in parallel; conflict identification, rebuttals, synthesis, adversarial review, and user-facing presentation run sequentially.
+- Rebuttal subagents for a single conflict run in parallel with each other (they argue independently).
+- Lens phases are independent — do not allow one lens's output to shape another's. Rebuttals are a second pass; the original independent outputs are preserved and forwarded to synthesis alongside rebuttals.
+- Synthesis must resolve disagreements explicitly, not average them away. When rebuttals are available, synthesis must engage with the arguments made rather than ignoring them.
+- The adversarial review loop is mandatory before presenting to the user. Each iteration uses a fresh adversarial subagent.
 
 ### Pass Implementation Pattern
 
