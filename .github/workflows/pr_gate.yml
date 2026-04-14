@@ -633,6 +633,22 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
+        features:
+          - ""
+          - "openssl3"
+          - "openssl3,tools"
+          - "openssl3,tools,snmalloc"
+          - "snmalloc"
+          - "tools"
+          - "tools, snmalloc"
+        exclude:
+          # Windows uses bcrypt, not openssl3
+          - os: windows-latest
+            features: "openssl3"
+          - os: windows-latest
+            features: "openssl3,tools"
+          - os: windows-latest
+            features: "openssl3,tools,snmalloc"
         include:
           - os: ubuntu-latest
             install_deps: sudo apt-get update && sudo apt-get install -y ninja-build libssl-dev
@@ -641,7 +657,7 @@ jobs:
           - os: windows-latest
             install_deps: ""
     runs-on: ${{ matrix.os }}
-    name: vcpkg - ${{ matrix.os }}
+    name: "vcpkg - ${{ matrix.os }} [${{ matrix.features || 'minimal' }}]"
     steps:
     - uses: actions/checkout@v6
 
@@ -702,10 +718,22 @@ jobs:
       # Run from runner.temp to avoid the workspace triggering manifest mode.
       working-directory: ${{ runner.temp }}
       run: |
-        "${{ runner.temp }}/vcpkg/vcpkg" install "rego-cpp[openssl3,tools]" \
-          --overlay-ports="${{ runner.temp }}/overlay"
+        spec="rego-cpp"
+        if [ -n "${{ matrix.features }}" ]; then
+          spec="rego-cpp[${{ matrix.features }}]"
+        fi
+        echo "Installing: $spec"
+        "${{ runner.temp }}/vcpkg/vcpkg" install "$spec" \
+          --overlay-ports="${{ runner.temp }}/overlay" 2>&1 | tee vcpkg_output.log
+        # Fail if vcpkg emitted any warnings
+        if grep -qi 'warning' vcpkg_output.log; then
+          echo "::error::vcpkg install produced warnings (see log above)"
+          grep -i 'warning' vcpkg_output.log
+          exit 1
+        fi
 
     - name: Verify rego CLI
+      if: contains(matrix.features, 'tools')
       shell: bash
       run: |
         # Find the rego binary under the vcpkg installed tools directory
@@ -730,74 +758,19 @@ jobs:
       run: |
         cmake -B "${{ runner.temp }}/consumer-build" \
           -S tests/vcpkg-consumer \
-          -DCMAKE_TOOLCHAIN_FILE="${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        cmake --build "${{ runner.temp }}/consumer-build" --config Release
-
-    - name: Run tests
-      shell: bash
-      run: |
-        ctest --test-dir "${{ runner.temp }}/consumer-build" \
-          --build-config Release --output-on-failure
-
-  vcpkg-integration-minimal:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        include:
-          - os: ubuntu-latest
-            install_deps: ""
-          - os: macos-latest
-            install_deps: ""
-          - os: windows-latest
-            install_deps: ""
-    runs-on: ${{ matrix.os }}
-    name: vcpkg minimal - ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Bootstrap vcpkg
-      shell: bash
-      run: |
-        git clone https://github.com/microsoft/vcpkg.git "${{ runner.temp }}/vcpkg" --depth 1
-        if [ "$RUNNER_OS" = "Windows" ]; then
-          "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.bat" -disableMetrics
-        else
-          "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
-        fi
-
-    - name: Create overlay port pointing at local source
-      shell: bash
-      run: |
-        overlay="${{ runner.temp }}/overlay/rego-cpp"
-        mkdir -p "$overlay"
-        cp ports/rego-cpp/vcpkg.json "$overlay/"
-        cp ports/rego-cpp/usage "$overlay/"
-        ws_path=$(echo "${{ github.workspace }}" | sed 's|\\|/|g')
-        {
-          echo "set(SOURCE_PATH \"${ws_path}\")"
-          echo ''
-          sed -n '/^if("openssl3"/,$ p' ports/rego-cpp/portfile.cmake
-        } > "$overlay/portfile.cmake"
-        if ! grep -q 'vcpkg_cmake_configure' "$overlay/portfile.cmake"; then
-          echo "::error::Overlay portfile extraction failed — 'vcpkg_cmake_configure' not found."
+          -DCMAKE_TOOLCHAIN_FILE="${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+          -W dev 2>&1 | tee cmake_output.log
+        if grep -qi 'warning' cmake_output.log; then
+          echo "::error::CMake configure produced warnings (see log above)"
+          grep -i 'warning' cmake_output.log
           exit 1
         fi
-
-    - name: Install rego-cpp via vcpkg (no features)
-      shell: bash
-      working-directory: ${{ runner.temp }}
-      run: |
-        "${{ runner.temp }}/vcpkg/vcpkg" install rego-cpp \
-          --overlay-ports="${{ runner.temp }}/overlay"
-
-    - name: Build consumer project
-      shell: bash
-      run: |
-        cmake -B "${{ runner.temp }}/consumer-build" \
-          -S tests/vcpkg-consumer \
-          -DCMAKE_TOOLCHAIN_FILE="${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        cmake --build "${{ runner.temp }}/consumer-build" --config Release
+        cmake --build "${{ runner.temp }}/consumer-build" --config Release 2>&1 | tee build_output.log
+        if grep -qi 'warning' build_output.log; then
+          echo "::error::Build produced warnings (see log above)"
+          grep -i 'warning' build_output.log
+          exit 1
+        fi
 
     - name: Run tests
       shell: bash

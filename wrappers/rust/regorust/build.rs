@@ -97,8 +97,8 @@ fn main() {
     let header_path_str = header_path.to_str().unwrap();
 
     println!("cargo:rustc-link-search={}", libdir_path.to_str().unwrap());
-    println!("cargo:rustc-link-lib=static:+whole-archive=json");
-    println!("cargo:rustc-link-lib=static:+whole-archive=yaml");
+    println!("cargo:rustc-link-lib=static:+whole-archive=trieste-json");
+    println!("cargo:rustc-link-lib=static:+whole-archive=trieste-yaml");
     println!("cargo:rustc-link-lib=static=rego");
     if cfg!(windows) {
         println!("cargo:rustc-link-lib=static:+whole-archive=snmalloc-new-override");

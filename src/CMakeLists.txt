@@ -107,9 +107,13 @@ target_include_directories( rego
 if ( REGOCPP_BUILD_SHARED )
   add_library(rego_shared SHARED ${SOURCES})
   set_property(TARGET rego PROPERTY POSITION_INDEPENDENT_CODE ON)
-  set_property(TARGET yaml PROPERTY POSITION_INDEPENDENT_CODE ON)
-  set_property(TARGET json PROPERTY POSITION_INDEPENDENT_CODE ON)
-  set_property(TARGET snmalloc-new-override PROPERTY POSITION_INDEPENDENT_CODE ON)
+  if(REGOCPP_USE_FETCH_CONTENT)
+    set_property(TARGET yaml PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET json PROPERTY POSITION_INDEPENDENT_CODE ON)
+    if(TARGET snmalloc-new-override)
+      set_property(TARGET snmalloc-new-override PROPERTY POSITION_INDEPENDENT_CODE ON)
+    endif()
+  endif()
 
   target_link_libraries(rego_shared
     PUBLIC

@@ -141,7 +141,7 @@ if(REGOCPP_USE_FETCH_CONTENT)
   FetchContent_Declare(
     trieste
     GIT_REPOSITORY https://github.com/microsoft/trieste
-    GIT_TAG        ee6bfd1ed88d9fa3279c437ae0c0f7e74bbce4f8
+    GIT_TAG        3a5d7f684bf883c63eaa21a22ef85ff8a45eb44e
   )
 
   FetchContent_MakeAvailable(cmake_utils)
@@ -238,14 +238,19 @@ endif()
 set(REGOCPP_INSTALL_TARGETS rego)
 
 if(REGOCPP_USE_FETCH_CONTENT)
-  list(APPEND REGOCPP_INSTALL_TARGETS trieste json yaml snmalloc)
+  list(APPEND REGOCPP_INSTALL_TARGETS trieste json yaml)
+  # snmalloc must be installed if it exists as a target, because trieste
+  # links against it regardless of REGOCPP_USE_SNMALLOC (until Trieste >=1.1.0).
+  if(TARGET snmalloc)
+    list(APPEND REGOCPP_INSTALL_TARGETS snmalloc)
+  endif()
 endif()
 
 if(REGOCPP_BUILD_SHARED)
   list(APPEND REGOCPP_INSTALL_TARGETS rego_shared)
 endif()
 
-if(REGOCPP_USE_FETCH_CONTENT AND TRIESTE_USE_SNMALLOC)
+if(REGOCPP_USE_FETCH_CONTENT AND REGOCPP_USE_SNMALLOC AND TARGET snmalloc-new-override)
   list(APPEND REGOCPP_INSTALL_TARGETS snmalloc-new-override)
 endif()
 
@@ -305,9 +310,7 @@ export(EXPORT ${PROJECT_NAME}_Targets
 
 export(PACKAGE ${PROJECT_NAME})
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  CONFIGURATIONS Release RelWithDebInfo MinSizeRel)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES 
   ${CMAKE_CURRENT_BINARY_DIR}/src/version.h  
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rego
-  CONFIGURATIONS Release RelWithDebInfo MinSizeRel)
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rego)

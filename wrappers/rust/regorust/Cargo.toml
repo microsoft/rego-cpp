@@ -1,6 +1,6 @@
 [package]
 name = "regorust"
-version = "1.4.0"
+version = "1.4.1"
 edition = "2021"
 description = "Rust bindings for the rego-cpp Rego compiler and interpreter"
 license = "MIT"

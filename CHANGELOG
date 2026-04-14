@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-04-13 - Version 1.4.1
+Patch release with expanded examples, CI improvements, and vcpkg documentation.
+
+**Documentation**
+- Added vcpkg installation instructions to README (install commands, CMake
+  usage, feature flags for openssl3 and tools).
+- Updated examples/README.md with new descriptions and expected output for
+  Python and Rust examples.
+
+**Examples**
+- Rewrote Python `example.py` to match the dotnet example's three-section
+  structure: Query Only, Input and Data, Bundles.
+- Rewrote Rust example from a clap CLI tool to a demonstration program matching
+  the same three-section structure; dropped clap dependency.
+
+**Build System / CI**
+- Added CI jobs for all examples (`linux-example-cpp`, `linux-example-python`,
+  `linux-example-rust`, `linux-example-dotnet`) using `REGOCPP_REPO=LOCAL`.
+- Added ctest targets for C and C++ example binaries.
+- Replaced separate `vcpkg-integration` and `vcpkg-integration-minimal` CI
+  jobs with a single matrix job testing feature combinations (`minimal`,
+  `openssl3`, `openssl3,tools`, `openssl3,tools,snmalloc`, `snmalloc`,
+  `tools`, `tools,snmalloc`) across Linux and Windows. All vcpkg install,
+  CMake configure, and build steps now fail on warnings.
+- Fixed stale version references in dotnet example project files.
+
 ## 2026-04-08 - Version 1.4.0
 Minor version adding `glob.match`, `glob.quote_meta`, and `regex.globs_match`
 built-in implementations.
