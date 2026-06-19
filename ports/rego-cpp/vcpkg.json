@@ -1,6 +1,6 @@
 {
     "name": "rego-cpp",
-    "version": "1.4.1",
+    "version": "1.5.0",
     "description": "A C++ interpreter for the OPA Rego policy language",
     "homepage": "https://github.com/microsoft/rego-cpp",
     "license": "MIT",
@@ -34,17 +34,6 @@
         },
         "tools": {
             "description": "Build and install the rego command-line interpreter"
-        },
-        "snmalloc": {
-            "description": "Use snmalloc for memory allocation",
-            "dependencies": [
-                {
-                    "name": "trieste",
-                    "features": [
-                        "snmalloc"
-                    ]
-                }
-            ]
         }
     }
 }

@@ -2,6 +2,7 @@
 
 #include "rego.hh"
 
+#include <array>
 #include <iterator>
 #include <stdexcept>
 
@@ -130,7 +131,7 @@ namespace rego
   bool BuiltInsDef::is_deprecated(
     const Location& version, const Location& name) const
   {
-    std::vector<std::string> deprecated = {
+    static constexpr std::array<std::string_view, 11> deprecated = {
       "any",
       "all",
       "re_match",
@@ -143,10 +144,7 @@ namespace rego
       "cast_null",
       "cast_object"};
 
-    return std::find_if(
-             deprecated.begin(),
-             deprecated.end(),
-             [name](const std::string& n) { return n == name.view(); }) !=
+    return std::find(deprecated.begin(), deprecated.end(), name.view()) !=
       deprecated.end();
   }
 
@@ -384,23 +382,30 @@ namespace rego
     {
       if (first_char > 'r')
       {
-        if (first_char > 't')
+        if (length > 3)
         {
-          if (first_char > 'u')
+          if (first_char > 't')
           {
-            if (view == "yaml")
+            if (first_char > 'u')
             {
-              return builtins::yaml(name);
+              if (view == "yaml")
+              {
+                return builtins::yaml(name);
+              }
+            }
+            if (view == "uuid")
+            {
+              return builtins::uuid(name);
             }
           }
-          if (view == "uuid")
+          if (view == "time")
           {
-            return builtins::uuid(name);
+            return builtins::time(name);
           }
         }
-        if (view == "time")
+        if (view == "uri")
         {
-          return builtins::time(name);
+          return builtins::uri(name);
         }
       }
       if (length > 3)

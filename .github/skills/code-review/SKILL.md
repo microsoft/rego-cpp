@@ -45,6 +45,59 @@ the adversary knows what was already found and can focus on blind spots.
 |-------------|------|-------|
 | **Adversarial** | Red-team attacks, hidden assumptions, untested edge cases, semantic divergence from OPA, consensus blind spots, breaking inputs. **Runs after constructive reviewers and receives their synthesised findings.** | `adversarial-lens` |
 
+## Checkpointing
+
+Each step writes a checkpoint file to `.copilot/review/<review-slug>/` so that a review can be resumed at any point if the session is interrupted or the user wants to re-run a step.
+
+### Checkpoint format
+
+Each checkpoint is a markdown file with YAML frontmatter, named `step-<N>-<name>.md`:
+
+```markdown
+---
+review_slug: <review-slug>
+step: <N>
+step_name: <name>
+timestamp: <ISO-8601>
+status: completed
+---
+
+<step content in markdown>
+```
+
+### Checkpoint files by step
+
+| Step | File | Body contents |
+|------|------|---------------|
+| 1 | `step-1-diff.md` | Commit range, file list, subsystem grouping |
+| 2 | `step-2-reviews.md` | Each constructive reviewer's output under its own `## Heading` |
+| 3 | `step-3-synthesis.md` | Deduplicated, classified, severity-ranked findings |
+| 4 | `step-4-adversarial.md` | Adversarial gap-analysis findings |
+| 5 | `step-5-verification.md` | Verification results for CRITICAL/HIGH findings |
+| 6 | `step-6-report.md` | Final unified report |
+| 7 | `step-7-calibration.md` | Test coverage calibration results |
+
+### Resuming from a checkpoint
+
+When the user says "resume review" or "restart from step N":
+
+1. Read the checkpoint directory `.copilot/review/<review-slug>/`
+2. Find the highest completed step checkpoint
+3. Load its data and continue from the next step
+4. If the user specifies a step number, discard checkpoints for that step and later, then re-run from that step using earlier checkpoint data as input
+
+### Review slug
+
+Derive the slug from the review target: e.g., `v1.3.0-to-v1.4.0` for a tag range, or `feature-branch-name` for a branch review. Store the slug in every checkpoint for cross-reference.
+
+### Using checkpoints as subagent context
+
+Because checkpoint files are plain markdown, subagents can read them directly using file tools. Instead of inlining all prior results into a subagent prompt, **point the subagent at the checkpoint files**:
+
+- Tell the subagent the checkpoint directory path (`.copilot/review/<review-slug>/`).
+- Instruct it to read the specific checkpoint files it needs (e.g., "Read `step-1-diff.md` for the file list and `step-3-synthesis.md` for existing findings").
+- This keeps prompts short, avoids token duplication, and ensures subagents always see the full untruncated content.
+
 ## Procedure
 
 ### Step 1: Identify the Diff
@@ -58,6 +111,8 @@ git diff --stat v1.2.0..HEAD
 
 Group changed files by subsystem (parser, builtins, VM, C API, build system,
 wrappers) to assign review focus areas.
+
+**Checkpoint**: Write `.copilot/review/<review-slug>/step-1-diff.md` with the commit range, full file list, and subsystem grouping.
 
 ### Step 2: Launch Four Constructive Review Subagents
 
@@ -107,6 +162,8 @@ Severity scales per perspective:
 - **Usability**: CONCERN / SUGGESTION / POSITIVE
 - **Conservative**: BREAKING / HIGH-RISK / MEDIUM-RISK / LOW-RISK / OK
 
+**Checkpoint**: Write `.copilot/review/<review-slug>/step-2-reviews.md` with each reviewer's output under its own heading.
+
 ### Step 3: Synthesise Constructive Findings
 
 After all four constructive reviewers return, synthesise their outputs:
@@ -126,6 +183,8 @@ After all four constructive reviewers return, synthesise their outputs:
 #### Convergence
 Where two or more perspectives agree on the same finding. High convergence
 indicates high confidence.
+
+**Checkpoint**: Write `.copilot/review/<review-slug>/step-3-synthesis.md` with the deduplicated, classified findings.
 
 ### Step 4: Adversarial Gap-Analysis Pass
 
@@ -173,6 +232,8 @@ Severity scale for Adversarial:
 Merge the adversarial reviewer's new findings into the synthesised list using
 the same unified severity scale, then proceed to verification.
 
+**Checkpoint**: Write `.copilot/review/<review-slug>/step-4-adversarial.md` with the adversarial findings merged into the full list.
+
 ### Step 5: Verify Key Findings
 
 Identify the highest-severity findings (CRITICAL / HIGH) and **spot-check
@@ -190,6 +251,8 @@ Mark each issue as:
 
 Downgrade or remove issues that cannot be substantiated after reasonable
 investigation.
+
+**Checkpoint**: Write `.copilot/review/<review-slug>/step-5-verification.md` with the verification results.
 
 ### Step 6: Produce the Report
 
@@ -213,6 +276,8 @@ Ordered by priority. Split into:
 Where perspectives conflict (e.g., security wants more validation, performance
 wants less overhead), state the conflict and the recommended resolution.
 
+**Checkpoint**: Write `.copilot/review/<review-slug>/step-6-report.md` with the full unified report.
+
 ### Step 7: Calibrate Against Existing Test Coverage
 
 Before finalising recommendations, check whether existing test suites
@@ -229,6 +294,8 @@ grep 'note:' build/opa/v1/test/cases/testdata/v1/{suite}/*.yaml
 ```
 
 Drop or downgrade recommendations that duplicate existing OPA coverage.
+
+**Checkpoint**: Write `.copilot/review/<review-slug>/step-7-calibration.md` with the calibration results and final adjusted recommendations.
 
 ## Chunking Large Targets
 

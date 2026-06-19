@@ -1083,14 +1083,25 @@ namespace
           [](Match& _) {
             std::filesystem::path json_path(
               _(PathSeq)->location().source->origin());
-            std::filesystem::path bundle_dir = json_path.parent_path();
+            std::filesystem::path bundle_dir =
+              std::filesystem::weakly_canonical(json_path.parent_path());
 
             Node pathseq = NodeDef::create(PathSeq);
             for (auto& child : *_(PathSeq))
             {
               Node path =
                 object_lookdown(child, "value", json::String, to_irstring);
-              auto abspath = bundle_dir / path->location().view();
+              auto abspath = std::filesystem::weakly_canonical(
+                bundle_dir / path->location().view());
+              auto [iter, end] = std::mismatch(
+                bundle_dir.begin(), bundle_dir.end(), abspath.begin());
+              if (iter != bundle_dir.end())
+              {
+                return rego::err(
+                  _(json::Key),
+                  "bundle file path escapes bundle directory",
+                  WellFormedError);
+              }
               pathseq << (IRString ^ abspath.string());
             }
 
@@ -1326,13 +1337,22 @@ namespace
       }
 
       std::filesystem::path json_path(static_->location().source->origin());
-      std::filesystem::path bundle_dir = json_path.parent_path();
+      std::filesystem::path bundle_dir =
+        std::filesystem::weakly_canonical(json_path.parent_path());
 
       for (Node file : *files)
       {
         Node value = object_lookdown(file, "value", json::String);
         std::string name = strip_quotes(value->location().view());
-        std::filesystem::path source_path = bundle_dir / name;
+        std::filesystem::path source_path =
+          std::filesystem::weakly_canonical(bundle_dir / name);
+        auto [iter, end] = std::mismatch(
+          bundle_dir.begin(), bundle_dir.end(), source_path.begin());
+        if (iter != bundle_dir.end())
+        {
+          sources->clear();
+          return 0;
+        }
         if (std::filesystem::exists(source_path))
         {
           sources->push_back(SourceDef::load(source_path));

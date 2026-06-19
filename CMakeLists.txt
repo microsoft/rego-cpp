@@ -15,7 +15,7 @@ list( GET REGOCPP_VERSION_LIST 1 REGOCPP_VERSION_MINOR )
 
 list( GET REGOCPP_VERSION_LIST 2 REGOCPP_VERSION_REVISION )
 
-set ( REGOCPP_OPA_VERSION 1.15.1 )
+set ( REGOCPP_OPA_VERSION 1.18.1 )
 
 set( REGOCPP_VERSION ${REGOCPP_VERSION_MAJOR}.${REGOCPP_VERSION_MINOR}.${REGOCPP_VERSION_REVISION} )
 
@@ -141,7 +141,7 @@ if(REGOCPP_USE_FETCH_CONTENT)
   FetchContent_Declare(
     trieste
     GIT_REPOSITORY https://github.com/microsoft/trieste
-    GIT_TAG        3a5d7f684bf883c63eaa21a22ef85ff8a45eb44e
+    GIT_TAG        0920efeecaa0c56c558f5a5c7a0da865595a43b8
   )
 
   FetchContent_MakeAvailable(cmake_utils)
@@ -297,7 +297,7 @@ endif()
 
 if (REGOCPP_BUILD_TESTS)
   install(TARGETS rego_test rego_test_c_api rego_test_cpp_api RUNTIME)
-  install(FILES tests/regocpp.yaml tests/builtins.yaml tests/bigint.yaml tests/bugs.yaml tests/bad.json DESTINATION tests)
+  install(FILES tests/regocpp.yaml tests/builtins.yaml tests/core.yaml tests/bigint.yaml tests/bugs.yaml tests/bad.json DESTINATION tests)
   install(DIRECTORY tests/aci DESTINATION tests)
   install(DIRECTORY tests/cts DESTINATION tests)
   install(DIRECTORY tests/opa DESTINATION tests)

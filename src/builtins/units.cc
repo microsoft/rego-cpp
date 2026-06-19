@@ -49,59 +49,74 @@ namespace
     std::string no_amount;
     std::string parse;
     std::string spaces;
+    std::string exponent;
   };
+
+  const UnitsErrors parse_errors = {
+    "units.parse: no amount provided",
+    "units.parse: could not parse amount to a number",
+    "units.parse: spaces not allowed in resource strings",
+    "units.parse: exponent too large"};
+
+  const UnitsErrors parse_bytes_errors = {
+    "units.parse_bytes: no byte amount provided",
+    "units.parse_bytes: could not parse byte amount to a number",
+    "units.parse_bytes: spaces not allowed in resource strings",
+    "units.parse_bytes: exponent too large"};
+
+  // Matches OPA's maxExponentDigits cap (prevents timeout bypass).
+  constexpr int max_exponent_digits = 6;
 
   Node parse_number(
     const UnitsErrors& errors, const Node& x, const std::string& num_str)
   {
-    if (num_str.size() == 0)
+    if (num_str.empty())
     {
       return err(x, errors.no_amount, EvalBuiltInError);
     }
 
-    auto it = num_str.begin();
-    auto end = num_str.end();
-    if (*it == '-' || *it == '+')
+    // Mirror OPA's extractNumAndUnit: "no amount" unless it starts a number.
+    char c0 = num_str.front();
+    bool begins_number = std::isdigit(static_cast<unsigned char>(c0)) ||
+      c0 == '.' || c0 == '+' || c0 == '-';
+    if (c0 == 'e' || c0 == 'E')
     {
-      ++it;
+      begins_number = num_str.size() > 1 &&
+        (std::isdigit(static_cast<unsigned char>(num_str[1])) ||
+         num_str[1] == '+' || num_str[1] == '-');
+    }
+    if (!begins_number)
+    {
+      return err(x, errors.no_amount, EvalBuiltInError);
     }
 
-    const std::set<char> digits = {
-      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-    int num_decimals = 0;
-    int num_exponent = 0;
-
-    for (; it != end; ++it)
-    {
-      if (*it == '.')
-      {
-        num_decimals++;
-      }
-      else if (*it == 'e' || *it == 'E')
-      {
-        num_exponent++;
-        if (it + 1 == end)
-        {
-          return err(x, errors.no_amount, EvalBuiltInError);
-        }
-
-        if (it[1] == '+' || it[1] == '-')
-        {
-          ++it;
-        }
-      }
-      else if (!digits.contains(*it))
-      {
-        return err(x, errors.no_amount, EvalBuiltInError);
-      }
-    }
-
-    if (num_exponent > 1 || num_decimals > 1)
+    // A valid amount requires at least one digit in the mantissa (before or
+    // after the decimal point) and, if an exponent is present, at least one
+    // digit after the optional sign. This rejects malformed lexemes such as
+    // "1e+", ".", "-" and "e5" that an ad-hoc character scan can let through.
+    static const TRegex number_re(
+      R"(^[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$)");
+    if (!TRegex::FullMatch(num_str, number_re))
     {
       return err(x, errors.parse, EvalBuiltInError);
     }
 
-    if (num_decimals == 1 || num_exponent == 1)
+    std::size_t e_pos = num_str.find_first_of("eE");
+    if (e_pos != std::string::npos)
+    {
+      std::size_t exp_start = e_pos + 1;
+      if (num_str[exp_start] == '+' || num_str[exp_start] == '-')
+      {
+        ++exp_start;
+      }
+      if (num_str.size() - exp_start > max_exponent_digits)
+      {
+        return err(x, errors.exponent, EvalBuiltInError);
+      }
+      return Float ^ num_str;
+    }
+
+    if (num_str.find('.') != std::string::npos)
     {
       return Float ^ num_str;
     }
@@ -160,8 +175,9 @@ namespace
       return err(x, errors.no_amount, EvalBuiltInError);
     }
 
-    auto has_space = std::find_if(
-      x_str.begin(), x_str.end(), [](char c) { return std::isspace(c); });
+    auto has_space = std::find_if(x_str.begin(), x_str.end(), [](char c) {
+      return std::isspace(static_cast<unsigned char>(c));
+    });
     if (has_space != x_str.end())
     {
       return err(x, errors.spaces, EvalBuiltInError);
@@ -170,7 +186,7 @@ namespace
     std::string lower;
     std::transform(
       x_str.begin(), x_str.end(), std::back_inserter(lower), [](char c) {
-        return static_cast<char>(std::tolower(c));
+        return static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
       });
 
     for (auto [unit, value] : bytes)
@@ -238,14 +254,7 @@ namespace
     }
 
     std::string x_str = strip_escaped_quotes(get_string(x));
-    return do_parse(
-      {"units.parse: no amount provided",
-       "units.parse: could not parse amount to a number",
-       "units.parse: spaces not allowed in resource strings"},
-      x,
-      x_str,
-      true,
-      false);
+    return do_parse(parse_errors, x, x_str, true, false);
   }
 
   BuiltIn parse_factory()
@@ -275,14 +284,7 @@ namespace
     {
       x_str = x_str.substr(0, x_str.size() - 1);
     }
-    return do_parse(
-      {"units.parse_bytes: no byte amount provided",
-       "units.parse_bytes: could not parse byte amount to a number",
-       "units.parse_bytes: spaces not allowed in resource strings"},
-      x,
-      x_str,
-      false,
-      true);
+    return do_parse(parse_bytes_errors, x, x_str, false, true);
   }
 
   BuiltIn parse_bytes_factory()

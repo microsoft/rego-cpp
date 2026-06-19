@@ -1,5 +1,98 @@
 # Changelog
 
+## 2026-06-19 - Version 1.5.0
+Feature and hardening release. Updates the supported OPA target to v1.18.1,
+adds the `uri.parse` and `uri.is_valid` builtins, and fixes variable
+resolution inside negated, `every`, and comprehension blocks. Also hardens
+the binary bundle loader and virtual machine and corrects `sprintf`, dynamic
+dispatch, array indexing, `time.parse_duration`, and `units.parse`.
+
+**OPA Compatibility**
+- Updated the supported OPA target from v1.15.1 to v1.18.1.
+- Added the `uri.parse` builtin, which decomposes a URI into an object with
+  `scheme`, `hostname`, `port`, `path`, `raw_path`, `raw_query`, and
+  `fragment` members (only the components present in the input are emitted).
+- Added the `uri.is_valid` builtin, returning whether its argument parses as
+  a valid URI.
+
+**Language Correctness**
+- Fixed variable resolution for unifications nested inside `not`, `every`, and
+  comprehension bodies, which are now deferred to the enclosing query's
+  `unify()` step instead of being resolved prematurely. A bare scan in a
+  negated block now correctly continues rather than short-circuiting.
+- Aligned `future.keywords` import handling (`if`, `in`, `contains`, `every`)
+  with the v1.18.1 surface.
+
+**Security / Hardening**
+- Added `BundleDef::verify()`, a structural validation pass that walks every
+  statement in every function and plan and checks that all local, string, and
+  file indices are in bounds, that statement extensions are present where
+  required, and that static call sites supply at least as many arguments as
+  the callee declares parameters. `VirtualMachine::bundle()` now invokes it
+  automatically at the public API boundary, so the VM is never driven by
+  malformed bytecode regardless of how the bundle was produced (binary load,
+  JSON IR, or programmatic construction by an embedder).
+- Binary bundle loader hardening:
+  - All size-prefixed reads (strings, file table, strings table, builtin
+    funcs, generic tables, plans, functions) now go through
+    `read_size_checked` / `read_size_capped`, which reject sizes that exceed
+    the residual stream length or per-element caps (`MaxStringBytes` =
+    16 MiB, `MaxCollectionElements` = 1 Mi). Prevents runaway allocations
+    from hostile counts.
+  - Added a 256 MiB `MaxBundleSize` overall cap and a 256-frame BSON
+    nesting-depth limit.
+  - Strings-table entries are now validated as well-formed UTF-8 at load
+    time (with an ASCII fast path), rejecting surrogate halves and
+    codepoints above U+10FFFF that would otherwise surprise downstream
+    consumers of `Location::view()`.
+- VM execution limits:
+  - New `max_call_depth` (default 512) bounds C++ stack growth from long
+    chains of distinct user-function calls. Configurable via
+    `Interpreter::max_call_depth(size_t)` and
+    `VirtualMachine::max_call_depth(size_t)`.
+  - New `max_block_depth` (default 512) bounds stack growth from
+    pathological block nesting (`scan`, `with`, comprehensions). Configurable
+    via the matching `max_block_depth(size_t)` setters.
+- `to_uint32` (used for parsing bundle-metadata indices) now rejects leading
+  `-` and any unconsumed trailing characters, so values like `"-1"` and
+  `"1.5"` fail cleanly instead of silently truncating.
+- `binary.md` now documents that the CRC32 field is a transfer-integrity
+  check, not authentication; embedders that need authenticity should sign
+  bundles out of band.
+
+**Bug Fixes**
+- `sprintf`: unknown or unsupported format verbs (e.g. `%n`, `%*d`) are now
+  emitted as literal text instead of being misinterpreted, matching OPA's
+  reference behaviour. Recognised flag characters (`0-9`, `.`, `-`, `+`,
+  `#`, space) continue to be consumed as format flags.
+- `CallDynamic`: when no entry in the rule trie matches a dynamic dispatch
+  path, the statement now returns `Undefined` so the enclosing block's
+  fallback can run, matching OPA's planner contract. Previously the call
+  could be invoked with an empty function name.
+- Array `dot`: floating-point indices (`arr[1.5]`), negative indices, and
+  out-of-range indices now correctly produce `undefined` instead of
+  silently truncating to a valid element. Driven by the stricter
+  `to_uint32` parsing above.
+- `Equal` / `NotEqual`: short-circuit on `Undefined` operands rather than
+  on falsy values, fixing edge cases where `undefined == false` was
+  treated as a successful comparison.
+- JSON bundle loader: file paths inside a JSON bundle manifest are now
+  resolved relative to the bundle directory (canonicalised) instead of
+  the process cwd.
+- `time.parse_duration`: the accepted number grammar now matches OPA's,
+  including a leading dot (`.5s`), a trailing dot (`5.s`), and leading zeros
+  (`007s`). Overflow is still rejected cleanly.
+- `units.parse` / `units.parse_bytes`: the "no amount provided" versus
+  "could not parse amount to a number" distinction now matches OPA exactly
+  for inputs such as `eK`, `e+K`, `-K`, and `.K`.
+
+**API Additions**
+- `BundleDef::verify() const`
+- `VirtualMachine::max_call_depth() / max_call_depth(size_t)`
+- `VirtualMachine::max_block_depth() / max_block_depth(size_t)`
+- `Interpreter::max_call_depth() / max_call_depth(size_t)`
+- `Interpreter::max_block_depth() / max_block_depth(size_t)`
+
 ## 2026-04-13 - Version 1.4.1
 Patch release with expanded examples, CI improvements, and vcpkg documentation.
 

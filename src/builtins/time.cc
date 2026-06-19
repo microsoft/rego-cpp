@@ -2,6 +2,8 @@
 #include "rego.hh"
 
 #include <chrono>
+#include <cmath>
+#include <limits>
 
 #if __cpp_lib_chrono >= 201907L
 #include <inttypes.h>
@@ -57,15 +59,56 @@ namespace
     {"ms", 1000000},
     {"s", double(second_ns)},
     {"m", double(minute_ns)},
-    {"h", double(hour_ns)}};
+    {"h", double(hour_ns)},
+    {"d", double(24UL * hour_ns)},
+    {"w", double(7UL * 24UL * hour_ns)},
+    {"y", double(365UL * 24UL * hour_ns)}};
 
-  nanoseconds do_parse_duration(const std::string& duration)
+  // Classifies a parse failure into a Go-style error for the remainder.
+  std::string duration_error(const std::string& orig, std::string_view rest)
   {
-    const char* duration_re =
-      R"((-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?)((?:ns|us|µs|ms|s|m|h)))";
-    const TRegex re(duration_re);
+    static const TRegex re(
+      R"(^(-?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?)?([^-+.0-9]*))");
     assert(re.ok());
 
+    std::string number;
+    std::string unit;
+    TRegex::PartialMatch(rest, re, &number, &unit);
+
+    if (number.empty())
+    {
+      // The remainder does not begin with a number.
+      return "time: invalid duration \"" + orig + "\"";
+    }
+    if (unit.empty())
+    {
+      return "time: missing unit in duration \"" + orig + "\"";
+    }
+    return "time: unknown unit \"" + unit + "\" in duration \"" + orig + "\"";
+  }
+
+  // Parses a Go-style duration (plus exponent and d/w/y units) to nanoseconds.
+  bool do_parse_duration(
+    const std::string& duration, std::int64_t& ns_out, std::string& errmsg)
+  {
+    static const TRegex re(
+      R"(^(-?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?)((?:ns|us|µs|ms|s|m|h|d|w|y)))");
+    assert(re.ok());
+
+    if (duration.empty())
+    {
+      errmsg = "time: invalid duration \"\"";
+      return false;
+    }
+
+    // A bare zero (optionally signed) is a valid zero duration.
+    if (duration == "0" || duration == "+0" || duration == "-0")
+    {
+      ns_out = 0;
+      return true;
+    }
+
+    constexpr double int64_limit = 9223372036854775808.0; // 2^63
     std::string number;
     std::string unit;
     std::int64_t ns = 0;
@@ -73,20 +116,52 @@ namespace
     while (start < duration.size())
     {
       std::string_view input(duration.c_str() + start, duration.size() - start);
-      if (TRegex::PartialMatch(input, re, &number, &unit))
-      {
-        double number_d = std::stod(number);
-        double unit_ns = duration_units.at(unit);
-        ns += std::int64_t(number_d * unit_ns);
-        start += number.size() + unit.size();
-      }
-      else
+      if (!TRegex::PartialMatch(input, re, &number, &unit))
       {
         break;
       }
+
+      double value;
+      try
+      {
+        value = std::stod(number);
+      }
+      catch (const std::exception&)
+      {
+        errmsg = "time: invalid duration \"" + duration + "\"";
+        return false;
+      }
+
+      double term = value * duration_units.at(unit);
+      if (!std::isfinite(term) || term >= int64_limit || term <= -int64_limit)
+      {
+        errmsg = "time: invalid duration \"" + duration + "\"";
+        return false;
+      }
+
+      std::int64_t addend = static_cast<std::int64_t>(term);
+      if (
+        (addend > 0 &&
+         ns > std::numeric_limits<std::int64_t>::max() - addend) ||
+        (addend < 0 && ns < std::numeric_limits<std::int64_t>::min() - addend))
+      {
+        errmsg = "time: invalid duration \"" + duration + "\"";
+        return false;
+      }
+      ns += addend;
+
+      start += number.size() + unit.size();
     }
 
-    return nanoseconds(ns);
+    if (start != duration.size())
+    {
+      errmsg =
+        duration_error(duration, std::string_view(duration).substr(start));
+      return false;
+    }
+
+    ns_out = ns;
+    return true;
   }
 
   Node parse_duration_ns(const Nodes& args)
@@ -98,14 +173,15 @@ namespace
       return duration;
     }
 
-    std::int64_t ns = do_parse_duration(get_string(duration)).count();
-
-    if (ns != 0)
+    std::int64_t ns = 0;
+    std::string errmsg;
+    if (!do_parse_duration(get_string(duration), ns, errmsg))
     {
-      return Int ^ std::to_string(ns);
+      return err(
+        duration, "time.parse_duration_ns: " + errmsg, EvalBuiltInError);
     }
 
-    return Undefined;
+    return Int ^ std::to_string(ns);
   }
 
   BuiltIn parse_duration_ns_factory()

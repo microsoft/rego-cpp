@@ -79,6 +79,9 @@ inline const auto NewToken = TokenDef("rego-newtoken", flag::print);
 ### Files
 - `CMakeLists.txt` — `REGOCPP_OPA_VERSION` variable, OPA repo clone
 - `README.md` — Version compatibility statement and EBNF grammar
+- `wrappers/rust/regorust/README.md` — Version compatibility statement (grammar deferred to main README)
+- `wrappers/python/README.md` — Version compatibility statement (grammar deferred to main README)
+- `wrappers/dotnet/docs/introduction.md` — Version compatibility statement
 - `CHANGELOG` — Release history
 - `VERSION` — rego-cpp semantic version
 - `tests/CMakeLists.txt` — Test suite configuration

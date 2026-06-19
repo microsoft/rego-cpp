@@ -354,6 +354,7 @@ namespace
     | (ArrayCompr <<= LocalSeq * (Val >>= Expr) * Query)
     | (ObjectCompr <<= LocalSeq * (Key >>= Expr) * (Val >>= Expr) * Query)
     | (SetCompr <<= LocalSeq * (Val >>= Expr) * Query)
+    | (NotExpr <<= LocalSeq * Query)
     | (Alias <<= Term * Expr)
     | (ExprUnify <<= (Lhs >>= Expr) * (Rhs >>= FuncArgVar | Expr))
     | (Literal <<= (Expr >>= ExprAssign | ExprUnify | ExprScan | ExprEvery | Local | Expr | NotExpr) * WithSeq)
@@ -522,6 +523,12 @@ namespace
           }
 
           Node query = _(Lhs)->parent(Query);
+          if (query->parent(Query) != nullptr)
+          {
+            // Nested in a not/every/comprehension body: let unify() resolve it.
+            return ExprUnify << _(Lhs) << _(Rhs);
+          }
+
           if (!assigned_vars->contains(query))
           {
             assigned_vars->insert({query, {}});
@@ -552,6 +559,12 @@ namespace
           }
 
           Node query = _(Rhs)->parent(Query);
+          if (query->parent(Query) != nullptr)
+          {
+            // Nested in a not/every/comprehension body: let unify() resolve it.
+            return ExprUnify << _(Lhs) << _(Rhs);
+          }
+
           if (!assigned_vars->contains(query))
           {
             assigned_vars->insert({query, {}});
@@ -748,6 +761,9 @@ namespace
           [](Match& _) {
             return Seq << LocalSeq << _(Key) << _(Val) << _(Query);
           },
+
+        In(NotExpr) * T(Query)[Query] >>
+          [](Match& _) { return Seq << LocalSeq << _(Query); },
 
         In(Policy) *
             (T(Rule)
@@ -1509,9 +1525,9 @@ namespace
             return NoChange;
           }
 
-          Node compr_every =
-            _(Var)->parent({ExprEvery, ObjectCompr, ArrayCompr, SetCompr});
-          if (compr_every != nullptr)
+          Node compr_every_not = _(Var)->parent(
+            {ExprEvery, ObjectCompr, ArrayCompr, SetCompr, NotExpr});
+          if (compr_every_not != nullptr)
           {
             // this variable is not at the rule level
             return NoChange;
@@ -2212,7 +2228,7 @@ namespace
           return NoChange;
         },
 
-        In(Rule, ExprEvery, ArrayCompr, ObjectCompr, SetCompr) *
+        In(Rule, ExprEvery, ArrayCompr, ObjectCompr, SetCompr, NotExpr) *
             T(LocalSeq)[LocalSeq] >>
           [scope_locals](Match& _) {
             Node localseq = _(LocalSeq);
@@ -2749,14 +2765,6 @@ namespace
 
           Node expr = args->back();
           args->pop_back();
-          if (_(Expr)->parent() == NotExpr)
-          {
-            return Expr
-              << (ExprInfix << expr
-                            << (InfixOperator << (BoolOperator << Equals))
-                            << (Expr << _(ExprCall)));
-          }
-
           return ExprUnify << to_unifyvar(expr) << (Expr << _(ExprCall));
         },
 
@@ -2782,7 +2790,7 @@ namespace
         In(LocalSeq) * (T(EveryLocal) << T(Ident)[Ident]) >>
           [](Match& _) { return Local << _(Ident); },
 
-        In(Rule, ExprEvery, ArrayCompr, ObjectCompr, SetCompr) *
+        In(Rule, ExprEvery, ArrayCompr, ObjectCompr, SetCompr, NotExpr) *
             T(LocalSeq)[LocalSeq] >>
           [scope_locals](Match& _) -> Node {
           Node scope = _(LocalSeq)->parent();
@@ -2832,6 +2840,49 @@ namespace
       scope_locals->clear();
       return 0;
     });
+
+    return pass;
+  }
+
+  PassDef unique_locals()
+  {
+    PassDef pass = {
+      "unique_locals",
+      wf_ir_unify,
+      dir::bottomup | dir::once,
+      {
+        T(Var, AssignVar)[Var] * In(ExprEvery, NotExpr)++ >>
+          [](Match& _) -> Node {
+          Node var = _(Var);
+          Nodes nodes = var->lookup();
+          if (nodes.size() != 1)
+          {
+            return NoChange;
+          }
+
+          Node maybe_local = nodes.front();
+          if (maybe_local != Local)
+          {
+            return NoChange;
+          }
+
+          if (maybe_local->scope() != var->scope())
+          {
+            // outer binding
+            return NoChange;
+          }
+
+          Node ident = maybe_local->front();
+          Location name = ident->location();
+          if (name.view().find('$') == std::string::npos)
+          {
+            name = _.fresh(name);
+            maybe_local->replace(ident, Ident ^ name);
+          }
+
+          return var->type() ^ name;
+        },
+      }};
 
     return pass;
   }
@@ -3585,10 +3636,10 @@ namespace
               rule_locals->at(rule).push_back(_(Val));
 
               Node ruleheadquery = _(Query)->parent(RuleHeadQuery);
-              Node compr_every = _(Query)->parent(
-                {ObjectCompr, SetCompr, ArrayCompr, ExprEvery});
+              Node compr_every_not = _(Query)->parent(
+                {ObjectCompr, SetCompr, ArrayCompr, ExprEvery, NotExpr});
               bool add_resultexpr =
-                ruleheadquery != nullptr && compr_every == nullptr;
+                ruleheadquery != nullptr && compr_every_not == nullptr;
 
               Node block = NodeDef::create(Block);
               for (Node literal : *_(Query))
@@ -3734,20 +3785,21 @@ namespace
             },
 
           In(Literal) *
-              ((T(NotExpr) << (T(Expr) << T(OpBlock, Term)[OpBlock])) *
+              ((T(NotExpr) << (T(LocalSeq) * T(Query)[Query])) *
                T(WithSeq)[WithSeq]) >>
             [](Match& _) {
-              Node opblock = _(OpBlock);
-              if (opblock == Term)
+              // Bare scan in a negated block always Continues; flag existence.
+              Location found = _.fresh({"found"});
+              Node block = Block << (ResetLocalStmt << (LocalRef ^ found));
+              for (Node literal : *_(Query))
               {
-                opblock = term_to_opblock(opblock);
+                add_literal_to_block(block, literal);
               }
-
-              Node term_block = opblock / Block;
-              term_block
-                << (NotEqualStmt << (opblock / Operand)
-                                 << (Operand << (Boolean ^ "false")));
-              return expand_withseq(NotStmt << term_block, _(WithSeq));
+              get_inner(block)
+                << (AssignVarStmt << (Operand << (Boolean ^ "true"))
+                                  << (LocalRef ^ found));
+              block << (IsDefinedStmt << (LocalRef ^ found));
+              return expand_withseq(NotStmt << block, _(WithSeq));
             },
 
           In(Literal) *
@@ -3839,7 +3891,8 @@ namespace
 
           In(ObjectItem, Array, Set, RefArgBrack) *
               (T(Expr)
-               << (T(Term)[Term] << T(Scalar, Object, Array, Set, Var, Ref))) >>
+               << (T(Term)[Term]
+                   << T(Scalar, Object, Array, Set, Var, UnifyVar, Ref))) >>
             [](Match& _) { return term_to_opblock(_(Term)); },
 
           In(Rule) * T(LocalSeq)[LocalSeq] >>
@@ -6158,6 +6211,7 @@ namespace rego
        implicit_scans(),
        merge(),
        unify(builtins),
+       unique_locals(),
        expr_to_opblock(builtins),
        lift_functions(builtins),
        with_rules(),

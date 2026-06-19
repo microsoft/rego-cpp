@@ -507,3 +507,318 @@ cases:
   strict_error: true
   want_error_code: eval_builtin_error
   want_error: "input:], pos:1, set-close ']' with no preceding '[': the input provided is invalid"
+- note: regocpp/sprintf-unknown-verb-star
+  modules:
+  - |
+    package test
+
+    msg = sprintf("%*d", [42])
+  query: "data.test = x"
+  want_result:
+  - x:
+      msg: "%*d"
+- note: regocpp/sprintf-unknown-verb-n
+  modules:
+  - |
+    package test
+
+    msg = sprintf("%n", [42])
+  query: "data.test = x"
+  want_result:
+  - x:
+      msg: "%n"
+- note: regocpp/sprintf-valid-flags
+  modules:
+  - |
+    package test
+
+    msg = sprintf("%-10.3f", [3.14159])
+  query: "data.test = x"
+  want_result:
+  - x:
+      msg: "3.142     "
+- note: regocpp/time-parse-duration-zero
+  modules:
+  - |
+    package test
+
+    p := time.parse_duration_ns("0s")
+  query: data.test.p = x
+  want_result:
+  - x: 0
+- note: regocpp/time-parse-duration-bare-zero
+  modules:
+  - |
+    package test
+
+    p := time.parse_duration_ns("0")
+  query: data.test.p = x
+  want_result:
+  - x: 0
+- note: regocpp/time-parse-duration-compound
+  modules:
+  - |
+    package test
+
+    p := time.parse_duration_ns("1h30m")
+  query: data.test.p = x
+  want_result:
+  - x: 5400000000000
+- note: regocpp/time-parse-duration-negative
+  modules:
+  - |
+    package test
+
+    p := time.parse_duration_ns("-5s")
+  query: data.test.p = x
+  want_result:
+  - x: -5000000000
+- note: regocpp/time-parse-duration-exponent-superset
+  modules:
+  - |
+    package test
+
+    p := time.parse_duration_ns("1e3ms")
+  query: data.test.p = x
+  want_result:
+  - x: 1000000000
+- note: regocpp/time-parse-duration-leading-dot
+  modules:
+  - |
+    package test
+
+    p := time.parse_duration_ns(".5s")
+  query: data.test.p = x
+  want_result:
+  - x: 500000000
+- note: regocpp/time-parse-duration-trailing-dot
+  modules:
+  - |
+    package test
+
+    p := time.parse_duration_ns("5.s")
+  query: data.test.p = x
+  want_result:
+  - x: 5000000000
+- note: regocpp/time-parse-duration-leading-zeros
+  modules:
+  - |
+    package test
+
+    p := time.parse_duration_ns("007s")
+  query: data.test.p = x
+  want_result:
+  - x: 7000000000
+- note: regocpp/time-parse-duration-invalid
+  modules:
+  - |
+    package test
+
+    p if {
+      time.parse_duration_ns("xx1s")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "time.parse_duration_ns: time: invalid duration \"xx1s\""
+- note: regocpp/time-parse-duration-missing-unit
+  modules:
+  - |
+    package test
+
+    p if {
+      time.parse_duration_ns("1")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "time.parse_duration_ns: time: missing unit in duration \"1\""
+- note: regocpp/time-parse-duration-unknown-unit
+  modules:
+  - |
+    package test
+
+    p if {
+      time.parse_duration_ns("1d2x")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "time.parse_duration_ns: time: unknown unit \"x\" in duration \"1d2x\""
+- note: regocpp/time-parse-duration-empty
+  modules:
+  - |
+    package test
+
+    p if {
+      time.parse_duration_ns("")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "time.parse_duration_ns: time: invalid duration \"\""
+- note: regocpp/time-parse-duration-overflow
+  modules:
+  - |
+    package test
+
+    p if {
+      time.parse_duration_ns("10000000000000000000h")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "time.parse_duration_ns: time: invalid duration \"10000000000000000000h\""
+- note: regocpp/units-parse-deci-superset
+  modules:
+  - |
+    package test
+
+    p := units.parse("1d")
+  query: data.test.p = x
+  want_result:
+  - x: 0.1
+- note: regocpp/units-parse-trailing-dot
+  modules:
+  - |
+    package test
+
+    p := units.parse("5.K")
+  query: data.test.p = x
+  want_result:
+  - x: 5000
+- note: regocpp/units-parse-exponent
+  modules:
+  - |
+    package test
+
+    p := units.parse("1.5e-2K")
+  query: data.test.p = x
+  want_result:
+  - x: 15
+- note: regocpp/units-parse-malformed-exponent
+  modules:
+  - |
+    package test
+
+    p if {
+      units.parse("1e+K")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "units.parse: could not parse amount to a number"
+- note: regocpp/units-parse-leading-exponent
+  modules:
+  - |
+    package test
+
+    p if {
+      units.parse("e5K")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "units.parse: could not parse amount to a number"
+- note: regocpp/units-parse-no-amount
+  modules:
+  - |
+    package test
+
+    p if {
+      units.parse("foo")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "units.parse: no amount provided"
+- note: regocpp/units-parse-sign-prefix
+  modules:
+  - |
+    package test
+
+    p if {
+      units.parse("-K")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "units.parse: could not parse amount to a number"
+- note: regocpp/units-parse-dot-prefix
+  modules:
+  - |
+    package test
+
+    p if {
+      units.parse(".K")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "units.parse: could not parse amount to a number"
+- note: regocpp/units-parse-bare-e
+  modules:
+  - |
+    package test
+
+    p if {
+      units.parse("eK")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "units.parse: no amount provided"
+- note: regocpp/units-parse-e-sign
+  modules:
+  - |
+    package test
+
+    p if {
+      units.parse("e+K")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "units.parse: could not parse amount to a number"
+- note: regocpp/uri-parse-ipv6-zone
+  modules:
+  - |
+    package test
+
+    p := uri.parse("http://[fe80::1%25eth0]:8080/")
+  query: data.test.p = x
+  want_result:
+  - x:
+      scheme: "http"
+      hostname: "fe80::1%eth0"
+      port: "8080"
+      path: "/"
+      raw_path: "/"
+- note: regocpp/uri-parse-opaque
+  modules:
+  - |
+    package test
+
+    p := uri.parse("mailto:user@example.com")
+  query: data.test.p = x
+  want_result:
+  - x:
+      scheme: "mailto"
+- note: regocpp/uri-is-valid-control-byte
+  modules:
+  - |
+    package test
+
+    p := uri.is_valid("http://a\tb.com")
+  query: data.test.p = x
+  want_result:
+  - x: false
+- note: regocpp/uri-is-valid-ok
+  modules:
+  - |
+    package test
+
+    p := uri.is_valid("http://example.com/path")
+  query: data.test.p = x
+  want_result:
+  - x: true

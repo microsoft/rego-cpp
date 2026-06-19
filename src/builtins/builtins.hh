@@ -33,6 +33,7 @@ namespace rego
     BuiltIn strings(const Location& name);
     BuiltIn time(const Location& name);
     BuiltIn units(const Location& name);
+    BuiltIn uri(const Location& name);
     BuiltIn urlquery(const Location& name);
     BuiltIn uuid(const Location& name);
     BuiltIn yaml(const Location& name);

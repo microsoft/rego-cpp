@@ -132,6 +132,10 @@ For each format change:
 - [ ] Update `REGOCPP_OPA_VERSION` in `CMakeLists.txt`
 - [ ] Update OPA version reference in `README.md`
 - [ ] Sync `README.md` grammar section with OPA grammar
+- [ ] Update OPA version reference and grammar in wrapper docs:
+  - [ ] `wrappers/rust/regorust/README.md` ("We support v… of Rego" line; grammar is deferred to the main README)
+  - [ ] `wrappers/python/README.md` ("We support v… of Rego" line; grammar is deferred to the main README)
+  - [ ] `wrappers/dotnet/docs/introduction.md` ("largely compatible with v…" line)
 - [ ] Implement new built-ins (list each)
 - [ ] Update `is_deprecated()` for newly deprecated built-ins
 - [ ] Apply parser changes (if any)

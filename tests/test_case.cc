@@ -617,12 +617,6 @@ namespace rego_test
       }
 #endif
 
-      if (test_case.note() == "reachable_paths/cycle_1022_3")
-      {
-        // the test is wrong, the actual result is correct
-        test_case.broken(true);
-      }
-
 #ifndef REGOCPP_CRYPTO_OPENSSL3
       if (
         test_case.note() == "jwtdecodeverify/EdDSA" ||

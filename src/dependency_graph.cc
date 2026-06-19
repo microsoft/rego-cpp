@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <unordered_set>
 
 namespace
 {
@@ -221,7 +222,16 @@ namespace rego
       return;
     }
 
-    if (expr->in({Expr, NotExpr}))
+    if (expr == NotExpr)
+    {
+      Node query = expr / Query;
+      DependencyGraph subgraph(m_scope, {query->begin(), query->end()});
+      node.in_edges.insert(
+        subgraph.captures().begin(), subgraph.captures().end());
+      return;
+    }
+
+    if (expr == Expr)
     {
       add_locals(node.in_edges, expr / Expr);
       return;
@@ -333,7 +343,10 @@ namespace rego
       }
       else
       {
-        m_locals[name].captured = is_capture;
+        // `captured` is sticky: once a local is established as captured from an
+        // enclosing scope, a later reference to it (e.g. an equality test) must
+        // not clear the flag, otherwise it would be wrongly redeclared local.
+        m_locals[name].captured = m_locals[name].captured || is_capture;
       }
 
       m_locals[name].out_edges.push_back(index);
@@ -347,12 +360,12 @@ namespace rego
       }
       else
       {
-        m_locals[name].captured = is_capture;
+        m_locals[name].captured = m_locals[name].captured || is_capture;
       }
 
       if (m_locals[name].in_edge.has_value())
       {
-        logging::Error() << "Multiple assignment to local " << name << ": "
+        logging::Debug() << "Multiple assignment to local " << name << ": "
                          << literal;
       }
 
@@ -1260,11 +1273,96 @@ namespace rego
     }
   }
 
+  void DependencyGraph::add_external_captures()
+  {
+    // A unification var in a nested block (not/every body) that is also used in
+    // an enclosing scope must be captured from there, not freshly assigned.
+    // Vars used only in the block, and explicit `:=` locals, are unaffected.
+    if (!m_scope->in({NotExpr, ExprEvery}))
+    {
+      return;
+    }
+
+    Node enclosing = m_scope->parent(Query);
+    if (enclosing == nullptr)
+    {
+      return;
+    }
+
+    // Collect the names of variables that appear at an enclosing scope level,
+    // without descending into nested blocks (whose variables are private).
+    std::unordered_set<std::string_view> enclosing_names;
+    for (Node query = enclosing; query != nullptr; query = query->parent(Query))
+    {
+      Nodes frontier(query->begin(), query->end());
+      while (!frontier.empty())
+      {
+        Node current = frontier.back();
+        frontier.pop_back();
+
+        if (current->in({UnifyVar, Var, AssignVar}))
+        {
+          std::string_view view = current->location().view();
+          if (view != "input")
+          {
+            enclosing_names.insert(view);
+          }
+          continue;
+        }
+
+        if (current->in(
+              {NotExpr, ExprEvery, ArrayCompr, ObjectCompr, SetCompr}))
+        {
+          continue;
+        }
+
+        frontier.insert(frontier.end(), current->begin(), current->end());
+      }
+    }
+
+    if (enclosing_names.empty())
+    {
+      return;
+    }
+
+    // Capture each unification variable in this block that is bound by an
+    // enclosing scope, without descending into further nested blocks.
+    std::unordered_set<std::string_view> captured;
+    for (Node node : m_nodes)
+    {
+      Nodes frontier({node});
+      while (!frontier.empty())
+      {
+        Node current = frontier.back();
+        frontier.pop_back();
+
+        if (current == UnifyVar)
+        {
+          std::string_view name = current->location().view();
+          if (enclosing_names.count(name) && captured.insert(name).second)
+          {
+            add_literal(Capture ^ current->location(), {});
+          }
+          continue;
+        }
+
+        if (current->in(
+              {NotExpr, ExprEvery, ArrayCompr, ObjectCompr, SetCompr}))
+        {
+          continue;
+        }
+
+        frontier.insert(frontier.end(), current->begin(), current->end());
+      }
+    }
+  }
+
   DependencyGraph::DependencyGraph(Node scope, const NodeRange& nodes) :
     m_scope(scope), m_nodes(nodes.begin(), nodes.end())
   {
     add_rule_locals();
     add_unify_literals();
+    add_external_captures();
     resolve_unify_literals();
     add_captures();
     find_graphs();
@@ -1351,7 +1449,7 @@ namespace rego
 
   void DependencyGraph::merge_locals(std::set<std::string>& locals) const
   {
-    for (auto [key, local] : m_locals)
+    for (const auto& [key, local] : m_locals)
     {
       if (
         local.captured || key.ends_with("#empty") ||

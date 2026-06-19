@@ -6,6 +6,8 @@
 #include "rego/rego.hh"
 
 #include <chrono>
+#include <limits>
+#include <stdexcept>
 
 namespace rego
 {
@@ -132,6 +134,7 @@ namespace rego
   inline const auto AssignBlock = TokenDef("rego-assignblock");
   inline const auto WithCallStmt = TokenDef("rego-withcallstmt");
   inline const auto BuiltInCallStmt = TokenDef("rego-builtincallstmt");
+  inline const auto NotBlock = TokenDef("rego-notblock");
 
   inline const auto AssignVar = TokenDef("rego-assignvar", flag::print);
   inline const auto FuncArgVar = TokenDef("rego-funcargvar", flag::print);
@@ -237,6 +240,7 @@ namespace rego
     void resolve_unify_literals();
     void add_rule_locals();
     void add_unify_literals();
+    void add_external_captures();
     void add_captures();
     void find_graphs();
     void topological_sort(const std::set<size_t>& graph);
@@ -277,21 +281,98 @@ namespace rego
   inline std::int32_t to_int32(Node value)
   {
     std::string value_str(value->location().view());
-    return std::stoi(value_str);
+    try
+    {
+      return std::stoi(value_str);
+    }
+    catch (const std::invalid_argument&)
+    {
+      throw std::runtime_error(
+        "integer parse: invalid int32 literal '" + value_str + "'");
+    }
+    catch (const std::out_of_range&)
+    {
+      throw std::runtime_error(
+        "integer parse: int32 value out of range '" + value_str + "'");
+    }
   }
 
   inline std::uint32_t to_uint32(Node value)
   {
     std::string value_str(value->location().view());
-    return std::stoul(value_str);
+    // Reject leading '-' explicitly. std::stoul on Windows LLP64 will
+    // happily parse "-1" as 0xFFFFFFFFFFFFFFFF and our subsequent
+    // bounds check would still let through any value whose two's-
+    // complement low 32 bits land within uint32 range. Catch it here.
+    {
+      auto first = value_str.find_first_not_of(" \t\n\r\f\v");
+      if (first != std::string::npos && value_str[first] == '-')
+      {
+        throw std::runtime_error(
+          "integer parse: uint32 value out of range '" + value_str + "'");
+      }
+    }
+    try
+    {
+      size_t pos = 0;
+      unsigned long parsed = std::stoul(value_str, &pos);
+      // std::stoul stops at the first non-digit and does not throw on
+      // trailing junk, so "1.5" parses as 1. Reject any unconsumed
+      // characters (ignoring trailing whitespace) so floats and other
+      // non-integer literals fail here rather than silently truncating.
+      while (pos < value_str.size() &&
+             std::isspace(static_cast<unsigned char>(value_str[pos])))
+      {
+        ++pos;
+      }
+      if (pos != value_str.size())
+      {
+        throw std::runtime_error(
+          "integer parse: invalid uint32 literal '" + value_str + "'");
+      }
+      if (parsed > std::numeric_limits<std::uint32_t>::max())
+      {
+        throw std::runtime_error(
+          "integer parse: uint32 value out of range '" + value_str + "'");
+      }
+      return static_cast<std::uint32_t>(parsed);
+    }
+    catch (const std::invalid_argument&)
+    {
+      throw std::runtime_error(
+        "integer parse: invalid uint32 literal '" + value_str + "'");
+    }
+    catch (const std::out_of_range&)
+    {
+      throw std::runtime_error(
+        "integer parse: uint32 value out of range '" + value_str + "'");
+    }
   }
 
   inline std::int64_t to_int64(Node value)
   {
     std::string value_str(value->location().view());
-    return std::stoll(value_str);
+    try
+    {
+      return std::stoll(value_str);
+    }
+    catch (const std::invalid_argument&)
+    {
+      throw std::runtime_error(
+        "integer parse: invalid int64 literal '" + value_str + "'");
+    }
+    catch (const std::out_of_range&)
+    {
+      throw std::runtime_error(
+        "integer parse: int64 value out of range '" + value_str + "'");
+    }
   }
 
+  // Note: these helpers are for *bundle-metadata* integers (local index,
+  // file/row/col, capacity, target) which by design must fit in size_t.
+  // Rego *value* numbers can be arbitrary precision and travel through
+  // a separate path: they are kept as Location strings and constructed
+  // as Int/Float AST nodes preserving their textual form.
   inline size_t to_size(Node value)
   {
     return static_cast<size_t>(to_uint32(value));

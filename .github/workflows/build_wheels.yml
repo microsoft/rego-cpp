@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: [cp39, cp310, cp311, cp312, cp313, cp314]
+        python: [cp310, cp311, cp312, cp313, cp314]
         target:
           - windows
           - macos-arm64
@@ -19,11 +19,6 @@ jobs:
           - manylinux-aarch64
           - musllinux-x86_64
           - musllinux-aarch64
-        exclude:
-          - python: cp39
-            target: macos-arm64
-          - python: cp39
-            target: macos-x86_64
         include:
           - target: windows
             runner: windows-latest
@@ -83,7 +78,7 @@ jobs:
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.4.1
+        uses: pypa/cibuildwheel@v4.1.0
         env:
           CIBW_ARCHS: ${{ matrix.archs }}
           CIBW_BEFORE_ALL: ${{ matrix.before_all }}

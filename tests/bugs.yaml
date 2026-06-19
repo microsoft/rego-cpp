@@ -330,3 +330,26 @@ cases:
   want_result:
   - x:
       msg: "test {\"test\"}"
+- note: regocpp/bug217
+  modules:
+  - |
+    package test
+    import rego.v1
+
+    connection_types := ["a", "b", "c"]
+
+    decode(connectionType) = decoded if {
+      decoded = {
+        "port": 80,
+        "connection_type": connection_types[connectionType],
+        "host": "h",
+      }
+    }
+
+    result := decode(2)
+  query: "data.test.result = x"
+  want_result:
+  - x:
+      port: 80
+      connection_type: "c"
+      host: "h"

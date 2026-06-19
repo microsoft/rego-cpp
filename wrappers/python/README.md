@@ -95,88 +95,21 @@ print(rego.query_bundle_entrypoint(bundle, "objects/sites"))
 
 ## Language Support
 
-We support v1.8.0 of Rego as defined by OPA, with the following grammar:
-
-```ebnf
-module          = package { import } policy
-package         = "package" ref
-import          = "import" ref [ "as" var ]
-policy          = { rule }
-rule            = [ "default" ] rule-head { rule-body }
-rule-head       = ( ref | var ) ( rule-head-set | rule-head-obj | rule-head-func | rule-head-comp )
-rule-head-comp  = [ assign-operator term ] [ "if" ]
-rule-head-obj   = "[" term "]" [ assign-operator term ] [ "if" ]
-rule-head-func  = "(" rule-args ")" [ assign-operator term ] [ "if" ]
-rule-head-set   = "contains" term [ "if" ] | "[" term "]"
-rule-args       = term { "," term }
-rule-body       = [ "else" [ assign-operator term ] [ "if" ] ] ( "{" query "}" ) | literal
-query           = literal { ( ";" | ( [CR] LF ) ) literal }
-literal         = ( some-decl | expr | "not" expr ) { with-modifier }
-with-modifier   = "with" term "as" term
-some-decl       = "some" term { "," term } { "in" expr }
-expr            = term | expr-call | expr-infix | expr-every | expr-parens | unary-expr
-expr-call       = var [ "." var ] "(" [ expr { "," expr } ] ")"
-expr-infix      = expr infix-operator expr
-expr-every      = "every" var { "," var } "in" ( term | expr-call | expr-infix ) "{" query "}"
-expr-parens     = "(" expr ")"
-unary-expr      = "-" expr
-membership      = term [ "," term ] "in" term
-term            = ref | var | scalar | array | object | set | membership | array-compr | object-compr | set-compr
-array-compr     = "[" term "|" query "]"
-set-compr       = "{" term "|" query "}"
-object-compr    = "{" object-item "|" query "}"
-infix-operator  = assign-operator | bool-operator | arith-operator | bin-operator
-bool-operator   = "==" | "!=" | "<" | ">" | ">=" | "<="
-arith-operator  = "+" | "-" | "*" | "/" | "%"
-bin-operator    = "&" | "|"
-assign-operator = ":=" | "="
-ref             = ( var | array | object | set | array-compr | object-compr | set-compr | expr-call ) { ref-arg }
-ref-arg         = ref-arg-dot | ref-arg-brack
-ref-arg-brack   = "[" ( scalar | var | array | object | set | "_" ) "]"
-ref-arg-dot     = "." var
-var             = ( ALPHA | "_" ) { ALPHA | DIGIT | "_" }
-scalar          = string | NUMBER | TRUE | FALSE | NULL
-string          = STRING | raw-string
-raw-string      = "`" { CHAR-"`" } "`"
-array           = "[" term { "," term } "]"
-object          = "{" object-item { "," object-item } "}"
-object-item     = ( scalar | ref | var ) ":" term
-set             = empty-set | non-empty-set
-non-empty-set   = "{" term { "," term } "}"
-empty-set       = "set(" ")"
-```
-
-Definitions:
-```
-[]     optional (zero or one instances)
-{}     repetition (zero or more instances)
-|      alternation (one of the instances)
-()     grouping (order of expansion)
-STRING JSON string
-NUMBER JSON number
-TRUE   JSON true
-FALSE  JSON false
-NULL   JSON null
-CHAR   Unicode character
-ALPHA  ASCII characters A-Z and a-z
-DIGIT  ASCII characters 0-9
-CR     Carriage Return
-LF     Line Feed
-```
+We support v1.18.1 of Rego as defined by OPA. For the full supported grammar, see the
+[Language Support section of the main README](https://github.com/microsoft/rego-cpp#language-support).
 
 ### Builtins
 
 We support the majority of the standard Rego built-ins, and provide a robust
 mechanism for including custom built-ins (via the CPP API). The following builtins
-are NOT supported at present, though some are scheduled for future releases.
+are NOT supported at present:
 
-- `providers.aws.sign_req` - Not planned
-- `crypto.*` - Currently slated to be released in v1.2.0
+- `crypto.x509.parse_and_verify_certificates_with_options` - Not yet implemented (no OPA conformance tests available)
 - `graphql.*` - Not planned
 - `http.send` - Not planned
 - `json.match_schema`/`json.verify_schema` - Not planned
-- `jwt.*` - Currently slated to be released in v1.3.0
 - `net.*` - Not planned
+- `providers.aws.sign_req` - Not planned
 - `rego.metadata.chain`/`rego.metadata.rule`/`rego.parse_module` - Not planned
 - `strings.render_template` - Not planned
 - `time` - This is entirely platform dependent at the moment, depending on whether
