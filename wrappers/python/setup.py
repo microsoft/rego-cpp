@@ -71,7 +71,7 @@ class CMakeBuild(build_ext):
             if repo == "LOCAL":
                 src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
             else:
-                tag = os.environ.get("REGOCPP_TAG", "main")
+                tag = os.environ.get("REGOCPP_TAG", f"v{VERSION}")
 
                 subprocess.check_call(["git", "clone", repo, src_path])
                 subprocess.check_call(["git", "checkout", tag], cwd=src_path)
