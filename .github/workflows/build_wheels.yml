@@ -31,8 +31,8 @@ jobs:
             runner: macos-latest
             archs: arm64
             build: "macosx*"
-            before_all: brew install openssl@3
-            environment: "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)"
+            before_all: ""
+            environment: 'CMAKE_ARGS="-DREGOCPP_VENDOR_OPENSSL=ON"'
             macos_deployment_target: "15.0"
           - target: macos-x86_64
             runner: macos-15-intel

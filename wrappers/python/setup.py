@@ -3,6 +3,7 @@
 import multiprocessing
 import os
 import platform
+import shlex
 import subprocess
 
 from setuptools import Extension, find_packages, setup
@@ -28,7 +29,7 @@ REQUIRES_DEV = [
 with open("README.md", "r") as file:
     LONG_DESCRIPTION = file.read()
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 
 
 class CMakeExtension(Extension):
@@ -88,6 +89,10 @@ class CMakeBuild(build_ext):
                       f"-DCMAKE_BUILD_TYPE={cfg}",
                       "-DSNMALLOC_ENABLE_DYNAMIC_LOADING=ON",
                       f"-DREGOCPP_CRYPTO_BACKEND={crypto_backend}"]
+
+        extra_args = os.environ.get("CMAKE_ARGS")
+        if extra_args:
+            cmake_args += shlex.split(extra_args)
 
         build_args = ["--build", self.build_temp,
                       "--config", cfg,

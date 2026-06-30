@@ -76,6 +76,30 @@ jobs:
         working-directory: ${{github.workspace}}/build
         run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test
 
+  linux-vendored-openssl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Omit libssl-dev to prove the vendored build is self-contained.
+      - name: Get dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+
+      - name: CMake config
+        run: cmake -B ${{github.workspace}}/build --preset release -G Ninja -DREGOCPP_VENDOR_OPENSSL=ON
+
+      - name: CMake build
+        working-directory: ${{github.workspace}}/build
+        run: ninja
+
+      - name: CMake test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -V --build-config Release --timeout 120 --output-on-failure -T Test -R "rego_test_regocpp|rego_test_builtins|rego_test_core"
+
   linux-asan:
     runs-on: ubuntu-latest
 
@@ -526,6 +550,8 @@ jobs:
     strategy:
       matrix:
         python_version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "15.0"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -537,8 +563,6 @@ jobs:
 
       - name: Get dependencies
         run: |
-          brew update && brew install openssl@3
-          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
           python -m pip install --upgrade pip
 
       - name: Python build
@@ -546,6 +570,7 @@ jobs:
         run: pip install -e .[dev] --verbose
         env:
           REGOCPP_REPO: LOCAL
+          CMAKE_ARGS: "-DREGOCPP_VENDOR_OPENSSL=ON"
 
       - name: Python test
         working-directory: ${{github.workspace}}/wrappers/python/ 

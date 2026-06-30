@@ -199,6 +199,11 @@ by the `REGOCPP_CRYPTO_BACKEND` CMake option:
 All presets enable crypto automatically. The `-windows` and `-windows-opa` presets
 use the `bcrypt` backend; all others use `openssl3`.
 
+With the `openssl3` backend you can set `-DREGOCPP_VENDOR_OPENSSL=ON` (default off)
+to download, verify, and statically link a pinned OpenSSL release instead of using
+`find_package`. This makes the crypto self-contained and independent of the build
+host's OpenSSL, which is useful for producing redistributable binaries.
+
 ### Compatibility with the OPA Rego Go implementation
 
 Our goal is to achieve and maintain full compatibility with the reference Go

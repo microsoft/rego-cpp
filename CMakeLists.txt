@@ -102,6 +102,9 @@ option(REGOCPP_USE_SNMALLOC "Whether to use snmalloc for memory allocation" ON)
 set(REGOCPP_CRYPTO_BACKEND "openssl3" CACHE STRING
   "Crypto backend for crypto/JWT builtins. Options: openssl3, bcrypt, '' (disabled)")
 set_property(CACHE REGOCPP_CRYPTO_BACKEND PROPERTY STRINGS "" "openssl3" "bcrypt")
+option(REGOCPP_VENDOR_OPENSSL
+  "Build a pinned, statically-linked OpenSSL via ExternalProject instead of find_package (openssl3 backend only). Useful for self-contained, redistributable binaries."
+  OFF)
 option(REGOCPP_USE_FETCH_CONTENT
   "Fetch trieste from git (ON) or locate via find_package (OFF). When OFF, consumers must have trieste findable by CMake (e.g. via vcpkg)."
   ON)
