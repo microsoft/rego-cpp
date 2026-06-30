@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-06-30 - Version 1.5.1
+Build and packaging release. Adds an option to build a pinned, statically
+linked OpenSSL so the crypto backend can be made self-contained, independent
+of whatever OpenSSL the build host provides. This produces redistributable
+binaries and is now used for the macOS Python wheels.
+
+**Build / Packaging**
+- Added the `REGOCPP_VENDOR_OPENSSL` CMake option (openssl3 backend only,
+  default off). When enabled, a pinned OpenSSL release is downloaded,
+  verified, and built as static archives via `ExternalProject`, then exposed
+  through the standard `OpenSSL::SSL` / `OpenSSL::Crypto` imported targets.
+- The Python wrapper build now forwards `CMAKE_ARGS` to the CMake configure
+  step, allowing `REGOCPP_VENDOR_OPENSSL=ON` to be selected from the wheel and
+  PR pipelines.
+- macOS Python wheels now link the vendored OpenSSL instead of Homebrew's,
+  removing the Homebrew dependency from the build.
+- Added a Linux PR-gate job that builds with the vendored OpenSSL and no
+  system OpenSSL installed, to keep the path exercised on every PR.
+
 ## 2026-06-19 - Version 1.5.0
 Feature and hardening release. Updates the supported OPA target to v1.18.1,
 adds the `uri.parse` and `uri.is_valid` builtins, and fixes variable
