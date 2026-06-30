@@ -45,6 +45,7 @@ builtins/rego.cc
 builtins/semver.cc
 builtins/time.cc
 builtins/units.cc
+builtins/uri.cc
 builtins/uuid.cc
 )
 

@@ -171,7 +171,6 @@ int main(int argc, char** argv)
 
   if (!log_level.empty())
   {
-    trieste::logging::Output() << "here" << log_level;
     interpreter->log_level(log_level);
   }
 
@@ -306,6 +305,11 @@ int main(int argc, char** argv)
       {
         Timer timer("Load bundle (binary)", timing);
         bundle = rego::BundleDef::load(bundle_path);
+        if (bundle == nullptr)
+        {
+          trieste::logging::Error() << "Failed to load bundle" << std::endl;
+          return 1;
+        }
       }
       else
       {

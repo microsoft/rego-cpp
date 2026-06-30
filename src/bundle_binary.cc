@@ -1,5 +1,6 @@
 #include "internal.hh"
 #include "rego.hh"
+#include "trieste/utf8.h"
 #include "trieste/wf.h"
 
 #include <cstring>
@@ -238,7 +239,7 @@ namespace
     {
       std::basic_string<Char> value;
       Char c = stream.get();
-      while (c != 0)
+      while (c != 0 && !stream.eof() && !stream.fail())
       {
         value.push_back(c);
         c = stream.get();
@@ -251,6 +252,10 @@ namespace
     std::basic_string<Char> read_string(std::basic_istream<Char>& stream)
     {
       size_t num_bytes = read_size(stream);
+      if (num_bytes == 0)
+      {
+        throw std::runtime_error("bundle: BSON string length is zero");
+      }
       std::basic_string<Char> value;
       value.resize(num_bytes - 1);
       stream.read(value.data(), num_bytes - 1);
@@ -361,11 +366,19 @@ namespace
     }
 
     template <typename Char>
-    Node read_element(std::basic_istream<Char>& stream, int8_t element_id);
+    Node read_element(
+      std::basic_istream<Char>& stream, int8_t element_id, size_t depth = 0);
+
+    static constexpr size_t MaxBsonDepth = 256;
 
     template <typename Char>
-    Node read_object(std::basic_istream<Char>& stream)
+    Node read_object(std::basic_istream<Char>& stream, size_t depth = 0)
     {
+      if (depth >= MaxBsonDepth)
+      {
+        throw std::runtime_error("bundle: BSON nesting depth exceeded");
+      }
+
       size_t size = read_size(stream);
       uint64_t start = static_cast<uint64_t>(stream.tellg());
       uint64_t end = start + size + 1;
@@ -375,7 +388,8 @@ namespace
       while (element_id != 0 && !stream.eof() && stream.tellg() < end)
       {
         auto key = read_cstring(stream);
-        object << object_item(string(key), read_element(stream, element_id));
+        object << object_item(
+          string(key), read_element(stream, element_id, depth + 1));
         element_id = read_sbyte(stream);
       }
 
@@ -385,8 +399,13 @@ namespace
     }
 
     template <typename Char>
-    Node read_array(std::basic_istream<Char>& stream)
+    Node read_array(std::basic_istream<Char>& stream, size_t depth = 0)
     {
+      if (depth >= MaxBsonDepth)
+      {
+        throw std::runtime_error("bundle: BSON nesting depth exceeded");
+      }
+
       size_t size = read_size(stream);
       uint64_t start = static_cast<uint64_t>(stream.tellg());
       uint64_t end = start + size + 1;
@@ -396,7 +415,7 @@ namespace
       while (element_id != 0 && !stream.eof() && stream.tellg() < end)
       {
         read_cstring(stream);
-        array << read_element(stream, element_id);
+        array << read_element(stream, element_id, depth + 1);
         element_id = read_sbyte(stream);
       }
 
@@ -406,7 +425,8 @@ namespace
     }
 
     template <typename Char>
-    Node read_element(std::basic_istream<Char>& stream, int8_t element_id)
+    Node read_element(
+      std::basic_istream<Char>& stream, int8_t element_id, size_t depth)
     {
       switch (element_id)
       {
@@ -448,10 +468,10 @@ namespace
         }
 
         case ArrayId:
-          return read_array(stream);
+          return read_array(stream, depth);
 
         case DocumentId:
-          return read_object(stream);
+          return read_object(stream, depth);
 
         default:
           logging::Error() << "Invalid element id: " << element_id;
@@ -1168,7 +1188,11 @@ namespace
   class iregostream
   {
   public:
-    iregostream(std::string&& bytes) : m_istream(bytes, std::ios::binary) {}
+    iregostream(std::string&& bytes) :
+      m_istream(bytes, std::ios::binary),
+      m_total_size(bytes.size()),
+      m_block_depth(0)
+    {}
 
     Bundle read_bundle(size_t local_count, int8_t query_plan)
     {
@@ -1183,6 +1207,7 @@ namespace
       read_plans(bundle);
       read_funcs(bundle);
       read_data(bundle);
+      // Structural verification happens in VirtualMachine::bundle(), not here.
       return std::make_shared<BundleDef>(std::move(bundle));
     }
 
@@ -1217,8 +1242,61 @@ namespace
       return bson::read_size(m_istream);
     }
 
+    // Number of unread bytes remaining in the buffer.
+    size_t residual()
+    {
+      auto pos = m_istream.tellg();
+      if (pos < 0 || static_cast<size_t>(pos) > m_total_size)
+      {
+        return 0;
+      }
+      return m_total_size - static_cast<size_t>(pos);
+    }
+
+    // Reject sizes larger than the residual stream (catches crafted counts).
+    size_t read_size_checked(const char* what)
+    {
+      size_t size = read_size();
+      // A drained istream may not set size; check failbit to stay honest.
+      if (m_istream.fail())
+      {
+        throw std::runtime_error(
+          std::string("bundle parse: stream failure while reading ") + what +
+          " size");
+      }
+      size_t remaining = residual();
+      if (size > remaining)
+      {
+        throw std::runtime_error(
+          std::string("bundle parse: ") + what + " size " +
+          std::to_string(size) + " exceeds residual stream bytes " +
+          std::to_string(remaining));
+      }
+      return size;
+    }
+
+    // Per-element caps below MaxBundleSize (residual check allows one blob).
+    static constexpr size_t MaxStringBytes = 16ULL * 1024 * 1024;
+    static constexpr size_t MaxCollectionElements = 1ULL << 20;
+
+    size_t read_size_capped(const char* what, size_t cap)
+    {
+      size_t size = read_size_checked(what);
+      if (size > cap)
+      {
+        throw std::runtime_error(
+          std::string("bundle parse: ") + what + " size " +
+          std::to_string(size) + " exceeds per-element cap " +
+          std::to_string(cap));
+      }
+      return size;
+    }
+
     Location read_location()
     {
+      // Capture stream offset before any reads so error messages can
+      // point at the start of the malformed location record.
+      auto stream_offset = position();
       int8_t loc_id = read_sbyte();
       if (loc_id == 1)
       {
@@ -1228,18 +1306,27 @@ namespace
       if (loc_id != 2)
       {
         logging::Error() << "Unexpected location id: " << loc_id;
-        throw std::runtime_error("Unexpected location id");
+        throw std::runtime_error(
+          "bundle parse: unexpected location id " + std::to_string(loc_id) +
+          " at stream offset " + std::to_string(stream_offset));
       }
 
       size_t idx = read_size();
       size_t pos = read_size();
       size_t len = read_size();
+      if (idx >= m_files.size())
+      {
+        throw std::runtime_error(
+          "bundle parse: location file index " + std::to_string(idx) +
+          " >= files.size() " + std::to_string(m_files.size()) +
+          " at stream offset " + std::to_string(stream_offset));
+      }
       return Location(m_files[idx], pos, len);
     }
 
     std::string read_string()
     {
-      size_t size = read_size();
+      size_t size = read_size_capped("string", MaxStringBytes);
       std::string value;
       value.resize(size);
       m_istream.read(value.data(), size);
@@ -1248,7 +1335,7 @@ namespace
 
     void skip_string()
     {
-      size_t size = read_size();
+      size_t size = read_size_capped("string", MaxStringBytes);
       m_istream.seekg(size, std::ios::cur);
     }
 
@@ -1268,7 +1355,7 @@ namespace
 
     void read_files(std::vector<Source>& files)
     {
-      size_t size = read_size();
+      size_t size = read_size_capped("file table", MaxCollectionElements);
       for (size_t i = 0; i < size; ++i)
       {
         std::string origin = read_string();
@@ -1279,10 +1366,54 @@ namespace
 
     void read_strings(std::vector<Location>& strings)
     {
-      size_t size = read_size();
+      size_t size = read_size_capped("strings table", MaxCollectionElements);
       for (size_t i = 0; i < size; ++i)
       {
-        strings.push_back(read_string());
+        std::string entry = read_string();
+        // Validate UTF-8 well-formedness at load time. The strings
+        // table backs Locations whose .view() is consumed throughout
+        // the codebase under the assumption of valid UTF-8 (key
+        // formatting, JSON serialisation, output, hashing). Catching
+        // a malformed entry here gives a clear diagnostic instead of
+        // a downstream surprise.
+        std::string_view view(entry);
+        size_t pos = 0;
+        // ASCII fast path: most string-table entries are pure ASCII
+        // (rule names, keys, identifiers). Bytes < 0x80 are always
+        // valid one-byte UTF-8 sequences, so we can advance one byte
+        // at a time without paying for the full utf8_to_rune decoder.
+        // The branch is highly predictable on ASCII-heavy input.
+        while (pos < view.size())
+        {
+          if (static_cast<unsigned char>(view[pos]) < 0x80)
+          {
+            ++pos;
+            continue;
+          }
+          auto [r, slice] =
+            trieste::utf8::utf8_to_rune(view.substr(pos), false);
+          if (r.value == trieste::utf8::Bad)
+          {
+            throw std::runtime_error(
+              "bundle parse: strings table entry " + std::to_string(i) +
+              " is not valid UTF-8 (offending byte at byte offset " +
+              std::to_string(pos) + " within the entry)");
+          }
+          // Reject surrogate halves (U+D800..U+DFFF) and codepoints
+          // above the Unicode maximum (U+10FFFF). utf8_to_rune does
+          // not reject these on its own; both are unrepresentable in
+          // valid UTF-8 per RFC 3629 and would cause downstream
+          // surprises (re-encoding mismatches, JSON output errors).
+          if ((r.value >= 0xD800 && r.value <= 0xDFFF) || r.value > 0x10FFFF)
+          {
+            throw std::runtime_error(
+              "bundle parse: strings table entry " + std::to_string(i) +
+              " contains invalid Unicode codepoint U+" +
+              std::to_string(r.value));
+          }
+          pos += slice.size();
+        }
+        strings.push_back(std::move(entry));
       }
     }
 
@@ -1400,7 +1531,7 @@ namespace
 
     void read_builtin_funcs(std::map<Location, Node>& builtin_funcs)
     {
-      size_t size = read_size();
+      size_t size = read_size_capped("builtin funcs", MaxCollectionElements);
       for (size_t i = 0; i < size; ++i)
       {
         std::string name = read_string();
@@ -1412,6 +1543,11 @@ namespace
     {
       assert_id(StaticId, "Static ID byte missing");
       read_files(bundle.files);
+      // Mirror the loaded file table into m_files so that read_location()
+      // can resolve loc_id == 2 entries (source-backed locations) into
+      // a Source. Source is std::shared_ptr<SourceDef>, so the vector
+      // copy is just refcount bumps.
+      m_files = bundle.files;
       read_strings(bundle.strings);
       read_builtin_funcs(bundle.builtin_functions);
       int8_t query_id = read_sbyte();
@@ -1424,7 +1560,7 @@ namespace
     void skip_table()
     {
       skip_uint64();
-      size_t size = read_size();
+      size_t size = read_size_capped("table", MaxCollectionElements);
       for (size_t i = 0; i < size; ++i)
       {
         skip_string();
@@ -1503,6 +1639,7 @@ namespace
         break;
 
         case b::StatementType::Break:
+          statement.op0.type = b::OperandType::Index;
           statement.op0.index = read_size();
           break;
 
@@ -1575,6 +1712,7 @@ namespace
           break;
 
         case b::StatementType::MakeNumberRef:
+          statement.op0.type = b::OperandType::String;
           statement.op0.index = read_size();
           statement.target = read_size();
           break;
@@ -1607,7 +1745,9 @@ namespace
           break;
 
         case b::StatementType::ObjectMerge:
+          statement.op0.type = b::OperandType::Local;
           statement.op0.index = read_size();
+          statement.op1.type = b::OperandType::Local;
           statement.op1.index = read_size();
           statement.target = read_size();
           break;
@@ -1620,7 +1760,9 @@ namespace
 
         case b::StatementType::Scan:
           statement.target = read_size();
+          statement.op0.type = b::OperandType::Local;
           statement.op0.index = read_size();
+          statement.op1.type = b::OperandType::Local;
           statement.op1.index = read_size();
           {
             b::Block block;
@@ -1648,6 +1790,11 @@ namespace
         case b::StatementType::Nop:
           logging::Info() << "Stripping NopStmt during serialization";
           break;
+
+        default:
+          throw std::runtime_error(
+            "bundle: unknown statement type " +
+            std::to_string(static_cast<int>(statement.type)));
       }
 
       return statement;
@@ -1655,16 +1802,22 @@ namespace
 
     void read_block(b::Block& block)
     {
-      size_t size = read_size();
+      if (m_block_depth >= bson::MaxBsonDepth)
+      {
+        throw std::runtime_error("bundle: block nesting depth exceeded");
+      }
+      ++m_block_depth;
+      size_t size = read_size_capped("block statements", MaxCollectionElements);
       for (size_t i = 0; i < size; ++i)
       {
         block.push_back(read_statement());
       }
+      --m_block_depth;
     }
 
     void read_blocks(std::vector<b::Block>& blocks)
     {
-      size_t size = read_size();
+      size_t size = read_size_capped("blocks", MaxCollectionElements);
       blocks.resize(size);
       for (size_t i = 0; i < size; ++i)
       {
@@ -1683,7 +1836,7 @@ namespace
     void read_plans(BundleDef& bundle)
     {
       assert_id(PlansId, "Plans ID byte missing");
-      size_t num_plans = read_size();
+      size_t num_plans = read_size_capped("plans", MaxCollectionElements);
       for (size_t i = 0; i < num_plans; ++i)
       {
         b::Plan plan = read_plan();
@@ -1727,7 +1880,7 @@ namespace
     void read_funcs(BundleDef& bundle)
     {
       assert_id(FuncsId, "Funcs ID byte missing");
-      size_t num_funcs = read_size();
+      size_t num_funcs = read_size_capped("funcs", MaxCollectionElements);
       for (size_t i = 0; i < num_funcs; ++i)
       {
         b::Function func = read_func();
@@ -1745,6 +1898,8 @@ namespace
 
     std::istringstream m_istream;
     std::vector<Source> m_files;
+    const size_t m_total_size;
+    size_t m_block_depth;
   };
 
 }
@@ -1794,9 +1949,27 @@ namespace rego
     uint64_t size = bson::read_uint64(istream);
     istream.seekg(HeaderSize, std::ios::beg); // seek to the end of the header
 
+    static constexpr uint64_t MaxBundleSize = 256ULL * 1024 * 1024;
+    if (size > MaxBundleSize)
+    {
+      throw std::runtime_error(
+        "bundle: payload size " + std::to_string(size) +
+        " exceeds maximum of " + std::to_string(MaxBundleSize));
+    }
+
     std::string bytes;
     bytes.resize(size);
     istream.read(bytes.data(), size);
+    // Defence-in-depth: catch a truncated payload before relying on the
+    // CRC. CRC failure is the load-bearing check today, but a future
+    // change that gates CRC behind a flag (or a stream that returns
+    // junk on EOF) would otherwise silently accept short reads.
+    if (static_cast<uint64_t>(istream.gcount()) != size || istream.fail())
+    {
+      throw std::runtime_error(
+        "bundle: truncated payload (expected " + std::to_string(size) +
+        " bytes, got " + std::to_string(istream.gcount()) + ")");
+    }
 
     uint32_t actual_crc32 = crc32_add(
       CRC32Init, reinterpret_cast<const uint8_t*>(bytes.data()), size);

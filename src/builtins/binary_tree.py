@@ -86,6 +86,7 @@ prefix_names = [
     "strings",
     "time",
     "units",
+    "uri",
     "urlquery",
     "uuid",
     "yaml"

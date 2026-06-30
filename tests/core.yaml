@@ -1,0 +1,24 @@
+cases:
+- note: regocpp/not-builtin-error-suppressed
+  modules:
+  - |
+    package test
+
+    p if {
+      not units.parse("foo")
+    }
+  query: data.test.p = x
+  want_result:
+  - x: true
+- note: regocpp/not-builtin-error-strict
+  modules:
+  - |
+    package test
+
+    p if {
+      not units.parse("foo")
+    }
+  query: data.test.p = x
+  strict_error: true
+  want_error_code: eval_builtin_error
+  want_error: "units.parse: no amount provided"

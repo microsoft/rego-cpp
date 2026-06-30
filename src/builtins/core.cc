@@ -1601,8 +1601,31 @@ namespace
                format.substr(verb_start, pos - verb_start + 1)});
             break;
 
-          default:
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+          case '.':
+          case '-':
+          case '+':
+          case '#':
+          case ' ':
+            // Valid format flags — continue scanning for the verb character.
             in_verb = true;
+            break;
+
+          default:
+            // Unknown verb: emit the sequence as a literal (matches OPA).
+            verbs.push_back(
+              {PrintVerbType::Literal,
+               format.substr(verb_start, pos - verb_start + 1)});
+            break;
         }
       }
       start = pos + 1;

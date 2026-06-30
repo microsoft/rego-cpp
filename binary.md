@@ -153,6 +153,17 @@ The header consists of the following elements:
 | Query Plan Index    | sbyte    | The index of the plan that represents the query. -1 if no query was compiled. |
 | Reserved            | 5 * byte | Reserved header bytes                                                         |
 | Local Count         | uint32   | Number of locals variables in the program.                                    |
-| CRC32               | uint32   | CRC32 of everything after the header                                          |
+| CRC32               | uint32   | CRC32 of everything after the header. See note below.                         |
 | Size                | uint64   | Size of the bundle file (not including the header)                            |
 | `loc([token])`      | uint64   | Location of `token` within the file as number of bytes from the start.        |
+
+> **Note on CRC32 — transfer integrity, not security.**
+> The CRC32 field exists to detect accidental corruption (truncation,
+> bit-rot, faulty I/O), not to authenticate a bundle. CRC32 is not a
+> cryptographic primitive: any attacker who can modify a bundle can
+> trivially recompute the CRC to match. Loaders must therefore continue
+> to validate every structural invariant (lengths, indices, statement
+> arity, etc.) regardless of whether the CRC matches. If an embedder
+> needs authenticity guarantees they should sign the bundle bytes
+> out-of-band (e.g. with a detached signature) and verify the signature
+> before calling `BundleDef::load()`.

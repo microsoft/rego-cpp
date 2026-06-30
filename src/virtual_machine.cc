@@ -51,11 +51,23 @@ namespace rego
   }
 
   VirtualMachine::VirtualMachine() :
-    m_int_regex(R"(-?(?:0|[1-9][0-9]*))"), m_stmt_limit(10000000)
+    m_int_regex(R"(-?(?:0|[1-9][0-9]*))"),
+    m_stmt_limit(10000000),
+    m_max_call_depth(512),
+    m_max_block_depth(512)
   {}
 
   VirtualMachine& VirtualMachine::bundle(Bundle bundle)
   {
+    if (bundle != nullptr)
+    {
+      // Sole structural-verification point: walk the bundle once at the
+      // public API boundary so the VM is never driven by malformed
+      // bytecode, regardless of how the BundleDef was produced (binary
+      // load, JSON IR, or programmatic construction by an embedder).
+      // verify() throws on any inconsistency.
+      bundle->verify();
+    }
     m_bundle = bundle;
     return *this;
   }
@@ -216,6 +228,8 @@ namespace rego
 
   Node VirtualMachine::State::read_local(size_t key) const
   {
+    assert(key < m_frame.size());
+
     if (m_frame[key] != nullptr)
     {
       logging::Trace() << "frame[" << key << "]" << " -> "
@@ -229,6 +243,8 @@ namespace rego
 
   void VirtualMachine::State::write_local(size_t key, Node value)
   {
+    assert(key < m_frame.size());
+
     if (value == Term)
     {
       value = value->front();
@@ -256,6 +272,8 @@ namespace rego
 
   bool VirtualMachine::State::is_defined(size_t key) const
   {
+    assert(key < m_frame.size());
+
     if (m_frame[key] == nullptr || m_frame[key] == Undefined)
     {
       logging::Trace() << "frame[" << key << "]" << " -> " << "<missing>";
@@ -269,6 +287,8 @@ namespace rego
 
   void VirtualMachine::State::reset_local(size_t key)
   {
+    assert(key < m_frame.size());
+
     logging::Debug() << "reset frame[" << key << "]";
     m_frame[key] = nullptr;
   }
@@ -282,6 +302,7 @@ namespace rego
         return state.read_local(operand.index);
 
       case b::OperandType::String:
+        assert(operand.index < m_bundle->strings.size());
         return JSONString ^ m_bundle->strings[operand.index];
 
       case b::OperandType::False:
@@ -312,8 +333,29 @@ namespace rego
     return m_stmt_count;
   }
 
+  size_t VirtualMachine::State::call_depth() const
+  {
+    return m_call_stack.size();
+  }
+
+  size_t VirtualMachine::State::block_depth() const
+  {
+    return m_block_depth;
+  }
+
+  void VirtualMachine::State::enter_block()
+  {
+    m_block_depth += 1;
+  }
+
+  void VirtualMachine::State::leave_block()
+  {
+    assert(m_block_depth > 0 && "leave_block underflow");
+    m_block_depth -= 1;
+  }
+
   VirtualMachine::State::State(Node input, Node data, size_t num_locals) :
-    m_with_count(0), m_break_count(0), m_stmt_count(0)
+    m_with_count(0), m_break_count(0), m_stmt_count(0), m_block_depth(0)
   {
     m_frame.resize(num_locals, nullptr);
     write_local(0, input->front());
@@ -323,6 +365,11 @@ namespace rego
   Node VirtualMachine::run_query(Node input) const
   {
     logging::Debug() << "Input: " << input;
+
+    if (m_bundle == nullptr)
+    {
+      return ErrorSeq << err(Line ^ Location("<query>"), "no bundle loaded");
+    }
 
     auto maybe_index = m_bundle->query_plan;
     if (!maybe_index.has_value())
@@ -407,6 +454,11 @@ namespace rego
   Node VirtualMachine::run_entrypoint(
     const Location& entrypoint, Node input) const
   {
+    if (m_bundle == nullptr)
+    {
+      return ErrorSeq << err(Line ^ Location("<query>"), "no bundle loaded");
+    }
+
     auto maybe_index = m_bundle->find_plan(entrypoint);
     if (!maybe_index.has_value())
     {
@@ -480,6 +532,30 @@ namespace rego
   VirtualMachine::Code VirtualMachine::run_block(
     State& state, const b::Block& block) const
   {
+    // Bound stack growth from pathological block nesting (mirrors call_depth).
+    if (state.block_depth() >= m_max_block_depth)
+    {
+      state.add_error(err(
+        Error,
+        "maximum block recursion depth (" + std::to_string(m_max_block_depth) +
+          ") exceeded",
+        RecursionError));
+      return Code::Error;
+    }
+
+    struct BlockGuard
+    {
+      State& s;
+      BlockGuard(State& st) : s(st)
+      {
+        s.enter_block();
+      }
+      ~BlockGuard()
+      {
+        s.leave_block();
+      }
+    } guard(state);
+
     Code code = Code::Continue;
     logging::Debug() << BlockIndent();
     {
@@ -571,9 +647,58 @@ namespace rego
       return Code::Continue;
     }
 
+    if (args.size() < function.parameters.size())
+    {
+      // Guaranteed by BundleDef::verify() — call sites for user
+      // functions supply at least the function's parameter count.
+      // VirtualMachine::bundle() invokes verify() on bind, so this
+      // path is unreachable for any well-formed embedder use.
+      // Surface an explicit error instead of silently returning
+      // Undefined so any future code path that mutates m_bundle
+      // post-bind cannot drive a wrong-arity call into a quiet
+      // mis-evaluation.
+      assert(false && "VM invariant: call arity >= parameter count");
+      state.add_error(err(
+        Error,
+        "internal: call arity mismatch for '" + std::string(func.view()) +
+          "' (bundle was not verified)",
+        EvalBuiltInError));
+      return Code::Error;
+    }
+
     for (size_t i = 2; i < function.parameters.size(); ++i)
     {
       state.write_local(function.parameters[i], unpack_operand(state, args[i]));
+    }
+
+    // Implementation-defined call-depth guard.
+    //
+    // OPA itself does not impose a maximum call depth, but the rego-cpp
+    // interpreter recurses through the C++ stack on every user-function
+    // call. A bundle with a long chain of mutually recursive functions
+    // (each distinct, so the existing is_in_call_stack check does not
+    // fire) could otherwise overflow the stack and crash the host.
+    //
+    // The default of 512 frames is sized for the smallest typical
+    // platform thread stack (Windows: 1 MiB) with headroom for
+    // sanitiser builds, while remaining well above any depth
+    // observed in the OPA conformance suite. Embedders on platforms
+    // with larger stacks (Linux/macOS: 8 MiB) may safely raise this
+    // via VirtualMachine::max_call_depth(size_t) /
+    // Interpreter::max_call_depth(size_t) if their workloads need
+    // deeper chains.
+    if (state.call_depth() >= m_max_call_depth)
+    {
+      state.add_error(err(
+        Error,
+        "interpreter stack-depth limit exceeded: "
+        "maximum function call depth (" +
+          std::to_string(m_max_call_depth) +
+          ") reached. This is an implementation limit on C++ stack "
+          "growth, not a Rego rule-recursion cycle; "
+          "raise via Interpreter::max_call_depth(size_t).",
+        RecursionError));
+      return Code::Error;
     }
 
     state.push_function(func, function.arity);
@@ -768,14 +893,25 @@ namespace rego
         }
         break;
 
-      case b::StatementType::Not:
-        if (run_block(state, stmt.ext->block()) != Code::Undefined)
+      case b::StatementType::Not: {
+        Code code = run_block(state, stmt.ext->block());
+        if (code == Code::Error || code == Code::Timeout)
+        {
+          // Propagate genuine errors (including strict-mode builtin errors)
+          // and timeouts instead of treating them as a failed negation. In
+          // non-strict mode a builtin error has already become Undefined
+          // before reaching here, so `not` still succeeds.
+          logging::Debug() << DebugIdx(index) << "NotStmt() -> propagate";
+          return code;
+        }
+        if (code != Code::Undefined)
         {
           logging::Debug() << DebugIdx(index) << "NotStmt() -> Undefined";
           return Code::Undefined;
         }
         logging::Debug() << DebugIdx(index) << "NotStmt() -> Continue";
         break;
+      }
 
       case b::StatementType::ReturnLocal:
         return Code::Return;
@@ -901,7 +1037,7 @@ namespace rego
       case b::StatementType::NotEqual: {
         Node a = unpack_operand(state, stmt.op0);
         Node b = unpack_operand(state, stmt.op1);
-        if (is_falsy(a) && is_falsy(b))
+        if (a == Undefined || b == Undefined)
         {
           return Code::Undefined;
         }
@@ -920,6 +1056,7 @@ namespace rego
 
       case b::StatementType::CallDynamic: {
         const b::CallDynamicExt& call_dynamic = stmt.ext->call_dynamic();
+        bool found = false;
         size_t valid_index = 0;
         std::ostringstream path_buf;
         Location func;
@@ -935,7 +1072,16 @@ namespace rego
             func = path_buf.str();
             logging::Trace() << "dynamic path: " << func.view();
             valid_index = i;
+            found = true;
           }
+        }
+
+        if (!found)
+        {
+          // No rule matched this dynamic path; Undefined runs OPA's fallback.
+          logging::Trace() << "CallDynamic: no function matched path "
+                           << path_buf.str();
+          return Code::Undefined;
         }
 
         Code code = run_call(state, func, call_dynamic.ops, stmt.target);
@@ -1052,8 +1198,12 @@ namespace rego
                          << index;
         return nullptr;
       }
-      catch (std::invalid_argument&)
+      catch (const std::runtime_error&)
       {
+        // to_uint32 throws std::runtime_error for both invalid literals
+        // (e.g. floating-point indices) and out-of-range values
+        // (e.g. negative or > UINT32_MAX). Either way the dot operation
+        // is undefined.
         logging::Trace() << "Invalid index for array dot operation: "
                          << key->location().view();
         return nullptr;
@@ -1106,7 +1256,7 @@ namespace rego
       }
 
       Code code = run_block(state, stmt.ext->block());
-      if (code == Code::Error)
+      if (code != Code::Continue && code != Code::Undefined)
       {
         return code;
       }
@@ -1190,8 +1340,15 @@ namespace rego
     return old_source;
   }
 
-  Node VirtualMachine::merge_objects(const Node& a, const Node& b) const
+  Node VirtualMachine::merge_objects(
+    const Node& a, const Node& b, size_t depth) const
   {
+    if (depth >= 256)
+    {
+      return err(
+        a, "merge_objects recursion depth exceeded", EvalConflictError);
+    }
+
     auto maybe_lhs = unwrap(a, {Object, Set});
     auto maybe_rhs = unwrap(b, {Object, Set});
     if (!maybe_lhs.success && !maybe_rhs.success)
@@ -1225,7 +1382,7 @@ namespace rego
     std::map<std::string, Node> items;
     for (auto& item : *lhs_obj)
     {
-      items[to_key(item / Key)] = item;
+      items[to_key(item / Key)] = item->clone();
     }
 
     for (auto& item : *rhs_obj)
@@ -1233,17 +1390,17 @@ namespace rego
       std::string key = to_key(item / Key);
       if (items.contains(key))
       {
-        Node merged = merge_objects(items[key] / Val, item / Val);
+        Node merged = merge_objects(items[key] / Val, item / Val, depth + 1);
         if (merged == Error)
         {
           return merged;
         }
 
-        items[key] = ObjectItem << (item / Key) << merged;
+        items[key] = ObjectItem << (item / Key)->clone() << merged;
       }
       else
       {
-        items[key] = item;
+        items[key] = item->clone();
       }
     }
 
@@ -1359,6 +1516,28 @@ namespace rego
   VirtualMachine& VirtualMachine::stmt_limit(size_t stmt_limit)
   {
     m_stmt_limit = stmt_limit;
+    return *this;
+  }
+
+  size_t VirtualMachine::max_call_depth() const
+  {
+    return m_max_call_depth;
+  }
+
+  VirtualMachine& VirtualMachine::max_call_depth(size_t depth)
+  {
+    m_max_call_depth = depth;
+    return *this;
+  }
+
+  size_t VirtualMachine::max_block_depth() const
+  {
+    return m_max_block_depth;
+  }
+
+  VirtualMachine& VirtualMachine::max_block_depth(size_t depth)
+  {
+    m_max_block_depth = depth;
     return *this;
   }
 }

@@ -1330,3 +1330,85 @@ cases:
   query: data.test.msg = x
   want_result:
     - x: Hello world!
+- modules:
+  - |
+    package main
+
+    import data.other
+
+    result := y if {
+      x := input.k
+      other[x] = y
+    }
+  - |
+    package other
+
+    a := 1
+  input:
+    k: a
+  note: regocpp/calldynamic-matched
+  query: data.main.result = x
+  want_result:
+    - x: 1
+- modules:
+  - |
+    package main
+
+    import data.other
+
+    result := y if {
+      x := input.k
+      other[x] = y
+    }
+  - |
+    package other
+
+    a := 1
+  input:
+    k: nope
+  note: regocpp/calldynamic-unmatched
+  query: data.main.result = x
+  want_result: []
+- modules:
+  - |
+    package main
+    import rego.v1
+    arr := [10, 20, 30]
+    result := arr[i] if i := -1
+  query: data.main.result = x
+  note: regocpp/array-dot-undefined-index-negative
+  want_result: []
+- modules:
+  - |
+    package main
+    import rego.v1
+    arr := [10, 20, 30]
+    result := arr[i] if i := 99999999999
+  query: data.main.result = x
+  note: regocpp/array-dot-undefined-index-huge
+  want_result: []
+- modules:
+  - |
+    package main
+    import rego.v1
+    arr := [10, 20, 30]
+    result := arr[i] if i := 1.5
+  query: data.main.result = x
+  note: regocpp/array-dot-undefined-index-float
+  want_result: []
+- query: time.parse_duration_ns("1d") = x
+  note: regocpp/parse-duration-ns-day
+  want_result:
+    - x: 86400000000000
+- query: time.parse_duration_ns("2w") = x
+  note: regocpp/parse-duration-ns-week
+  want_result:
+    - x: 1209600000000000
+- query: time.parse_duration_ns("1y") = x
+  note: regocpp/parse-duration-ns-year
+  want_result:
+    - x: 31536000000000000
+- query: time.parse_duration_ns("1d2h30m") = x
+  note: regocpp/parse-duration-ns-mixed
+  want_result:
+    - x: 95400000000000

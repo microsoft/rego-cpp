@@ -1,0 +1,120 @@
+name: OPA Version Check
+
+# Weekly check for new upstream OPA releases. When a newer version is found,
+# an issue is opened so that rego-cpp does not silently fall behind OPA. A
+# maintainer then bumps REGOCPP_OPA_VERSION in CMakeLists.txt; the OPA
+# conformance suite is cloned at the new tag, so CI reveals breaking changes.
+#
+# Filing an issue (rather than opening a PR) keeps this workflow within the
+# default GITHUB_TOKEN permissions, avoiding the org-restricted "Allow GitHub
+# Actions to create and approve pull requests" setting.
+
+on:
+  schedule:
+    # Mondays at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-opa-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Determine current and latest OPA versions
+        id: versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          current=$(grep -oP 'set\s*\(\s*REGOCPP_OPA_VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
+          echo "Current OPA version: ${current}"
+
+          latest_tag=$(gh release view \
+            --repo open-policy-agent/opa \
+            --json tagName \
+            --jq '.tagName')
+          latest=${latest_tag#v}
+          echo "Latest OPA release: ${latest}"
+
+          echo "current=${current}" >> "$GITHUB_OUTPUT"
+          echo "latest=${latest}" >> "$GITHUB_OUTPUT"
+
+          if [ "${current}" = "${latest}" ]; then
+            echo "update_needed=false" >> "$GITHUB_OUTPUT"
+          else
+            # Confirm latest is actually newer (sort -V), to avoid downgrades
+            newest=$(printf '%s\n%s\n' "${current}" "${latest}" | sort -V | tail -n1)
+            if [ "${newest}" = "${latest}" ]; then
+              echo "update_needed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "Latest (${latest}) is not newer than current (${current}); skipping."
+              echo "update_needed=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Open tracking issue
+        if: steps.versions.outputs.update_needed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT: ${{ steps.versions.outputs.current }}
+          LATEST: ${{ steps.versions.outputs.latest }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          title="Bump OPA version to ${LATEST}"
+
+          # Avoid filing a duplicate if an open issue already tracks this version
+          existing=$(gh issue list \
+            --repo "${REPO}" \
+            --state open \
+            --label opa-version \
+            --search "${title} in:title" \
+            --json number \
+            --jq 'length')
+
+          if [ "${existing}" != "0" ]; then
+            echo "An open issue already tracks OPA ${LATEST}; skipping."
+            exit 0
+          fi
+
+          body=$(cat <<EOF
+          A newer upstream OPA release is available.
+
+          | | Version |
+          |---|---|
+          | Current | \`${CURRENT}\` |
+          | Latest | \`${LATEST}\` |
+
+          ## Action required
+          Bump \`REGOCPP_OPA_VERSION\` in \`CMakeLists.txt\` from \`${CURRENT}\` to \`${LATEST}\`.
+          The OPA conformance test suite is cloned at the matching tag
+          (\`v${LATEST}\`), so CI on the bump PR will reveal any **breaking**
+          behavioural changes in the new OPA release.
+
+          ## Checklist
+          - [ ] Bump \`REGOCPP_OPA_VERSION\` to \`${LATEST}\` in \`CMakeLists.txt\`
+          - [ ] Run the \`opa-compat-check\` skill to review the OPA release notes
+          - [ ] Update builtins / passes for any new or changed OPA features
+          - [ ] CI passes (or failures are triaged as expected OPA changes)
+          - [ ] Refresh \`CHANGELOG\` and docs as needed
+
+          Release notes: https://github.com/open-policy-agent/opa/releases/tag/v${LATEST}
+
+          _Opened automatically by the OPA Version Check workflow._
+          EOF
+          )
+
+          gh issue create \
+            --repo "${REPO}" \
+            --title "${title}" \
+            --body "${body}" \
+            --label dependencies \
+            --label opa-version

@@ -28,7 +28,7 @@ REQUIRES_DEV = [
 with open("README.md", "r") as file:
     LONG_DESCRIPTION = file.read()
 
-VERSION = "1.4.1"
+VERSION = "1.5.0"
 
 
 class CMakeExtension(Extension):
@@ -71,7 +71,7 @@ class CMakeBuild(build_ext):
             if repo == "LOCAL":
                 src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
             else:
-                tag = os.environ.get("REGOCPP_TAG", "main")
+                tag = os.environ.get("REGOCPP_TAG", f"v{VERSION}")
 
                 subprocess.check_call(["git", "clone", repo, src_path])
                 subprocess.check_call(["git", "checkout", tag], cwd=src_path)
@@ -134,7 +134,7 @@ setup(
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
-    python_requires=">=3.6, <4",
+    python_requires=">=3.10, <4",
     ext_modules=[CMakeExtension("regopy.rego_shared")],
     package_data={"regopy": ["*.dll", "*.so", "*.dylib"]},
     classifiers=[

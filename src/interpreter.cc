@@ -759,4 +759,26 @@ namespace rego
     m_vm.stmt_limit(stmt_limit);
     return *this;
   }
+
+  size_t Interpreter::max_call_depth() const
+  {
+    return m_vm.max_call_depth();
+  }
+
+  Interpreter& Interpreter::max_call_depth(size_t depth)
+  {
+    m_vm.max_call_depth(depth);
+    return *this;
+  }
+
+  size_t Interpreter::max_block_depth() const
+  {
+    return m_vm.max_block_depth();
+  }
+
+  Interpreter& Interpreter::max_block_depth(size_t depth)
+  {
+    m_vm.max_block_depth(depth);
+    return *this;
+  }
 }

@@ -546,6 +546,7 @@ namespace
         {"urlquery.encode_object"}, encode_object_decl, encode_object);
     }
 
+    // Intentional duplicate of uri.cc's unescape (plus the hexdigit helper).
     std::optional<std::string> maybe_urlquery_decode(const std::string& encoded)
     {
       std::ostringstream decoded;

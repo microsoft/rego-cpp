@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run clang-format style check
-        uses: jidicula/clang-format-action@v4.8.0
+        uses: jidicula/clang-format-action@v4.18.0
         with:
           clang-format-version: '18'
           check-path: ${{matrix.path['check']}}
@@ -637,18 +637,13 @@ jobs:
           - ""
           - "openssl3"
           - "openssl3,tools"
-          - "openssl3,tools,snmalloc"
-          - "snmalloc"
           - "tools"
-          - "tools, snmalloc"
         exclude:
           # Windows uses bcrypt, not openssl3
           - os: windows-latest
             features: "openssl3"
           - os: windows-latest
             features: "openssl3,tools"
-          - os: windows-latest
-            features: "openssl3,tools,snmalloc"
         include:
           - os: ubuntu-latest
             install_deps: sudo apt-get update && sudo apt-get install -y ninja-build libssl-dev

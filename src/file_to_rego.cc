@@ -129,7 +129,8 @@ namespace
       True,
       With);
 
-  const auto wf_prep_tokens = (wf_parse_tokens | Scalar | Placeholder) -
+  const auto wf_prep_tokens =
+    (wf_parse_tokens | Scalar | Placeholder | NotBlock) -
     (Int | Float | JSONString | RawString | TemplateString | True | False |
      Null | TemplateLiteral);
 
@@ -153,7 +154,8 @@ namespace
 
   PassDef prep()
   {
-    return {
+    auto notblock = std::make_shared<bool>(false);
+    PassDef pass = {
       "prep",
       wf_prep,
       dir::topdown | dir::once,
@@ -169,6 +171,37 @@ namespace
           [](Match& _) { return Package << (RefGroup << _[Group]); },
 
         In(RefGroup) * Keyword[Var] >> [](Match& _) { return Var ^ _(Var); },
+
+        In(Module) *
+            (T(Group)
+             << (T(Import) * T(Var, "future") * T(Dot) * T(Var, "keywords") *
+                 T(Dot) * T(If, IsIn, Contains, Every) * End)) >>
+          [](Match& _) { return nullptr; },
+
+        In(Module) *
+            (T(Group)
+             << (T(Import) * T(Var, "future") * T(Dot) * T(Var, "keywords") *
+                 T(Dot) * T(Not) * End)) >>
+          [notblock](Match& _) {
+            *notblock = true;
+            return nullptr;
+          },
+
+        In(Module) *
+            (T(Group)
+             << (T(Import) * T(Var, "future") * T(Dot) * T(Var, "keywords") *
+                 T(Dot) * T(Var)[Var] * End)) >>
+          [](Match& _) { return err(_(Var), "Invalid import"); },
+
+        In(Group) * (T(Not)[Not] * T(Brace)[Brace]) >>
+          [notblock](Match& _) -> Node {
+          if (*notblock)
+          {
+            return Seq << (NotBlock ^ _(Not)) << _(Brace);
+          }
+
+          return NoChange;
+        },
 
         In(Module) *
             (T(Group)[Group]
@@ -254,6 +287,13 @@ namespace
         T(Import)[Import] << End >>
           [](Match& _) { return err(_(Import), "Invalid import declaration"); },
       }};
+
+    pass.post([notblock](const Node&) {
+      *notblock = false;
+      return 0;
+    });
+
+    return pass;
   }
 
   // clang-format off
@@ -960,7 +1000,7 @@ namespace
   const auto wf_else_not =
     wf_assign
     | (Else <<= Expr * Query)
-    | (NotExpr <<= Expr)
+    | (NotExpr <<= Query)
     | (Group <<= wf_else_not_tokens++)
     ;
   // clang-format on
@@ -978,9 +1018,19 @@ namespace
              T(Query)[Query]) >>
           [](Match& _) { return Else << _(Expr) << _(Query); },
 
+        In(Group) * (T(If)[If] * T(NotBlock)[NotBlock] * T(Query)[Query]) >>
+          [](Match& _) {
+            return Seq << _(If)
+                       << (Query
+                           << (Group << ((NotExpr ^ _(NotBlock)) << _(Query))));
+          },
+
+        In(Group) * (T(NotBlock)[NotBlock] * T(Query)[Query]) >>
+          [](Match& _) { return (NotExpr ^ _(NotBlock)) << _(Query); },
+
         In(Group) *
             (T(Else) * T(Assign, Unify) * T(Expr)[Expr] * T(If) * ~T(Not)[Not] *
-             T(Expr, SomeDecl)[Query]) >>
+             T(Expr, SomeDecl, NotExpr)[Query]) >>
           [](Match& _) {
             Node query = _(Query);
             if (_(Not) != nullptr)
@@ -990,7 +1040,7 @@ namespace
                 return err(query, "not keyword only applies to expressions");
               }
 
-              query = NotExpr << query;
+              query = NotExpr << (Query << (Group << query));
             }
 
             return Else << _(Expr) << (Query << (Group << query));
@@ -1013,28 +1063,30 @@ namespace
                                << _(Rhs);
             if (_(Not) != nullptr)
             {
-              query = Group << (NotExpr << (Expr << query));
+              query = Group
+                << (NotExpr << (Query << (Group << (Expr << query))));
             }
             return Seq << _(If) << (Query << query);
           },
 
-        In(Group) * (T(If)[If] * ~T(Not)[Not] * T(Expr, SomeDecl)[Query]) >>
+        In(Group) *
+            (T(If)[If] * ~T(Not)[Not] * T(Expr, SomeDecl, NotExpr)[Query]) >>
           [](Match& _) {
             Node query = _(Query);
             if (_(Not) != nullptr)
             {
               if (query == SomeDecl)
               {
-                return err(query, "Not keyword only applies to expressions");
+                return err(query, "not keyword only applies to expressions");
               }
 
-              query = NotExpr << query;
+              query = NotExpr << (Query << (Group << query));
             }
             return Seq << _(If) << (Query << (Group << query));
           },
 
         In(Group) * (T(Not) * T(Expr)[Expr]) >>
-          [](Match& _) { return NotExpr << _(Expr); },
+          [](Match& _) { return NotExpr << (Query << (Group << _(Expr))); },
 
         In(ExprInfix) *
             ((T(Expr)
@@ -1529,7 +1581,7 @@ namespace
         // errors
         T(Group)[Group] >>
           [](Match& _) {
-            return err(_(Group), "Syntax error", WellFormedError);
+            return err(_(Group), "Syntax error", RegoParseError);
           },
 
         T(Module)[Module] << (T(Import, Version, Group)) >>

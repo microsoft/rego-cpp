@@ -41,7 +41,7 @@ namespace rego
   inline const auto ExprEvery = TokenDef("rego-exprevery", flag::symtab);
   inline const auto ExprParens = TokenDef("rego-exprparens");
   inline const auto UnaryExpr = TokenDef("rego-unaryexpr");
-  inline const auto NotExpr = TokenDef("rego-not-expr");
+  inline const auto NotExpr = TokenDef("rego-not-expr", flag::symtab);
   inline const auto Term = TokenDef("rego-term");
   inline const auto InfixOperator = TokenDef("rego-infixoperator");
   inline const auto BoolOperator = TokenDef("rego-booloperator");
@@ -169,7 +169,7 @@ namespace rego
     | (WithSeq <<= With++)
     | (With <<= Term * Expr)
     | (SomeDecl <<= ExprSeq * (IsIn >>= Expr | Undefined))
-    | (NotExpr <<= Expr)
+    | (NotExpr <<= Query)
     | (Expr <<= (Term | ExprCall | ExprInfix | ExprEvery | ExprParens | UnaryExpr))
     | (ExprCall <<= Ref * ExprSeq)
     | (ExprSeq <<= Expr++)
@@ -1446,6 +1446,17 @@ namespace rego
     /// @param path The path to the file to load from.
     /// @return The bundle, or null if the bundle could not be loaded.
     static Bundle load(const std::filesystem::path& path);
+
+    /// @brief Validates all indices in the bundle are within bounds.
+    /// @details
+    /// Walks all statements in all functions and plans, verifying that every
+    /// local index < local_count, every string index < strings.size(), and
+    /// every file index < files.size(). Throws std::runtime_error on failure.
+    /// VirtualMachine::bundle() invokes this at the public API boundary, so
+    /// embedders do not need to call it explicitly. It is exposed publicly
+    /// only so that callers who want an early diagnostic on a freshly
+    /// constructed bundle can do so.
+    void verify() const;
   };
 
   /// @brief This class implements a virtual machine that can execute compiled
@@ -1503,6 +1514,39 @@ namespace rego
     /// @return A reference to this virtual machine
     VirtualMachine& stmt_limit(size_t stmt_limit);
 
+    /// @brief Gets the maximum function call depth.
+    /// @details
+    /// This is an implementation limit on the depth of nested function
+    /// invocations, intended to bound C++ stack growth on adversarial or
+    /// pathological policies. It is not part of the Rego language; OPA
+    /// itself does not impose such a limit.
+    ///
+    /// The default of 512 frames is sized for the smallest typical
+    /// platform thread stack (Windows: 1 MiB) with headroom for
+    /// sanitiser builds. Embedders running on platforms with larger
+    /// stacks (Linux/macOS: 8 MiB) may safely raise this to 1024 or
+    /// more if their policies need deeper call chains.
+    size_t max_call_depth() const;
+
+    /// @brief Sets the maximum function call depth.
+    /// @param depth The maximum number of nested function calls.
+    /// @return A reference to this virtual machine
+    VirtualMachine& max_call_depth(size_t depth);
+
+    /// @brief Gets the maximum block recursion depth.
+    /// @details
+    /// Mirrors @ref max_call_depth for nested block evaluation
+    /// (scan, with, comprehensions). Each `run_block` invocation
+    /// adds a C++ stack frame, so an adversarial bundle with deeply
+    /// nested blocks could otherwise overflow the host stack even
+    /// without crossing a function-call boundary.
+    size_t max_block_depth() const;
+
+    /// @brief Sets the maximum block recursion depth.
+    /// @param depth The maximum number of nested block evaluations.
+    /// @return A reference to this virtual machine
+    VirtualMachine& max_block_depth(size_t depth);
+
   private:
     typedef std::vector<Node> Frame;
 
@@ -1545,6 +1589,10 @@ namespace rego
       void pop_break();
       size_t stmt_count() const;
       size_t inc_stmts();
+      size_t call_depth() const;
+      size_t block_depth() const;
+      void enter_block();
+      void leave_block();
 
     private:
       Frame m_frame;
@@ -1557,6 +1605,7 @@ namespace rego
       size_t m_with_count;
       size_t m_break_count;
       size_t m_stmt_count;
+      size_t m_block_depth;
     };
 
     void run_plan(const bundle::Plan& plan, State& state) const;
@@ -1571,7 +1620,7 @@ namespace rego
       const std::vector<bundle::Operand>& args,
       size_t target) const;
     Node dot(const Node& source, const Node& key) const;
-    Node merge_objects(const Node& a, const Node& b) const;
+    Node merge_objects(const Node& a, const Node& b, size_t depth = 0) const;
     Node merge_sets(const Node& a, const Node& b) const;
     bool insert_into_object(
       const Node& a, const Node& key, const Node& value, bool once) const;
@@ -1588,6 +1637,8 @@ namespace rego
     BuiltIns m_builtins;
     TRegex m_int_regex;
     size_t m_stmt_limit;
+    size_t m_max_call_depth;
+    size_t m_max_block_depth;
   };
 
   /// @brief Encapsulates the output of a Rego query.
@@ -2007,6 +2058,29 @@ namespace rego
     /// @param stmt_limit The statement limit
     /// @return A reference to this Interpreter
     Interpreter& stmt_limit(size_t stmt_limit);
+
+    /// @brief Gets the maximum function call depth.
+    /// @details
+    /// This is an implementation limit intended to bound C++ stack growth.
+    /// It is not part of the Rego language. See
+    /// @ref VirtualMachine::max_call_depth for default-sizing notes.
+    size_t max_call_depth() const;
+
+    /// @brief Sets the maximum function call depth.
+    /// @param depth The maximum number of nested function calls.
+    /// @return A reference to this Interpreter
+    Interpreter& max_call_depth(size_t depth);
+
+    /// @brief Gets the maximum block recursion depth.
+    /// @details Mirrors @ref max_call_depth for nested blocks
+    /// (scan, with, comprehensions). Bounds C++ stack growth from
+    /// pathological block nesting.
+    size_t max_block_depth() const;
+
+    /// @brief Sets the maximum block recursion depth.
+    /// @param depth The maximum number of nested block evaluations.
+    /// @return A reference to this Interpreter
+    Interpreter& max_block_depth(size_t depth);
 
   private:
     Reader& reader();

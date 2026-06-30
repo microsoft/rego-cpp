@@ -3,6 +3,211 @@
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+namespace
+{
+  using namespace rego::bundle;
+  using rego::BundleDef;
+
+  void verify_operand(const Operand& op, const BundleDef& bundle)
+  {
+    switch (op.type)
+    {
+      case OperandType::Local:
+        if (op.index >= bundle.local_count)
+        {
+          throw std::runtime_error(
+            "bundle verify: local index " + std::to_string(op.index) +
+            " >= local_count " + std::to_string(bundle.local_count));
+        }
+        break;
+
+      case OperandType::String:
+        if (op.index >= bundle.strings.size())
+        {
+          throw std::runtime_error(
+            "bundle verify: string index " + std::to_string(op.index) +
+            " >= strings.size() " + std::to_string(bundle.strings.size()));
+        }
+        break;
+
+      case OperandType::Index:
+        if (op.index >= bundle.local_count)
+        {
+          throw std::runtime_error(
+            "bundle verify: raw index " + std::to_string(op.index) +
+            " >= local_count " + std::to_string(bundle.local_count));
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  void verify_block(const Block& block, const BundleDef& bundle);
+
+  void verify_stmt(const Statement& stmt, const BundleDef& bundle)
+  {
+    const size_t local_count = bundle.local_count;
+    const size_t strings_count = bundle.strings.size();
+
+    if (stmt.target < 0 || static_cast<size_t>(stmt.target) >= local_count)
+    {
+      // These types never read stmt.target (audited vs run_stmt); skip check.
+      switch (stmt.type)
+      {
+        case StatementType::Equal:
+        case StatementType::NotEqual:
+        case StatementType::IsObject:
+        case StatementType::IsArray:
+        case StatementType::IsSet:
+        case StatementType::Block:
+        case StatementType::Not:
+        case StatementType::Break:
+        case StatementType::Nop:
+          break;
+
+        default:
+          throw std::runtime_error(
+            "bundle verify: stmt target " + std::to_string(stmt.target) +
+            " >= local_count " + std::to_string(local_count));
+      }
+    }
+
+    verify_operand(stmt.op0, bundle);
+    verify_operand(stmt.op1, bundle);
+
+    // Statement-type-specific operand validation
+    switch (stmt.type)
+    {
+      case StatementType::MakeNumberRef:
+        // op0 is a string table index, not a local index
+        if (stmt.op0.index >= strings_count)
+        {
+          throw std::runtime_error(
+            "bundle verify: MakeNumberRef string index " +
+            std::to_string(stmt.op0.index) + " >= strings.size() " +
+            std::to_string(strings_count));
+        }
+        break;
+
+      case StatementType::Break:
+        // op0.index = blocks to break out of; cap bounds crafted-bundle state.
+        if (stmt.op0.index >= 256)
+        {
+          throw std::runtime_error(
+            "bundle verify: Break levels " + std::to_string(stmt.op0.index) +
+            " exceeds maximum of 256");
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    // Validate ext is non-null for types that require it
+    switch (stmt.type)
+    {
+      case StatementType::Block:
+      case StatementType::Not:
+      case StatementType::Scan:
+      case StatementType::Call:
+      case StatementType::CallDynamic:
+      case StatementType::With:
+        if (!stmt.ext)
+        {
+          throw std::runtime_error(
+            "bundle verify: statement type requires ext but ext is null");
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    if (stmt.ext)
+    {
+      switch (stmt.type)
+      {
+        case StatementType::Block:
+          for (const Block& block : stmt.ext->blocks())
+          {
+            verify_block(block, bundle);
+          }
+          break;
+
+        case StatementType::Not:
+        case StatementType::Scan:
+          verify_block(stmt.ext->block(), bundle);
+          break;
+
+        case StatementType::Call: {
+          const CallExt& call = stmt.ext->call();
+          for (const Operand& op : call.ops)
+          {
+            verify_operand(op, bundle);
+          }
+
+          // Require >= param count; extra 'with' args ok; builtins skipped.
+          auto fn_it = bundle.name_to_func.find(call.func);
+          if (fn_it != bundle.name_to_func.end())
+          {
+            const Function& callee = bundle.functions[fn_it->second];
+            if (call.ops.size() < callee.parameters.size())
+            {
+              throw std::runtime_error(
+                "bundle verify: call to '" + std::string(call.func.view()) +
+                "' arg count " + std::to_string(call.ops.size()) +
+                " is less than parameter count " +
+                std::to_string(callee.parameters.size()) +
+                " (this indicates a defect in the bundle producer)");
+            }
+          }
+          break;
+        }
+
+        case StatementType::CallDynamic: {
+          const CallDynamicExt& dyn = stmt.ext->call_dynamic();
+          // Dynamic dispatch arity isn't static; operand ranges suffice.
+          for (const Operand& op : dyn.path)
+          {
+            verify_operand(op, bundle);
+          }
+          for (const Operand& op : dyn.ops)
+          {
+            verify_operand(op, bundle);
+          }
+          break;
+        }
+
+        case StatementType::With:
+          verify_block(stmt.ext->with().block, bundle);
+          for (size_t idx : stmt.ext->with().path)
+          {
+            if (idx >= strings_count)
+            {
+              throw std::runtime_error(
+                "bundle verify: with path index " + std::to_string(idx) +
+                " >= strings.size() " + std::to_string(strings_count));
+            }
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
+  void verify_block(const Block& block, const BundleDef& bundle)
+  {
+    for (const Statement& stmt : block)
+    {
+      verify_stmt(stmt, bundle);
+    }
+  }
+}
+
 namespace rego
 {
   namespace bundle
@@ -278,13 +483,20 @@ namespace rego
       return op;
     }
 
+    size_t to_index(const Node& n, size_t* max_index)
+    {
+      size_t idx = to_size(n);
+      *max_index = MAX(*max_index, idx);
+      return idx;
+    }
+
     Statement node_to_statement(Node n, std::shared_ptr<size_t> max_index)
     {
       Statement stmt;
       if (n == ArrayAppendStmt)
       {
         stmt.type = StatementType::ArrayAppend;
-        stmt.target = to_size(n / Array);
+        stmt.target = to_index(n / Array, max_index.get());
         stmt.op0 = Operand::from_op(n / Val);
         return stmt;
       }
@@ -293,8 +505,7 @@ namespace rego
       {
         stmt.type = StatementType::AssignInt;
         stmt.op0 = Operand::from_value(n / Val);
-        stmt.target = to_size(n / Target);
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
@@ -302,8 +513,7 @@ namespace rego
       {
         stmt.type = StatementType::AssignVarOnce;
         stmt.op0 = Operand::from_op(n / Src);
-        stmt.target = to_size(n / Target);
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
@@ -311,8 +521,7 @@ namespace rego
       {
         stmt.type = StatementType::AssignVar;
         stmt.op0 = Operand::from_op(n / Src);
-        stmt.target = to_size(n / Target);
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
@@ -348,9 +557,8 @@ namespace rego
           argseq->end(),
           std::back_inserter(call.ops),
           [](Node& node) { return Operand::from_op(node); });
-        stmt.target = to_size(n / Result);
+        stmt.target = to_index(n / Result, max_index.get());
         stmt.ext = std::make_shared<const StatementExt>(std::move(call));
-        *max_index = MAX(*max_index, stmt.target);
         return stmt;
       }
 
@@ -372,9 +580,8 @@ namespace rego
           std::back_inserter(call.ops),
           [](Node& node) { return Operand::from_op(node); });
 
-        stmt.target = to_size(n / Result);
+        stmt.target = to_index(n / Result, max_index.get());
         stmt.ext = std::make_shared<const StatementExt>(std::move(call));
-        *max_index = MAX(*max_index, stmt.target);
         return stmt;
       }
 
@@ -383,8 +590,7 @@ namespace rego
         stmt.type = StatementType::Dot;
         stmt.op0 = Operand::from_op(n / Src);
         stmt.op1 = Operand::from_op(n / Key);
-        stmt.target = to_size(n / Target);
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
@@ -406,7 +612,7 @@ namespace rego
       if (n == IsDefinedStmt)
       {
         stmt.type = StatementType::IsDefined;
-        stmt.target = to_size(n / Src);
+        stmt.target = to_index(n / Src, max_index.get());
         return stmt;
       }
 
@@ -427,7 +633,7 @@ namespace rego
       if (n == IsUndefinedStmt)
       {
         stmt.type = StatementType::IsUndefined;
-        stmt.target = to_size(n / Src);
+        stmt.target = to_index(n / Src, max_index.get());
         return stmt;
       }
 
@@ -435,8 +641,7 @@ namespace rego
       {
         stmt.type = StatementType::Len;
         stmt.op0 = Operand::from_op(n / Src);
-        stmt.target = to_size(n / Target);
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
@@ -444,16 +649,14 @@ namespace rego
       {
         stmt.type = StatementType::MakeArray;
         stmt.op0 = Operand::from_value(n / Capacity);
-        stmt.target = to_size(n / Target);
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
       if (n == MakeNullStmt)
       {
         stmt.type = StatementType::MakeNull;
-        stmt.target = to_size(n->front());
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n->front(), max_index.get());
         return stmt;
       }
 
@@ -461,8 +664,7 @@ namespace rego
       {
         stmt.type = StatementType::MakeNumberInt;
         stmt.op0 = Operand::from_value(n / Val);
-        stmt.target = to_size(n / Target);
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
@@ -470,24 +672,21 @@ namespace rego
       {
         stmt.type = StatementType::MakeNumberRef;
         stmt.op0 = Operand::from_index(n / Idx);
-        stmt.target = to_size(n / Target);
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
       if (n == MakeObjectStmt)
       {
         stmt.type = StatementType::MakeObject;
-        stmt.target = to_size(n->front());
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n->front(), max_index.get());
         return stmt;
       }
 
       if (n == MakeSetStmt)
       {
         stmt.type = StatementType::MakeSet;
-        stmt.target = to_size(n->front());
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n->front(), max_index.get());
         return stmt;
       }
 
@@ -512,7 +711,7 @@ namespace rego
         stmt.type = StatementType::ObjectInsertOnce;
         stmt.op0 = Operand::from_op(n / Key);
         stmt.op1 = Operand::from_op(n / Val);
-        stmt.target = to_size(n / Object);
+        stmt.target = to_index(n / Object, max_index.get());
         return stmt;
       }
 
@@ -521,7 +720,7 @@ namespace rego
         stmt.type = StatementType::ObjectInsert;
         stmt.op0 = Operand::from_op(n / Key);
         stmt.op1 = Operand::from_op(n / Val);
-        stmt.target = to_size(n / Object);
+        stmt.target = to_index(n / Object, max_index.get());
         return stmt;
       }
 
@@ -530,40 +729,41 @@ namespace rego
         stmt.type = StatementType::ObjectMerge;
         stmt.op0 = Operand::from_index(n / Lhs);
         stmt.op1 = Operand::from_index(n / Rhs);
-        stmt.target = to_size(n / Target);
+        stmt.target = to_index(n / Target, max_index.get());
         return stmt;
       }
 
       if (n == ResetLocalStmt)
       {
         stmt.type = StatementType::ResetLocal;
-        stmt.target = to_size(n->front());
-        *max_index = MAX(*max_index, stmt.target);
+        stmt.target = to_index(n->front(), max_index.get());
         return stmt;
       }
 
       if (n == ResultSetAddStmt)
       {
         stmt.type = StatementType::ResultSetAdd;
-        stmt.target = to_size(n / Val);
+        stmt.target = to_index(n / Val, max_index.get());
         return stmt;
       }
 
       if (n == ReturnLocalStmt)
       {
         stmt.type = StatementType::ReturnLocal;
-        stmt.target = to_size(n / Src);
+        stmt.target = to_index(n / Src, max_index.get());
         return stmt;
       }
 
       if (n == ScanStmt)
       {
         stmt.type = StatementType::Scan;
-        stmt.target = to_size(n / Src);
-        stmt.op0 = Operand::from_index(n / Key);
-        *max_index = MAX(*max_index, stmt.op0.index);
-        stmt.op1 = Operand::from_index(n / Val);
-        *max_index = MAX(*max_index, stmt.op1.index);
+        stmt.target = to_index(n / Src, max_index.get());
+        // Key and Val are frame writes (not reads), so they must go through
+        // to_index to update max_index. Do not replace with from_index().
+        stmt.op0.type = OperandType::Index;
+        stmt.op0.index = to_index(n / Key, max_index.get());
+        stmt.op1.type = OperandType::Index;
+        stmt.op1.index = to_index(n / Val, max_index.get());
         stmt.ext = std::make_shared<const StatementExt>(
           node_to_block(n->back(), max_index));
         return stmt;
@@ -573,7 +773,7 @@ namespace rego
       {
         stmt.type = StatementType::SetAdd;
         stmt.op0 = Operand::from_op(n / Val);
-        stmt.target = to_size(n / Set);
+        stmt.target = to_index(n / Set, max_index.get());
         return stmt;
       }
 
@@ -581,7 +781,7 @@ namespace rego
       {
         stmt.type = StatementType::With;
         WithExt with;
-        stmt.target = to_size(n / LocalIndex);
+        stmt.target = to_index(n / LocalIndex, max_index.get());
         Node path = n / Path;
         std::transform(
           path->begin(), path->end(), std::back_inserter(with.path), to_size);
@@ -746,6 +946,9 @@ namespace rego
       bundle.builtin_functions[name] = bi / builtins::Decl;
     }
 
+    // Note: structural verification is performed by VirtualMachine::bundle()
+    // when the bundle is bound for evaluation; we do not re-walk here.
+
     return std::make_shared<BundleDef>(std::move(bundle));
   }
 
@@ -799,5 +1002,63 @@ namespace rego
 
     stream.imbue(std::locale::classic());
     return load(stream);
+  }
+
+  void BundleDef::verify() const
+  {
+    if (query_plan.has_value() && *query_plan >= plans.size())
+    {
+      throw std::runtime_error(
+        "bundle verify: query_plan index " + std::to_string(*query_plan) +
+        " >= plans.size() " + std::to_string(plans.size()));
+    }
+
+    for (const auto& func : functions)
+    {
+      // Every user function receives `input` and `data` as its first
+      // two parameters by construction (rego_to_bundle plus the binary
+      // loader both reserve locals 0/1 for these). Reject any callee
+      // that violates this invariant up front so run_call's loop
+      // (`for i = 2; i < parameters.size(); ++i`) cannot underflow or
+      // dereference garbage.
+      if (func.parameters.size() < 2)
+      {
+        throw std::runtime_error(
+          "bundle verify: function '" + std::string(func.name.view()) +
+          "' has " + std::to_string(func.parameters.size()) +
+          " parameters; at least 2 required (input + data)");
+      }
+
+      for (size_t param : func.parameters)
+      {
+        if (param >= local_count)
+        {
+          throw std::runtime_error(
+            "bundle verify: function parameter index " + std::to_string(param) +
+            " >= local_count " + std::to_string(local_count));
+        }
+      }
+
+      if (func.result >= local_count)
+      {
+        throw std::runtime_error(
+          "bundle verify: function result index " +
+          std::to_string(func.result) + " >= local_count " +
+          std::to_string(local_count));
+      }
+
+      for (const auto& block : func.blocks)
+      {
+        verify_block(block, *this);
+      }
+    }
+
+    for (const auto& plan : plans)
+    {
+      for (const auto& block : plan.blocks)
+      {
+        verify_block(block, *this);
+      }
+    }
   }
 }

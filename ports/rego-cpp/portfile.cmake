@@ -22,12 +22,6 @@ else()
   set(BUILD_TOOLS OFF)
 endif()
 
-if("snmalloc" IN_LIST FEATURES)
-  set(USE_SNMALLOC ON)
-else()
-  set(USE_SNMALLOC OFF)
-endif()
-
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
@@ -35,7 +29,6 @@ vcpkg_cmake_configure(
         -DREGOCPP_BUILD_TOOLS=${BUILD_TOOLS}
         -DREGOCPP_BUILD_TESTS=OFF
         -DREGOCPP_BUILD_DOCS=OFF
-        -DREGOCPP_USE_SNMALLOC=${USE_SNMALLOC}
         -DREGOCPP_CRYPTO_BACKEND=${CRYPTO_BACKEND}
 )
 
