@@ -98,8 +98,60 @@ jobs:
           name: wheels-${{ matrix.python }}-${{ matrix.target }}
           path: ./wheelhouse/*.whl
 
-  merge:
+  # Dlopen musllinux wheels in python:X-alpine; auditwheel skips load-time.
+  smoke_test_musllinux:
+    name: Smoke test ${{ matrix.python }} musllinux wheel (${{ matrix.target }})
     needs: build_wheels
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [cp310, cp311, cp312, cp313, cp314]
+        target: [musllinux-x86_64, musllinux-aarch64]
+        include:
+          - target: musllinux-x86_64
+            runner: ubuntu-latest
+          - target: musllinux-aarch64
+            runner: ubuntu-24.04-arm
+          - python: cp310
+            python_tag: "3.10-alpine"
+          - python: cp311
+            python_tag: "3.11-alpine"
+          - python: cp312
+            python_tag: "3.12-alpine"
+          - python: cp313
+            python_tag: "3.13-alpine"
+          - python: cp314
+            python_tag: "3.14-alpine"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: wheels-${{ matrix.python }}-${{ matrix.target }}
+          path: wheelhouse
+
+      - name: Import regopy inside python:${{ matrix.python_tag }}
+        run: |
+          set -euo pipefail
+          ls -la wheelhouse
+          wheel_count=$(find wheelhouse -maxdepth 1 -name 'regopy-*.whl' | wc -l)
+          if [ "$wheel_count" -ne 1 ]; then
+            echo "Expected exactly one regopy wheel, found $wheel_count"; exit 1
+          fi
+          docker run --rm \
+            -v "$PWD/wheelhouse:/wheels:ro" \
+            -v "$PWD/.github/scripts:/scripts:ro" \
+            "python:${{ matrix.python_tag }}" sh -euxc '
+              pip install --no-index /wheels/regopy-*.whl
+              python3 /scripts/smoke_test_musllinux_wheel.py
+            '
+
+  merge:
+    needs: [build_wheels, smoke_test_musllinux]
     runs-on: ubuntu-latest
     steps:
       - name: Download Wheels

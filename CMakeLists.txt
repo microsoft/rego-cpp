@@ -131,6 +131,18 @@ endif()
 
 find_package(Threads)
 
+if(UNIX AND NOT APPLE)
+  unset(REGOCPP_HAVE_GLIBC CACHE)
+  include(CheckCXXSourceCompiles)
+  check_cxx_source_compiles("
+    #include <features.h>
+    #ifndef __GLIBC__
+    #error not glibc
+    #endif
+    int main() { return 0; }
+  " REGOCPP_HAVE_GLIBC)
+endif()
+
 if(REGOCPP_USE_FETCH_CONTENT)
   # Used to provide
   # FetchContent_MakeAvailable_ExcludeFromAll
@@ -154,6 +166,15 @@ if(REGOCPP_USE_FETCH_CONTENT)
   set(TRIESTE_BUILD_SAMPLES OFF)
   set(TRIESTE_BUILD_PARSERS ON)
   set(TRIESTE_USE_SNMALLOC ${REGOCPP_USE_SNMALLOC})
+
+  if(REGOCPP_USE_SNMALLOC AND UNIX AND NOT APPLE AND NOT REGOCPP_HAVE_GLIBC)
+    if(DEFINED CACHE{SNMALLOC_CLEANUP}
+       AND SNMALLOC_CLEANUP STREQUAL "CXX11_THREAD_ATEXIT_DIRECT")
+      unset(SNMALLOC_CLEANUP CACHE)
+    endif()
+    set(SNMALLOC_CLEANUP "PTHREAD_DESTRUCTORS" CACHE STRING
+        "snmalloc thread teardown mechanism")
+  endif()
 
   FetchContent_MakeAvailable_ExcludeFromAll(trieste)
 else()

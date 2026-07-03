@@ -19,3 +19,4 @@ build_*
 .env
 .python-version
 .copilot
+__pycache__
