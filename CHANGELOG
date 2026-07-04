@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-07-03 - Version 1.5.2
+Packaging patch that unbreaks the musllinux (Alpine) Python wheels and adds
+guardrails so the same regression cannot ship again. No source or API
+changes; glibc, macOS, FreeBSD, and Windows builds are byte-for-byte
+unaffected.
+
+**Bug Fixes**
+- `regopy` musllinux wheels for 1.4.0 through 1.5.1 failed to load on Alpine
+  with `Error relocating librego_shared.so: __cxa_thread_atexit_impl: symbol
+  not found`. On non-glibc Linux, the snmalloc thread-teardown mode is now
+  forced to `PTHREAD_DESTRUCTORS`, which does not depend on the glibc-only
+  `__cxa_thread_atexit_impl` symbol. The resulting library loads cleanly on
+  Alpine and other musl-based distributions.
+
+**Build / Packaging**
+- Root `CMakeLists.txt` probes the target libc via `<features.h>` and
+  exposes the result as `REGOCPP_HAVE_GLIBC`. The probe runs on every
+  configure so a toolchain switch in an existing build directory is not
+  answered from a stale cache.
+- `src/CMakeLists.txt` adds a `POST_BUILD` symbol assertion on
+  `librego_shared.so` when building for a non-glibc Linux, driven by a new
+  `cmake/check_forbidden_symbols.cmake` helper. A future dependency that
+  reintroduces a glibc-only undefined reference fails the build rather than
+  the end user's `dlopen`.
+- The `SNMALLOC_CLEANUP` override transparently overwrites a stale
+  `CXX11_THREAD_ATEXIT_DIRECT` cache value from an earlier configure, so
+  developers iterating in the same build directory do not need to wipe it.
+
+**CI**
+- `pr_gate.yml` gains a `linux-musllinux-load` job that rebuilds
+  `librego_shared.so` inside `quay.io/pypa/musllinux_1_2_x86_64` and
+  `dlopen`s it in a plain `python:3.13-alpine`, catching any glibc-only
+  undefined symbol on every PR.
+- `build_wheels.yml` gains a `smoke_test_musllinux` job that installs each
+  built musllinux wheel by explicit path (with a wheel-count assertion) in
+  the matching `python:X-alpine` image and exercises `Interpreter().query`
+  from both the main thread and a worker thread, verifying that snmalloc's
+  pthread-key teardown runs cleanly.
+
 ## 2026-06-30 - Version 1.5.1
 Build and packaging release. Adds an option to build a pinned, statically
 linked OpenSSL so the crypto backend can be made self-contained, independent

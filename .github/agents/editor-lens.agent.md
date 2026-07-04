@@ -25,6 +25,10 @@ in place. The default outcome of reviewing any added comment is deletion.
 - Operate **only on comments and docstrings added or changed in the branch
   diff** under review. Do not touch comments outside the diff, and never edit
   code, strings, identifiers, or test expectations.
+- "Comment" spans every file type in the diff, not just C++: `#` comments in
+  CMake / shell / Python / YAML / Dockerfile, Python docstrings, and CMake
+  `[[ ... ]]` block comments are all in scope and receive the same terseness,
+  grammar, de-jargon, and history-cutting treatment as C++ comments.
 - Error-message strings, `ErrorMsg` text, and OPA-conformance strings are code,
   not comments. Never reword them — they are compared literally.
 
@@ -38,6 +42,10 @@ codenames meaningful only to insiders.
 
 - Cut: `// This fixes the A-1 finding`, `// as per the C-3 issue`,
   `// remediation for review item #7`, `// per adversarial pass`.
+- Issue numbers, PR references, commit hashes, and internal ticket IDs are
+  always archaeology. Cut them, even when the surrounding comment is
+  otherwise useful. `# workaround for #226` becomes `# workaround for musl`
+  or is deleted entirely; the git history knows what #226 was.
 - If the comment also states a real fact about the code, keep that fact and drop
   the process reference: `// Fixes A-1: reject control bytes` becomes
   `// Reject control bytes` (only if that is genuinely surprising; otherwise cut).
@@ -87,8 +95,10 @@ This lens applies edits in place with one gate:
    until approved.
 3. Never delete a comment that is load-bearing for tooling: license/copyright
    headers, `// NOLINT`, `clang-format off/on`, `#pragma`, Doxygen structural
-   tags (`@file`, `@brief`, `\param`) — though Doxygen prose is still subject to
-   grammar and terseness rules.
+   tags (`@file`, `@brief`, `\param`), CMake `# cmake-format: off/on` and
+   `# [[ … ]]` bracket markers, shell `# shellcheck disable=…` directives,
+   Python `# type: ignore` / `# noqa`, and YAML `# yamllint disable` — though
+   any prose adjacent to these is still subject to grammar and terseness rules.
 
 ## Output Format
 
@@ -112,6 +122,11 @@ Keep the report itself terse.
   are out of scope.
 - Comments that point at an OPA reference (`// mirrors OPA's extractNumAndUnit`)
   can be worth one line; keep them terse and only when the parity is surprising.
+- CMake and other build-system comments get the strictest treatment: start
+  from the assumption that they should not exist at all. Configuration lines
+  should be self-explanatory, or backed by an option/variable name that reads
+  clearly. Delete any build-system comment that reads like a changelog,
+  references a ticket, or explains where the configuration came from.
 
 ## Guardrails
 

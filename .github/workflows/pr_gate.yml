@@ -353,6 +353,36 @@ jobs:
         working-directory: ${{github.workspace}}/cheriot-audit/build
         run: ctest -j4 --output-on-failure
 
+  linux-musllinux-load:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build librego_shared.so inside musllinux_1_2
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src \
+            quay.io/pypa/musllinux_1_2_x86_64 sh -euxc '
+              apk add --no-cache openssl-dev ninja g++ cmake >/dev/null
+              cmake -S . -B build-musl-gate -G Ninja \
+                -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc \
+                -DREGOCPP_BUILD_SHARED=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DSNMALLOC_ENABLE_DYNAMIC_LOADING=ON \
+                -DREGOCPP_CRYPTO_BACKEND=openssl3
+              cmake --build build-musl-gate --target rego_shared -j"$(nproc)"
+            '
+
+      - name: Load librego_shared.so in python:3.13-alpine
+        run: |
+          docker run --rm \
+            -v "$PWD/build-musl-gate/src:/lib_out:ro" \
+            -v "$PWD/.github/scripts:/scripts:ro" \
+            python:3.13-alpine sh -euxc '
+              apk add --no-cache libstdc++ libgcc openssl >/dev/null
+              python3 /scripts/smoke_load_shared_lib.py
+            '
+
   windows:
     runs-on: windows-latest
 

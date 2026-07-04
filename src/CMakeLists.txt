@@ -161,4 +161,18 @@ if ( REGOCPP_BUILD_SHARED )
       ${CMAKE_CURRENT_SOURCE_DIR}
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/rego>
   )
+
+  if(UNIX AND NOT APPLE AND NOT REGOCPP_HAVE_GLIBC)
+    find_program(REGOCPP_NM NAMES nm llvm-nm)
+    if(REGOCPP_NM)
+      add_custom_command(TARGET rego_shared POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+          -DNM=${REGOCPP_NM}
+          -DSHARED_LIB=$<TARGET_FILE:rego_shared>
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/check_forbidden_symbols.cmake
+        VERBATIM
+        COMMENT "Checking $<TARGET_FILE_NAME:rego_shared> for glibc-only symbols"
+      )
+    endif()
+  endif()
 endif()
