@@ -1,9 +1,22 @@
 name: OPA Version Check
 
-# Weekly check for new upstream OPA releases. When a newer version is found,
-# an issue is opened so that rego-cpp does not silently fall behind OPA. A
-# maintainer then bumps REGOCPP_OPA_VERSION in CMakeLists.txt; the OPA
-# conformance suite is cloned at the new tag, so CI reveals breaking changes.
+# Weekly empirical smoke test against the latest upstream OPA release.
+#
+# The job pins REGOCPP_OPA_VERSION to whatever OPA has just tagged, builds
+# rego-cpp against it, and runs the OPA conformance suite (which is cloned
+# from the OPA repo at the matching tag). Decision tree:
+#
+#   1. Already on latest?               -> exit, no issue
+#   2. Bump + build + test:
+#      a. Any step failed?              -> file "smoke test failed" issue
+#      b. All green + minor/major bump? -> file "safe to bump" issue
+#      c. All green + patch bump?       -> exit, no issue
+#
+# Patch releases (e.g. 1.18.1 -> 1.18.2) are usually Go runtime, formatter,
+# or server fixes with no Rego-surface impact, so a clean smoke run is
+# treated as sufficient evidence and no issue is filed. Minor/major bumps
+# always warrant a maintainer ping because they typically add new built-ins,
+# language features, or docs updates that need to land alongside the bump.
 #
 # Filing an issue (rather than opening a PR) keeps this workflow within the
 # default GITHUB_TOKEN permissions, avoiding the org-restricted "Allow GitHub
@@ -20,7 +33,7 @@ permissions:
   issues: write
 
 jobs:
-  check-opa-version:
+  smoke-test-latest-opa:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,31 +60,185 @@ jobs:
           echo "latest=${latest}" >> "$GITHUB_OUTPUT"
 
           if [ "${current}" = "${latest}" ]; then
-            echo "update_needed=false" >> "$GITHUB_OUTPUT"
-          else
-            # Confirm latest is actually newer (sort -V), to avoid downgrades
-            newest=$(printf '%s\n%s\n' "${current}" "${latest}" | sort -V | tail -n1)
-            if [ "${newest}" = "${latest}" ]; then
-              echo "update_needed=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "Latest (${latest}) is not newer than current (${current}); skipping."
-              echo "update_needed=false" >> "$GITHUB_OUTPUT"
-            fi
+            echo "Already on latest; nothing to smoke-test."
+            echo "smoke_needed=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
-      - name: Open tracking issue
-        if: steps.versions.outputs.update_needed == 'true'
+          # Guard against downgrades if OPA ever un-tags a release.
+          newest=$(printf '%s\n%s\n' "${current}" "${latest}" | sort -V | tail -n1)
+          if [ "${newest}" != "${latest}" ]; then
+            echo "Latest (${latest}) is not newer than current (${current}); skipping."
+            echo "smoke_needed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "smoke_needed=true" >> "$GITHUB_OUTPUT"
+
+          # Classify the bump. Minor/major bumps always warrant a maintainer
+          # ping on a clean run (new language features, new built-ins, docs
+          # updates); patch bumps only warrant an issue when smoke fails.
+          cur_mm="${current%.*}"
+          new_mm="${latest%.*}"
+          if [ "${cur_mm}" = "${new_mm}" ]; then
+            echo "bump_kind=patch" >> "$GITHUB_OUTPUT"
+          else
+            echo "bump_kind=minor_or_major" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump REGOCPP_OPA_VERSION to latest
+        if: steps.versions.outputs.smoke_needed == 'true'
+        env:
+          LATEST: ${{ steps.versions.outputs.latest }}
+        run: |
+          set -euo pipefail
+          sed -i -E \
+            "s/(set\s*\(\s*REGOCPP_OPA_VERSION\s+)[0-9]+\.[0-9]+\.[0-9]+/\1${LATEST}/" \
+            CMakeLists.txt
+          grep REGOCPP_OPA_VERSION CMakeLists.txt
+
+      - name: Install build dependencies
+        if: steps.versions.outputs.smoke_needed == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libssl-dev
+
+      - name: CMake configure (release-opa)
+        id: cmake_config
+        if: steps.versions.outputs.smoke_needed == 'true'
+        continue-on-error: true
+        run: cmake -B ${{ github.workspace }}/build --preset release-opa -G Ninja
+
+      - name: CMake build
+        id: cmake_build
+        if: >-
+          steps.versions.outputs.smoke_needed == 'true' &&
+          steps.cmake_config.outcome == 'success'
+        continue-on-error: true
+        working-directory: ${{ github.workspace }}/build
+        run: ninja
+
+      - name: OPA conformance tests
+        id: opa_tests
+        if: >-
+          steps.versions.outputs.smoke_needed == 'true' &&
+          steps.cmake_build.outcome == 'success'
+        continue-on-error: true
+        working-directory: ${{ github.workspace }}/build
+        run: |
+          set -o pipefail
+          ctest -V --build-config Release --timeout 300 --output-on-failure \
+            -R rego_test_opa 2>&1 | tee "${{ github.workspace }}/opa-test-output.log"
+
+      - name: Summarise smoke-test result
+        if: steps.versions.outputs.smoke_needed == 'true'
+        run: |
+          {
+            echo "## OPA version smoke test"
+            echo ""
+            echo "| | Version |"
+            echo "|---|---|"
+            echo "| Current | \`${{ steps.versions.outputs.current }}\` |"
+            echo "| Latest  | \`${{ steps.versions.outputs.latest }}\` |"
+            echo "| Bump    | ${{ steps.versions.outputs.bump_kind }} |"
+            echo ""
+            echo "| Step | Outcome |"
+            echo "|---|---|"
+            echo "| Configure | ${{ steps.cmake_config.outcome }} |"
+            echo "| Build     | ${{ steps.cmake_build.outcome }} |"
+            echo "| OPA tests | ${{ steps.opa_tests.outcome }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: File issue on smoke-test failure
+        if: >-
+          steps.versions.outputs.smoke_needed == 'true' &&
+          (steps.cmake_config.outcome != 'success' ||
+           steps.cmake_build.outcome != 'success' ||
+           steps.opa_tests.outcome != 'success')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CURRENT: ${{ steps.versions.outputs.current }}
           LATEST: ${{ steps.versions.outputs.latest }}
           REPO: ${{ github.repository }}
+          CONFIG_OUTCOME: ${{ steps.cmake_config.outcome }}
+          BUILD_OUTCOME: ${{ steps.cmake_build.outcome }}
+          TEST_OUTCOME: ${{ steps.opa_tests.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          title="OPA ${LATEST} smoke test failed"
+
+          # Avoid filing a duplicate if an open issue already tracks this failure.
+          existing=$(gh issue list \
+            --repo "${REPO}" \
+            --state open \
+            --label opa-version \
+            --search "${title} in:title" \
+            --json number \
+            --jq 'length')
+
+          if [ "${existing}" != "0" ]; then
+            echo "An open issue already tracks the ${LATEST} smoke-test failure; skipping."
+            exit 0
+          fi
+
+          {
+            printf '%s\n' \
+              "The weekly OPA smoke test bumped \`REGOCPP_OPA_VERSION\` from \`${CURRENT}\` to \`${LATEST}\` and observed a failure." \
+              "" \
+              "| Step | Outcome |" \
+              "|---|---|" \
+              "| Configure | ${CONFIG_OUTCOME} |" \
+              "| Build | ${BUILD_OUTCOME} |" \
+              "| OPA conformance tests | ${TEST_OUTCOME} |" \
+              "" \
+              "Full logs: ${RUN_URL}" \
+              "" \
+              "Release notes: https://github.com/open-policy-agent/opa/releases/tag/v${LATEST}" \
+              "" \
+              "## Action required" \
+              "- [ ] Reproduce locally: bump \`REGOCPP_OPA_VERSION\` to \`${LATEST}\` and run \`ctest -R rego_test_opa\`" \
+              "- [ ] Run the \`opa-compat-check\` skill to review the release notes" \
+              "- [ ] Fix / implement any regressions or new features" \
+              "- [ ] Land the bump" \
+              "" \
+              "## Tail of test output" \
+              '```'
+            if [ -f opa-test-output.log ]; then
+              tail -n 200 opa-test-output.log
+            else
+              echo "(no test output captured; failure occurred before the test step)"
+            fi
+            printf '%s\n' '```'
+          } > issue-body.md
+
+          gh issue create \
+            --repo "${REPO}" \
+            --title "${title}" \
+            --body-file issue-body.md \
+            --label dependencies \
+            --label opa-version
+
+      - name: File issue on clean minor/major bump
+        if: >-
+          steps.versions.outputs.smoke_needed == 'true' &&
+          steps.versions.outputs.bump_kind == 'minor_or_major' &&
+          steps.cmake_config.outcome == 'success' &&
+          steps.cmake_build.outcome == 'success' &&
+          steps.opa_tests.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT: ${{ steps.versions.outputs.current }}
+          LATEST: ${{ steps.versions.outputs.latest }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
           title="Bump OPA version to ${LATEST}"
 
-          # Avoid filing a duplicate if an open issue already tracks this version
+          # Avoid filing a duplicate if an open issue already tracks this bump.
           existing=$(gh issue list \
             --repo "${REPO}" \
             --state open \
@@ -85,36 +252,34 @@ jobs:
             exit 0
           fi
 
-          body=$(cat <<EOF
-          A newer upstream OPA release is available.
-
-          | | Version |
-          |---|---|
-          | Current | \`${CURRENT}\` |
-          | Latest | \`${LATEST}\` |
-
-          ## Action required
-          Bump \`REGOCPP_OPA_VERSION\` in \`CMakeLists.txt\` from \`${CURRENT}\` to \`${LATEST}\`.
-          The OPA conformance test suite is cloned at the matching tag
-          (\`v${LATEST}\`), so CI on the bump PR will reveal any **breaking**
-          behavioural changes in the new OPA release.
-
-          ## Checklist
-          - [ ] Bump \`REGOCPP_OPA_VERSION\` to \`${LATEST}\` in \`CMakeLists.txt\`
-          - [ ] Run the \`opa-compat-check\` skill to review the OPA release notes
-          - [ ] Update builtins / passes for any new or changed OPA features
-          - [ ] CI passes (or failures are triaged as expected OPA changes)
-          - [ ] Refresh \`CHANGELOG\` and docs as needed
-
-          Release notes: https://github.com/open-policy-agent/opa/releases/tag/v${LATEST}
-
-          _Opened automatically by the OPA Version Check workflow._
-          EOF
-          )
+          {
+            printf '%s\n' \
+              "A newer upstream OPA release is available and the empirical smoke test passed cleanly against it, so bumping should be safe." \
+              "" \
+              "| | Version |" \
+              "|---|---|" \
+              "| Current | \`${CURRENT}\` |" \
+              "| Latest  | \`${LATEST}\` |" \
+              "" \
+              "This is a **minor or major** bump, which typically adds new built-ins, language features, or docs updates. Please review the release notes and pick those up alongside the version bump." \
+              "" \
+              "Smoke-test run: ${RUN_URL}" \
+              "" \
+              "Release notes: https://github.com/open-policy-agent/opa/releases/tag/v${LATEST}" \
+              "" \
+              "## Checklist" \
+              "- [ ] Bump \`REGOCPP_OPA_VERSION\` to \`${LATEST}\` in \`CMakeLists.txt\`" \
+              "- [ ] Run the \`opa-compat-check\` skill to review the release notes" \
+              "- [ ] Implement any new built-ins / language features" \
+              "- [ ] Update the version reference in \`README.md\` and the wrapper READMEs" \
+              "- [ ] Refresh \`CHANGELOG\`" \
+              "" \
+              "_Opened automatically by the OPA Version Check workflow._"
+          } > issue-body.md
 
           gh issue create \
             --repo "${REPO}" \
             --title "${title}" \
-            --body "${body}" \
+            --body-file issue-body.md \
             --label dependencies \
             --label opa-version
