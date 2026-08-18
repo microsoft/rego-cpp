@@ -71,14 +71,14 @@ jobs:
             macos_deployment_target: ""
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Git config for fetching pull requests
         run: |
           git config --global --add remote.origin.fetch +refs/pull/*/merge:refs/remotes/pull/*
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v4.1.1
+        uses: pypa/cibuildwheel@4726cd35bb13f7bde50cf2761f2499ac7b3aa32c # v4.1.1
         env:
           CIBW_ARCHS: ${{ matrix.archs }}
           CIBW_BEFORE_ALL: ${{ matrix.before_all }}
@@ -93,7 +93,7 @@ jobs:
         with:
           package-dir: ${{github.workspace}}/wrappers/python/
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: wheels-${{ matrix.python }}-${{ matrix.target }}
           path: ./wheelhouse/*.whl
@@ -124,12 +124,12 @@ jobs:
           - python: cp314
             python_tag: "3.14-alpine"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           sparse-checkout: .github/scripts
           sparse-checkout-cone-mode: false
 
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: wheels-${{ matrix.python }}-${{ matrix.target }}
           path: wheelhouse
@@ -155,13 +155,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download Wheels
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: wheelhouse
           pattern: wheels-*
           merge-multiple: true
       - run: ls -R wheelhouse
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: wheels
           path: ./wheelhouse/*
